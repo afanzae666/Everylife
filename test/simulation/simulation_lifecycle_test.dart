@@ -24,6 +24,11 @@ class _MemorySaveRepository implements SaveRepository {
   }
 }
 
+@override
+Future<void> delete() async {
+  savedState = null;
+}
+
 WorldState createState() {
   return WorldState(
     clock: const SimulationClock(
