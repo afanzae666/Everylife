@@ -3,10 +3,14 @@ import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
 import 'simulation_system.dart';
+import 'system_priority.dart';
 
 class CharacterSystem implements SimulationSystem {
   @override
   String get id => 'character';
+
+  @override
+  int get priority => SystemPriority.character.value;
 
   @override
   WorldState process({
@@ -21,8 +25,6 @@ class CharacterSystem implements SimulationSystem {
       state.clock.currentYear,
     );
 
-    final updatedPlayer = state.player.copyWith();
-
     final event = SimulationEvent(
       id: 'character-aged-${state.clock.currentYear}',
       type: SimulationEventType.characterAged,
@@ -32,10 +34,6 @@ class CharacterSystem implements SimulationSystem {
           '${state.player.name} is now $age years old.',
     );
 
-    return state
-        .copyWith(
-          player: updatedPlayer,
-        )
-        .addEvent(event);
+    return state.addEvent(event);
   }
 }
