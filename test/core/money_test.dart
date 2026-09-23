@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:life_simulation_game/core/money/money.dart';
+import 'package:everylife/core/money/money.dart';
 
 void main() {
   group('Money', () {
