@@ -8,6 +8,7 @@ import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
 import '../systems/simulation_system.dart';
+import 'simulation_scheduler.dart';
 
 class SimulationEngine {
   SimulationEngine({
@@ -16,53 +17,42 @@ class SimulationEngine {
     required SaveRepository saveRepository,
   })  : _state = initialState,
         _random = random,
-        _saveRepository = saveRepository;
+        _saveRepository = saveRepository,
+        _scheduler = SimulationScheduler();
 
   WorldState _state;
+
   final SeededRandom _random;
   final SaveRepository _saveRepository;
-
-  final List<SimulationSystem> _systems = [];
+  final SimulationScheduler _scheduler;
 
   WorldState get state => _state;
 
   SeededRandom get random => _random;
 
+  List<SimulationSystem> get systems => _scheduler.systems;
+
   void registerSystem(SimulationSystem system) {
-    if (_systems.any((existing) => existing.id == system.id)) {
-      throw StateError(
-        'Simulation system already registered: ${system.id}',
-      );
-    }
-
-    _systems.add(system);
-
-    _systems.sort(
-      (a, b) => a.priority.compareTo(b.priority),
-    );
+    _scheduler.registerSystem(system);
   }
 
   Result<void> execute(
     SimulationCommand<dynamic> command,
   ) {
-    try {
-      var nextState = _state;
+    final result = _scheduler.execute(
+      state: _state,
+      command: command,
+    );
 
-      for (final system in _systems) {
-        nextState = system.process(
-          state: nextState,
-          command: command,
-        );
-      }
+    return switch (result) {
+      Success<WorldState>(:final value) => _commit(value),
+      Failure<WorldState>(:final message) => Failure(message),
+    };
+  }
 
-      _state = nextState;
-
-      return const Success(null);
-    } catch (error) {
-      return Failure(
-        'Simulation command failed: $error',
-      );
-    }
+  Result<void> _commit(WorldState nextState) {
+    _state = nextState;
+    return const Success(null);
   }
 
   Result<void> ageUp() {
