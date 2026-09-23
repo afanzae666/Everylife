@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:life_simulation_game/core/random/seeded_random.dart';
+import 'package:everylife/core/random/seeded_random.dart';
 
 void main() {
   test('same seed produces the same sequence', () {
