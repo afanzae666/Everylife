@@ -9,6 +9,8 @@ import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
 import '../systems/simulation_system.dart';
 import 'simulation_scheduler.dart';
+import 'simulation_tick.dart';
+import 'world_state_validator.dart';
 
 class SimulationEngine {
   SimulationEngine({
@@ -18,19 +20,25 @@ class SimulationEngine {
   })  : _state = initialState,
         _random = random,
         _saveRepository = saveRepository,
-        _scheduler = SimulationScheduler();
+        _scheduler = SimulationScheduler(),
+        _validator = const WorldStateValidator();
 
   WorldState _state;
 
   final SeededRandom _random;
   final SaveRepository _saveRepository;
   final SimulationScheduler _scheduler;
+  final WorldStateValidator _validator;
+
+  int _nextTickId = 1;
 
   WorldState get state => _state;
 
   SeededRandom get random => _random;
 
   List<SimulationSystem> get systems => _scheduler.systems;
+
+  int get nextTickId => _nextTickId;
 
   void registerSystem(SimulationSystem system) {
     _scheduler.registerSystem(system);
@@ -39,6 +47,12 @@ class SimulationEngine {
   Result<void> execute(
     SimulationCommand<dynamic> command,
   ) {
+    final validation = _validator.validate(_state);
+
+    if (validation case Failure<void>(:final message)) {
+      return Failure(message);
+    }
+
     final result = _scheduler.execute(
       state: _state,
       command: command,
@@ -51,14 +65,39 @@ class SimulationEngine {
   }
 
   Result<void> _commit(WorldState nextState) {
+    final validation = _validator.validate(nextState);
+
+    if (validation case Failure<void>(:final message)) {
+      return Failure(message);
+    }
+
     _state = nextState;
+
     return const Success(null);
   }
 
   Result<void> ageUp() {
-    return execute(
+    final tick = SimulationTick(
+      id: _nextTickId,
+      fromYear: _state.clock.currentYear,
+      toYear: _state.clock.currentYear + 1,
+    );
+
+    if (!tick.isValid) {
+      return const Failure(
+        'Unable to create a valid simulation tick.',
+      );
+    }
+
+    final result = execute(
       const AgeUpCommand(),
     );
+
+    if (result case Success<void>()) {
+      _nextTickId++;
+    }
+
+    return result;
   }
 
   Future<Result<void>> save() async {
@@ -80,6 +119,14 @@ class SimulationEngine {
       if (loaded == null) {
         return const Failure(
           'No save data exists.',
+        );
+      }
+
+      final validation = _validator.validate(loaded);
+
+      if (validation case Failure<void>(:final message)) {
+        return Failure(
+          'Loaded save is invalid: $message',
         );
       }
 
