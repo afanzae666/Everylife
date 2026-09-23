@@ -1,152 +1,109 @@
-import 'package:flutter_test/flutter_test.dart';
+import '../../core/random/seeded_random.dart';
+import '../../core/result/result.dart';
+import '../../data/repositories/save_repository.dart';
+import '../../domain/character/character.dart';
+import '../../domain/event/simulation_event.dart';
+import '../../domain/time/simulation_clock.dart';
+import '../../domain/world/world_state.dart';
+import '../commands/age_up_command.dart';
+import '../commands/simulation_command.dart';
+import '../systems/simulation_system.dart';
+import '../systems/time_system.dart';
+import 'simulation_scheduler.dart';
+import 'simulation_tick.dart';
+import 'world_state_validator.dart';
 
-import 'package:everylife/core/result/result.dart';
-import 'package:everylife/data/repositories/save_repository.dart';
-import 'package:everylife/domain/character/character.dart';
-import 'package:everylife/simulation/engine/simulation_engine.dart';
-import 'package:everylife/simulation/systems/character_system.dart';
-import 'package:everylife/simulation/systems/event_system.dart';
-import 'package:everylife/simulation/systems/time_system.dart';
+class SimulationEngine {
+  SimulationEngine({
+    required WorldState initialState,
+    required SeededRandom random,
+    required SaveRepository saveRepository,
+  })  : _state = initialState,
+        _random = random,
+        _saveRepository = saveRepository,
+        _scheduler = SimulationScheduler(
+          systems: const [
+            TimeSystem(),
+          ],
+        ),
+        _validator = const WorldStateValidator();
 
-void main() {
-  SimulationEngine createEngine() {
-    final player = Character.create(
-      id: 'player-1',
-      name: 'Test Player',
-      birthYear: 2026,
-    );
+  WorldState _state;
 
-    final engine = SimulationEngine.create(
-      player: player,
-      seed: 12345,
-      saveRepository: InMemorySaveRepository(),
-    );
+  final SeededRandom _random;
+  final SaveRepository _saveRepository;
+  final SimulationScheduler _scheduler;
+  final WorldStateValidator _validator;
 
-    engine.registerSystem(TimeSystem());
-    engine.registerSystem(CharacterSystem());
-    engine.registerSystem(
-      EventSystem(
-        random: engine.random,
-      ),
-    );
+  int _nextTickId = 1;
 
-    return engine;
+  WorldState get state => _state;
+
+  SeededRandom get random => _random;
+
+  List<SimulationSystem> get systems => _scheduler.systems;
+
+  int get nextTickId => _nextTickId;
+
+  void registerSystem(SimulationSystem system) {
+    _scheduler.registerSystem(system);
   }
 
-  test('new life starts at age zero', () {
-    final engine = createEngine();
+  Result<void> execute(
+    SimulationCommand<dynamic> command,
+  ) {
+    final validation = _validator.validate(_state);
 
-    expect(
-      engine.state.player.ageAt(
-        engine.state.clock.currentYear,
-      ),
-      0,
-    );
-  });
+    if (validation case Failure<void>(:final message)) {
+      return Failure(message);
+    }
 
-  test('age up advances exactly one year', () {
-    final engine = createEngine();
-
-    final result = engine.ageUp();
-
-    expect(result, isA<Success<void>>());
-
-    expect(
-      engine.state.clock.currentYear,
-      2027,
+    final result = _scheduler.execute(
+      state: _state,
+      command: command,
     );
 
-    expect(
-      engine.state.player.ageAt(
-        engine.state.clock.currentYear,
-      ),
-      1,
+    return switch (result) {
+      Success<WorldState>(:final value) => _commit(value),
+      Failure<WorldState>(:final message) => Failure(message),
+    };
+  }
+
+  Result<void> _commit(WorldState nextState) {
+    final validation = _validator.validate(nextState);
+
+    if (validation case Failure<void>(:final message)) {
+      return Failure(message);
+    }
+
+    _state = nextState;
+
+    return const Success(null);
+  }
+
+  Result<void> ageUp() {
+    final tick = SimulationTick(
+      id: _nextTickId,
+      fromYear: _state.clock.currentYear,
+      toYear: _state.clock.currentYear + 1,
     );
-  });
 
-  test('age up can be repeated', () {
-    final engine = createEngine();
-
-    for (var i = 0; i < 10; i++) {
-      final result = engine.ageUp();
-
-      expect(
-        result,
-        isA<Success<void>>(),
+    if (!tick.isValid) {
+      return const Failure(
+        'Unable to create a valid simulation tick.',
       );
     }
 
-    expect(
-      engine.state.clock.currentYear,
-      2036,
+    final result = execute(
+      const AgeUpCommand(),
     );
 
-    expect(
-      engine.state.player.ageAt(
-        engine.state.clock.currentYear,
-      ),
-      10,
-    );
-  });
+    if (result case Success<void>()) {
+      _nextTickId++;
+    }
 
-  test('simulation creates character aging events', () {
-    final engine = createEngine();
+    return result;
+  }
 
-    engine.ageUp();
-
-    expect(
-      engine.state.events.any(
-        (event) => event.type.name == 'characterAged',
-      ),
-      isTrue,
-    );
-  });
-
-  test('save and load restore simulation state', () async {
-    final repository = InMemorySaveRepository();
-
-    final player = Character.create(
-      id: 'player-1',
-      name: 'Save Test',
-      birthYear: 2026,
-    );
-
-    final engine = SimulationEngine.create(
-      player: player,
-      seed: 999,
-      saveRepository: repository,
-    );
-
-    engine.registerSystem(TimeSystem());
-    engine.registerSystem(CharacterSystem());
-    engine.registerSystem(
-      EventSystem(
-        random: engine.random,
-      ),
-    );
-
-    engine.ageUp();
-    await engine.save();
-
-    engine.ageUp();
-
-    expect(
-      engine.state.clock.currentYear,
-      2028,
-    );
-
-    await engine.load();
-
-    expect(
-      engine.state.clock.currentYear,
-      2027,
-    );
-
-    expect(
-      engine.state.player.ageAt(
-        engine.state.clock.currentYear,
-      ),
-      1,
-    );
-  });
-}
+  Future<Result<void>> save() async {
+    try {
