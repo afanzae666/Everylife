@@ -22,11 +22,11 @@ class _MemorySaveRepository implements SaveRepository {
   Future<WorldState?> load() async {
     return savedState;
   }
-}
 
-@override
-Future<void> delete() async {
-  savedState = null;
+  @override
+  Future<void> delete() async {
+    savedState = null;
+  }
 }
 
 WorldState createState() {
