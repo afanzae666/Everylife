@@ -36,6 +36,10 @@ class SimulationEngine {
     }
 
     _systems.add(system);
+
+    _systems.sort(
+      (a, b) => a.priority.compareTo(b.priority),
+    );
   }
 
   Result<void> execute(
