@@ -76,4 +76,101 @@ class SimulationEngine {
       return Failure(message);
     }
 
-    _state =
+    _state = nextState;
+
+    return const Success(null);
+  }
+
+  Result<void> ageUp() {
+    final tick = SimulationTick(
+      id: _nextTickId,
+      fromYear: _state.clock.currentYear,
+      toYear: _state.clock.currentYear + 1,
+    );
+
+    if (!tick.isValid) {
+      return const Failure(
+        'Unable to create a valid simulation tick.',
+      );
+    }
+
+    final result = execute(
+      const AgeUpCommand(),
+    );
+
+    if (result case Success<void>()) {
+      _nextTickId++;
+    }
+
+    return result;
+  }
+
+  Future<Result<void>> save() async {
+    try {
+      await _saveRepository.save(_state);
+
+      return const Success(null);
+    } catch (error) {
+      return Failure(
+        'Save failed: $error',
+      );
+    }
+  }
+
+  Future<Result<void>> load() async {
+    try {
+      final loaded = await _saveRepository.load();
+
+      if (loaded == null) {
+        return const Failure(
+          'No save data exists.',
+        );
+      }
+
+      final validation = _validator.validate(loaded);
+
+      if (validation case Failure<void>(:final message)) {
+        return Failure(
+          'Loaded save is invalid: $message',
+        );
+      }
+
+      _state = loaded;
+
+      return const Success(null);
+    } catch (error) {
+      return Failure(
+        'Load failed: $error',
+      );
+    }
+  }
+
+  static SimulationEngine create({
+    required Character player,
+    required int seed,
+    required SaveRepository saveRepository,
+  }) {
+    final initialState = WorldState(
+      clock: SimulationClock(
+        currentYear: player.birthYear,
+      ),
+      player: player,
+      events: [
+        SimulationEvent(
+          id: 'life-created',
+          type: SimulationEventType.lifeCreated,
+          year: player.birthYear,
+          title: 'A new life begins',
+          description:
+              '${player.name} was born in ${player.birthYear}.',
+        ),
+      ],
+    );
+
+    return SimulationEngine(
+      initialState: initialState,
+      random: SeededRandom(seed),
+      saveRepository: saveRepository,
+    );
+  }
+}
