@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:everylife/core/result/result.dart';
 import 'package:everylife/domain/character/character.dart';
+import 'package:everylife/domain/time/simulation_clock.dart';
 import 'package:everylife/domain/world/world_state.dart';
 import 'package:everylife/simulation/commands/age_up_command.dart';
 import 'package:everylife/simulation/engine/simulation_scheduler.dart';
