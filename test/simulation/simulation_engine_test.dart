@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:life_simulation_game/core/result/result.dart';
-import 'package:life_simulation_game/data/repositories/save_repository.dart';
-import 'package:life_simulation_game/domain/character/character.dart';
-import 'package:life_simulation_game/simulation/engine/simulation_engine.dart';
-import 'package:life_simulation_game/simulation/systems/character_system.dart';
-import 'package:life_simulation_game/simulation/systems/event_system.dart';
-import 'package:life_simulation_game/simulation/systems/time_system.dart';
+import 'package:everylife/core/result/result.dart';
+import 'package:everylife/data/repositories/save_repository.dart';
+import 'package:everylife/domain/character/character.dart';
+import 'package:everylife/simulation/engine/simulation_engine.dart';
+import 'package:everylife/simulation/systems/character_system.dart';
+import 'package:everylife/simulation/systems/event_system.dart';
+import 'package:everylife/simulation/systems/time_system.dart';
 
 void main() {
   SimulationEngine createEngine() {
@@ -96,8 +96,7 @@ void main() {
 
     expect(
       engine.state.events.any(
-        (event) =>
-            event.type.name == 'characterAged',
+        (event) => event.type.name == 'characterAged',
       ),
       isTrue,
     );
