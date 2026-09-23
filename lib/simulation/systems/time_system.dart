@@ -2,14 +2,15 @@ import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
 import 'simulation_system.dart';
-import 'system_priority.dart';
 
 class TimeSystem implements SimulationSystem {
+  const TimeSystem();
+
   @override
   String get id => 'time';
 
   @override
-  int get priority => SystemPriority.time.value;
+  int get priority => 0;
 
   @override
   WorldState process({
