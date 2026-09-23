@@ -6,7 +6,6 @@ import '../simulation/engine/simulation_engine.dart';
 import '../simulation/systems/character_system.dart';
 import '../simulation/systems/event_system.dart';
 import '../simulation/systems/time_system.dart';
-import '../core/random/seeded_random.dart';
 import '../presentation/screens/game_screen.dart';
 
 class LifeSimulationApp extends StatelessWidget {
@@ -25,7 +24,9 @@ class LifeSimulationApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: GameScreen(engine: engine),
+      home: GameScreen(
+        engine: engine,
+      ),
     );
   }
 
@@ -42,9 +43,19 @@ class LifeSimulationApp extends StatelessWidget {
       saveRepository: InMemorySaveRepository(),
     );
 
-    engine.registerSystem(TimeSystem());
-    engine.registerSystem(CharacterSystem());
-    engine.registerSystem(EventSystem());
+    engine.registerSystem(
+      TimeSystem(),
+    );
+
+    engine.registerSystem(
+      CharacterSystem(),
+    );
+
+    engine.registerSystem(
+      EventSystem(
+        random: engine.random,
+      ),
+    );
 
     return engine;
   }
