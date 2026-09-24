@@ -3,10 +3,18 @@ import '../../domain/event/simulation_event.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
+import '../progression/character_stat_progression.dart';
 import 'simulation_system.dart';
 import 'system_priority.dart';
 
 class CharacterSystem implements SimulationSystem {
+  CharacterSystem({
+    CharacterStatProgression progression =
+        const CharacterStatProgression(),
+  }) : _progression = progression;
+
+  final CharacterStatProgression _progression;
+
   @override
   String get id => 'character';
 
@@ -32,7 +40,16 @@ class CharacterSystem implements SimulationSystem {
         ? LifeStageAge.fromAge(previousAge)
         : null;
 
-    var nextState = state;
+    final updatedStats = _progression.apply(
+      stats: state.player.stats,
+      stage: currentStage,
+    );
+
+    var nextState = state.copyWith(
+      player: state.player.copyWith(
+        stats: updatedStats,
+      ),
+    );
 
     if (previousStage != null && previousStage != currentStage) {
       nextState = nextState.addEvent(
