@@ -19,6 +19,7 @@ class SimulationEngine {
     required WorldState initialState,
     required SeededRandom random,
     required SaveRepository saveRepository,
+    int nextTickId = 1,
   })  : _state = initialState,
         _random = random,
         _saveRepository = saveRepository,
@@ -28,7 +29,8 @@ class SimulationEngine {
             CharacterSystem(),
           ],
         ),
-        _validator = const WorldStateValidator();
+        _validator = const WorldStateValidator(),
+        _nextTickId = nextTickId;
 
   WorldState _state;
 
@@ -37,7 +39,7 @@ class SimulationEngine {
   final SimulationScheduler _scheduler;
   final WorldStateValidator _validator;
 
-  int _nextTickId = 1;
+  int _nextTickId;
 
   WorldState get state => _state;
 
@@ -109,7 +111,11 @@ class SimulationEngine {
 
   Future<Result<void>> save() async {
     try {
-      await _saveRepository.save(_state);
+      await _saveRepository.save(
+        _state,
+        randomState: _random.state,
+        nextTickId: _nextTickId,
+      );
 
       return const Success(null);
     } catch (error) {
@@ -121,15 +127,17 @@ class SimulationEngine {
 
   Future<Result<void>> load() async {
     try {
-      final loaded = await _saveRepository.load();
+      final data = await _saveRepository.load();
 
-      if (loaded == null) {
+      if (data == null) {
         return const Failure(
           'No save data exists.',
         );
       }
 
-      final validation = _validator.validate(loaded);
+      final validation = _validator.validate(
+        data.state,
+      );
 
       if (validation case Failure<void>(:final message)) {
         return Failure(
@@ -137,7 +145,9 @@ class SimulationEngine {
         );
       }
 
-      _state = loaded;
+      _state = data.state;
+      _random.restoreState(data.randomState);
+      _nextTickId = data.nextTickId;
 
       return const Success(null);
     } catch (error) {
