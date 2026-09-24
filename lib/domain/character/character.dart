@@ -7,7 +7,7 @@ class Character {
   const Character({
     required this.id,
     required this.name,
-    required this.gender,
+    this.gender = Gender.male,
     required this.birthYear,
     required this.stats,
     required this.money,
@@ -56,7 +56,7 @@ class Character {
   static Character create({
     required String id,
     required String name,
-    required Gender gender,
+    Gender gender = Gender.male,
     required int birthYear,
     CharacterStats? stats,
   }) {
