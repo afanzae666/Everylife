@@ -21,9 +21,11 @@ class _CharacterCreationScreenState
   final _nameController = TextEditingController();
 
   Gender _gender = Gender.male;
-  int _startingAge = 18;
 
-  static const int _currentYear = 2026;
+  static const int _minimumBirthYear = 1900;
+  static const int _maximumBirthYear = 2026;
+
+  int _birthYear = _maximumBirthYear;
 
   @override
   void dispose() {
@@ -47,7 +49,7 @@ class _CharacterCreationScreenState
       id: 'player-${DateTime.now().microsecondsSinceEpoch}',
       name: name,
       gender: _gender,
-      birthYear: _currentYear - _startingAge,
+      birthYear: _birthYear,
     );
 
     widget.onCharacterCreated(character);
@@ -71,7 +73,7 @@ class _CharacterCreationScreenState
             ),
             const SizedBox(height: 8),
             Text(
-              'Choose the starting details for your life.',
+              'Your life begins at birth.',
               style: Theme.of(context)
                   .textTheme
                   .bodyLarge,
@@ -116,43 +118,44 @@ class _CharacterCreationScreenState
             ),
             const SizedBox(height: 28),
             Text(
-              'Starting Age',
+              'Birth Year',
               style: Theme.of(context)
                   .textTheme
                   .titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              '$_startingAge years old',
+              '$_birthYear',
               style: Theme.of(context)
                   .textTheme
                   .headlineSmall,
             ),
             Slider(
-              min: 0,
-              max: 80,
-              divisions: 80,
-              value: _startingAge.toDouble(),
-              label: '$_startingAge',
+              min: _minimumBirthYear.toDouble(),
+              max: _maximumBirthYear.toDouble(),
+              divisions:
+                  _maximumBirthYear - _minimumBirthYear,
+              value: _birthYear.toDouble(),
+              label: '$_birthYear',
               onChanged: (value) {
                 setState(() {
-                  _startingAge = value.round();
+                  _birthYear = value.round();
                 });
               },
             ),
-            const SizedBox(height: 8),
             Text(
-              'Birth year: ${_currentYear - _startingAge}',
+              'Your character will begin life as a newborn '
+              'in $_birthYear.',
             ),
             const SizedBox(height: 36),
             FilledButton.icon(
               onPressed: _createCharacter,
-              icon: const Icon(Icons.play_arrow),
+              icon: const Icon(Icons.child_friendly),
               label: const Padding(
                 padding: EdgeInsets.symmetric(
                   vertical: 12,
                 ),
-                child: Text('CREATE CHARACTER'),
+                child: Text('BEGIN LIFE'),
               ),
             ),
           ],
