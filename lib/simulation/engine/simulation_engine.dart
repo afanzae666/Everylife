@@ -23,7 +23,7 @@ class SimulationEngine {
         _random = random,
         _saveRepository = saveRepository,
         _scheduler = SimulationScheduler(
-          systems: const [
+          systems: [
             TimeSystem(),
             CharacterSystem(),
           ],
