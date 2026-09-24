@@ -11,25 +11,6 @@ import 'package:everylife/simulation/engine/simulation_engine.dart';
 import 'package:everylife/simulation/engine/simulation_tick.dart';
 import 'package:everylife/simulation/engine/world_state_validator.dart';
 
-class _MemorySaveRepository implements SaveRepository {
-  WorldState? savedState;
-
-  @override
-  Future<void> save(WorldState state) async {
-    savedState = state;
-  }
-
-  @override
-  Future<WorldState?> load() async {
-    return savedState;
-  }
-
-  @override
-  Future<void> delete() async {
-    savedState = null;
-  }
-}
-
 WorldState createState({
   int birthYear = 2026,
 }) {
@@ -47,204 +28,300 @@ WorldState createState({
 }
 
 void main() {
-  test('simulation tick represents exactly one year', () {
-    const tick = SimulationTick(
-      id: 1,
-      fromYear: 2026,
-      toYear: 2027,
-    );
+  test(
+    'simulation tick represents exactly one year',
+    () {
+      const tick = SimulationTick(
+        id: 1,
+        fromYear: 2026,
+        toYear: 2027,
+      );
 
-    expect(tick.isValid, isTrue);
-  });
+      expect(
+        tick.isValid,
+        isTrue,
+      );
+    },
+  );
 
-  test('invalid simulation tick is rejected', () {
-    const tick = SimulationTick(
-      id: 1,
-      fromYear: 2026,
-      toYear: 2029,
-    );
+  test(
+    'invalid simulation tick is rejected',
+    () {
+      const tick = SimulationTick(
+        id: 1,
+        fromYear: 2026,
+        toYear: 2029,
+      );
 
-    expect(tick.isValid, isFalse);
-  });
+      expect(
+        tick.isValid,
+        isFalse,
+      );
+    },
+  );
 
-  test('world state validator accepts valid newborn state', () {
-    final state = createState();
+  test(
+    'world state validator accepts valid newborn state',
+    () {
+      final state = createState();
 
-    const validator = WorldStateValidator();
+      const validator = WorldStateValidator();
 
-    final result = validator.validate(state);
+      final result = validator.validate(state);
 
-    expect(result, isA<Success<void>>());
+      expect(
+        result,
+        isA<Success<void>>(),
+      );
 
-    expect(
-      state.player.ageAt(state.clock.currentYear),
-      0,
-    );
+      expect(
+        state.player.ageAt(
+          state.clock.currentYear,
+        ),
+        0,
+      );
 
-    expect(
-      state.player.lifeStageAt(state.clock.currentYear),
-      LifeStage.infant,
-    );
-  });
+      expect(
+        state.player.lifeStageAt(
+          state.clock.currentYear,
+        ),
+        LifeStage.infant,
+      );
+    },
+  );
 
-  test('age up advances exactly one year', () {
-    final repository = _MemorySaveRepository();
+  test(
+    'age up advances exactly one year',
+    () {
+      final engine = SimulationEngine(
+        initialState: createState(),
+        random: SeededRandom(12345),
+        saveRepository: InMemorySaveRepository(),
+      );
 
-    final engine = SimulationEngine(
-      initialState: createState(),
-      random: SeededRandom(12345),
-      saveRepository: repository,
-    );
+      final result = engine.ageUp();
 
-    final result = engine.ageUp();
+      expect(
+        result,
+        isA<Success<void>>(),
+      );
 
-    expect(result, isA<Success<void>>());
-
-    expect(
-      engine.state.clock.currentYear,
-      2027,
-    );
-
-    expect(
-      engine.state.player.ageAt(
+      expect(
         engine.state.clock.currentYear,
-      ),
-      1,
-    );
+        2027,
+      );
 
-    expect(
-      engine.state.player.lifeStageAt(
+      expect(
+        engine.state.player.ageAt(
+          engine.state.clock.currentYear,
+        ),
+        1,
+      );
+
+      expect(
+        engine.state.player.lifeStageAt(
+          engine.state.clock.currentYear,
+        ),
+        LifeStage.infant,
+      );
+    },
+  );
+
+  test(
+    'newborn progresses from birth through early childhood',
+    () {
+      final engine = SimulationEngine(
+        initialState: createState(
+          birthYear: 1900,
+        ),
+        random: SeededRandom(12345),
+        saveRepository: InMemorySaveRepository(),
+      );
+
+      expect(
         engine.state.clock.currentYear,
-      ),
-      LifeStage.infant,
-    );
-  });
+        1900,
+      );
 
-  test('newborn progresses from birth through early childhood', () {
-    final repository = _MemorySaveRepository();
+      expect(
+        engine.state.player.ageAt(
+          engine.state.clock.currentYear,
+        ),
+        0,
+      );
 
-    final engine = SimulationEngine(
-      initialState: createState(
+      expect(
+        engine.state.player.lifeStageAt(
+          engine.state.clock.currentYear,
+        ),
+        LifeStage.infant,
+      );
+
+      var result = engine.ageUp();
+
+      expect(
+        result,
+        isA<Success<void>>(),
+      );
+
+      expect(
+        engine.state.clock.currentYear,
+        1901,
+      );
+
+      expect(
+        engine.state.player.ageAt(
+          engine.state.clock.currentYear,
+        ),
+        1,
+      );
+
+      expect(
+        engine.state.player.lifeStageAt(
+          engine.state.clock.currentYear,
+        ),
+        LifeStage.infant,
+      );
+
+      result = engine.ageUp();
+
+      expect(
+        result,
+        isA<Success<void>>(),
+      );
+
+      expect(
+        engine.state.clock.currentYear,
+        1902,
+      );
+
+      expect(
+        engine.state.player.ageAt(
+          engine.state.clock.currentYear,
+        ),
+        2,
+      );
+
+      expect(
+        engine.state.player.lifeStageAt(
+          engine.state.clock.currentYear,
+        ),
+        LifeStage.infant,
+      );
+
+      result = engine.ageUp();
+
+      expect(
+        result,
+        isA<Success<void>>(),
+      );
+
+      expect(
+        engine.state.clock.currentYear,
+        1903,
+      );
+
+      expect(
+        engine.state.player.ageAt(
+          engine.state.clock.currentYear,
+        ),
+        3,
+      );
+
+      expect(
+        engine.state.player.lifeStageAt(
+          engine.state.clock.currentYear,
+        ),
+        LifeStage.toddler,
+      );
+    },
+  );
+
+  test(
+    'birth year can be 1900 and simulation starts at birth',
+    () {
+      final state = createState(
         birthYear: 1900,
-      ),
-      random: SeededRandom(12345),
-      saveRepository: repository,
-    );
+      );
 
-    expect(
-      engine.state.clock.currentYear,
-      1900,
-    );
-
-    expect(
-      engine.state.player.ageAt(
-        engine.state.clock.currentYear,
-      ),
-      0,
-    );
-
-    expect(
-      engine.state.player.lifeStageAt(
-        engine.state.clock.currentYear,
-      ),
-      LifeStage.infant,
-    );
-
-    var result = engine.ageUp();
-
-    expect(result, isA<Success<void>>());
-    expect(engine.state.clock.currentYear, 1901);
-    expect(
-      engine.state.player.ageAt(
-        engine.state.clock.currentYear,
-      ),
-      1,
-    );
-    expect(
-      engine.state.player.lifeStageAt(
-        engine.state.clock.currentYear,
-      ),
-      LifeStage.infant,
-    );
-
-    result = engine.ageUp();
-
-    expect(result, isA<Success<void>>());
-    expect(engine.state.clock.currentYear, 1902);
-    expect(
-      engine.state.player.ageAt(
-        engine.state.clock.currentYear,
-      ),
-      2,
-    );
-    expect(
-      engine.state.player.lifeStageAt(
-        engine.state.clock.currentYear,
-      ),
-      LifeStage.infant,
-    );
-
-    result = engine.ageUp();
-
-    expect(result, isA<Success<void>>());
-    expect(engine.state.clock.currentYear, 1903);
-    expect(
-      engine.state.player.ageAt(
-        engine.state.clock.currentYear,
-      ),
-      3,
-    );
-    expect(
-      engine.state.player.lifeStageAt(
-        engine.state.clock.currentYear,
-      ),
-      LifeStage.toddler,
-    );
-  });
-
-  test('birth year can be 1900 and simulation starts at birth', () {
-    final state = createState(
-      birthYear: 1900,
-    );
-
-    expect(
-      state.clock.currentYear,
-      1900,
-    );
-
-    expect(
-      state.player.birthYear,
-      1900,
-    );
-
-    expect(
-      state.player.ageAt(
+      expect(
         state.clock.currentYear,
-      ),
-      0,
-    );
+        1900,
+      );
 
-    expect(
-      state.player.lifeStageAt(
-        state.clock.currentYear,
-      ),
-      LifeStage.infant,
-    );
-  });
+      expect(
+        state.player.birthYear,
+        1900,
+      );
 
-  test('failed save data is rejected during load', () async {
-    final repository = _MemorySaveRepository();
+      expect(
+        state.player.ageAt(
+          state.clock.currentYear,
+        ),
+        0,
+      );
 
-    final engine = SimulationEngine(
-      initialState: createState(),
-      random: SeededRandom(12345),
-      saveRepository: repository,
-    );
+      expect(
+        state.player.lifeStageAt(
+          state.clock.currentYear,
+        ),
+        LifeStage.infant,
+      );
+    },
+  );
 
-    await engine.save();
+  test(
+    'saved simulation can be loaded successfully',
+    () async {
+      final repository = InMemorySaveRepository();
 
-    final loadResult = await engine.load();
+      final firstEngine = SimulationEngine(
+        initialState: createState(),
+        random: SeededRandom(12345),
+        saveRepository: repository,
+      );
 
-    expect(loadResult, isA<Success<void>>());
-  });
+      final ageUpResult = firstEngine.ageUp();
+
+      expect(
+        ageUpResult,
+        isA<Success<void>>(),
+      );
+
+      final saveResult = await firstEngine.save();
+
+      expect(
+        saveResult,
+        isA<Success<void>>(),
+      );
+
+      final secondEngine = SimulationEngine(
+        initialState: createState(),
+        random: SeededRandom(54321),
+        saveRepository: repository,
+      );
+
+      final loadResult = await secondEngine.load();
+
+      expect(
+        loadResult,
+        isA<Success<void>>(),
+      );
+
+      expect(
+        secondEngine.state.clock.currentYear,
+        2027,
+      );
+
+      expect(
+        secondEngine.nextTickId,
+        2,
+      );
+
+      expect(
+        secondEngine.random.state,
+        firstEngine.random.state,
+      );
+    },
+  );
 }
