@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/result/result.dart';
+import '../../domain/character/life_stage.dart';
 import '../../simulation/engine/simulation_engine.dart';
 
 class GameScreen extends StatefulWidget {
@@ -80,9 +81,13 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     final state = engine.state;
     final player = state.player;
+
     final age = player.ageAt(
       state.clock.currentYear,
     );
+
+    final lifeStage = LifeStageAge.fromAge(age);
+    final lifeStageLabel = _formatLifeStage(lifeStage);
 
     return Scaffold(
       appBar: AppBar(
@@ -119,6 +124,13 @@ class _GameScreenState extends State<GameScreen> {
             ),
             const SizedBox(height: 4),
             Text(
+              lifeStageLabel,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
               'Year ${state.clock.currentYear}',
             ),
             const SizedBox(height: 24),
@@ -136,6 +148,9 @@ class _GameScreenState extends State<GameScreen> {
                           .titleMedium,
                     ),
                     const SizedBox(height: 12),
+                    Text(
+                      'Life Stage: $lifeStageLabel',
+                    ),
                     Text(
                       'Health: ${player.stats.health}',
                     ),
@@ -187,5 +202,30 @@ class _GameScreenState extends State<GameScreen> {
         ),
       ),
     );
+  }
+
+  String _formatLifeStage(LifeStage stage) {
+    switch (stage) {
+      case LifeStage.infant:
+        return 'Infant';
+
+      case LifeStage.toddler:
+        return 'Toddler';
+
+      case LifeStage.child:
+        return 'Child';
+
+      case LifeStage.teen:
+        return 'Teen';
+
+      case LifeStage.youngAdult:
+        return 'Young Adult';
+
+      case LifeStage.adult:
+        return 'Adult';
+
+      case LifeStage.senior:
+        return 'Senior';
+    }
   }
 }
