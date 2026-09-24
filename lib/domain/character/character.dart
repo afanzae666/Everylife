@@ -1,11 +1,13 @@
 import '../../core/money/money.dart';
 import 'character_stats.dart';
+import 'gender.dart';
 import 'life_stage.dart';
 
 class Character {
   const Character({
     required this.id,
     required this.name,
+    required this.gender,
     required this.birthYear,
     required this.stats,
     required this.money,
@@ -13,6 +15,7 @@ class Character {
 
   final String id;
   final String name;
+  final Gender gender;
   final int birthYear;
   final CharacterStats stats;
   final Money money;
@@ -35,6 +38,7 @@ class Character {
 
   Character copyWith({
     String? name,
+    Gender? gender,
     int? birthYear,
     CharacterStats? stats,
     Money? money,
@@ -42,6 +46,7 @@ class Character {
     return Character(
       id: id,
       name: name ?? this.name,
+      gender: gender ?? this.gender,
       birthYear: birthYear ?? this.birthYear,
       stats: stats ?? this.stats,
       money: money ?? this.money,
@@ -51,13 +56,16 @@ class Character {
   static Character create({
     required String id,
     required String name,
+    required Gender gender,
     required int birthYear,
+    CharacterStats? stats,
   }) {
     return Character(
       id: id,
       name: name,
+      gender: gender,
       birthYear: birthYear,
-      stats: const CharacterStats(),
+      stats: stats ?? const CharacterStats(),
       money: const Money.zero(),
     );
   }
