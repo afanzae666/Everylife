@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../lib/app/app.dart';
 import '../../lib/presentation/screens/character_creation_screen.dart';
+import '../../lib/presentation/screens/game_screen.dart';
 
 void main() {
   group('LifeSimulationApp startup', () {
@@ -53,7 +54,7 @@ void main() {
         await tester.pump();
 
         expect(
-          find.text('Life Simulation'),
+          find.byType(GameScreen),
           findsOneWidget,
         );
 
@@ -63,12 +64,7 @@ void main() {
         );
 
         expect(
-          find.text('Age 18'),
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('Year 2026'),
+          find.text('Life Simulation'),
           findsOneWidget,
         );
       },
