@@ -30,11 +30,21 @@ void main() {
           find.byType(CharacterCreationScreen),
           findsOneWidget,
         );
+
+        expect(
+          find.text('Birth Year'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('BEGIN LIFE'),
+          findsOneWidget,
+        );
       },
     );
 
     testWidgets(
-      'creates a character and opens the game',
+      'creates a newborn character and opens the game',
       (tester) async {
         await tester.pumpWidget(
           const LifeSimulationApp(),
@@ -48,7 +58,7 @@ void main() {
         );
 
         await tester.tap(
-          find.text('CREATE CHARACTER'),
+          find.text('BEGIN LIFE'),
         );
 
         await tester.pump();
