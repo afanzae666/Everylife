@@ -1,5 +1,9 @@
 class SeededRandom {
-  SeededRandom(int seed) : _state = seed & 0x7fffffff;
+  SeededRandom(int seed) : _state = seed & _stateMask;
+
+  SeededRandom.fromState(int state) : _state = _validateState(state);
+
+  static const int _stateMask = 0x7fffffff;
 
   int _state;
 
@@ -12,7 +16,7 @@ class SeededRandom {
       );
     }
 
-    _state = (1103515245 * _state + 12345) & 0x7fffffff;
+    _state = (1103515245 * _state + 12345) & _stateMask;
 
     return _state % max;
   }
@@ -26,4 +30,20 @@ class SeededRandom {
   }
 
   int get state => _state;
+
+  void restoreState(int state) {
+    _state = _validateState(state);
+  }
+
+  static int _validateState(int state) {
+    if (state < 0 || state > _stateMask) {
+      throw ArgumentError.value(
+        state,
+        'state',
+        'Must be between 0 and $_stateMask.',
+      );
+    }
+
+    return state;
+  }
 }
