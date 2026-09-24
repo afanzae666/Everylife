@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../../domain/world/world_state.dart';
+import '../models/simulation_save_snapshot.dart';
 import '../models/world_state_snapshot.dart';
 import '../storage/json_save_storage.dart';
 import 'save_repository.dart';
@@ -13,15 +14,26 @@ class JsonSaveRepository implements SaveRepository {
   final JsonSaveStorage _storage;
 
   @override
-  Future<void> save(WorldState state) async {
-    final snapshot = WorldStateSnapshot.fromWorldState(state);
-    final json = jsonEncode(snapshot.toJson());
+  Future<void> save(
+    WorldState state, {
+    required int randomState,
+    required int nextTickId,
+  }) async {
+    final snapshot = SimulationSaveSnapshot(
+      world: WorldStateSnapshot.fromWorldState(state),
+      randomState: randomState,
+      nextTickId: nextTickId,
+    );
+
+    final json = jsonEncode(
+      snapshot.toJson(),
+    );
 
     await _storage.write(json);
   }
 
   @override
-  Future<WorldState?> load() async {
+  Future<SaveData?> load() async {
     final json = await _storage.read();
 
     if (json == null) {
@@ -36,9 +48,15 @@ class JsonSaveRepository implements SaveRepository {
       );
     }
 
-    final snapshot = WorldStateSnapshot.fromJson(decoded);
+    final snapshot = SimulationSaveSnapshot.fromJson(
+      decoded,
+    );
 
-    return snapshot.toWorldState();
+    return SaveData(
+      state: snapshot.world.toWorldState(),
+      randomState: snapshot.randomState,
+      nextTickId: snapshot.nextTickId,
+    );
   }
 
   @override
