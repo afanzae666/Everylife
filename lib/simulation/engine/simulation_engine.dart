@@ -7,6 +7,7 @@ import '../../domain/time/simulation_clock.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
+import '../systems/character_system.dart';
 import '../systems/simulation_system.dart';
 import '../systems/time_system.dart';
 import 'simulation_scheduler.dart';
@@ -24,6 +25,7 @@ class SimulationEngine {
         _scheduler = SimulationScheduler(
           systems: const [
             TimeSystem(),
+            CharacterSystem(),
           ],
         ),
         _validator = const WorldStateValidator();
