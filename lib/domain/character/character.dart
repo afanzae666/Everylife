@@ -1,5 +1,6 @@
 import '../../core/money/money.dart';
 import 'character_stats.dart';
+import 'life_stage.dart';
 
 class Character {
   const Character({
@@ -26,6 +27,10 @@ class Character {
     }
 
     return age;
+  }
+
+  LifeStage lifeStageAt(int year) {
+    return LifeStageAge.fromAge(ageAt(year));
   }
 
   Character copyWith({
