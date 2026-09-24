@@ -3,11 +3,16 @@ import '../data/repositories/save_repository.dart';
 import '../data/storage/android_json_save_storage.dart';
 
 class AppDependencies {
-  const AppDependencies();
+  const AppDependencies({
+    this.saveRepository,
+  });
+
+  final SaveRepository? saveRepository;
 
   SaveRepository createSaveRepository() {
-    return JsonSaveRepository(
-      storage: AndroidJsonSaveStorage(),
-    );
+    return saveRepository ??
+        JsonSaveRepository(
+          storage: AndroidJsonSaveStorage(),
+        );
   }
 }
