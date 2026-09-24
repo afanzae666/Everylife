@@ -4,7 +4,6 @@ import '../data/repositories/save_repository.dart';
 import '../domain/character/character.dart';
 import '../presentation/screens/game_screen.dart';
 import '../simulation/engine/simulation_engine.dart';
-import '../simulation/systems/character_system.dart';
 import '../simulation/systems/event_system.dart';
 
 class LifeSimulationApp extends StatelessWidget {
@@ -40,10 +39,6 @@ class LifeSimulationApp extends StatelessWidget {
       player: character,
       seed: 20260924,
       saveRepository: InMemorySaveRepository(),
-    );
-
-    engine.registerSystem(
-      CharacterSystem(),
     );
 
     engine.registerSystem(
