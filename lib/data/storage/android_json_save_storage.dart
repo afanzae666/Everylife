@@ -1,16 +1,22 @@
 import 'dart:io';
 
-import 'package:path_provider/path_provider.dart';
+import 'package:path_provider/path_provider.dart' as path_provider;
 
 import 'json_save_storage.dart';
 
 class AndroidJsonSaveStorage implements JsonSaveStorage {
-  const AndroidJsonSaveStorage();
+  AndroidJsonSaveStorage({
+    Future<Directory> Function()? directoryProvider,
+  }) : _directoryProvider =
+           directoryProvider ??
+           path_provider.getApplicationDocumentsDirectory;
 
   static const String _fileName = 'everylife_save.json';
 
+  final Future<Directory> Function() _directoryProvider;
+
   Future<File> _getSaveFile() async {
-    final directory = await getApplicationDocumentsDirectory();
+    final directory = await _directoryProvider();
 
     return File(
       '${directory.path}/$_fileName',
