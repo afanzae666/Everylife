@@ -1,28 +1,52 @@
 import '../../domain/world/world_state.dart';
 
-abstract interface class SaveRepository {
-  Future<void> save(WorldState state);
+class SaveData {
+  const SaveData({
+    required this.state,
+    required this.randomState,
+    required this.nextTickId,
+  });
 
-  Future<WorldState?> load();
+  final WorldState state;
+  final int randomState;
+  final int nextTickId;
+}
+
+abstract interface class SaveRepository {
+  Future<void> save(
+    WorldState state, {
+    required int randomState,
+    required int nextTickId,
+  });
+
+  Future<SaveData?> load();
 
   Future<void> delete();
 }
 
 class InMemorySaveRepository implements SaveRepository {
-  WorldState? _state;
+  SaveData? _data;
 
   @override
-  Future<void> save(WorldState state) async {
-    _state = state;
+  Future<void> save(
+    WorldState state, {
+    required int randomState,
+    required int nextTickId,
+  }) async {
+    _data = SaveData(
+      state: state,
+      randomState: randomState,
+      nextTickId: nextTickId,
+    );
   }
 
   @override
-  Future<WorldState?> load() async {
-    return _state;
+  Future<SaveData?> load() async {
+    return _data;
   }
 
   @override
   Future<void> delete() async {
-    _state = null;
+    _data = null;
   }
 }
