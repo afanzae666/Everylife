@@ -1,14 +1,52 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../lib/app/app.dart';
+import '../../lib/presentation/screens/character_creation_screen.dart';
 
 void main() {
   group('LifeSimulationApp startup', () {
     testWidgets(
-      'starts without duplicate simulation system registration',
+      'starts on character creation screen',
       (tester) async {
         await tester.pumpWidget(
           const LifeSimulationApp(),
+        );
+
+        await tester.pump();
+
+        expect(
+          find.text('Create Character'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Create Your Character'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.byType(CharacterCreationScreen),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'creates a character and opens the game',
+      (tester) async {
+        await tester.pumpWidget(
+          const LifeSimulationApp(),
+        );
+
+        await tester.pump();
+
+        await tester.enterText(
+          find.byType(TextField),
+          'Marshall Royce',
+        );
+
+        await tester.tap(
+          find.text('CREATE CHARACTER'),
         );
 
         await tester.pump();
@@ -19,49 +57,17 @@ void main() {
         );
 
         expect(
-          find.text('Newborn'),
+          find.text('Marshall Royce'),
           findsOneWidget,
         );
 
         expect(
-          find.text('Age 0'),
+          find.text('Age 18'),
           findsOneWidget,
         );
 
         expect(
           find.text('Year 2026'),
-          findsOneWidget,
-        );
-      },
-    );
-
-    testWidgets(
-      'can perform the first age up after startup',
-      (tester) async {
-        await tester.pumpWidget(
-          const LifeSimulationApp(),
-        );
-
-        await tester.pump();
-
-        expect(
-          find.text('Age 0'),
-          findsOneWidget,
-        );
-
-        await tester.tap(
-          find.text('AGE UP'),
-        );
-
-        await tester.pump();
-
-        expect(
-          find.text('Age 1'),
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('Year 2027'),
           findsOneWidget,
         );
       },
