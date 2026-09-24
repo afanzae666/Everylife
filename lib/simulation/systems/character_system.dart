@@ -1,3 +1,4 @@
+import '../../domain/character/life_stage.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
@@ -21,19 +22,40 @@ class CharacterSystem implements SimulationSystem {
       return state;
     }
 
-    final age = state.player.ageAt(
-      state.clock.currentYear,
-    );
+    final currentYear = state.clock.currentYear;
+    final age = state.player.ageAt(currentYear);
+    final previousAge = age - 1;
+
+    final currentStage = LifeStageAge.fromAge(age);
+
+    final previousStage = previousAge >= 0
+        ? LifeStageAge.fromAge(previousAge)
+        : null;
+
+    var nextState = state;
+
+    if (previousStage != null && previousStage != currentStage) {
+      nextState = nextState.addEvent(
+        SimulationEvent(
+          id: 'life-stage-changed-$currentYear',
+          type: SimulationEventType.lifeStageChanged,
+          year: currentYear,
+          title: 'A new life stage begins',
+          description:
+              '${state.player.name} entered ${currentStage.name}.',
+        ),
+      );
+    }
 
     final event = SimulationEvent(
-      id: 'character-aged-${state.clock.currentYear}',
+      id: 'character-aged-$currentYear',
       type: SimulationEventType.characterAged,
-      year: state.clock.currentYear,
+      year: currentYear,
       title: 'Another year passes',
       description:
           '${state.player.name} is now $age years old.',
     );
 
-    return state.addEvent(event);
+    return nextState.addEvent(event);
   }
 }
