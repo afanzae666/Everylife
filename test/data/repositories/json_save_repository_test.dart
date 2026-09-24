@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:everylife/core/money/money.dart';
+import 'package:everylife/data/models/world_state_snapshot.dart';
 import 'package:everylife/data/repositories/json_save_repository.dart';
 import 'package:everylife/data/storage/json_save_storage.dart';
 import 'package:everylife/domain/character/character.dart';
@@ -17,6 +20,7 @@ void main() {
 
     setUp(() {
       storage = InMemoryJsonSaveStorage();
+
       repository = JsonSaveRepository(
         storage: storage,
       );
@@ -32,7 +36,7 @@ void main() {
     );
 
     test(
-      'saves and loads WorldState without losing data',
+      'saves and loads complete simulation data without losing data',
       () async {
         final original = WorldState(
           clock: const SimulationClock(
@@ -64,100 +68,114 @@ void main() {
           ],
         );
 
-        await repository.save(original);
+        await repository.save(
+          original,
+          randomState: 123456,
+          nextTickId: 42,
+        );
 
         final loaded = await repository.load();
 
         expect(loaded, isNotNull);
 
         expect(
-          loaded!.clock.currentYear,
+          loaded!.state.clock.currentYear,
           original.clock.currentYear,
         );
 
         expect(
-          loaded.player.id,
+          loaded.state.player.id,
           original.player.id,
         );
 
         expect(
-          loaded.player.name,
+          loaded.state.player.name,
           original.player.name,
         );
 
         expect(
-          loaded.player.gender,
+          loaded.state.player.gender,
           original.player.gender,
         );
 
         expect(
-          loaded.player.birthYear,
+          loaded.state.player.birthYear,
           original.player.birthYear,
         );
 
         expect(
-          loaded.player.stats.health,
+          loaded.state.player.stats.health,
           original.player.stats.health,
         );
 
         expect(
-          loaded.player.stats.happiness,
+          loaded.state.player.stats.happiness,
           original.player.stats.happiness,
         );
 
         expect(
-          loaded.player.stats.intelligence,
+          loaded.state.player.stats.intelligence,
           original.player.stats.intelligence,
         );
 
         expect(
-          loaded.player.stats.discipline,
+          loaded.state.player.stats.discipline,
           original.player.stats.discipline,
         );
 
         expect(
-          loaded.player.stats.empathy,
+          loaded.state.player.stats.empathy,
           original.player.stats.empathy,
         );
 
         expect(
-          loaded.player.stats.ambition,
+          loaded.state.player.stats.ambition,
           original.player.stats.ambition,
         );
 
         expect(
-          loaded.player.money.minorUnits,
+          loaded.state.player.money.minorUnits,
           original.player.money.minorUnits,
         );
 
         expect(
-          loaded.events.length,
+          loaded.state.events.length,
           original.events.length,
         );
 
         expect(
-          loaded.events.first.id,
+          loaded.state.events.first.id,
           original.events.first.id,
         );
 
         expect(
-          loaded.events.first.type,
+          loaded.state.events.first.type,
           original.events.first.type,
         );
 
         expect(
-          loaded.events.first.year,
+          loaded.state.events.first.year,
           original.events.first.year,
         );
 
         expect(
-          loaded.events.first.title,
+          loaded.state.events.first.title,
           original.events.first.title,
         );
 
         expect(
-          loaded.events.first.description,
+          loaded.state.events.first.description,
           original.events.first.description,
+        );
+
+        expect(
+          loaded.randomState,
+          123456,
+        );
+
+        expect(
+          loaded.nextTickId,
+          42,
         );
       },
     );
@@ -201,17 +219,56 @@ void main() {
           events: const [],
         );
 
-        await repository.save(firstState);
-        await repository.save(secondState);
+        await repository.save(
+          firstState,
+          randomState: 100,
+          nextTickId: 5,
+        );
+
+        await repository.save(
+          secondState,
+          randomState: 200,
+          nextTickId: 10,
+        );
 
         final loaded = await repository.load();
 
         expect(loaded, isNotNull);
-        expect(loaded!.clock.currentYear, 2060);
-        expect(loaded.player.id, 'character-2');
-        expect(loaded.player.name, 'Second Character');
-        expect(loaded.player.gender, Gender.female);
-        expect(loaded.player.money.minorUnits, 5000);
+
+        expect(
+          loaded!.state.clock.currentYear,
+          2060,
+        );
+
+        expect(
+          loaded.state.player.id,
+          'character-2',
+        );
+
+        expect(
+          loaded.state.player.name,
+          'Second Character',
+        );
+
+        expect(
+          loaded.state.player.gender,
+          Gender.female,
+        );
+
+        expect(
+          loaded.state.player.money.minorUnits,
+          5000,
+        );
+
+        expect(
+          loaded.randomState,
+          200,
+        );
+
+        expect(
+          loaded.nextTickId,
+          10,
+        );
       },
     );
 
@@ -232,7 +289,11 @@ void main() {
           events: const [],
         );
 
-        await repository.save(state);
+        await repository.save(
+          state,
+          randomState: 123,
+          nextTickId: 2,
+        );
 
         expect(
           await repository.load(),
@@ -266,7 +327,71 @@ void main() {
       'rejects malformed JSON',
       () async {
         await storage.write(
-          '{"currentYear":',
+          '{"schemaVersion":',
+        );
+
+        expect(
+          () => repository.load(),
+          throwsA(isA<FormatException>()),
+        );
+      },
+    );
+
+    test(
+      'rejects unsupported save schema version',
+      () async {
+        final json = _createValidSaveJson();
+
+        json['schemaVersion'] = 999;
+
+        await storage.write(
+          jsonEncode(json),
+        );
+
+        expect(
+          () => repository.load(),
+          throwsA(isA<FormatException>()),
+        );
+      },
+    );
+
+    test(
+      'rejects invalid random state',
+      () async {
+        final json = _createValidSaveJson();
+
+        final engine = Map<String, dynamic>.from(
+          json['engine'] as Map,
+        );
+
+        engine['randomState'] = -1;
+        json['engine'] = engine;
+
+        await storage.write(
+          jsonEncode(json),
+        );
+
+        expect(
+          () => repository.load(),
+          throwsA(isA<FormatException>()),
+        );
+      },
+    );
+
+    test(
+      'rejects invalid next tick id',
+      () async {
+        final json = _createValidSaveJson();
+
+        final engine = Map<String, dynamic>.from(
+          json['engine'] as Map,
+        );
+
+        engine['nextTickId'] = 0;
+        json['engine'] = engine;
+
+        await storage.write(
+          jsonEncode(json),
         );
 
         expect(
@@ -276,4 +401,34 @@ void main() {
       },
     );
   });
+}
+
+Map<String, dynamic> _createValidSaveJson() {
+  final state = WorldState(
+    clock: const SimulationClock(
+      currentYear: 2050,
+    ),
+    player: Character(
+      id: 'character-1',
+      name: 'Test Character',
+      gender: Gender.male,
+      birthYear: 2030,
+      stats: const CharacterStats(),
+      money: const Money.zero(),
+    ),
+    events: const [],
+  );
+
+  final world = WorldStateSnapshot
+      .fromWorldState(state)
+      .toJson();
+
+  return {
+    'schemaVersion': 1,
+    'engine': {
+      'randomState': 12345,
+      'nextTickId': 1,
+    },
+    'world': world,
+  };
 }
