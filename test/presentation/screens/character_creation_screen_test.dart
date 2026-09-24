@@ -32,6 +32,11 @@ void main() {
         );
 
         expect(
+          find.text('Gender'),
+          findsOneWidget,
+        );
+
+        expect(
           find.text('Male'),
           findsOneWidget,
         );
@@ -42,7 +47,24 @@ void main() {
         );
 
         expect(
-          find.text('18 years old'),
+          find.text('Birth Year'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('2026'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text(
+            'Your character will begin life as a newborn in 2026.',
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('BEGIN LIFE'),
           findsOneWidget,
         );
 
@@ -51,10 +73,11 @@ void main() {
     );
 
     testWidgets(
-      'creates character with entered name',
+      'creates a newborn character with selected birth year',
       (tester) async {
         String? createdName;
         Gender? createdGender;
+        int? createdBirthYear;
 
         await tester.pumpWidget(
           MaterialApp(
@@ -62,6 +85,7 @@ void main() {
               onCharacterCreated: (character) {
                 createdName = character.name;
                 createdGender = character.gender;
+                createdBirthYear = character.birthYear;
               },
             ),
           ),
@@ -73,7 +97,7 @@ void main() {
         );
 
         await tester.tap(
-          find.text('CREATE CHARACTER'),
+          find.text('BEGIN LIFE'),
         );
 
         await tester.pump();
@@ -86,6 +110,70 @@ void main() {
         expect(
           createdGender,
           Gender.male,
+        );
+
+        expect(
+          createdBirthYear,
+          2026,
+        );
+
+        expect(
+          2026 - createdBirthYear!,
+          0,
+        );
+      },
+    );
+
+    testWidgets(
+      'allows birth year to be changed to 1900',
+      (tester) async {
+        int? createdBirthYear;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: CharacterCreationScreen(
+              onCharacterCreated: (character) {
+                createdBirthYear = character.birthYear;
+              },
+            ),
+          ),
+        );
+
+        await tester.enterText(
+          find.byType(TextField),
+          'Test Character',
+        );
+
+        final slider = find.byType(Slider);
+
+        expect(slider, findsOneWidget);
+
+        await tester.drag(
+          slider,
+          const Offset(-1000, 0),
+        );
+
+        await tester.pump();
+
+        expect(
+          find.text('1900'),
+          findsWidgets,
+        );
+
+        await tester.tap(
+          find.text('BEGIN LIFE'),
+        );
+
+        await tester.pump();
+
+        expect(
+          createdBirthYear,
+          1900,
+        );
+
+        expect(
+          2026 - createdBirthYear!,
+          126,
         );
       },
     );
@@ -106,12 +194,15 @@ void main() {
         );
 
         await tester.tap(
-          find.text('CREATE CHARACTER'),
+          find.text('BEGIN LIFE'),
         );
 
         await tester.pump();
 
-        expect(created, isFalse);
+        expect(
+          created,
+          isFalse,
+        );
 
         expect(
           find.text(
@@ -147,7 +238,7 @@ void main() {
         );
 
         await tester.tap(
-          find.text('CREATE CHARACTER'),
+          find.text('BEGIN LIFE'),
         );
 
         await tester.pump();
