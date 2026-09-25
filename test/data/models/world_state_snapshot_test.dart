@@ -25,11 +25,13 @@ void main() {
             birthYear: 2030,
             stats: const CharacterStats(
               health: 91,
-              happiness: 82,
               intelligence: 73,
-              discipline: 64,
-              empathy: 55,
-              ambition: 88,
+              fitness: 82,
+              happiness: 64,
+              willpower: 55,
+              charisma: 88,
+              creativity: 71,
+              luck: 43,
             ),
             money: const Money.fromMinorUnits(123456),
           ),
@@ -80,28 +82,38 @@ void main() {
         );
 
         expect(
-          restored.player.stats.happiness,
-          original.player.stats.happiness,
-        );
-
-        expect(
           restored.player.stats.intelligence,
           original.player.stats.intelligence,
         );
 
         expect(
-          restored.player.stats.discipline,
-          original.player.stats.discipline,
+          restored.player.stats.fitness,
+          original.player.stats.fitness,
         );
 
         expect(
-          restored.player.stats.empathy,
-          original.player.stats.empathy,
+          restored.player.stats.happiness,
+          original.player.stats.happiness,
         );
 
         expect(
-          restored.player.stats.ambition,
-          original.player.stats.ambition,
+          restored.player.stats.willpower,
+          original.player.stats.willpower,
+        );
+
+        expect(
+          restored.player.stats.charisma,
+          original.player.stats.charisma,
+        );
+
+        expect(
+          restored.player.stats.creativity,
+          original.player.stats.creativity,
+        );
+
+        expect(
+          restored.player.stats.luck,
+          original.player.stats.luck,
         );
 
         expect(
@@ -142,7 +154,7 @@ void main() {
     );
 
     test(
-      'serializes and deserializes through JSON-compatible data',
+      'serializes and deserializes all eight core stats',
       () {
         final original = WorldState(
           clock: const SimulationClock(
@@ -155,11 +167,13 @@ void main() {
             birthYear: 2025,
             stats: const CharacterStats(
               health: 90,
-              happiness: 70,
               intelligence: 60,
-              discipline: 50,
-              empathy: 40,
-              ambition: 30,
+              fitness: 80,
+              happiness: 70,
+              willpower: 65,
+              charisma: 55,
+              creativity: 45,
+              luck: 35,
             ),
             money: const Money.fromMinorUnits(98765),
           ),
@@ -216,28 +230,38 @@ void main() {
         );
 
         expect(
-          restored.player.stats.happiness,
-          70,
-        );
-
-        expect(
           restored.player.stats.intelligence,
           60,
         );
 
         expect(
-          restored.player.stats.discipline,
-          50,
+          restored.player.stats.fitness,
+          80,
         );
 
         expect(
-          restored.player.stats.empathy,
-          40,
+          restored.player.stats.happiness,
+          70,
         );
 
         expect(
-          restored.player.stats.ambition,
-          30,
+          restored.player.stats.willpower,
+          65,
+        );
+
+        expect(
+          restored.player.stats.charisma,
+          55,
+        );
+
+        expect(
+          restored.player.stats.creativity,
+          45,
+        );
+
+        expect(
+          restored.player.stats.luck,
+          35,
         );
 
         expect(
@@ -265,11 +289,13 @@ void main() {
               'birthYear': 2030,
               'stats': {
                 'health': 100,
-                'happiness': 75,
                 'intelligence': 50,
-                'discipline': 50,
-                'empathy': 50,
-                'ambition': 50,
+                'fitness': 50,
+                'happiness': 75,
+                'willpower': 50,
+                'charisma': 50,
+                'creativity': 50,
+                'luck': 50,
               },
               'moneyMinorUnits': 0,
             },
@@ -293,11 +319,42 @@ void main() {
               'birthYear': 2030,
               'stats': {
                 'health': 100,
-                'happiness': 75,
                 'intelligence': 50,
-                'discipline': 50,
-                'empathy': 50,
-                'ambition': 50,
+                'fitness': 50,
+                'happiness': 75,
+                'willpower': 50,
+                'charisma': 50,
+                'creativity': 50,
+                'luck': 50,
+              },
+              'moneyMinorUnits': 0,
+            },
+            'events': [],
+          }),
+          throwsA(isA<FormatException>()),
+        );
+      },
+    );
+
+    test(
+      'rejects missing core stat',
+      () {
+        expect(
+          () => WorldStateSnapshot.fromJson({
+            'currentYear': 2050,
+            'player': {
+              'id': 'character-1',
+              'name': 'Test',
+              'gender': 'male',
+              'birthYear': 2030,
+              'stats': {
+                'health': 100,
+                'intelligence': 50,
+                'fitness': 50,
+                'happiness': 75,
+                'willpower': 50,
+                'charisma': 50,
+                'creativity': 50,
               },
               'moneyMinorUnits': 0,
             },
