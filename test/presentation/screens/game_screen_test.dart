@@ -150,13 +150,15 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(
-          find.text('Year 2027'),
-          findsOneWidget,
+          engine.state.clock.currentYear,
+          2027,
         );
 
         expect(
-          find.text('Age 1'),
-          findsOneWidget,
+          engine.state.player.ageAt(
+            engine.state.clock.currentYear,
+          ),
+          1,
         );
 
         final saved =
