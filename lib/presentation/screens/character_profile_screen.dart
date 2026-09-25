@@ -18,26 +18,44 @@ class CharacterProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller =
-        uiScaleController ?? ValueNotifier<double>(1.0);
+    final controller = uiScaleController;
+
+    if (controller == null) {
+      return _buildScaledPage(
+        context,
+        1.0,
+      );
+    }
 
     return ValueListenableBuilder<double>(
       valueListenable: controller,
       builder: (context, zoom, _) {
-        final mediaQuery = MediaQuery.of(context);
-
-        final scaledMediaQuery = mediaQuery.copyWith(
-          textScaler: TextScaler.linear(zoom),
-        );
-
-        return MediaQuery(
-          data: scaledMediaQuery,
-          child: _buildScaffold(
-            context,
-            zoom,
-          ),
+        return _buildScaledPage(
+          context,
+          zoom,
         );
       },
+    );
+  }
+
+  Widget _buildScaledPage(
+    BuildContext context,
+    double zoom,
+  ) {
+    final mediaQuery = MediaQuery.of(context);
+
+    final scaledMediaQuery = mediaQuery.copyWith(
+      textScaler: TextScaler.linear(
+        zoom,
+      ),
+    );
+
+    return MediaQuery(
+      data: scaledMediaQuery,
+      child: _buildScaffold(
+        context,
+        zoom,
+      ),
     );
   }
 
@@ -72,7 +90,8 @@ class CharacterProfileScreen extends StatelessWidget {
       currentYear,
     );
 
-    final lifeStage = character.lifeStageAt(
+    final lifeStage =
+        character.lifeStageAt(
       currentYear,
     );
 
@@ -109,7 +128,8 @@ class CharacterProfileScreen extends StatelessWidget {
                 .titleLarge,
             textAlign: TextAlign.center,
             maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+            overflow:
+                TextOverflow.ellipsis,
           ),
         ),
         SizedBox(
@@ -170,8 +190,8 @@ class CharacterProfileScreen extends StatelessWidget {
               ),
               _InfoRow(
                 label: 'Money',
-                value: character.money
-                    .toString(),
+                value:
+                    character.money.toString(),
                 zoom: zoom,
               ),
             ],
