@@ -19,10 +19,28 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   SimulationEngine get engine => widget.engine;
 
-  void _ageUp() {
+  bool _isProcessingTurn = false;
+
+  Future<void> _ageUp() async {
+    if (_isProcessingTurn) {
+      return;
+    }
+
+    setState(() {
+      _isProcessingTurn = true;
+    });
+
     final result = engine.ageUp();
 
+    if (!mounted) {
+      return;
+    }
+
     if (!result.isSuccess) {
+      setState(() {
+        _isProcessingTurn = false;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -37,9 +55,33 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     setState(() {});
+
+    final saveResult = await engine.save();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isProcessingTurn = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          saveResult.isSuccess
+              ? 'Year advanced and game saved.'
+              : 'Year advanced, but autosave failed.',
+        ),
+      ),
+    );
   }
 
   Future<void> _save() async {
+    if (_isProcessingTurn) {
+      return;
+    }
+
     final result = await engine.save();
 
     if (!mounted) {
@@ -58,6 +100,10 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> _load() async {
+    if (_isProcessingTurn) {
+      return;
+    }
+
     final result = await engine.load();
 
     if (!mounted) {
@@ -94,12 +140,12 @@ class _GameScreenState extends State<GameScreen> {
         title: const Text('Life Simulation'),
         actions: [
           IconButton(
-            onPressed: _save,
+            onPressed: _isProcessingTurn ? null : _save,
             tooltip: 'Save',
             icon: const Icon(Icons.save),
           ),
           IconButton(
-            onPressed: _load,
+            onPressed: _isProcessingTurn ? null : _load,
             tooltip: 'Load',
             icon: const Icon(Icons.folder_open),
           ),
@@ -170,9 +216,22 @@ class _GameScreenState extends State<GameScreen> {
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
-              onPressed: _ageUp,
-              icon: const Icon(Icons.arrow_forward),
-              label: const Text('AGE UP'),
+              onPressed:
+                  _isProcessingTurn ? null : _ageUp,
+              icon: _isProcessingTurn
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Icon(Icons.arrow_forward),
+              label: Text(
+                _isProcessingTurn
+                    ? 'SAVING...'
+                    : 'AGE UP',
+              ),
             ),
             const SizedBox(height: 24),
             Text(
