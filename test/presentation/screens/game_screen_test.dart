@@ -38,56 +38,6 @@ Finder ageUpButtonFinder() {
   );
 }
 
-Future<void> scrollToBottom(
-  WidgetTester tester,
-) async {
-  final screenSize = tester.view.physicalSize /
-      tester.view.devicePixelRatio;
-
-  final center = Offset(
-    screenSize.width / 2,
-    screenSize.height / 2,
-  );
-
-  for (var i = 0; i < 5; i++) {
-    await tester.drag(
-      find.byType(Scaffold),
-      const Offset(0, -700),
-    );
-
-    await tester.pumpAndSettle();
-  }
-
-  await tester.dragFrom(
-    center,
-    const Offset(0, -300),
-  );
-
-  await tester.pumpAndSettle();
-}
-
-Future<void> scrollToAgeUp(
-  WidgetTester tester,
-) async {
-  await scrollToBottom(tester);
-
-  expect(
-    ageUpButtonFinder(),
-    findsOneWidget,
-  );
-}
-
-Future<void> scrollToLifeEvents(
-  WidgetTester tester,
-) async {
-  await scrollToBottom(tester);
-
-  expect(
-    find.text('Life Events'),
-    findsOneWidget,
-  );
-}
-
 void main() {
   group('GameScreen', () {
     testWidgets(
@@ -126,7 +76,7 @@ void main() {
         );
 
         expect(
-          find.text('Life Stage: Infant'),
+          find.text('Infant'),
           findsOneWidget,
         );
 
@@ -261,6 +211,60 @@ void main() {
     );
 
     testWidgets(
+      'does not display core stat count',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine = createTestEngine(
+          repository,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('8 / 8'),
+          findsNothing,
+        );
+      },
+    );
+
+    testWidgets(
+      'does not display life event count',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine = createTestEngine(
+          repository,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('0'),
+          findsNothing,
+        );
+      },
+    );
+
+    testWidgets(
       'character avatar is clickable',
       (tester) async {
         final repository =
@@ -375,8 +379,6 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        await scrollToLifeEvents(tester);
-
         expect(
           find.text('Life Events'),
           findsOneWidget,
@@ -385,6 +387,43 @@ void main() {
         expect(
           find.text('Life Panel'),
           findsNothing,
+        );
+      },
+    );
+
+    testWidgets(
+      'age up button is visible without scrolling',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine = createTestEngine(
+          repository,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          ageUpButtonFinder(),
+          findsOneWidget,
+        );
+
+        expect(
+          tester.getBottomRight(
+            ageUpButtonFinder(),
+          ).dy,
+          lessThanOrEqualTo(
+            tester.view.physicalSize.height /
+                tester.view.devicePixelRatio,
+          ),
         );
       },
     );
@@ -408,8 +447,6 @@ void main() {
         );
 
         await tester.pumpAndSettle();
-
-        await scrollToAgeUp(tester);
 
         final ageUpButton =
             ageUpButtonFinder();
@@ -487,8 +524,6 @@ void main() {
         final expectedRandomState =
             engine.random.state;
 
-        await scrollToAgeUp(tester);
-
         final ageUpButton =
             ageUpButtonFinder();
 
@@ -535,8 +570,6 @@ void main() {
         );
 
         await tester.pumpAndSettle();
-
-        await scrollToAgeUp(tester);
 
         final ageUpButton =
             ageUpButtonFinder();
