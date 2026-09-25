@@ -38,20 +38,43 @@ Finder ageUpButtonFinder() {
   );
 }
 
-Future<void> scrollToAgeUp(
+Future<void> scrollToBottom(
   WidgetTester tester,
 ) async {
-  final button = ageUpButtonFinder();
+  final screenSize = tester.view.physicalSize /
+      tester.view.devicePixelRatio;
 
-  await tester.scrollUntilVisible(
-    button,
-    500,
+  final center = Offset(
+    screenSize.width / 2,
+    screenSize.height / 2,
+  );
+
+  for (var i = 0; i < 5; i++) {
+    await tester.drag(
+      find.byType(Scaffold),
+      const Offset(0, -700),
+    );
+
+    await tester.pumpAndSettle();
+  }
+
+  // Keep the helper deterministic even if the test
+  // environment uses a different viewport size.
+  await tester.dragFrom(
+    center,
+    const Offset(0, -300),
   );
 
   await tester.pumpAndSettle();
+}
+
+Future<void> scrollToAgeUp(
+  WidgetTester tester,
+) async {
+  await scrollToBottom(tester);
 
   expect(
-    button,
+    ageUpButtonFinder(),
     findsOneWidget,
   );
 }
@@ -59,17 +82,10 @@ Future<void> scrollToAgeUp(
 Future<void> scrollToLifeEvents(
   WidgetTester tester,
 ) async {
-  final lifeEvents = find.text('Life Events');
-
-  await tester.scrollUntilVisible(
-    lifeEvents,
-    500,
-  );
-
-  await tester.pumpAndSettle();
+  await scrollToBottom(tester);
 
   expect(
-    lifeEvents,
+    find.text('Life Events'),
     findsOneWidget,
   );
 }
