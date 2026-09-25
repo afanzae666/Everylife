@@ -81,7 +81,13 @@ void main() {
 
         final beginLifeButton = find.text('BEGIN LIFE');
 
-        await tester.ensureVisible(beginLifeButton);
+        await tester.scrollUntilVisible(
+          beginLifeButton,
+          200,
+          scrollable: find.byType(Scrollable).first,
+        );
+
+        await tester.pumpAndSettle();
 
         await tester.tap(beginLifeButton);
 
