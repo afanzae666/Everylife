@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/character/character.dart';
+import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
 
 class CharacterProfileScreen extends StatelessWidget {
@@ -54,7 +55,6 @@ class CharacterProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(18),
@@ -107,9 +107,7 @@ class CharacterProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: 16),
-
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(18),
@@ -168,9 +166,7 @@ class CharacterProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: 16),
-
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(18),
