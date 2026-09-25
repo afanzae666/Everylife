@@ -5,24 +5,61 @@ import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import 'character_profile_screen.dart';
+import 'settings_screen.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({
     required this.engine,
+    this.uiScaleController,
     super.key,
   });
 
   final SimulationEngine engine;
 
+  final ValueNotifier<double>?
+      uiScaleController;
+
   @override
-  State<GameScreen> createState() => _GameScreenState();
+  State<GameScreen> createState() =>
+      _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
-  SimulationEngine get engine => widget.engine;
+class _GameScreenState
+    extends State<GameScreen> {
+  SimulationEngine get engine =>
+      widget.engine;
+
+  late final ValueNotifier<double>
+      _uiScaleController;
+
+  late final bool _ownsUiScaleController;
 
   bool _isProcessingTurn = false;
-  double _zoom = 1.0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.uiScaleController !=
+        null) {
+      _uiScaleController =
+          widget.uiScaleController!;
+      _ownsUiScaleController = false;
+    } else {
+      _uiScaleController =
+          ValueNotifier<double>(1.0);
+      _ownsUiScaleController = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_ownsUiScaleController) {
+      _uiScaleController.dispose();
+    }
+
+    super.dispose();
+  }
 
   Future<void> _ageUp() async {
     if (_isProcessingTurn) {
@@ -44,7 +81,8 @@ class _GameScreenState extends State<GameScreen> {
         _isProcessingTurn = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
         SnackBar(
           content: Text(
             result is Failure
@@ -59,7 +97,8 @@ class _GameScreenState extends State<GameScreen> {
 
     setState(() {});
 
-    final saveResult = await engine.save();
+    final saveResult =
+        await engine.save();
 
     if (!mounted) {
       return;
@@ -70,7 +109,8 @@ class _GameScreenState extends State<GameScreen> {
     });
 
     if (!saveResult.isSuccess) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
         const SnackBar(
           content: Text(
             'Year advanced, but autosave failed.',
@@ -85,13 +125,15 @@ class _GameScreenState extends State<GameScreen> {
       return;
     }
 
-    final result = await engine.save();
+    final result =
+        await engine.save();
 
     if (!mounted) {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context)
+        .showSnackBar(
       SnackBar(
         content: Text(
           result.isSuccess
@@ -107,7 +149,8 @@ class _GameScreenState extends State<GameScreen> {
       return;
     }
 
-    final result = await engine.load();
+    final result =
+        await engine.load();
 
     if (!mounted) {
       return;
@@ -115,7 +158,8 @@ class _GameScreenState extends State<GameScreen> {
 
     setState(() {});
 
-    ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context)
+        .showSnackBar(
       SnackBar(
         content: Text(
           result.isSuccess
@@ -133,9 +177,30 @@ class _GameScreenState extends State<GameScreen> {
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => CharacterProfileScreen(
-          character: engine.state.player,
-          currentYear: engine.state.clock.currentYear,
+        builder: (_) =>
+            CharacterProfileScreen(
+          character:
+              engine.state.player,
+          currentYear:
+              engine.state.clock.currentYear,
+          uiScaleController:
+              _uiScaleController,
+        ),
+      ),
+    );
+  }
+
+  void _openSettings() {
+    if (_isProcessingTurn) {
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            SettingsScreen(
+          uiScaleController:
+              _uiScaleController,
         ),
       ),
     );
@@ -155,215 +220,10 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  void _showSettings() {
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              12,
-              10,
-              12,
-              12,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.settings_outlined,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 7),
-                    Text(
-                      'Settings',
-                      style: Theme.of(sheetContext)
-                          .textTheme
-                          .titleMedium,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                ListTile(
-                  dense: true,
-                  contentPadding:
-                      const EdgeInsets.symmetric(
-                    horizontal: 2,
-                  ),
-                  leading: const Icon(
-                    Icons.zoom_in,
-                    size: 21,
-                  ),
-                  title: const Text('Zoom'),
-                  trailing: const Icon(
-                    Icons.chevron_right,
-                    size: 20,
-                  ),
-                  onTap: () {
-                    Navigator.of(sheetContext).pop();
-                    _showZoomSettings();
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showZoomSettings() {
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              12,
-              10,
-              12,
-              12,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.zoom_in,
-                      size: 21,
-                    ),
-                    const SizedBox(width: 7),
-                    Text(
-                      'Zoom',
-                      style: Theme.of(sheetContext)
-                          .textTheme
-                          .titleMedium,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      tooltip: 'Zoom out',
-                      onPressed: _zoom <= 0.8
-                          ? null
-                          : () {
-                              setState(() {
-                                _zoom =
-                                    (_zoom - 0.1)
-                                        .clamp(
-                                  0.8,
-                                  1.2,
-                                )
-                                        .toDouble();
-                              });
-
-                              Navigator.of(sheetContext)
-                                  .pop();
-
-                              _showZoomSettings();
-                            },
-                      icon: const Icon(
-                        Icons.remove,
-                      ),
-                    ),
-                    Container(
-                      constraints:
-                          const BoxConstraints(
-                        minWidth: 80,
-                      ),
-                      alignment:
-                          Alignment.center,
-                      child: Text(
-                        '${(_zoom * 100).round()}%',
-                        style: Theme.of(sheetContext)
-                            .textTheme
-                            .titleMedium!
-                            .copyWith(
-                              fontWeight:
-                                  FontWeight.w700,
-                            ),
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: 'Zoom in',
-                      onPressed: _zoom >= 1.2
-                          ? null
-                          : () {
-                              setState(() {
-                                _zoom =
-                                    (_zoom + 0.1)
-                                        .clamp(
-                                  0.8,
-                                  1.2,
-                                )
-                                        .toDouble();
-                              });
-
-                              Navigator.of(sheetContext)
-                                  .pop();
-
-                              _showZoomSettings();
-                            },
-                      icon: const Icon(
-                        Icons.add,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                const Divider(height: 1),
-                const SizedBox(height: 2),
-                for (final value in [
-                  0.8,
-                  0.9,
-                  1.0,
-                  1.1,
-                  1.2,
-                ])
-                  ListTile(
-                    dense: true,
-                    contentPadding:
-                        const EdgeInsets.symmetric(
-                      horizontal: 2,
-                    ),
-                    leading: Icon(
-                      _zoom == value
-                          ? Icons.radio_button_checked
-                          : Icons
-                              .radio_button_unchecked,
-                      size: 20,
-                    ),
-                    title: Text(
-                      '${(value * 100).round()}%',
-                    ),
-                    onTap: () {
-                      setState(() {
-                        _zoom = value;
-                      });
-
-                      Navigator.of(sheetContext)
-                          .pop();
-                    },
-                  ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     final state = engine.state;
     final player = state.player;
 
@@ -371,513 +231,601 @@ class _GameScreenState extends State<GameScreen> {
       state.clock.currentYear,
     );
 
-    final lifeStage = LifeStageAge.fromAge(age);
+    final lifeStage =
+        LifeStageAge.fromAge(age);
+
     final lifeStageLabel =
         _formatLifeStage(lifeStage);
 
     final events =
         state.events.reversed.toList();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Life Simulation',
-        ),
-        actions: [
-          PopupMenuButton<String>(
-            tooltip: 'Game Data',
-            icon: const Icon(
-              Icons.folder_copy_outlined,
+    return ValueListenableBuilder<double>(
+      valueListenable:
+          _uiScaleController,
+      builder:
+          (context, zoom, _) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text(
+              'Life Simulation',
             ),
-            enabled: !_isProcessingTurn,
-            onSelected:
-                _handleGameDataAction,
-            itemBuilder: (context) => [
-              const PopupMenuItem<String>(
-                value: 'save',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.save_outlined,
-                    ),
-                    SizedBox(width: 12),
-                    Text('Save Game'),
-                  ],
+            actions: [
+              PopupMenuButton<String>(
+                tooltip: 'Game Data',
+                icon: const Icon(
+                  Icons
+                      .folder_copy_outlined,
                 ),
-              ),
-              const PopupMenuItem<String>(
-                value: 'load',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.folder_open_outlined,
+                enabled:
+                    !_isProcessingTurn,
+                onSelected:
+                    _handleGameDataAction,
+                itemBuilder:
+                    (context) => [
+                  const PopupMenuItem<
+                      String>(
+                    value: 'save',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.save_outlined,
+                        ),
+                        SizedBox(width: 12),
+                        Text(
+                          'Save Game',
+                        ),
+                      ],
                     ),
-                    SizedBox(width: 12),
-                    Text('Load Game'),
-                  ],
+                  ),
+                  const PopupMenuItem<
+                      String>(
+                    value: 'load',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons
+                              .folder_open_outlined,
+                        ),
+                        SizedBox(width: 12),
+                        Text(
+                          'Load Game',
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              IconButton(
+                tooltip: 'Settings',
+                onPressed:
+                    _isProcessingTurn
+                        ? null
+                        : _openSettings,
+                icon: const Icon(
+                  Icons
+                      .settings_outlined,
                 ),
               ),
             ],
           ),
-          IconButton(
-            tooltip: 'Settings',
-            onPressed: _isProcessingTurn
-                ? null
-                : _showSettings,
-            icon: const Icon(
-              Icons.settings_outlined,
-            ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: ClipRect(
-                child: Transform.scale(
-                  scale: _zoom,
-                  alignment:
-                      Alignment.topCenter,
-                  child: ListView(
-                    padding:
-                        const EdgeInsets.fromLTRB(
-                      8,
-                      4,
-                      8,
-                      6,
-                    ),
-                    children: [
-                      Card(
-                        margin: EdgeInsets.zero,
-                        child: Padding(
-                          padding:
-                              const EdgeInsets.all(8),
-                          child: Row(
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .center,
-                            children: [
-                              Material(
-                                color:
-                                    Colors.transparent,
-                                child: InkWell(
-                                  key: const Key(
-                                    'character-avatar',
-                                  ),
-                                  onTap:
-                                      _openCharacterProfile,
-                                  borderRadius:
-                                      BorderRadius
-                                          .circular(
-                                    40,
-                                  ),
-                                  child:
-                                      CircleAvatar(
-                                    radius: 27,
-                                    child: Icon(
-                                      player.gender ==
-                                              Gender
-                                                  .male
-                                          ? Icons
-                                              .person
-                                          : Icons
-                                              .person_outline,
-                                      size: 29,
+          body: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: ClipRect(
+                    child: Transform.scale(
+                      scale: zoom,
+                      alignment:
+                          Alignment.topCenter,
+                      child: ListView(
+                        padding:
+                            const EdgeInsets
+                                .fromLTRB(
+                          8,
+                          4,
+                          8,
+                          6,
+                        ),
+                        children: [
+                          Card(
+                            margin:
+                                EdgeInsets.zero,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets
+                                      .all(8),
+                              child: Row(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment
+                                        .center,
+                                children: [
+                                  Material(
+                                    color: Colors
+                                        .transparent,
+                                    child:
+                                        InkWell(
+                                      key:
+                                          const Key(
+                                        'character-avatar',
+                                      ),
+                                      onTap:
+                                          _openCharacterProfile,
+                                      borderRadius:
+                                          BorderRadius
+                                              .circular(
+                                        40,
+                                      ),
+                                      child:
+                                          CircleAvatar(
+                                        radius: 27,
+                                        child:
+                                            Icon(
+                                          player.gender ==
+                                                  Gender
+                                                      .male
+                                              ? Icons
+                                                  .person
+                                              : Icons
+                                                  .person_outline,
+                                          size: 29,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 8,
-                              ),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment
-                                          .start,
-                                  children: [
-                                    Text(
-                                      player.name,
-                                      style: Theme.of(
-                                        context,
-                                      )
-                                          .textTheme
-                                          .titleMedium,
-                                      maxLines: 1,
-                                      overflow:
-                                          TextOverflow
-                                              .ellipsis,
-                                    ),
-                                    const SizedBox(
-                                      height: 1,
-                                    ),
-                                    Wrap(
-                                      spacing: 8,
-                                      runSpacing: 0,
+                                  const SizedBox(
+                                    width: 8,
+                                  ),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment
+                                              .start,
                                       children: [
                                         Text(
-                                          'Age $age',
-                                          style:
-                                              Theme.of(
+                                          player
+                                              .name,
+                                          style: Theme
+                                                  .of(
                                             context,
                                           )
-                                                  .textTheme
-                                                  .bodySmall,
+                                              .textTheme
+                                              .titleMedium,
+                                          maxLines:
+                                              1,
+                                          overflow:
+                                              TextOverflow
+                                                  .ellipsis,
                                         ),
-                                        Text(
-                                          'Year '
-                                          '${state.clock.currentYear}',
-                                          style:
-                                              Theme.of(
-                                            context,
-                                          )
-                                                  .textTheme
-                                                  .bodySmall,
+                                        const SizedBox(
+                                          height: 1,
                                         ),
-                                        Text(
-                                          lifeStageLabel,
-                                          style:
-                                              Theme.of(
-                                            context,
-                                          )
+                                        Wrap(
+                                          spacing: 8,
+                                          runSpacing:
+                                              0,
+                                          children: [
+                                            Text(
+                                              'Age $age',
+                                              style: Theme
+                                                      .of(
+                                                context,
+                                              )
                                                   .textTheme
                                                   .bodySmall,
+                                            ),
+                                            Text(
+                                              'Year '
+                                              '${state.clock.currentYear}',
+                                              style: Theme
+                                                      .of(
+                                                context,
+                                              )
+                                                  .textTheme
+                                                  .bodySmall,
+                                            ),
+                                            Text(
+                                              lifeStageLabel,
+                                              style: Theme
+                                                      .of(
+                                                context,
+                                              )
+                                                  .textTheme
+                                                  .bodySmall,
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 6,
-                              ),
-                              Text(
-                                player.money.toString(),
-                                style:
-                                    Theme.of(context)
+                                  ),
+                                  const SizedBox(
+                                    width: 6,
+                                  ),
+                                  Text(
+                                    player.money
+                                        .toString(),
+                                    style: Theme.of(
+                                      context,
+                                    )
                                         .textTheme
                                         .bodyMedium,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Card(
-                        margin: EdgeInsets.zero,
-                        child: Padding(
-                          padding:
-                              const EdgeInsets.fromLTRB(
-                            8,
-                            6,
-                            8,
-                            7,
-                          ),
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start,
-                            children: [
-                              Text(
-                                'Core Stats',
-                                style:
-                                    Theme.of(context)
-                                        .textTheme
-                                        .titleSmall,
-                              ),
-                              const SizedBox(
-                                height: 5,
-                              ),
-                              GridView.count(
-                                crossAxisCount: 4,
-                                crossAxisSpacing: 4,
-                                mainAxisSpacing: 4,
-                                mainAxisExtent: 47,
-                                shrinkWrap: true,
-                                physics:
-                                    const NeverScrollableScrollPhysics(),
-                                children: [
-                                  _StatCard(
-                                    key: const Key(
-                                      'core-stat-health',
-                                    ),
-                                    label: 'Health',
-                                    value: player
-                                        .stats.health,
-                                    icon:
-                                        Icons.favorite,
-                                  ),
-                                  _StatCard(
-                                    key: const Key(
-                                      'core-stat-intelligence',
-                                    ),
-                                    label:
-                                        'Intelligence',
-                                    value: player
-                                        .stats
-                                        .intelligence,
-                                    icon:
-                                        Icons.psychology,
-                                  ),
-                                  _StatCard(
-                                    key: const Key(
-                                      'core-stat-fitness',
-                                    ),
-                                    label: 'Fitness',
-                                    value: player
-                                        .stats.fitness,
-                                    icon: Icons
-                                        .fitness_center,
-                                  ),
-                                  _StatCard(
-                                    key: const Key(
-                                      'core-stat-happiness',
-                                    ),
-                                    label:
-                                        'Happiness',
-                                    value: player
-                                        .stats
-                                        .happiness,
-                                    icon: Icons
-                                        .sentiment_satisfied,
-                                  ),
-                                  _StatCard(
-                                    key: const Key(
-                                      'core-stat-willpower',
-                                    ),
-                                    label:
-                                        'Willpower',
-                                    value: player
-                                        .stats
-                                        .willpower,
-                                    icon: Icons
-                                        .shield_outlined,
-                                  ),
-                                  _StatCard(
-                                    key: const Key(
-                                      'core-stat-charisma',
-                                    ),
-                                    label: 'Charisma',
-                                    value: player
-                                        .stats.charisma,
-                                    icon: Icons.groups,
-                                  ),
-                                  _StatCard(
-                                    key: const Key(
-                                      'core-stat-creativity',
-                                    ),
-                                    label:
-                                        'Creativity',
-                                    value: player
-                                        .stats
-                                        .creativity,
-                                    icon: Icons.palette,
-                                  ),
-                                  _StatCard(
-                                    key: const Key(
-                                      'core-stat-luck',
-                                    ),
-                                    label: 'Luck',
-                                    value: player
-                                        .stats.luck,
-                                    icon: Icons
-                                        .auto_awesome,
                                   ),
                                 ],
                               ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Card(
-                        margin: EdgeInsets.zero,
-                        child: Padding(
-                          padding:
-                              const EdgeInsets.fromLTRB(
-                            8,
-                            6,
-                            8,
-                            6,
+                          const SizedBox(
+                            height: 4,
                           ),
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start,
-                            children: [
-                              Text(
-                                'Life Events',
-                                style:
-                                    Theme.of(context)
+                          Card(
+                            margin:
+                                EdgeInsets.zero,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets
+                                      .fromLTRB(
+                                8,
+                                6,
+                                8,
+                                7,
+                              ),
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment
+                                        .start,
+                                children: [
+                                  Text(
+                                    'Core Stats',
+                                    style: Theme
+                                            .of(
+                                      context,
+                                    )
                                         .textTheme
                                         .titleSmall,
-                              ),
-                              const SizedBox(
-                                height: 5,
-                              ),
-                              SizedBox(
-                                height: 300,
-                                child: events.isEmpty
-                                    ? const Center(
-                                        child: Text(
-                                          'No events yet.',
+                                  ),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  GridView.count(
+                                    crossAxisCount:
+                                        4,
+                                    crossAxisSpacing:
+                                        4,
+                                    mainAxisSpacing:
+                                        4,
+                                    mainAxisExtent:
+                                        47,
+                                    shrinkWrap:
+                                        true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    children: [
+                                      _StatCard(
+                                        key:
+                                            const Key(
+                                          'core-stat-health',
                                         ),
-                                      )
-                                    : ListView
-                                        .separated(
-                                        padding:
-                                            EdgeInsets
-                                                .zero,
-                                        itemCount:
-                                            events.length,
-                                        separatorBuilder:
-                                            (
-                                          _,
-                                          __,
-                                        ) =>
-                                                const SizedBox(
-                                          height: 7,
+                                        label:
+                                            'Health',
+                                        value:
+                                            player
+                                                .stats
+                                                .health,
+                                        icon: Icons
+                                            .favorite,
+                                      ),
+                                      _StatCard(
+                                        key:
+                                            const Key(
+                                          'core-stat-intelligence',
                                         ),
-                                        itemBuilder:
-                                            (
-                                          context,
-                                          index,
-                                        ) {
-                                          final event =
-                                              events[
-                                                  index];
+                                        label:
+                                            'Intelligence',
+                                        value:
+                                            player
+                                                .stats
+                                                .intelligence,
+                                        icon: Icons
+                                            .psychology,
+                                      ),
+                                      _StatCard(
+                                        key:
+                                            const Key(
+                                          'core-stat-fitness',
+                                        ),
+                                        label:
+                                            'Fitness',
+                                        value:
+                                            player
+                                                .stats
+                                                .fitness,
+                                        icon: Icons
+                                            .fitness_center,
+                                      ),
+                                      _StatCard(
+                                        key:
+                                            const Key(
+                                          'core-stat-happiness',
+                                        ),
+                                        label:
+                                            'Happiness',
+                                        value:
+                                            player
+                                                .stats
+                                                .happiness,
+                                        icon: Icons
+                                            .sentiment_satisfied,
+                                      ),
+                                      _StatCard(
+                                        key:
+                                            const Key(
+                                          'core-stat-willpower',
+                                        ),
+                                        label:
+                                            'Willpower',
+                                        value:
+                                            player
+                                                .stats
+                                                .willpower,
+                                        icon: Icons
+                                            .shield_outlined,
+                                      ),
+                                      _StatCard(
+                                        key:
+                                            const Key(
+                                          'core-stat-charisma',
+                                        ),
+                                        label:
+                                            'Charisma',
+                                        value:
+                                            player
+                                                .stats
+                                                .charisma,
+                                        icon: Icons
+                                            .groups,
+                                      ),
+                                      _StatCard(
+                                        key:
+                                            const Key(
+                                          'core-stat-creativity',
+                                        ),
+                                        label:
+                                            'Creativity',
+                                        value:
+                                            player
+                                                .stats
+                                                .creativity,
+                                        icon: Icons
+                                            .palette,
+                                      ),
+                                      _StatCard(
+                                        key:
+                                            const Key(
+                                          'core-stat-luck',
+                                        ),
+                                        label:
+                                            'Luck',
+                                        value:
+                                            player
+                                                .stats
+                                                .luck,
+                                        icon: Icons
+                                            .auto_awesome,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 4,
+                          ),
+                          Card(
+                            margin:
+                                EdgeInsets.zero,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets
+                                      .fromLTRB(
+                                8,
+                                6,
+                                8,
+                                6,
+                              ),
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment
+                                        .start,
+                                children: [
+                                  Text(
+                                    'Life Events',
+                                    style: Theme
+                                            .of(
+                                      context,
+                                    )
+                                        .textTheme
+                                        .titleSmall,
+                                  ),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  SizedBox(
+                                    height: 300,
+                                    child: events
+                                            .isEmpty
+                                        ? const Center(
+                                            child:
+                                                Text(
+                                              'No events yet.',
+                                            ),
+                                          )
+                                        : ListView
+                                            .separated(
+                                            padding:
+                                                EdgeInsets
+                                                    .zero,
+                                            itemCount:
+                                                events
+                                                    .length,
+                                            separatorBuilder:
+                                                (
+                                              _,
+                                              __,
+                                            ) =>
+                                                    const SizedBox(
+                                              height:
+                                                  7,
+                                            ),
+                                            itemBuilder:
+                                                (
+                                              context,
+                                              index,
+                                            ) {
+                                              final event =
+                                                  events[
+                                                      index];
 
-                                          return Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment
-                                                    .start,
-                                            children: [
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets
-                                                        .only(
-                                                  top: 5,
-                                                ),
-                                                child:
-                                                    Icon(
-                                                  Icons
-                                                      .circle,
-                                                  size: 6,
-                                                  color:
-                                                      Theme.of(
-                                                    context,
-                                                  )
+                                              return Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment
+                                                        .start,
+                                                children: [
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                      top:
+                                                          5,
+                                                    ),
+                                                    child:
+                                                        Icon(
+                                                      Icons
+                                                          .circle,
+                                                      size:
+                                                          6,
+                                                      color:
+                                                          Theme.of(
+                                                        context,
+                                                      )
                                                               .colorScheme
                                                               .primary,
-                                                ),
-                                              ),
-                                              const SizedBox(
-                                                width: 7,
-                                              ),
-                                              Expanded(
-                                                child:
-                                                    Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment
-                                                          .start,
-                                                  children: [
-                                                    Text(
-                                                      event
-                                                          .title,
-                                                      style:
-                                                          Theme.of(
-                                                        context,
-                                                      )
-                                                              .textTheme
-                                                              .bodyMedium!
-                                                              .copyWith(
-                                                                fontWeight:
-                                                                    FontWeight.w600,
-                                                              ),
                                                     ),
-                                                    const SizedBox(
-                                                      height:
-                                                          1,
+                                                  ),
+                                                  const SizedBox(
+                                                    width:
+                                                        7,
+                                                  ),
+                                                  Expanded(
+                                                    child:
+                                                        Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(
+                                                          event
+                                                              .title,
+                                                          style:
+                                                              Theme.of(
+                                                            context,
+                                                          )
+                                                                  .textTheme
+                                                                  .bodyMedium!
+                                                                  .copyWith(
+                                                                    fontWeight:
+                                                                        FontWeight.w600,
+                                                                  ),
+                                                        ),
+                                                        const SizedBox(
+                                                          height:
+                                                              1,
+                                                        ),
+                                                        Text(
+                                                          '${event.year} — '
+                                                          '${event.description}',
+                                                          style:
+                                                              Theme.of(
+                                                            context,
+                                                          )
+                                                                  .textTheme
+                                                                  .bodySmall,
+                                                        ),
+                                                      ],
                                                     ),
-                                                    Text(
-                                                      '${event.year} — '
-                                                      '${event.description}',
-                                                      style:
-                                                          Theme.of(
-                                                        context,
-                                                      )
-                                                              .textTheme
-                                                              .bodySmall,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      ),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-            Container(
-              padding:
-                  const EdgeInsets.fromLTRB(
-                8,
-                5,
-                8,
-                5,
-              ),
-              decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .scaffoldBackgroundColor,
-                border: Border(
-                  top: BorderSide(
+                Container(
+                  padding:
+                      const EdgeInsets.fromLTRB(
+                    8,
+                    5,
+                    8,
+                    5,
+                  ),
+                  decoration:
+                      BoxDecoration(
                     color: Theme.of(context)
-                        .colorScheme
-                        .outlineVariant,
+                        .scaffoldBackgroundColor,
+                    border:
+                        Border(
+                      top: BorderSide(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .outlineVariant,
+                      ),
+                    ),
+                  ),
+                  child: SizedBox(
+                    width:
+                        double.infinity,
+                    height: 44,
+                    child:
+                        FilledButton.icon(
+                      onPressed:
+                          _isProcessingTurn
+                              ? null
+                              : _ageUp,
+                      icon:
+                          _isProcessingTurn
+                              ? const SizedBox(
+                                  width: 17,
+                                  height: 17,
+                                  child:
+                                      CircularProgressIndicator(
+                                    strokeWidth:
+                                        2,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons
+                                      .arrow_forward,
+                                  size: 18,
+                                ),
+                      label: Text(
+                        _isProcessingTurn
+                            ? 'SAVING...'
+                            : 'AGE UP',
+                      ),
+                    ),
                   ),
                 ),
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                height: 44,
-                child: FilledButton.icon(
-                  onPressed:
-                      _isProcessingTurn
-                          ? null
-                          : _ageUp,
-                  icon: _isProcessingTurn
-                      ? const SizedBox(
-                          width: 17,
-                          height: 17,
-                          child:
-                              CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Icon(
-                          Icons.arrow_forward,
-                          size: 18,
-                        ),
-                  label: Text(
-                    _isProcessingTurn
-                        ? 'SAVING...'
-                        : 'AGE UP',
-                  ),
-                ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -903,7 +851,8 @@ class _GameScreenState extends State<GameScreen> {
   }
 }
 
-class _StatCard extends StatelessWidget {
+class _StatCard
+    extends StatelessWidget {
   const _StatCard({
     required this.label,
     required this.value,
@@ -920,7 +869,9 @@ class _StatCard extends StatelessWidget {
     BuildContext context,
   ) {
     final progress =
-        (value / 100).clamp(0.0, 1.0).toDouble();
+        (value / 100)
+            .clamp(0.0, 1.0)
+            .toDouble();
 
     return Container(
       padding:
@@ -928,7 +879,8 @@ class _StatCard extends StatelessWidget {
         horizontal: 4,
         vertical: 4,
       ),
-      decoration: BoxDecoration(
+      decoration:
+          BoxDecoration(
         borderRadius:
             BorderRadius.circular(7),
         border: Border.all(
@@ -952,7 +904,9 @@ class _StatCard extends StatelessWidget {
                     .colorScheme
                     .primary,
               ),
-              const SizedBox(width: 2),
+              const SizedBox(
+                width: 2,
+              ),
               Flexible(
                 child: Text(
                   label,
@@ -965,25 +919,29 @@ class _StatCard extends StatelessWidget {
                       .textTheme
                       .labelSmall!
                       .copyWith(
-                        fontSize: 9,
-                      ),
+                    fontSize: 9,
+                  ),
                 ),
               ),
-              const SizedBox(width: 2),
+              const SizedBox(
+                width: 2,
+              ),
               Text(
                 '$value',
                 style: Theme.of(context)
                     .textTheme
                     .labelSmall!
                     .copyWith(
-                      fontSize: 9,
-                      fontWeight:
-                          FontWeight.w700,
-                    ),
+                  fontSize: 9,
+                  fontWeight:
+                      FontWeight.w700,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 3),
+          const SizedBox(
+            height: 3,
+          ),
           LinearProgressIndicator(
             value: progress,
             minHeight: 3,
