@@ -31,6 +31,17 @@ SimulationEngine createTestEngine(
   );
 }
 
+Future<void> scrollToAgeUp(
+  WidgetTester tester,
+) async {
+  await tester.scrollUntilVisible(
+    find.text('AGE UP'),
+    500,
+  );
+
+  await tester.pumpAndSettle();
+}
+
 void main() {
   group('GameScreen', () {
     testWidgets(
@@ -130,6 +141,8 @@ void main() {
           findsOneWidget,
         );
 
+        await scrollToAgeUp(tester);
+
         await tester.tap(
           find.text('AGE UP'),
         );
@@ -198,6 +211,8 @@ void main() {
         final expectedRandomState =
             engine.random.state;
 
+        await scrollToAgeUp(tester);
+
         await tester.tap(
           find.text('AGE UP'),
         );
@@ -239,6 +254,8 @@ void main() {
 
         await tester.pumpAndSettle();
 
+        await scrollToAgeUp(tester);
+
         await tester.tap(
           find.text('AGE UP'),
         );
@@ -273,6 +290,8 @@ void main() {
         );
 
         await tester.pumpAndSettle();
+
+        await scrollToAgeUp(tester);
 
         final ageUpButton =
             find.text('AGE UP');
