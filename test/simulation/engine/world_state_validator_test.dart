@@ -47,12 +47,33 @@ void main() {
       expect(result.isSuccess, isTrue);
     });
 
-    test('rejects an empty player id', () {
+    test('accepts all core stats at zero and one hundred', () {
+      const stats = CharacterStats(
+        health: 0,
+        intelligence: 100,
+        fitness: 0,
+        happiness: 100,
+        willpower: 0,
+        charisma: 100,
+        creativity: 0,
+        luck: 100,
+      );
+
       final result = validator.validate(
         createState(
           player: createPlayer(
-            id: '',
+            stats: stats,
           ),
+        ),
+      );
+
+      expect(result.isSuccess, isTrue);
+    });
+
+    test('rejects an empty player id', () {
+      final result = validator.validate(
+        createState(
+          player: createPlayer(id: ''),
         ),
       );
 
@@ -62,9 +83,7 @@ void main() {
     test('rejects an empty player name', () {
       final result = validator.validate(
         createState(
-          player: createPlayer(
-            name: '',
-          ),
+          player: createPlayer(name: ''),
         ),
       );
 
@@ -81,27 +100,6 @@ void main() {
       );
 
       expect(result.isFailure, isTrue);
-    });
-
-    test('accepts stats at zero and one hundred', () {
-      const stats = CharacterStats(
-        health: 0,
-        happiness: 100,
-        intelligence: 0,
-        discipline: 100,
-        empathy: 0,
-        ambition: 100,
-      );
-
-      final result = validator.validate(
-        createState(
-          player: createPlayer(
-            stats: stats,
-          ),
-        ),
-      );
-
-      expect(result.isSuccess, isTrue);
     });
 
     test('rejects a stat below zero', () {
