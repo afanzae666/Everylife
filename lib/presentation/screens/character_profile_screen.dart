@@ -26,12 +26,13 @@ class CharacterProfileScreen extends StatelessWidget {
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
-            16,
             8,
-            16,
-            20,
+            4,
+            8,
+            12,
           ),
           children: [
+            const SizedBox(height: 2),
             Center(
               child: CircleAvatar(
                 radius: 48,
@@ -43,21 +44,26 @@ class CharacterProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 5),
             Center(
               child: Text(
                 character.name,
                 style: Theme.of(context)
                     .textTheme
-                    .headlineMedium,
+                    .titleLarge,
                 textAlign: TextAlign.center,
               ),
             ),
-            const SizedBox(height: 10),
-
+            const SizedBox(height: 6),
             Card(
+              margin: EdgeInsets.zero,
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.fromLTRB(
+                  8,
+                  7,
+                  8,
+                  7,
+                ),
                 child: Column(
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
@@ -66,9 +72,9 @@ class CharacterProfileScreen extends StatelessWidget {
                       'Basic Information',
                       style: Theme.of(context)
                           .textTheme
-                          .titleLarge,
+                          .titleSmall,
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 3),
                     _InfoRow(
                       label: 'Name',
                       value: character.name,
@@ -79,7 +85,8 @@ class CharacterProfileScreen extends StatelessWidget {
                     ),
                     _InfoRow(
                       label: 'Birth Year',
-                      value: '${character.birthYear}',
+                      value:
+                          '${character.birthYear}',
                     ),
                     _InfoRow(
                       label: 'Age',
@@ -97,18 +104,23 @@ class CharacterProfileScreen extends StatelessWidget {
                     ),
                     _InfoRow(
                       label: 'Money',
-                      value: character.money.toString(),
+                      value:
+                          character.money.toString(),
                     ),
                   ],
                 ),
               ),
             ),
-
-            const SizedBox(height: 8),
-
+            const SizedBox(height: 4),
             Card(
+              margin: EdgeInsets.zero,
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.fromLTRB(
+                  8,
+                  7,
+                  8,
+                  7,
+                ),
                 child: Column(
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
@@ -117,9 +129,9 @@ class CharacterProfileScreen extends StatelessWidget {
                       'Character Information',
                       style: Theme.of(context)
                           .textTheme
-                          .titleLarge,
+                          .titleSmall,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       'This profile will become the '
                       'home for additional character '
@@ -127,7 +139,7 @@ class CharacterProfileScreen extends StatelessWidget {
                       'expands.',
                       style: Theme.of(context)
                           .textTheme
-                          .bodyMedium,
+                          .bodySmall,
                     ),
                   ],
                 ),
@@ -143,22 +155,16 @@ class CharacterProfileScreen extends StatelessWidget {
     switch (stage) {
       case LifeStage.infant:
         return 'Infant';
-
       case LifeStage.toddler:
         return 'Toddler';
-
       case LifeStage.child:
         return 'Child';
-
       case LifeStage.teen:
         return 'Teen';
-
       case LifeStage.youngAdult:
         return 'Young Adult';
-
       case LifeStage.adult:
         return 'Adult';
-
       case LifeStage.senior:
         return 'Senior';
     }
@@ -178,23 +184,31 @@ class _InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        vertical: 1,
+        vertical: 0.5,
       ),
       child: Row(
         crossAxisAlignment:
             CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Text(label),
+            child: Text(
+              label,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall,
+            ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Flexible(
             child: Text(
               value,
               textAlign: TextAlign.end,
               style: Theme.of(context)
                   .textTheme
-                  .titleSmall,
+                  .bodySmall!
+                  .copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
           ),
         ],
