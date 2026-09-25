@@ -6,11 +6,9 @@ class SettingsScreen extends StatelessWidget {
     super.key,
   });
 
-  final ValueNotifier<double>
-      uiScaleController;
+  final ValueNotifier<double> uiScaleController;
 
-  static const List<double>
-      zoomValues = [
+  static const List<double> zoomValues = [
     0.8,
     0.9,
     1.0,
@@ -25,16 +23,12 @@ class SettingsScreen extends StatelessWidget {
         title: const Text('Settings'),
       ),
       body: ValueListenableBuilder<double>(
-        valueListenable:
-            uiScaleController,
-        builder:
-            (context, zoom, _) {
-          final percent =
-              (zoom * 100).round();
+        valueListenable: uiScaleController,
+        builder: (context, zoom, _) {
+          final percent = (zoom * 100).round();
 
           return ListView(
-            padding:
-                const EdgeInsets.fromLTRB(
+            padding: const EdgeInsets.fromLTRB(
               12,
               8,
               12,
@@ -57,17 +51,14 @@ class SettingsScreen extends StatelessWidget {
                       leading: const Icon(
                         Icons.zoom_in_outlined,
                       ),
-                      title:
-                          const Text('UI Zoom'),
-                      subtitle:
-                          Text('$percent%'),
+                      title: const Text('UI Zoom'),
+                      subtitle: Text('$percent%'),
                     ),
                     const Divider(
                       height: 1,
                     ),
                     Padding(
-                      padding:
-                          const EdgeInsets.fromLTRB(
+                      padding: const EdgeInsets.fromLTRB(
                         8,
                         4,
                         8,
@@ -77,38 +68,32 @@ class SettingsScreen extends StatelessWidget {
                         value: zoom,
                         min: zoomValues.first,
                         max: zoomValues.last,
-                        divisions:
-                            zoomValues.length - 1,
+                        divisions: zoomValues.length - 1,
                         label: '$percent%',
-                        onChanged:
-                            uiScaleController
-                                .value = _snapZoom(
-                          zoom,
-                        ),
+                        onChanged: (value) {
+                          uiScaleController.value =
+                              _snapZoom(value);
+                        },
                       ),
                     ),
                     Padding(
-                      padding:
-                          const EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                         horizontal: 12,
                       ),
                       child: Wrap(
                         spacing: 4,
                         runSpacing: 4,
                         children: [
-                          for (final value
-                              in zoomValues)
+                          for (final value in zoomValues)
                             ChoiceChip(
                               label: Text(
                                 '${(value * 100).round()}%',
                               ),
                               selected:
-                                  (zoom - value)
-                                          .abs() <
-                                      0.001,
+                                  (zoom - value).abs() < 0.001,
                               onSelected: (_) {
-                                uiScaleController
-                                    .value = value;
+                                uiScaleController.value =
+                                    value;
                               },
                             ),
                         ],
@@ -127,23 +112,17 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  double _snapZoom(
-    double value,
-  ) {
+  double _snapZoom(double value) {
     var closest = zoomValues.first;
-    var distance =
-        (value - closest).abs();
+    var distance = (value - closest).abs();
 
-    for (final candidate
-        in zoomValues.skip(1)) {
+    for (final candidate in zoomValues.skip(1)) {
       final candidateDistance =
           (value - candidate).abs();
 
-      if (candidateDistance <
-          distance) {
+      if (candidateDistance < distance) {
         closest = candidate;
-        distance =
-            candidateDistance;
+        distance = candidateDistance;
       }
     }
 
