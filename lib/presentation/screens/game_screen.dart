@@ -843,7 +843,7 @@ class _StatCard extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.symmetric(
         horizontal: s(4),
-        vertical: s(4),
+        vertical: s(2),
       ),
       decoration: BoxDecoration(
         borderRadius:
@@ -860,45 +860,51 @@ class _StatCard extends StatelessWidget {
         mainAxisAlignment:
             MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: s(11),
-            color: Theme.of(context)
-                .colorScheme
-                .primary,
-          ),
-          SizedBox(
-            height: s(2),
-          ),
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 2,
-              softWrap: true,
-              textAlign: TextAlign.center,
-              style:
-                  Theme.of(context)
-                      .textTheme
-                      .labelSmall,
-            ),
+          Row(
+            crossAxisAlignment:
+                CrossAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: s(11),
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary,
+              ),
+              SizedBox(
+                width: s(3),
+              ),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 2,
+                  softWrap: true,
+                  textAlign: TextAlign.start,
+                  style:
+                      Theme.of(context)
+                          .textTheme
+                          .labelSmall,
+                ),
+              ),
+              SizedBox(
+                width: s(3),
+              ),
+              Text(
+                '$value',
+                maxLines: 1,
+                style:
+                    Theme.of(context)
+                        .textTheme
+                        .labelSmall!
+                        .copyWith(
+                          fontWeight:
+                              FontWeight.w700,
+                        ),
+              ),
+            ],
           ),
           SizedBox(
             height: s(1),
-          ),
-          Text(
-            '$value',
-            maxLines: 1,
-            style:
-                Theme.of(context)
-                    .textTheme
-                    .labelSmall!
-                    .copyWith(
-                      fontWeight:
-                          FontWeight.w700,
-                    ),
-          ),
-          SizedBox(
-            height: s(3),
           ),
           LinearProgressIndicator(
             value: progress,
