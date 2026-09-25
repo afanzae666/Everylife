@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../core/random/seeded_random.dart';
 import '../data/repositories/save_repository.dart';
@@ -160,15 +161,72 @@ class _LifeSimulationAppState extends State<LifeSimulationApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Life Simulation',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-        ),
-        useMaterial3: true,
+    final baseTheme = ThemeData(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: Colors.indigo,
       ),
+      useMaterial3: true,
+    );
+
+    final baseTextTheme = GoogleFonts.nunitoTextTheme(
+      baseTheme.textTheme,
+    );
+
+    final everyLifeTextTheme = baseTextTheme.copyWith(
+      headlineSmall: baseTextTheme.headlineSmall?.copyWith(
+        fontSize: 27,
+        fontWeight: FontWeight.w700,
+      ),
+      titleLarge: baseTextTheme.titleLarge?.copyWith(
+        fontSize: 24,
+        fontWeight: FontWeight.w700,
+      ),
+      titleMedium: baseTextTheme.titleMedium?.copyWith(
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+      ),
+      titleSmall: baseTextTheme.titleSmall?.copyWith(
+        fontSize: 18,
+        fontWeight: FontWeight.w700,
+      ),
+      bodyLarge: baseTextTheme.bodyLarge?.copyWith(
+        fontSize: 17,
+      ),
+      bodyMedium: baseTextTheme.bodyMedium?.copyWith(
+        fontSize: 16,
+      ),
+      bodySmall: baseTextTheme.bodySmall?.copyWith(
+        fontSize: 14,
+      ),
+      labelLarge: baseTextTheme.labelLarge?.copyWith(
+        fontSize: 15,
+        fontWeight: FontWeight.w700,
+      ),
+      labelMedium: baseTextTheme.labelMedium?.copyWith(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+      ),
+      labelSmall: baseTextTheme.labelSmall?.copyWith(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+
+    final everyLifeTheme = baseTheme.copyWith(
+      textTheme: everyLifeTextTheme,
+      appBarTheme: AppBarTheme(
+        titleTextStyle:
+            everyLifeTextTheme.titleLarge?.copyWith(
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+
+    return MaterialApp(
+      title: 'EveryLife',
+      debugShowCheckedModeBanner: false,
+      theme: everyLifeTheme,
       home: _buildHome(),
     );
   }
