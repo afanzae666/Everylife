@@ -1,54 +1,128 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../../lib/domain/character/character_stats.dart';
+import 'package:everylife/domain/character/character_stats.dart';
 
 void main() {
   group('CharacterStats', () {
-    test('uses the expected default values', () {
-      const stats = CharacterStats();
+    test(
+      'contains the eight core stats',
+      () {
+        const stats = CharacterStats();
 
-      expect(stats.health, 100);
-      expect(stats.happiness, 75);
-      expect(stats.intelligence, 50);
-      expect(stats.discipline, 50);
-      expect(stats.empathy, 50);
-      expect(stats.ambition, 50);
-    });
+        expect(stats.health, 100);
+        expect(stats.intelligence, 50);
+        expect(stats.fitness, 50);
+        expect(stats.happiness, 75);
+        expect(stats.willpower, 50);
+        expect(stats.charisma, 50);
+        expect(stats.creativity, 50);
+        expect(stats.luck, 50);
+      },
+    );
 
-    test('copyWith replaces only the supplied values', () {
-      const original = CharacterStats();
+    test(
+      'copyWith changes only the requested stats',
+      () {
+        const stats = CharacterStats();
 
-      final updated = original.copyWith(
-        health: 90,
-        intelligence: 80,
-      );
+        final updated = stats.copyWith(
+          health: 80,
+          fitness: 90,
+          creativity: 65,
+        );
 
-      expect(updated.health, 90);
-      expect(updated.happiness, original.happiness);
-      expect(updated.intelligence, 80);
-      expect(updated.discipline, original.discipline);
-      expect(updated.empathy, original.empathy);
-      expect(updated.ambition, original.ambition);
-    });
+        expect(updated.health, 80);
+        expect(updated.intelligence, 50);
+        expect(updated.fitness, 90);
+        expect(updated.happiness, 75);
+        expect(updated.willpower, 50);
+        expect(updated.charisma, 50);
+        expect(updated.creativity, 65);
+        expect(updated.luck, 50);
+      },
+    );
 
-    test('copyWith with no arguments preserves every value', () {
-      const original = CharacterStats(
-        health: 91,
-        happiness: 82,
-        intelligence: 73,
-        discipline: 64,
-        empathy: 55,
-        ambition: 46,
-      );
+    test(
+      'clamps stats below zero',
+      () {
+        const stats = CharacterStats();
 
-      final copy = original.copyWith();
+        final updated = stats.copyWith(
+          health: -10,
+          fitness: -1,
+          luck: -100,
+        );
 
-      expect(copy.health, original.health);
-      expect(copy.happiness, original.happiness);
-      expect(copy.intelligence, original.intelligence);
-      expect(copy.discipline, original.discipline);
-      expect(copy.empathy, original.empathy);
-      expect(copy.ambition, original.ambition);
-    });
+        expect(
+          updated.health,
+          CharacterStats.minimum,
+        );
+
+        expect(
+          updated.fitness,
+          CharacterStats.minimum,
+        );
+
+        expect(
+          updated.luck,
+          CharacterStats.minimum,
+        );
+      },
+    );
+
+    test(
+      'clamps stats above one hundred',
+      () {
+        const stats = CharacterStats();
+
+        final updated = stats.copyWith(
+          health: 101,
+          intelligence: 150,
+          charisma: 1000,
+        );
+
+        expect(
+          updated.health,
+          CharacterStats.maximum,
+        );
+
+        expect(
+          updated.intelligence,
+          CharacterStats.maximum,
+        );
+
+        expect(
+          updated.charisma,
+          CharacterStats.maximum,
+        );
+      },
+    );
+
+    test(
+      'keeps valid values unchanged',
+      () {
+        const stats = CharacterStats();
+
+        final updated = stats.copyWith(
+          health: 0,
+          intelligence: 1,
+          fitness: 50,
+          happiness: 99,
+          willpower: 100,
+          charisma: 25,
+          creativity: 75,
+          luck: 42,
+        );
+
+        expect(updated.health, 0);
+        expect(updated.intelligence, 1);
+        expect(updated.fitness, 50);
+        expect(updated.happiness, 99);
+        expect(updated.willpower, 100);
+        expect(updated.charisma, 25);
+        expect(updated.creativity, 75);
+        expect(updated.luck, 42);
+      },
+    );
   });
 }
