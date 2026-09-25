@@ -16,9 +16,11 @@ void main() {
         health: 50,
         happiness: 50,
         intelligence: 50,
-        discipline: 50,
-        empathy: 50,
-        ambition: 50,
+        fitness: 50,
+        willpower: 50,
+        charisma: 50,
+        creativity: 50,
+        luck: 50,
       );
 
       final state = _createState(
@@ -35,9 +37,11 @@ void main() {
       expect(result.player.stats.health, 51);
       expect(result.player.stats.happiness, 51);
       expect(result.player.stats.intelligence, 52);
-      expect(result.player.stats.discipline, 51);
-      expect(result.player.stats.empathy, 51);
-      expect(result.player.stats.ambition, 51);
+      expect(result.player.stats.fitness, 51);
+      expect(result.player.stats.willpower, 51);
+      expect(result.player.stats.charisma, 51);
+      expect(result.player.stats.creativity, 51);
+      expect(result.player.stats.luck, 50);
     });
 
     test('applies teen progression during age up', () {
@@ -45,9 +49,11 @@ void main() {
         health: 50,
         happiness: 50,
         intelligence: 50,
-        discipline: 50,
-        empathy: 50,
-        ambition: 50,
+        fitness: 50,
+        willpower: 50,
+        charisma: 50,
+        creativity: 50,
+        luck: 50,
       );
 
       final state = _createState(
@@ -64,19 +70,23 @@ void main() {
       expect(result.player.stats.health, 51);
       expect(result.player.stats.happiness, 50);
       expect(result.player.stats.intelligence, 52);
-      expect(result.player.stats.discipline, 51);
-      expect(result.player.stats.empathy, 51);
-      expect(result.player.stats.ambition, 52);
+      expect(result.player.stats.fitness, 51);
+      expect(result.player.stats.willpower, 51);
+      expect(result.player.stats.charisma, 51);
+      expect(result.player.stats.creativity, 52);
+      expect(result.player.stats.luck, 50);
     });
 
-    test('applies adult health decline during age up', () {
+    test('applies adult progression during age up', () {
       const initialStats = CharacterStats(
         health: 50,
         happiness: 50,
         intelligence: 50,
-        discipline: 50,
-        empathy: 50,
-        ambition: 50,
+        fitness: 50,
+        willpower: 50,
+        charisma: 50,
+        creativity: 50,
+        luck: 50,
       );
 
       final state = _createState(
@@ -93,9 +103,11 @@ void main() {
       expect(result.player.stats.health, 49);
       expect(result.player.stats.happiness, 50);
       expect(result.player.stats.intelligence, 50);
-      expect(result.player.stats.discipline, 50);
-      expect(result.player.stats.empathy, 50);
-      expect(result.player.stats.ambition, 50);
+      expect(result.player.stats.fitness, 49);
+      expect(result.player.stats.willpower, 50);
+      expect(result.player.stats.charisma, 50);
+      expect(result.player.stats.creativity, 50);
+      expect(result.player.stats.luck, 50);
     });
 
     test('preserves the original world state player', () {
@@ -103,9 +115,11 @@ void main() {
         health: 50,
         happiness: 50,
         intelligence: 50,
-        discipline: 50,
-        empathy: 50,
-        ambition: 50,
+        fitness: 50,
+        willpower: 50,
+        charisma: 50,
+        creativity: 50,
+        luck: 50,
       );
 
       final state = _createState(
@@ -122,9 +136,11 @@ void main() {
       expect(state.player.stats.health, 50);
       expect(state.player.stats.happiness, 50);
       expect(state.player.stats.intelligence, 50);
-      expect(state.player.stats.discipline, 50);
-      expect(state.player.stats.empathy, 50);
-      expect(state.player.stats.ambition, 50);
+      expect(state.player.stats.fitness, 50);
+      expect(state.player.stats.willpower, 50);
+      expect(state.player.stats.charisma, 50);
+      expect(state.player.stats.creativity, 50);
+      expect(state.player.stats.luck, 50);
 
       expect(result.player, isNot(same(state.player)));
     });
@@ -134,9 +150,11 @@ void main() {
         health: 50,
         happiness: 50,
         intelligence: 50,
-        discipline: 50,
-        empathy: 50,
-        ambition: 50,
+        fitness: 50,
+        willpower: 50,
+        charisma: 50,
+        creativity: 50,
+        luck: 50,
       );
 
       final state = _createState(
@@ -153,7 +171,8 @@ void main() {
       expect(
         result.events.any(
           (event) =>
-              event.type == SimulationEventType.characterAged &&
+              event.type ==
+                  SimulationEventType.characterAged &&
               event.year == 2026,
         ),
         isTrue,
