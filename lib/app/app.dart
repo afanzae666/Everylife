@@ -28,6 +28,7 @@ class _LifeSimulationAppState extends State<LifeSimulationApp> {
   SimulationEngine? _engine;
 
   bool _isInitializing = true;
+  bool _isCreatingCharacter = false;
 
   String? _startupError;
 
@@ -88,11 +89,45 @@ class _LifeSimulationAppState extends State<LifeSimulationApp> {
     }
   }
 
-  void _createCharacter(Character character) {
+  Future<void> _createCharacter(
+    Character character,
+  ) async {
+    if (_isCreatingCharacter) {
+      return;
+    }
+
+    setState(() {
+      _isCreatingCharacter = true;
+    });
+
     final engine = _createEngine(character);
+
+    final saveResult = await engine.save();
+
+    if (!mounted) {
+      return;
+    }
+
+    if (!saveResult.isSuccess) {
+      setState(() {
+        _isCreatingCharacter = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to save your new life. '
+            'Please try again.',
+          ),
+        ),
+      );
+
+      return;
+    }
 
     setState(() {
       _engine = engine;
+      _isCreatingCharacter = false;
     });
   }
 
@@ -198,8 +233,33 @@ class _LifeSimulationAppState extends State<LifeSimulationApp> {
     }
 
     if (_engine == null) {
-      return CharacterCreationScreen(
-        onCharacterCreated: _createCharacter,
+      return Stack(
+        children: [
+          CharacterCreationScreen(
+            onCharacterCreated: _createCharacter,
+          ),
+          if (_isCreatingCharacter)
+            const ColoredBox(
+              color: Color(0x66000000),
+              child: Center(
+                child: Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 16),
+                        Text(
+                          'Saving your new life...',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       );
     }
 
