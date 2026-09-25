@@ -66,15 +66,15 @@ class _GameScreenState extends State<GameScreen> {
       _isProcessingTurn = false;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          saveResult.isSuccess
-              ? 'Year advanced and game saved.'
-              : 'Year advanced, but autosave failed.',
+    if (!saveResult.isSuccess) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Year advanced, but autosave failed.',
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   Future<void> _save() async {
@@ -133,7 +133,9 @@ class _GameScreenState extends State<GameScreen> {
     );
 
     final lifeStage = LifeStageAge.fromAge(age);
-    final lifeStageLabel = _formatLifeStage(lifeStage);
+    final lifeStageLabel = _formatLifeStage(
+      lifeStage,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -153,7 +155,12 @@ class _GameScreenState extends State<GameScreen> {
       ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(
+            20,
+            16,
+            20,
+            32,
+          ),
           children: [
             Text(
               player.name,
@@ -179,42 +186,145 @@ class _GameScreenState extends State<GameScreen> {
             Text(
               'Year ${state.clock.currentYear}',
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(18),
                 child: Column(
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      'Life Panel',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge,
+                    ),
+                    const SizedBox(height: 16),
                     Text(
                       'Character',
                       style: Theme.of(context)
                           .textTheme
                           .titleMedium,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Text(
                       'Life Stage: $lifeStageLabel',
                     ),
                     Text(
-                      'Health: ${player.stats.health}',
-                    ),
-                    Text(
-                      'Happiness: ${player.stats.happiness}',
-                    ),
-                    Text(
-                      'Intelligence: '
-                      '${player.stats.intelligence}',
-                    ),
-                    Text(
                       'Money: ${player.money}',
                     ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Core Stats',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium,
+                    ),
+                    const SizedBox(height: 12),
+                    _StatRow(
+                      label: 'Health',
+                      value: player.stats.health,
+                    ),
+                    _StatRow(
+                      label: 'Intelligence',
+                      value: player.stats.intelligence,
+                    ),
+                    _StatRow(
+                      label: 'Fitness',
+                      value: player.stats.fitness,
+                    ),
+                    _StatRow(
+                      label: 'Happiness',
+                      value: player.stats.happiness,
+                    ),
+                    _StatRow(
+                      label: 'Willpower',
+                      value: player.stats.willpower,
+                    ),
+                    _StatRow(
+                      label: 'Charisma',
+                      value: player.stats.charisma,
+                    ),
+                    _StatRow(
+                      label: 'Creativity',
+                      value: player.stats.creativity,
+                    ),
+                    _StatRow(
+                      label: 'Luck',
+                      value: player.stats.luck,
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Life Events',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium,
+                    ),
+                    const SizedBox(height: 12),
+                    if (state.events.isEmpty)
+                      const Text(
+                        'No events yet.',
+                      )
+                    else
+                      Column(
+                        children: state.events.reversed
+                            .map(
+                              (event) => Padding(
+                                padding:
+                                    const EdgeInsets.only(
+                                  bottom: 14,
+                                ),
+                                child: Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    const Padding(
+                                      padding:
+                                          EdgeInsets.only(
+                                        top: 5,
+                                      ),
+                                      child: Icon(
+                                        Icons.circle,
+                                        size: 8,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment
+                                                .start,
+                                        children: [
+                                          Text(
+                                            event.title,
+                                            style: Theme.of(
+                                              context,
+                                            )
+                                                .textTheme
+                                                .titleSmall,
+                                          ),
+                                          const SizedBox(
+                                            height: 4,
+                                          ),
+                                          Text(
+                                            '${event.year} — '
+                                            '${event.description}',
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             FilledButton.icon(
               onPressed:
                   _isProcessingTurn ? null : _ageUp,
@@ -226,37 +336,15 @@ class _GameScreenState extends State<GameScreen> {
                         strokeWidth: 2,
                       ),
                     )
-                  : const Icon(Icons.arrow_forward),
+                  : const Icon(
+                      Icons.arrow_forward,
+                    ),
               label: Text(
                 _isProcessingTurn
                     ? 'SAVING...'
                     : 'AGE UP',
               ),
             ),
-            const SizedBox(height: 24),
-            Text(
-              'Life Events',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge,
-            ),
-            const SizedBox(height: 8),
-            if (state.events.isEmpty)
-              const Text(
-                'No events yet.',
-              )
-            else
-              ...state.events.reversed.map(
-                (event) => Card(
-                  child: ListTile(
-                    title: Text(event.title),
-                    subtitle: Text(
-                      '${event.year} — '
-                      '${event.description}',
-                    ),
-                  ),
-                ),
-              ),
           ],
         ),
       ),
@@ -286,5 +374,37 @@ class _GameScreenState extends State<GameScreen> {
       case LifeStage.senior:
         return 'Senior';
     }
+  }
+}
+
+class _StatRow extends StatelessWidget {
+  const _StatRow({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final int value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        vertical: 5,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(label),
+          ),
+          Text(
+            '$value / 100',
+            style: Theme.of(context)
+                .textTheme
+                .titleSmall,
+          ),
+        ],
+      ),
+    );
   }
 }
