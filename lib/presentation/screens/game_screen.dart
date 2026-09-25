@@ -501,9 +501,8 @@ class _GameScreenState extends State<GameScreen> {
                                   ),
                                   label:
                                       'Intelligence',
-                                  value: player
-                                      .stats
-                                      .intelligence,
+                                  value:
+                                      player.stats.intelligence,
                                   icon:
                                       Icons.psychology,
                                   zoom: zoom,
@@ -515,8 +514,8 @@ class _GameScreenState extends State<GameScreen> {
                                   label: 'Fitness',
                                   value:
                                       player.stats.fitness,
-                                  icon: Icons
-                                      .fitness_center,
+                                  icon:
+                                      Icons.fitness_center,
                                   zoom: zoom,
                                 ),
                                 _StatCard(
@@ -525,11 +524,10 @@ class _GameScreenState extends State<GameScreen> {
                                   ),
                                   label:
                                       'Happiness',
-                                  value: player
-                                      .stats
-                                      .happiness,
-                                  icon: Icons
-                                      .sentiment_satisfied,
+                                  value:
+                                      player.stats.happiness,
+                                  icon:
+                                      Icons.sentiment_satisfied,
                                   zoom: zoom,
                                 ),
                                 _StatCard(
@@ -538,11 +536,10 @@ class _GameScreenState extends State<GameScreen> {
                                   ),
                                   label:
                                       'Willpower',
-                                  value: player
-                                      .stats
-                                      .willpower,
-                                  icon: Icons
-                                      .shield_outlined,
+                                  value:
+                                      player.stats.willpower,
+                                  icon:
+                                      Icons.shield_outlined,
                                   zoom: zoom,
                                 ),
                                 _StatCard(
@@ -551,10 +548,10 @@ class _GameScreenState extends State<GameScreen> {
                                   ),
                                   label:
                                       'Charisma',
-                                  value: player
-                                      .stats
-                                      .charisma,
-                                  icon: Icons.groups,
+                                  value:
+                                      player.stats.charisma,
+                                  icon:
+                                      Icons.groups,
                                   zoom: zoom,
                                 ),
                                 _StatCard(
@@ -563,10 +560,10 @@ class _GameScreenState extends State<GameScreen> {
                                   ),
                                   label:
                                       'Creativity',
-                                  value: player
-                                      .stats
-                                      .creativity,
-                                  icon: Icons.palette,
+                                  value:
+                                      player.stats.creativity,
+                                  icon:
+                                      Icons.palette,
                                   zoom: zoom,
                                 ),
                                 _StatCard(
@@ -632,10 +629,7 @@ class _GameScreenState extends State<GameScreen> {
                                     height: s(7),
                                   ),
                                   itemBuilder:
-                                      (
-                                    context,
-                                    index,
-                                  ) {
+                                      (context, index) {
                                     final event =
                                         events[index];
 
@@ -681,3 +675,253 @@ class _GameScreenState extends State<GameScreen> {
                                                       fontWeight:
                                                           FontWeight.w600,
                                                     ),
+                                              ),
+                                              SizedBox(
+                                                height:
+                                                    s(1),
+                                              ),
+                                              Text(
+                                                '${event.year} — '
+                                                '${event.description}',
+                                                style: Theme
+                                                        .of(
+                                                  context,
+                                                )
+                                                    .textTheme
+                                                    .bodySmall,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.fromLTRB(
+                s(8),
+                s(5),
+                s(8),
+                s(5),
+              ),
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                    .scaffoldBackgroundColor,
+                border: Border(
+                  top: BorderSide(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .outlineVariant,
+                  ),
+                ),
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                height: s(44),
+                child: FilledButton.icon(
+                  onPressed: _isProcessingTurn
+                      ? null
+                      : _ageUp,
+                  icon: _isProcessingTurn
+                      ? SizedBox(
+                          width: s(17),
+                          height: s(17),
+                          child:
+                              const CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Icon(
+                          Icons.arrow_forward,
+                          size: s(18),
+                        ),
+                  label: Text(
+                    _isProcessingTurn
+                        ? 'SAVING...'
+                        : 'AGE UP',
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  int _getStatColumnCount(
+    double availableWidth,
+    double zoom,
+  ) {
+    if (zoom <= 1.15) {
+      return 4;
+    }
+
+    if (zoom <= 1.55) {
+      return availableWidth >= 320 ? 3 : 2;
+    }
+
+    return availableWidth >= 320 ? 2 : 1;
+  }
+
+  String _formatLifeStage(
+    LifeStage stage,
+  ) {
+    switch (stage) {
+      case LifeStage.infant:
+        return 'Infant';
+      case LifeStage.toddler:
+        return 'Toddler';
+      case LifeStage.child:
+        return 'Child';
+      case LifeStage.teen:
+        return 'Teen';
+      case LifeStage.youngAdult:
+        return 'Young Adult';
+      case LifeStage.adult:
+        return 'Adult';
+      case LifeStage.senior:
+        return 'Senior';
+    }
+  }
+}
+
+class _ResponsiveCard extends StatelessWidget {
+  const _ResponsiveCard({
+    required this.padding,
+    required this.child,
+  });
+
+  final EdgeInsets padding;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: Card(
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: padding,
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.zoom,
+    super.key,
+  });
+
+  final String label;
+  final int value;
+  final IconData icon;
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) => value * zoom;
+
+    final progress = (value / 100)
+        .clamp(0.0, 1.0)
+        .toDouble();
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: s(4),
+        vertical: s(4),
+      ),
+      decoration: BoxDecoration(
+        borderRadius:
+            BorderRadius.circular(
+          s(7),
+        ),
+        border: Border.all(
+          color: Theme.of(context)
+              .colorScheme
+              .outlineVariant,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment:
+            MainAxisAlignment.center,
+        children: [
+          Flexible(
+            child: Row(
+              mainAxisAlignment:
+                  MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: s(11),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary,
+                ),
+                SizedBox(
+                  width: s(2),
+                ),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow:
+                        TextOverflow.ellipsis,
+                    textAlign:
+                        TextAlign.center,
+                    style:
+                        Theme.of(context)
+                            .textTheme
+                            .labelSmall,
+                  ),
+                ),
+                SizedBox(
+                  width: s(2),
+                ),
+                Text(
+                  '$value',
+                  maxLines: 1,
+                  overflow:
+                      TextOverflow.ellipsis,
+                  style:
+                      Theme.of(context)
+                          .textTheme
+                          .labelSmall!
+                          .copyWith(
+                            fontWeight:
+                                FontWeight.w700,
+                          ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: s(3),
+          ),
+          LinearProgressIndicator(
+            value: progress,
+            minHeight: s(3),
+            borderRadius:
+                BorderRadius.circular(
+              s(4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
