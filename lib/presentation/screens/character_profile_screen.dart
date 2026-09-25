@@ -26,10 +26,10 @@ class CharacterProfileScreen extends StatelessWidget {
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
+            16,
+            8,
+            16,
             20,
-            12,
-            20,
-            24,
           ),
           children: [
             Center(
@@ -43,7 +43,7 @@ class CharacterProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Center(
               child: Text(
                 character.name,
@@ -53,12 +53,11 @@ class CharacterProfileScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
 
-            // Basic character information.
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
@@ -69,7 +68,7 @@ class CharacterProfileScreen extends StatelessWidget {
                           .textTheme
                           .titleLarge,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 5),
                     _InfoRow(
                       label: 'Name',
                       value: character.name,
@@ -105,12 +104,11 @@ class CharacterProfileScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
 
-            // Reserved area for future character systems.
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
@@ -121,7 +119,7 @@ class CharacterProfileScreen extends StatelessWidget {
                           .textTheme
                           .titleLarge,
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     Text(
                       'This profile will become the '
                       'home for additional character '
@@ -180,7 +178,7 @@ class _InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        vertical: 3,
+        vertical: 1,
       ),
       child: Row(
         crossAxisAlignment:
@@ -189,7 +187,7 @@ class _InfoRow extends StatelessWidget {
           Expanded(
             child: Text(label),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Flexible(
             child: Text(
               value,
