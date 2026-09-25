@@ -71,6 +71,16 @@ void main() {
       );
 
       expect(
+        find.text('Year'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('2033'),
+        findsOneWidget,
+      );
+
+      expect(
         find.text('Life Stage'),
         findsOneWidget,
       );
@@ -85,8 +95,55 @@ void main() {
         findsOneWidget,
       );
 
+      // Core Stats belongs to the main game screen,
+      // not the character profile.
       expect(
         find.text('Core Stats'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Health'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Intelligence'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Fitness'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Happiness'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Willpower'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Charisma'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Creativity'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Luck'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Character Information'),
         findsOneWidget,
       );
     },
