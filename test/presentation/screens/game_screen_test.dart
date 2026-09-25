@@ -58,8 +58,6 @@ Future<void> scrollToBottom(
     await tester.pumpAndSettle();
   }
 
-  // Keep the helper deterministic even if the test
-  // environment uses a different viewport size.
   await tester.dragFrom(
     center,
     const Offset(0, -300),
@@ -140,7 +138,7 @@ void main() {
     );
 
     testWidgets(
-      'displays all 8 core stats in separate card',
+      'displays all 8 core stats in 4 by 2 layout',
       (tester) async {
         final repository =
             InMemorySaveRepository();
@@ -161,6 +159,62 @@ void main() {
 
         expect(
           find.text('Core Stats'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.byKey(
+            const Key('core-stat-health'),
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          find.byKey(
+            const Key('core-stat-intelligence'),
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          find.byKey(
+            const Key('core-stat-fitness'),
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          find.byKey(
+            const Key('core-stat-happiness'),
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          find.byKey(
+            const Key('core-stat-willpower'),
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          find.byKey(
+            const Key('core-stat-charisma'),
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          find.byKey(
+            const Key('core-stat-creativity'),
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          find.byKey(
+            const Key('core-stat-luck'),
+          ),
           findsOneWidget,
         );
 
