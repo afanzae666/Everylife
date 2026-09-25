@@ -21,17 +21,21 @@ class CharacterStatProgression {
         stats.intelligence,
         _intelligenceDelta(stage),
       ),
-      discipline: _adjust(
-        stats.discipline,
-        _disciplineDelta(stage),
+      fitness: _adjust(
+        stats.fitness,
+        _fitnessDelta(stage),
       ),
-      empathy: _adjust(
-        stats.empathy,
-        _empathyDelta(stage),
+      willpower: _adjust(
+        stats.willpower,
+        _willpowerDelta(stage),
       ),
-      ambition: _adjust(
-        stats.ambition,
-        _ambitionDelta(stage),
+      charisma: _adjust(
+        stats.charisma,
+        _charismaDelta(stage),
+      ),
+      creativity: _adjust(
+        stats.creativity,
+        _creativityDelta(stage),
       ),
     );
   }
@@ -45,9 +49,7 @@ class CharacterStatProgression {
       case LifeStage.infant:
         return 0;
       case LifeStage.toddler:
-        return 1;
       case LifeStage.child:
-        return 1;
       case LifeStage.teen:
         return 1;
       case LifeStage.youngAdult:
@@ -62,15 +64,11 @@ class CharacterStatProgression {
   int _happinessDelta(LifeStage stage) {
     switch (stage) {
       case LifeStage.infant:
-        return 1;
       case LifeStage.toddler:
-        return 1;
       case LifeStage.child:
         return 1;
       case LifeStage.teen:
-        return 0;
       case LifeStage.youngAdult:
-        return 0;
       case LifeStage.adult:
         return 0;
       case LifeStage.senior:
@@ -85,60 +83,67 @@ class CharacterStatProgression {
       case LifeStage.toddler:
         return 1;
       case LifeStage.child:
-        return 2;
       case LifeStage.teen:
         return 2;
       case LifeStage.youngAdult:
         return 1;
       case LifeStage.adult:
-        return 0;
       case LifeStage.senior:
         return 0;
     }
   }
 
-  int _disciplineDelta(LifeStage stage) {
+  int _fitnessDelta(LifeStage stage) {
     switch (stage) {
       case LifeStage.infant:
         return 0;
       case LifeStage.toddler:
-        return 0;
       case LifeStage.child:
-        return 1;
       case LifeStage.teen:
         return 1;
+      case LifeStage.youngAdult:
+        return 0;
+      case LifeStage.adult:
+        return -1;
+      case LifeStage.senior:
+        return -2;
+    }
+  }
+
+  int _willpowerDelta(LifeStage stage) {
+    switch (stage) {
+      case LifeStage.infant:
+      case LifeStage.toddler:
+        return 0;
+      case LifeStage.child:
+      case LifeStage.teen:
+      case LifeStage.youngAdult:
+        return 1;
+      case LifeStage.adult:
+      case LifeStage.senior:
+        return 0;
+    }
+  }
+
+  int _charismaDelta(LifeStage stage) {
+    switch (stage) {
+      case LifeStage.infant:
+        return 0;
+      case LifeStage.toddler:
+      case LifeStage.child:
+      case LifeStage.teen:
       case LifeStage.youngAdult:
         return 1;
       case LifeStage.adult:
         return 0;
       case LifeStage.senior:
-        return 0;
-    }
-  }
-
-  int _empathyDelta(LifeStage stage) {
-    switch (stage) {
-      case LifeStage.infant:
-        return 0;
-      case LifeStage.toddler:
-        return 1;
-      case LifeStage.child:
-        return 1;
-      case LifeStage.teen:
-        return 1;
-      case LifeStage.youngAdult:
-        return 1;
-      case LifeStage.adult:
-        return 0;
-      case LifeStage.senior:
         return 1;
     }
   }
 
-  int _ambitionDelta(LifeStage stage) {
+  int _creativityDelta(LifeStage stage) {
     switch (stage) {
       case LifeStage.infant:
-        return 0;
       case LifeStage.toddler:
         return 0;
       case LifeStage.child:
