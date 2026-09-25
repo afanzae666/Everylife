@@ -860,54 +860,42 @@ class _StatCard extends StatelessWidget {
         mainAxisAlignment:
             MainAxisAlignment.center,
         children: [
+          Icon(
+            icon,
+            size: s(11),
+            color: Theme.of(context)
+                .colorScheme
+                .primary,
+          ),
+          SizedBox(
+            height: s(2),
+          ),
           Flexible(
-            child: Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  size: s(11),
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primary,
-                ),
-                SizedBox(
-                  width: s(2),
-                ),
-                Flexible(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow:
-                        TextOverflow.ellipsis,
-                    textAlign:
-                        TextAlign.center,
-                    style:
-                        Theme.of(context)
-                            .textTheme
-                            .labelSmall,
-                  ),
-                ),
-                SizedBox(
-                  width: s(2),
-                ),
-                Text(
-                  '$value',
-                  maxLines: 1,
-                  overflow:
-                      TextOverflow.ellipsis,
-                  style:
-                      Theme.of(context)
-                          .textTheme
-                          .labelSmall!
-                          .copyWith(
-                            fontWeight:
-                                FontWeight.w700,
-                          ),
-                ),
-              ],
+            child: Text(
+              label,
+              maxLines: 2,
+              softWrap: true,
+              textAlign: TextAlign.center,
+              style:
+                  Theme.of(context)
+                      .textTheme
+                      .labelSmall,
             ),
+          ),
+          SizedBox(
+            height: s(1),
+          ),
+          Text(
+            '$value',
+            maxLines: 1,
+            style:
+                Theme.of(context)
+                    .textTheme
+                    .labelSmall!
+                    .copyWith(
+                      fontWeight:
+                          FontWeight.w700,
+                    ),
           ),
           SizedBox(
             height: s(3),
