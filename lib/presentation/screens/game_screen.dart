@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/result/result.dart';
+import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import 'character_profile_screen.dart';
@@ -214,7 +215,6 @@ class _GameScreenState extends State<GameScreen> {
             32,
           ),
           children: [
-            // CHARACTER CARD
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(18),
@@ -298,7 +298,6 @@ class _GameScreenState extends State<GameScreen> {
 
             const SizedBox(height: 16),
 
-            // CORE STATS CARD
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(18),
@@ -377,7 +376,7 @@ class _GameScreenState extends State<GameScreen> {
                         _StatCard(
                           label: 'Luck',
                           value: player.stats.luck,
-                          icon: Icons.clover,
+                          icon: Icons.auto_awesome,
                         ),
                       ],
                     ),
@@ -388,7 +387,6 @@ class _GameScreenState extends State<GameScreen> {
 
             const SizedBox(height: 16),
 
-            // LIFE EVENTS CARD
             Card(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(
@@ -462,7 +460,9 @@ class _GameScreenState extends State<GameScreen> {
                                                 .primary,
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
+                                    const SizedBox(
+                                      width: 12,
+                                    ),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment:
@@ -499,7 +499,6 @@ class _GameScreenState extends State<GameScreen> {
 
             const SizedBox(height: 20),
 
-            // AGE UP
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
