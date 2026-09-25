@@ -15,7 +15,6 @@ class GameScreen extends StatefulWidget {
   });
 
   final SimulationEngine engine;
-
   final ValueNotifier<double>? uiScaleController;
 
   @override
@@ -26,7 +25,6 @@ class _GameScreenState extends State<GameScreen> {
   SimulationEngine get engine => widget.engine;
 
   late final ValueNotifier<double> _uiScaleController;
-
   late final bool _ownsUiScaleController;
 
   bool _isProcessingTurn = false;
@@ -76,9 +74,7 @@ class _GameScreenState extends State<GameScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            result is Failure
-                ? result.message
-                : 'Simulation failed.',
+            result is Failure ? result.message : 'Simulation failed.',
           ),
         ),
       );
@@ -123,9 +119,7 @@ class _GameScreenState extends State<GameScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          result.isSuccess
-              ? 'Game saved.'
-              : 'Save failed.',
+          result.isSuccess ? 'Game saved.' : 'Save failed.',
         ),
       ),
     );
@@ -147,9 +141,7 @@ class _GameScreenState extends State<GameScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          result.isSuccess
-              ? 'Game loaded.'
-              : 'Load failed.',
+          result.isSuccess ? 'Game loaded.' : 'Load failed.',
         ),
       ),
     );
@@ -185,9 +177,7 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Future<void> _handleGameDataAction(
-    String action,
-  ) async {
+  Future<void> _handleGameDataAction(String action) async {
     switch (action) {
       case 'save':
         await _save();
@@ -276,7 +266,9 @@ class _GameScreenState extends State<GameScreen> {
                     Icon(
                       Icons.save_outlined,
                     ),
-                    SizedBox(width: 12),
+                    SizedBox(
+                      width: 12,
+                    ),
                     Text(
                       'Save Game',
                     ),
@@ -290,7 +282,9 @@ class _GameScreenState extends State<GameScreen> {
                     Icon(
                       Icons.folder_open_outlined,
                     ),
-                    SizedBox(width: 12),
+                    SizedBox(
+                      width: 12,
+                    ),
                     Text(
                       'Load Game',
                     ),
@@ -301,8 +295,9 @@ class _GameScreenState extends State<GameScreen> {
           ),
           IconButton(
             tooltip: 'Settings',
-            onPressed:
-                _isProcessingTurn ? null : _openSettings,
+            onPressed: _isProcessingTurn
+                ? null
+                : _openSettings,
             icon: Icon(
               Icons.settings_outlined,
               size: s(24),
@@ -323,7 +318,6 @@ class _GameScreenState extends State<GameScreen> {
                 ),
                 children: [
                   _ResponsiveCard(
-                    zoom: zoom,
                     padding: EdgeInsets.all(
                       s(8),
                     ),
@@ -378,7 +372,7 @@ class _GameScreenState extends State<GameScreen> {
                               ),
                               Wrap(
                                 spacing: s(8),
-                                runSpacing: 0,
+                                runSpacing: s(2),
                                 children: [
                                   Text(
                                     'Age $age',
@@ -413,7 +407,11 @@ class _GameScreenState extends State<GameScreen> {
                         Flexible(
                           child: Text(
                             player.money.toString(),
-                            textAlign: TextAlign.end,
+                            textAlign:
+                                TextAlign.end,
+                            maxLines: 1,
+                            overflow:
+                                TextOverflow.ellipsis,
                             style:
                                 Theme.of(context)
                                     .textTheme
@@ -427,7 +425,6 @@ class _GameScreenState extends State<GameScreen> {
                     height: s(4),
                   ),
                   _ResponsiveCard(
-                    zoom: zoom,
                     padding: EdgeInsets.fromLTRB(
                       s(8),
                       s(6),
@@ -451,29 +448,11 @@ class _GameScreenState extends State<GameScreen> {
                         LayoutBuilder(
                           builder:
                               (context, constraints) {
-                            final spacing =
-                                s(4);
-
-                            final tileWidth =
-                                (constraints.maxWidth -
-                                        spacing * 3) /
-                                    4;
-
-                            final tileHeight =
-                                s(47);
-
-                            final aspectRatio =
-                                tileWidth /
-                                    tileHeight;
-
-                            return GridView.count(
-                              crossAxisCount: 4,
-                              crossAxisSpacing:
-                                  spacing,
-                              mainAxisSpacing:
-                                  spacing,
-                              childAspectRatio:
-                                  aspectRatio,
+                            return GridView.extent(
+                              maxCrossAxisExtent: s(120),
+                              crossAxisSpacing: s(4),
+                              mainAxisSpacing: s(4),
+                              childAspectRatio: 2.45,
                               shrinkWrap: true,
                               physics:
                                   const NeverScrollableScrollPhysics(),
@@ -585,7 +564,6 @@ class _GameScreenState extends State<GameScreen> {
                     height: s(4),
                   ),
                   _ResponsiveCard(
-                    zoom: zoom,
                     padding: EdgeInsets.fromLTRB(
                       s(8),
                       s(6),
@@ -674,7 +652,8 @@ class _GameScreenState extends State<GameScreen> {
                                                     .bodyMedium!
                                                     .copyWith(
                                                       fontWeight:
-                                                          FontWeight.w600,
+                                                          FontWeight
+                                                              .w600,
                                                     ),
                                               ),
                                               SizedBox(
@@ -727,10 +706,9 @@ class _GameScreenState extends State<GameScreen> {
                 width: double.infinity,
                 height: s(44),
                 child: FilledButton.icon(
-                  onPressed:
-                      _isProcessingTurn
-                          ? null
-                          : _ageUp,
+                  onPressed: _isProcessingTurn
+                      ? null
+                      : _ageUp,
                   icon: _isProcessingTurn
                       ? SizedBox(
                           width: s(17),
@@ -782,22 +760,23 @@ class _GameScreenState extends State<GameScreen> {
 
 class _ResponsiveCard extends StatelessWidget {
   const _ResponsiveCard({
-    required this.zoom,
     required this.padding,
     required this.child,
   });
 
-  final double zoom;
   final EdgeInsets padding;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: padding,
-        child: child,
+    return SizedBox(
+      width: double.infinity,
+      child: Card(
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: padding,
+          child: child,
+        ),
       ),
     );
   }
@@ -826,8 +805,12 @@ class _StatCard extends StatelessWidget {
         .toDouble();
 
     return Container(
+      width: double.infinity,
+      constraints: BoxConstraints(
+        minHeight: s(42),
+      ),
       padding: EdgeInsets.symmetric(
-        horizontal: s(4),
+        horizontal: s(5),
         vertical: s(4),
       ),
       decoration: BoxDecoration(
@@ -844,7 +827,7 @@ class _StatCard extends StatelessWidget {
         mainAxisAlignment:
             MainAxisAlignment.center,
         children: [
-          Flexible(
+          Expanded(
             child: Row(
               mainAxisAlignment:
                   MainAxisAlignment.center,
@@ -870,10 +853,7 @@ class _StatCard extends StatelessWidget {
                     style:
                         Theme.of(context)
                             .textTheme
-                            .labelSmall!
-                            .copyWith(
-                              fontSize: 9,
-                            ),
+                            .labelSmall,
                   ),
                 ),
                 SizedBox(
@@ -881,12 +861,12 @@ class _StatCard extends StatelessWidget {
                 ),
                 Text(
                   '$value',
+                  maxLines: 1,
                   style:
                       Theme.of(context)
                           .textTheme
                           .labelSmall!
                           .copyWith(
-                            fontSize: 9,
                             fontWeight:
                                 FontWeight.w700,
                           ),
