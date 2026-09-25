@@ -17,8 +17,7 @@ class CharacterProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final age = character.ageAt(currentYear);
-    final lifeStage =
-        character.lifeStageAt(currentYear);
+    final lifeStage = character.lifeStageAt(currentYear);
 
     return Scaffold(
       appBar: AppBar(
@@ -28,9 +27,9 @@ class CharacterProfileScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
             20,
-            16,
+            12,
             20,
-            32,
+            24,
           ),
           children: [
             Center(
@@ -44,7 +43,7 @@ class CharacterProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Center(
               child: Text(
                 character.name,
@@ -54,10 +53,12 @@ class CharacterProfileScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+
+            // Basic character information.
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(18),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
@@ -68,7 +69,7 @@ class CharacterProfileScreen extends StatelessWidget {
                           .textTheme
                           .titleLarge,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     _InfoRow(
                       label: 'Name',
                       value: character.name,
@@ -79,8 +80,7 @@ class CharacterProfileScreen extends StatelessWidget {
                     ),
                     _InfoRow(
                       label: 'Birth Year',
-                      value:
-                          '${character.birthYear}',
+                      value: '${character.birthYear}',
                     ),
                     _InfoRow(
                       label: 'Age',
@@ -88,88 +88,29 @@ class CharacterProfileScreen extends StatelessWidget {
                     ),
                     _InfoRow(
                       label: 'Year',
-                      value:
-                          '$currentYear',
+                      value: '$currentYear',
                     ),
                     _InfoRow(
                       label: 'Life Stage',
-                      value:
-                          _formatLifeStage(
+                      value: _formatLifeStage(
                         lifeStage,
                       ),
                     ),
                     _InfoRow(
                       label: 'Money',
-                      value:
-                          character.money.toString(),
+                      value: character.money.toString(),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+
+            const SizedBox(height: 12),
+
+            // Reserved area for future character systems.
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Core Stats',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge,
-                    ),
-                    const SizedBox(height: 16),
-                    _InfoRow(
-                      label: 'Health',
-                      value:
-                          '${character.stats.health} / 100',
-                    ),
-                    _InfoRow(
-                      label: 'Intelligence',
-                      value:
-                          '${character.stats.intelligence} / 100',
-                    ),
-                    _InfoRow(
-                      label: 'Fitness',
-                      value:
-                          '${character.stats.fitness} / 100',
-                    ),
-                    _InfoRow(
-                      label: 'Happiness',
-                      value:
-                          '${character.stats.happiness} / 100',
-                    ),
-                    _InfoRow(
-                      label: 'Willpower',
-                      value:
-                          '${character.stats.willpower} / 100',
-                    ),
-                    _InfoRow(
-                      label: 'Charisma',
-                      value:
-                          '${character.stats.charisma} / 100',
-                    ),
-                    _InfoRow(
-                      label: 'Creativity',
-                      value:
-                          '${character.stats.creativity} / 100',
-                    ),
-                    _InfoRow(
-                      label: 'Luck',
-                      value:
-                          '${character.stats.luck} / 100',
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(18),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
@@ -180,7 +121,7 @@ class CharacterProfileScreen extends StatelessWidget {
                           .textTheme
                           .titleLarge,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(
                       'This profile will become the '
                       'home for additional character '
@@ -200,9 +141,7 @@ class CharacterProfileScreen extends StatelessWidget {
     );
   }
 
-  String _formatLifeStage(
-    LifeStage stage,
-  ) {
+  String _formatLifeStage(LifeStage stage) {
     switch (stage) {
       case LifeStage.infant:
         return 'Infant';
@@ -241,7 +180,7 @@ class _InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        vertical: 6,
+        vertical: 3,
       ),
       child: Row(
         crossAxisAlignment:
@@ -250,7 +189,7 @@ class _InfoRow extends StatelessWidget {
           Expanded(
             child: Text(label),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Flexible(
             child: Text(
               value,
