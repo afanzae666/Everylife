@@ -177,7 +177,9 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Future<void> _handleGameDataAction(String action) async {
+  Future<void> _handleGameDataAction(
+    String action,
+  ) async {
     switch (action) {
       case 'save':
         await _save();
@@ -372,7 +374,7 @@ class _GameScreenState extends State<GameScreen> {
                               ),
                               Wrap(
                                 spacing: s(8),
-                                runSpacing: s(2),
+                                runSpacing: 0,
                                 children: [
                                   Text(
                                     'Age $age',
@@ -448,11 +450,36 @@ class _GameScreenState extends State<GameScreen> {
                         LayoutBuilder(
                           builder:
                               (context, constraints) {
-                            return GridView.extent(
-                              maxCrossAxisExtent: s(120),
-                              crossAxisSpacing: s(4),
-                              mainAxisSpacing: s(4),
-                              childAspectRatio: 2.45,
+                            final crossAxisCount =
+                                _getStatColumnCount(
+                              constraints.maxWidth,
+                              zoom,
+                            );
+
+                            final spacing = s(4);
+
+                            final cardWidth =
+                                (constraints.maxWidth -
+                                        (spacing *
+                                            (crossAxisCount -
+                                                1))) /
+                                    crossAxisCount;
+
+                            final cardHeight = s(47);
+
+                            final aspectRatio =
+                                cardWidth /
+                                    cardHeight;
+
+                            return GridView.count(
+                              crossAxisCount:
+                                  crossAxisCount,
+                              crossAxisSpacing:
+                                  spacing,
+                              mainAxisSpacing:
+                                  spacing,
+                              childAspectRatio:
+                                  aspectRatio,
                               shrinkWrap: true,
                               physics:
                                   const NeverScrollableScrollPhysics(),
@@ -652,241 +679,5 @@ class _GameScreenState extends State<GameScreen> {
                                                     .bodyMedium!
                                                     .copyWith(
                                                       fontWeight:
-                                                          FontWeight
-                                                              .w600,
+                                                          FontWeight.w600,
                                                     ),
-                                              ),
-                                              SizedBox(
-                                                height:
-                                                    s(1),
-                                              ),
-                                              Text(
-                                                '${event.year} — '
-                                                '${event.description}',
-                                                style: Theme
-                                                        .of(
-                                                  context,
-                                                )
-                                                    .textTheme
-                                                    .bodySmall,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.fromLTRB(
-                s(8),
-                s(5),
-                s(8),
-                s(5),
-              ),
-              decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .scaffoldBackgroundColor,
-                border: Border(
-                  top: BorderSide(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .outlineVariant,
-                  ),
-                ),
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                height: s(44),
-                child: FilledButton.icon(
-                  onPressed: _isProcessingTurn
-                      ? null
-                      : _ageUp,
-                  icon: _isProcessingTurn
-                      ? SizedBox(
-                          width: s(17),
-                          height: s(17),
-                          child:
-                              const CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : Icon(
-                          Icons.arrow_forward,
-                          size: s(18),
-                        ),
-                  label: Text(
-                    _isProcessingTurn
-                        ? 'SAVING...'
-                        : 'AGE UP',
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatLifeStage(
-    LifeStage stage,
-  ) {
-    switch (stage) {
-      case LifeStage.infant:
-        return 'Infant';
-      case LifeStage.toddler:
-        return 'Toddler';
-      case LifeStage.child:
-        return 'Child';
-      case LifeStage.teen:
-        return 'Teen';
-      case LifeStage.youngAdult:
-        return 'Young Adult';
-      case LifeStage.adult:
-        return 'Adult';
-      case LifeStage.senior:
-        return 'Senior';
-    }
-  }
-}
-
-class _ResponsiveCard extends StatelessWidget {
-  const _ResponsiveCard({
-    required this.padding,
-    required this.child,
-  });
-
-  final EdgeInsets padding;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: Card(
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: padding,
-          child: child,
-        ),
-      ),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.zoom,
-    super.key,
-  });
-
-  final String label;
-  final int value;
-  final IconData icon;
-  final double zoom;
-
-  @override
-  Widget build(BuildContext context) {
-    double s(double value) => value * zoom;
-
-    final progress = (value / 100)
-        .clamp(0.0, 1.0)
-        .toDouble();
-
-    return Container(
-      width: double.infinity,
-      constraints: BoxConstraints(
-        minHeight: s(42),
-      ),
-      padding: EdgeInsets.symmetric(
-        horizontal: s(5),
-        vertical: s(4),
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(
-          s(7),
-        ),
-        border: Border.all(
-          color: Theme.of(context)
-              .colorScheme
-              .outlineVariant,
-        ),
-      ),
-      child: Column(
-        mainAxisAlignment:
-            MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  size: s(11),
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primary,
-                ),
-                SizedBox(
-                  width: s(2),
-                ),
-                Flexible(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow:
-                        TextOverflow.ellipsis,
-                    textAlign:
-                        TextAlign.center,
-                    style:
-                        Theme.of(context)
-                            .textTheme
-                            .labelSmall,
-                  ),
-                ),
-                SizedBox(
-                  width: s(2),
-                ),
-                Text(
-                  '$value',
-                  maxLines: 1,
-                  style:
-                      Theme.of(context)
-                          .textTheme
-                          .labelSmall!
-                          .copyWith(
-                            fontWeight:
-                                FontWeight.w700,
-                          ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-            height: s(3),
-          ),
-          LinearProgressIndicator(
-            value: progress,
-            minHeight: s(3),
-            borderRadius:
-                BorderRadius.circular(
-              s(4),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
