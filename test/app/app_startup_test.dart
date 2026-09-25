@@ -51,11 +51,16 @@ void main() {
           find.text('BEGIN LIFE'),
           findsOneWidget,
         );
+
+        expect(
+          await repository.load(),
+          isNull,
+        );
       },
     );
 
     testWidgets(
-      'creates a newborn character and opens the game',
+      'creates a newborn character and autosaves it',
       (tester) async {
         final repository = InMemorySaveRepository();
 
@@ -93,6 +98,28 @@ void main() {
         expect(
           find.text('Life Simulation'),
           findsOneWidget,
+        );
+
+        final saved = await repository.load();
+
+        expect(
+          saved,
+          isNotNull,
+        );
+
+        expect(
+          saved!.state.player.name,
+          'Marshall Royce',
+        );
+
+        expect(
+          saved.state.clock.currentYear,
+          saved.state.player.birthYear,
+        );
+
+        expect(
+          saved.nextTickId,
+          1,
         );
       },
     );
