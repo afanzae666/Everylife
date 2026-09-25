@@ -32,11 +32,79 @@ SimulationEngine createTestEngine(
 }
 
 void main() {
-  group('GameScreen autosave', () {
+  group('GameScreen', () {
+    testWidgets(
+      'displays all 8 core stats',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine = createTestEngine(
+          repository,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Core Stats'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Health'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Intelligence'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Fitness'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Happiness'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Willpower'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Charisma'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Creativity'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Luck'),
+          findsOneWidget,
+        );
+      },
+    );
+
     testWidgets(
       'age up automatically saves the new year',
       (tester) async {
-        final repository = InMemorySaveRepository();
+        final repository =
+            InMemorySaveRepository();
 
         final engine = createTestEngine(
           repository,
@@ -78,7 +146,8 @@ void main() {
           findsOneWidget,
         );
 
-        final saved = await repository.load();
+        final saved =
+            await repository.load();
 
         expect(
           saved,
@@ -107,7 +176,8 @@ void main() {
     testWidgets(
       'age up autosave preserves random state',
       (tester) async {
-        final repository = InMemorySaveRepository();
+        final repository =
+            InMemorySaveRepository();
 
         final engine = createTestEngine(
           repository,
@@ -134,7 +204,8 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        final saved = await repository.load();
+        final saved =
+            await repository.load();
 
         expect(
           saved,
@@ -149,9 +220,10 @@ void main() {
     );
 
     testWidgets(
-      'prevents repeated age up while autosaving',
+      'does not show autosave success notification',
       (tester) async {
-        final repository = InMemorySaveRepository();
+        final repository =
+            InMemorySaveRepository();
 
         final engine = createTestEngine(
           repository,
@@ -167,9 +239,47 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        final ageUpButton = find.text('AGE UP');
+        await tester.tap(
+          find.text('AGE UP'),
+        );
 
-        await tester.tap(ageUpButton);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            'Year advanced and game saved.',
+          ),
+          findsNothing,
+        );
+      },
+    );
+
+    testWidgets(
+      'prevents repeated age up while autosaving',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine = createTestEngine(
+          repository,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        final ageUpButton =
+            find.text('AGE UP');
+
+        await tester.tap(
+          ageUpButton,
+        );
 
         await tester.pump();
 
@@ -180,7 +290,8 @@ void main() {
           2027,
         );
 
-        final saved = await repository.load();
+        final saved =
+            await repository.load();
 
         expect(
           saved,
@@ -190,6 +301,38 @@ void main() {
         expect(
           saved!.state.clock.currentYear,
           2027,
+        );
+      },
+    );
+
+    testWidgets(
+      'life panel contains life events section',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine = createTestEngine(
+          repository,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Life Panel'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Life Events'),
+          findsOneWidget,
         );
       },
     );
