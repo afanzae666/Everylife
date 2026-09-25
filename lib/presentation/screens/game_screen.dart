@@ -458,126 +458,139 @@ class _GameScreenState extends State<GameScreen> {
 
                             final spacing = s(4);
 
-                            final cardWidth =
-                                (constraints.maxWidth -
-                                        (spacing *
-                                            (crossAxisCount -
-                                                1))) /
-                                    crossAxisCount;
-
-                            final cardHeight = s(47);
-
-                            final aspectRatio =
-                                cardWidth /
-                                    cardHeight;
-
-                            return GridView.count(
-                              crossAxisCount:
-                                  crossAxisCount,
-                              crossAxisSpacing:
-                                  spacing,
-                              mainAxisSpacing:
-                                  spacing,
-                              childAspectRatio:
-                                  aspectRatio,
+                            return GridView.builder(
                               shrinkWrap: true,
                               physics:
                                   const NeverScrollableScrollPhysics(),
-                              children: [
-                                _StatCard(
-                                  key: const Key(
-                                    'core-stat-health',
-                                  ),
-                                  label: 'Health',
-                                  value:
-                                      player.stats.health,
-                                  icon:
-                                      Icons.favorite,
-                                  zoom: zoom,
-                                ),
-                                _StatCard(
-                                  key: const Key(
-                                    'core-stat-intelligence',
-                                  ),
-                                  label:
-                                      'Intelligence',
-                                  value:
-                                      player.stats.intelligence,
-                                  icon:
-                                      Icons.psychology,
-                                  zoom: zoom,
-                                ),
-                                _StatCard(
-                                  key: const Key(
-                                    'core-stat-fitness',
-                                  ),
-                                  label: 'Fitness',
-                                  value:
-                                      player.stats.fitness,
-                                  icon:
-                                      Icons.fitness_center,
-                                  zoom: zoom,
-                                ),
-                                _StatCard(
-                                  key: const Key(
-                                    'core-stat-happiness',
-                                  ),
-                                  label:
-                                      'Happiness',
-                                  value:
-                                      player.stats.happiness,
-                                  icon:
-                                      Icons.sentiment_satisfied,
-                                  zoom: zoom,
-                                ),
-                                _StatCard(
-                                  key: const Key(
-                                    'core-stat-willpower',
-                                  ),
-                                  label:
-                                      'Willpower',
-                                  value:
-                                      player.stats.willpower,
-                                  icon:
-                                      Icons.shield_outlined,
-                                  zoom: zoom,
-                                ),
-                                _StatCard(
-                                  key: const Key(
-                                    'core-stat-charisma',
-                                  ),
-                                  label:
-                                      'Charisma',
-                                  value:
-                                      player.stats.charisma,
-                                  icon:
-                                      Icons.groups,
-                                  zoom: zoom,
-                                ),
-                                _StatCard(
-                                  key: const Key(
-                                    'core-stat-creativity',
-                                  ),
-                                  label:
-                                      'Creativity',
-                                  value:
-                                      player.stats.creativity,
-                                  icon:
-                                      Icons.palette,
-                                  zoom: zoom,
-                                ),
-                                _StatCard(
-                                  key: const Key(
-                                    'core-stat-luck',
-                                  ),
-                                  label: 'Luck',
-                                  value:
-                                      player.stats.luck,
-                                  icon:
-                                      Icons.auto_awesome,
-                                  zoom: zoom,
-                                ),
-                              ],
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount:
+                                    crossAxisCount,
+                                crossAxisSpacing:
+                                    spacing,
+                                mainAxisSpacing:
+                                    spacing,
+                                mainAxisExtent:
+                                    s(50),
+                              ),
+                              itemCount: 8,
+                              itemBuilder:
+                                  (context, index) {
+                                switch (index) {
+                                  case 0:
+                                    return _StatCard(
+                                      key: const Key(
+                                        'core-stat-health',
+                                      ),
+                                      label: 'Health',
+                                      value:
+                                          player.stats.health,
+                                      icon:
+                                          Icons.favorite,
+                                      zoom: zoom,
+                                    );
+
+                                  case 1:
+                                    return _StatCard(
+                                      key: const Key(
+                                        'core-stat-intelligence',
+                                      ),
+                                      label:
+                                          'Intelligence',
+                                      value:
+                                          player.stats.intelligence,
+                                      icon:
+                                          Icons.psychology,
+                                      zoom: zoom,
+                                    );
+
+                                  case 2:
+                                    return _StatCard(
+                                      key: const Key(
+                                        'core-stat-fitness',
+                                      ),
+                                      label: 'Fitness',
+                                      value:
+                                          player.stats.fitness,
+                                      icon:
+                                          Icons.fitness_center,
+                                      zoom: zoom,
+                                    );
+
+                                  case 3:
+                                    return _StatCard(
+                                      key: const Key(
+                                        'core-stat-happiness',
+                                      ),
+                                      label:
+                                          'Happiness',
+                                      value:
+                                          player.stats.happiness,
+                                      icon:
+                                          Icons.sentiment_satisfied,
+                                      zoom: zoom,
+                                    );
+
+                                  case 4:
+                                    return _StatCard(
+                                      key: const Key(
+                                        'core-stat-willpower',
+                                      ),
+                                      label:
+                                          'Willpower',
+                                      value:
+                                          player.stats.willpower,
+                                      icon:
+                                          Icons.shield_outlined,
+                                      zoom: zoom,
+                                    );
+
+                                  case 5:
+                                    return _StatCard(
+                                      key: const Key(
+                                        'core-stat-charisma',
+                                      ),
+                                      label:
+                                          'Charisma',
+                                      value:
+                                          player.stats.charisma,
+                                      icon:
+                                          Icons.groups,
+                                      zoom: zoom,
+                                    );
+
+                                  case 6:
+                                    return _StatCard(
+                                      key: const Key(
+                                        'core-stat-creativity',
+                                      ),
+                                      label:
+                                          'Creativity',
+                                      value:
+                                          player.stats.creativity,
+                                      icon:
+                                          Icons.palette,
+                                      zoom: zoom,
+                                    );
+
+                                  case 7:
+                                    return _StatCard(
+                                      key: const Key(
+                                        'core-stat-luck',
+                                      ),
+                                      label: 'Luck',
+                                      value:
+                                          player.stats.luck,
+                                      icon:
+                                          Icons.auto_awesome,
+                                      zoom: zoom,
+                                    );
+
+                                  default:
+                                    return const SizedBox
+                                        .shrink();
+                                }
+                              },
                             );
                           },
                         ),
@@ -880,6 +893,8 @@ class _StatCard extends StatelessWidget {
                   maxLines: 2,
                   softWrap: true,
                   textAlign: TextAlign.start,
+                  overflow:
+                      TextOverflow.ellipsis,
                   style:
                       Theme.of(context)
                           .textTheme
