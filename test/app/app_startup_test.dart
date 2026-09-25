@@ -79,9 +79,11 @@ void main() {
           'Marshall Royce',
         );
 
-        await tester.tap(
-          find.text('BEGIN LIFE'),
-        );
+        final beginLifeButton = find.text('BEGIN LIFE');
+
+        await tester.ensureVisible(beginLifeButton);
+
+        await tester.tap(beginLifeButton);
 
         await tester.pumpAndSettle();
 
