@@ -72,11 +72,13 @@ void main() {
 
       const stats = CharacterStats(
         health: 90,
-        happiness: 80,
         intelligence: 70,
-        discipline: 60,
-        empathy: 50,
-        ambition: 40,
+        fitness: 80,
+        happiness: 75,
+        willpower: 60,
+        charisma: 50,
+        creativity: 40,
+        luck: 30,
       );
 
       const money = Money.fromMinorUnits(1250);
