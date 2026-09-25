@@ -32,7 +32,7 @@ void main() {
 
       expect(
         find.text('Marshall Royce'),
-        findsOneWidget,
+        findsNWidgets(2),
       );
 
       expect(
