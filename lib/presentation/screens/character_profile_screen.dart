@@ -63,8 +63,6 @@ class CharacterProfileScreen extends StatelessWidget {
     BuildContext context,
     double zoom,
   ) {
-    double s(double value) => value * zoom;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -90,8 +88,7 @@ class CharacterProfileScreen extends StatelessWidget {
       currentYear,
     );
 
-    final lifeStage =
-        character.lifeStageAt(
+    final lifeStage = character.lifeStageAt(
       currentYear,
     );
 
@@ -128,8 +125,7 @@ class CharacterProfileScreen extends StatelessWidget {
                 .titleLarge,
             textAlign: TextAlign.center,
             maxLines: 2,
-            overflow:
-                TextOverflow.ellipsis,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
         SizedBox(
@@ -167,8 +163,7 @@ class CharacterProfileScreen extends StatelessWidget {
               ),
               _InfoRow(
                 label: 'Birth Year',
-                value:
-                    '${character.birthYear}',
+                value: '${character.birthYear}',
                 zoom: zoom,
               ),
               _InfoRow(
@@ -190,8 +185,7 @@ class CharacterProfileScreen extends StatelessWidget {
               ),
               _InfoRow(
                 label: 'Money',
-                value:
-                    character.money.toString(),
+                value: character.money.toString(),
                 zoom: zoom,
               ),
             ],
@@ -309,8 +303,7 @@ class _InfoRow extends StatelessWidget {
             child: Text(
               label,
               maxLines: 2,
-              overflow:
-                  TextOverflow.ellipsis,
+              overflow: TextOverflow.ellipsis,
               style: Theme.of(context)
                   .textTheme
                   .bodySmall,
@@ -324,14 +317,12 @@ class _InfoRow extends StatelessWidget {
               value,
               textAlign: TextAlign.end,
               maxLines: 2,
-              overflow:
-                  TextOverflow.ellipsis,
+              overflow: TextOverflow.ellipsis,
               style: Theme.of(context)
                   .textTheme
                   .bodySmall!
                   .copyWith(
-                    fontWeight:
-                        FontWeight.w600,
+                    fontWeight: FontWeight.w600,
                   ),
             ),
           ),
