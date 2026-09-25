@@ -49,11 +49,13 @@ void main() {
             birthYear: 2030,
             stats: const CharacterStats(
               health: 91,
-              happiness: 82,
               intelligence: 73,
-              discipline: 64,
-              empathy: 55,
-              ambition: 88,
+              fitness: 82,
+              happiness: 64,
+              willpower: 55,
+              charisma: 88,
+              creativity: 71,
+              luck: 43,
             ),
             money: const Money.fromMinorUnits(123456),
           ),
@@ -109,28 +111,38 @@ void main() {
         );
 
         expect(
-          loaded.state.player.stats.happiness,
-          original.player.stats.happiness,
-        );
-
-        expect(
           loaded.state.player.stats.intelligence,
           original.player.stats.intelligence,
         );
 
         expect(
-          loaded.state.player.stats.discipline,
-          original.player.stats.discipline,
+          loaded.state.player.stats.fitness,
+          original.player.stats.fitness,
         );
 
         expect(
-          loaded.state.player.stats.empathy,
-          original.player.stats.empathy,
+          loaded.state.player.stats.happiness,
+          original.player.stats.happiness,
         );
 
         expect(
-          loaded.state.player.stats.ambition,
-          original.player.stats.ambition,
+          loaded.state.player.stats.willpower,
+          original.player.stats.willpower,
+        );
+
+        expect(
+          loaded.state.player.stats.charisma,
+          original.player.stats.charisma,
+        );
+
+        expect(
+          loaded.state.player.stats.creativity,
+          original.player.stats.creativity,
+        );
+
+        expect(
+          loaded.state.player.stats.luck,
+          original.player.stats.luck,
         );
 
         expect(
@@ -208,11 +220,13 @@ void main() {
             birthYear: 2030,
             stats: const CharacterStats(
               health: 80,
-              happiness: 60,
               intelligence: 70,
-              discipline: 40,
-              empathy: 90,
-              ambition: 100,
+              fitness: 75,
+              happiness: 60,
+              willpower: 40,
+              charisma: 90,
+              creativity: 85,
+              luck: 100,
             ),
             money: const Money.fromMinorUnits(5000),
           ),
@@ -253,6 +267,46 @@ void main() {
         expect(
           loaded.state.player.gender,
           Gender.female,
+        );
+
+        expect(
+          loaded.state.player.stats.health,
+          80,
+        );
+
+        expect(
+          loaded.state.player.stats.intelligence,
+          70,
+        );
+
+        expect(
+          loaded.state.player.stats.fitness,
+          75,
+        );
+
+        expect(
+          loaded.state.player.stats.happiness,
+          60,
+        );
+
+        expect(
+          loaded.state.player.stats.willpower,
+          40,
+        );
+
+        expect(
+          loaded.state.player.stats.charisma,
+          90,
+        );
+
+        expect(
+          loaded.state.player.stats.creativity,
+          85,
+        );
+
+        expect(
+          loaded.state.player.stats.luck,
+          100,
         );
 
         expect(
