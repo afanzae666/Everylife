@@ -14,11 +14,13 @@ class WorldStateSnapshot {
     required this.playerGender,
     required this.playerBirthYear,
     required this.playerHealth,
-    required this.playerHappiness,
     required this.playerIntelligence,
-    required this.playerDiscipline,
-    required this.playerEmpathy,
-    required this.playerAmbition,
+    required this.playerFitness,
+    required this.playerHappiness,
+    required this.playerWillpower,
+    required this.playerCharisma,
+    required this.playerCreativity,
+    required this.playerLuck,
     required this.playerMoneyMinorUnits,
     required this.events,
   });
@@ -31,17 +33,21 @@ class WorldStateSnapshot {
   final int playerBirthYear;
 
   final int playerHealth;
-  final int playerHappiness;
   final int playerIntelligence;
-  final int playerDiscipline;
-  final int playerEmpathy;
-  final int playerAmbition;
+  final int playerFitness;
+  final int playerHappiness;
+  final int playerWillpower;
+  final int playerCharisma;
+  final int playerCreativity;
+  final int playerLuck;
 
   final int playerMoneyMinorUnits;
 
   final List<SimulationEvent> events;
 
-  factory WorldStateSnapshot.fromWorldState(WorldState state) {
+  factory WorldStateSnapshot.fromWorldState(
+    WorldState state,
+  ) {
     final player = state.player;
     final stats = player.stats;
 
@@ -52,11 +58,13 @@ class WorldStateSnapshot {
       playerGender: player.gender,
       playerBirthYear: player.birthYear,
       playerHealth: stats.health,
-      playerHappiness: stats.happiness,
       playerIntelligence: stats.intelligence,
-      playerDiscipline: stats.discipline,
-      playerEmpathy: stats.empathy,
-      playerAmbition: stats.ambition,
+      playerFitness: stats.fitness,
+      playerHappiness: stats.happiness,
+      playerWillpower: stats.willpower,
+      playerCharisma: stats.charisma,
+      playerCreativity: stats.creativity,
+      playerLuck: stats.luck,
       playerMoneyMinorUnits: player.money.minorUnits,
       events: List.unmodifiable(state.events),
     );
@@ -74,11 +82,13 @@ class WorldStateSnapshot {
         birthYear: playerBirthYear,
         stats: CharacterStats(
           health: playerHealth,
-          happiness: playerHappiness,
           intelligence: playerIntelligence,
-          discipline: playerDiscipline,
-          empathy: playerEmpathy,
-          ambition: playerAmbition,
+          fitness: playerFitness,
+          happiness: playerHappiness,
+          willpower: playerWillpower,
+          charisma: playerCharisma,
+          creativity: playerCreativity,
+          luck: playerLuck,
         ),
         money: Money.fromMinorUnits(
           playerMoneyMinorUnits,
@@ -98,11 +108,13 @@ class WorldStateSnapshot {
         'birthYear': playerBirthYear,
         'stats': {
           'health': playerHealth,
-          'happiness': playerHappiness,
           'intelligence': playerIntelligence,
-          'discipline': playerDiscipline,
-          'empathy': playerEmpathy,
-          'ambition': playerAmbition,
+          'fitness': playerFitness,
+          'happiness': playerHappiness,
+          'willpower': playerWillpower,
+          'charisma': playerCharisma,
+          'creativity': playerCreativity,
+          'luck': playerLuck,
         },
         'moneyMinorUnits': playerMoneyMinorUnits,
       },
@@ -165,25 +177,33 @@ class WorldStateSnapshot {
         stats['health'],
         'player.stats.health',
       ),
-      playerHappiness: _requireInt(
-        stats['happiness'],
-        'player.stats.happiness',
-      ),
       playerIntelligence: _requireInt(
         stats['intelligence'],
         'player.stats.intelligence',
       ),
-      playerDiscipline: _requireInt(
-        stats['discipline'],
-        'player.stats.discipline',
+      playerFitness: _requireInt(
+        stats['fitness'],
+        'player.stats.fitness',
       ),
-      playerEmpathy: _requireInt(
-        stats['empathy'],
-        'player.stats.empathy',
+      playerHappiness: _requireInt(
+        stats['happiness'],
+        'player.stats.happiness',
       ),
-      playerAmbition: _requireInt(
-        stats['ambition'],
-        'player.stats.ambition',
+      playerWillpower: _requireInt(
+        stats['willpower'],
+        'player.stats.willpower',
+      ),
+      playerCharisma: _requireInt(
+        stats['charisma'],
+        'player.stats.charisma',
+      ),
+      playerCreativity: _requireInt(
+        stats['creativity'],
+        'player.stats.creativity',
+      ),
+      playerLuck: _requireInt(
+        stats['luck'],
+        'player.stats.luck',
       ),
       playerMoneyMinorUnits: _requireInt(
         player['moneyMinorUnits'],
