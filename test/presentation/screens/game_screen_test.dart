@@ -31,15 +31,47 @@ SimulationEngine createTestEngine(
   );
 }
 
+Finder ageUpButtonFinder() {
+  return find.widgetWithText(
+    FilledButton,
+    'AGE UP',
+  );
+}
+
 Future<void> scrollToAgeUp(
   WidgetTester tester,
 ) async {
+  final button = ageUpButtonFinder();
+
   await tester.scrollUntilVisible(
-    find.text('AGE UP'),
+    button,
     500,
   );
 
   await tester.pumpAndSettle();
+
+  expect(
+    button,
+    findsOneWidget,
+  );
+}
+
+Future<void> scrollToLifeEvents(
+  WidgetTester tester,
+) async {
+  final lifeEvents = find.text('Life Events');
+
+  await tester.scrollUntilVisible(
+    lifeEvents,
+    500,
+  );
+
+  await tester.pumpAndSettle();
+
+  expect(
+    lifeEvents,
+    findsOneWidget,
+  );
 }
 
 void main() {
@@ -178,18 +210,16 @@ void main() {
 
         await tester.pumpAndSettle();
 
+        final avatar = find.byKey(
+          const Key('character-avatar'),
+        );
+
         expect(
-          find.byKey(
-            const Key('character-avatar'),
-          ),
+          avatar,
           findsOneWidget,
         );
 
-        await tester.tap(
-          find.byKey(
-            const Key('character-avatar'),
-          ),
-        );
+        await tester.tap(avatar);
 
         await tester.pumpAndSettle();
 
@@ -200,7 +230,7 @@ void main() {
 
         expect(
           find.text('Test Player'),
-          findsOneWidget,
+          findsNWidgets(2),
         );
 
         expect(
@@ -230,14 +260,16 @@ void main() {
 
         await tester.pumpAndSettle();
 
+        final gameDataButton = find.byTooltip(
+          'Game Data',
+        );
+
         expect(
-          find.byTooltip('Game Data'),
+          gameDataButton,
           findsOneWidget,
         );
 
-        await tester.tap(
-          find.byTooltip('Game Data'),
-        );
+        await tester.tap(gameDataButton);
 
         await tester.pumpAndSettle();
 
@@ -273,6 +305,8 @@ void main() {
 
         await tester.pumpAndSettle();
 
+        await scrollToLifeEvents(tester);
+
         expect(
           find.text('Life Events'),
           findsOneWidget,
@@ -307,9 +341,15 @@ void main() {
 
         await scrollToAgeUp(tester);
 
-        await tester.tap(
-          find.text('AGE UP'),
+        final ageUpButton =
+            ageUpButtonFinder();
+
+        expect(
+          ageUpButton,
+          findsOneWidget,
         );
+
+        await tester.tap(ageUpButton);
 
         await tester.pumpAndSettle();
 
@@ -379,9 +419,15 @@ void main() {
 
         await scrollToAgeUp(tester);
 
-        await tester.tap(
-          find.text('AGE UP'),
+        final ageUpButton =
+            ageUpButtonFinder();
+
+        expect(
+          ageUpButton,
+          findsOneWidget,
         );
+
+        await tester.tap(ageUpButton);
 
         await tester.pumpAndSettle();
 
@@ -422,9 +468,15 @@ void main() {
 
         await scrollToAgeUp(tester);
 
-        await tester.tap(
-          find.text('AGE UP'),
+        final ageUpButton =
+            ageUpButtonFinder();
+
+        expect(
+          ageUpButton,
+          findsOneWidget,
         );
+
+        await tester.tap(ageUpButton);
 
         await tester.pumpAndSettle();
 
