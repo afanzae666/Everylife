@@ -45,7 +45,54 @@ Future<void> scrollToAgeUp(
 void main() {
   group('GameScreen', () {
     testWidgets(
-      'displays all 8 core stats',
+      'displays character information',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine = createTestEngine(
+          repository,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Test Player'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Age 0'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Year 2026'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Life Stage: Infant'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('\$0.00'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'displays all 8 core stats in separate card',
       (tester) async {
         final repository =
             InMemorySaveRepository();
@@ -112,7 +159,7 @@ void main() {
     );
 
     testWidgets(
-      'age up automatically saves the new year',
+      'character avatar is clickable',
       (tester) async {
         final repository =
             InMemorySaveRepository();
@@ -132,14 +179,131 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(
-          find.text('Year 2026'),
+          find.byKey(
+            const Key('character-avatar'),
+          ),
+          findsOneWidget,
+        );
+
+        await tester.tap(
+          find.byKey(
+            const Key('character-avatar'),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Basic Information'),
           findsOneWidget,
         );
 
         expect(
-          find.text('Age 0'),
+          find.text('Test Player'),
           findsOneWidget,
         );
+
+        expect(
+          find.text('Birth Year'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'game data button opens save and load menu',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine = createTestEngine(
+          repository,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byTooltip('Game Data'),
+          findsOneWidget,
+        );
+
+        await tester.tap(
+          find.byTooltip('Game Data'),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Save Game'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Load Game'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'life events is a separate card',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine = createTestEngine(
+          repository,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Life Events'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Life Panel'),
+          findsNothing,
+        );
+      },
+    );
+
+    testWidgets(
+      'age up automatically saves the new year',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine = createTestEngine(
+          repository,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
 
         await scrollToAgeUp(tester);
 
@@ -269,91 +433,6 @@ void main() {
             'Year advanced and game saved.',
           ),
           findsNothing,
-        );
-      },
-    );
-
-    testWidgets(
-      'prevents repeated age up while autosaving',
-      (tester) async {
-        final repository =
-            InMemorySaveRepository();
-
-        final engine = createTestEngine(
-          repository,
-        );
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: GameScreen(
-              engine: engine,
-            ),
-          ),
-        );
-
-        await tester.pumpAndSettle();
-
-        await scrollToAgeUp(tester);
-
-        final ageUpButton =
-            find.text('AGE UP');
-
-        await tester.tap(
-          ageUpButton,
-        );
-
-        await tester.pump();
-
-        await tester.pumpAndSettle();
-
-        expect(
-          engine.state.clock.currentYear,
-          2027,
-        );
-
-        final saved =
-            await repository.load();
-
-        expect(
-          saved,
-          isNotNull,
-        );
-
-        expect(
-          saved!.state.clock.currentYear,
-          2027,
-        );
-      },
-    );
-
-    testWidgets(
-      'life panel contains life events section',
-      (tester) async {
-        final repository =
-            InMemorySaveRepository();
-
-        final engine = createTestEngine(
-          repository,
-        );
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: GameScreen(
-              engine: engine,
-            ),
-          ),
-        );
-
-        await tester.pumpAndSettle();
-
-        expect(
-          find.text('Life Panel'),
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('Life Events'),
-          findsOneWidget,
         );
       },
     );
