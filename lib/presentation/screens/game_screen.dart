@@ -196,7 +196,9 @@ class _GameScreenState extends State<GameScreen> {
                 value: 'load',
                 child: Row(
                   children: [
-                    Icon(Icons.folder_open_outlined),
+                    Icon(
+                      Icons.folder_open_outlined,
+                    ),
                     SizedBox(width: 12),
                     Text('Load Game'),
                   ],
@@ -209,15 +211,15 @@ class _GameScreenState extends State<GameScreen> {
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
-            20,
+            16,
+            8,
             16,
             20,
-            32,
           ),
           children: [
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(18),
+                padding: const EdgeInsets.all(12),
                 child: Row(
                   crossAxisAlignment:
                       CrossAxisAlignment.center,
@@ -232,17 +234,17 @@ class _GameScreenState extends State<GameScreen> {
                         borderRadius:
                             BorderRadius.circular(40),
                         child: CircleAvatar(
-                          radius: 34,
+                          radius: 30,
                           child: Icon(
                             player.gender == Gender.male
                                 ? Icons.person
                                 : Icons.person_outline,
-                            size: 36,
+                            size: 32,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment:
@@ -253,11 +255,14 @@ class _GameScreenState extends State<GameScreen> {
                             style: Theme.of(context)
                                 .textTheme
                                 .headlineSmall,
+                            maxLines: 1,
+                            overflow:
+                                TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 4),
                           Wrap(
-                            spacing: 16,
-                            runSpacing: 4,
+                            spacing: 12,
+                            runSpacing: 2,
                             children: [
                               Text(
                                 'Age $age',
@@ -274,17 +279,17 @@ class _GameScreenState extends State<GameScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Text(
                             'Life Stage: $lifeStageLabel',
                             style: Theme.of(context)
                                 .textTheme
-                                .bodyLarge,
+                                .bodyMedium,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     Text(
                       player.money.toString(),
                       style: Theme.of(context)
@@ -296,11 +301,11 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
 
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(18),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
@@ -323,57 +328,85 @@ class _GameScreenState extends State<GameScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 18),
+
+                    const SizedBox(height: 8),
+
                     GridView.count(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 20,
-                      mainAxisSpacing: 18,
-                      childAspectRatio: 2.4,
+                      crossAxisCount: 4,
+                      crossAxisSpacing: 6,
+                      mainAxisSpacing: 6,
+                      childAspectRatio: 0.92,
                       shrinkWrap: true,
                       physics:
                           const NeverScrollableScrollPhysics(),
                       children: [
                         _StatCard(
+                          key: const Key(
+                            'core-stat-health',
+                          ),
                           label: 'Health',
                           value: player.stats.health,
                           icon: Icons.favorite,
                         ),
                         _StatCard(
+                          key: const Key(
+                            'core-stat-intelligence',
+                          ),
                           label: 'Intelligence',
                           value:
                               player.stats.intelligence,
                           icon: Icons.psychology,
                         ),
                         _StatCard(
+                          key: const Key(
+                            'core-stat-fitness',
+                          ),
                           label: 'Fitness',
                           value: player.stats.fitness,
                           icon: Icons.fitness_center,
                         ),
                         _StatCard(
+                          key: const Key(
+                            'core-stat-happiness',
+                          ),
                           label: 'Happiness',
                           value:
                               player.stats.happiness,
-                          icon: Icons.sentiment_satisfied,
+                          icon:
+                              Icons.sentiment_satisfied,
                         ),
                         _StatCard(
+                          key: const Key(
+                            'core-stat-willpower',
+                          ),
                           label: 'Willpower',
                           value:
                               player.stats.willpower,
-                          icon: Icons.shield_outlined,
+                          icon:
+                              Icons.shield_outlined,
                         ),
                         _StatCard(
+                          key: const Key(
+                            'core-stat-charisma',
+                          ),
                           label: 'Charisma',
                           value:
                               player.stats.charisma,
                           icon: Icons.groups,
                         ),
                         _StatCard(
+                          key: const Key(
+                            'core-stat-creativity',
+                          ),
                           label: 'Creativity',
                           value:
                               player.stats.creativity,
                           icon: Icons.palette,
                         ),
                         _StatCard(
+                          key: const Key(
+                            'core-stat-luck',
+                          ),
                           label: 'Luck',
                           value: player.stats.luck,
                           icon: Icons.auto_awesome,
@@ -385,15 +418,15 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
 
             Card(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(
-                  18,
-                  18,
-                  18,
                   12,
+                  12,
+                  12,
+                  8,
                 ),
                 child: Column(
                   crossAxisAlignment:
@@ -417,7 +450,9 @@ class _GameScreenState extends State<GameScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 14),
+
+                    const SizedBox(height: 8),
+
                     SizedBox(
                       height: 320,
                       child: events.isEmpty
@@ -432,7 +467,7 @@ class _GameScreenState extends State<GameScreen> {
                               separatorBuilder:
                                   (_, __) =>
                                       const SizedBox(
-                                height: 14,
+                                height: 10,
                               ),
                               itemBuilder:
                                   (context, index) {
@@ -441,7 +476,8 @@ class _GameScreenState extends State<GameScreen> {
 
                                 return Row(
                                   crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                      CrossAxisAlignment
+                                          .start,
                                   children: [
                                     Padding(
                                       padding:
@@ -451,7 +487,7 @@ class _GameScreenState extends State<GameScreen> {
                                       ),
                                       child: Icon(
                                         Icons.circle,
-                                        size: 8,
+                                        size: 7,
                                         color:
                                             Theme.of(
                                           context,
@@ -461,7 +497,7 @@ class _GameScreenState extends State<GameScreen> {
                                       ),
                                     ),
                                     const SizedBox(
-                                      width: 12,
+                                      width: 9,
                                     ),
                                     Expanded(
                                       child: Column(
@@ -471,14 +507,15 @@ class _GameScreenState extends State<GameScreen> {
                                         children: [
                                           Text(
                                             event.title,
-                                            style: Theme.of(
+                                            style:
+                                                Theme.of(
                                               context,
                                             )
-                                                .textTheme
-                                                .titleSmall,
+                                                    .textTheme
+                                                    .titleSmall,
                                           ),
                                           const SizedBox(
-                                            height: 4,
+                                            height: 2,
                                           ),
                                           Text(
                                             '${event.year} — '
@@ -497,7 +534,7 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
 
             SizedBox(
               width: double.infinity,
@@ -560,6 +597,7 @@ class _StatCard extends StatelessWidget {
     required this.label,
     required this.value,
     required this.icon,
+    super.key,
   });
 
   final String label;
@@ -568,44 +606,71 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progress = value / 100;
+    final double progress =
+        (value / 100).clamp(0.0, 1.0).toDouble();
 
-    return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: Theme.of(context)
-                  .colorScheme
-                  .primary,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                label,
-                overflow: TextOverflow.ellipsis,
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 5,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: Theme.of(context)
+              .colorScheme
+              .outlineVariant,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: 14,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary,
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    label,
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelSmall,
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    '$value',
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelSmall!
+                        .copyWith(
+                          fontWeight:
+                              FontWeight.w700,
+                        ),
+                  ),
+                ],
               ),
             ),
-            Text(
-              '$value / 100',
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge,
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        LinearProgressIndicator(
-          value: progress.clamp(0.0, 1.0),
-          minHeight: 7,
-          borderRadius:
-              BorderRadius.circular(8),
-        ),
-      ],
+          ),
+          const SizedBox(height: 4),
+          LinearProgressIndicator(
+            value: progress,
+            minHeight: 4,
+            borderRadius:
+                BorderRadius.circular(5),
+          ),
+        ],
+      ),
     );
   }
 }
