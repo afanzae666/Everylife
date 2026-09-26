@@ -314,7 +314,7 @@ void main() {
     );
 
     testWidgets(
-      'game data button opens save and load menu',
+      'save manager button opens save manager',
       (tester) async {
         final repository =
             InMemorySaveRepository();
@@ -333,30 +333,65 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        final gameDataButton =
+        final saveManagerButton =
             find.byTooltip(
-          'Game Data',
+          'Save Manager',
         );
 
         expect(
-          gameDataButton,
+          saveManagerButton,
           findsOneWidget,
         );
 
         await tester.tap(
-          gameDataButton,
+          saveManagerButton,
         );
 
         await tester.pumpAndSettle();
 
         expect(
-          find.text('Save Game'),
+          find.text('Save Manager'),
           findsOneWidget,
         );
 
         expect(
-          find.text('Load Game'),
+          find.text('Autosave'),
           findsOneWidget,
+        );
+
+        expect(
+          find.text('Manual 1'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Manual 2'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Manual 3'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Manual 4'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.byTooltip('Save'),
+          findsNWidgets(5),
+        );
+
+        expect(
+          find.byTooltip('Load'),
+          findsNWidgets(5),
+        );
+
+        expect(
+          find.byTooltip('Delete'),
+          findsNWidgets(5),
         );
       },
     );
