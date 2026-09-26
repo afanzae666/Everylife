@@ -4,6 +4,7 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({
     required this.uiScaleController,
     required this.onUiScaleChanged,
+    required this.autoSaveController,
     super.key,
   });
 
@@ -11,6 +12,8 @@ class SettingsScreen extends StatelessWidget {
 
   final Future<void> Function(double value)
       onUiScaleChanged;
+
+  final ValueNotifier<bool> autoSaveController;
 
   static const List<double> zoomValues = [
     0.8,
@@ -41,10 +44,13 @@ class SettingsScreen extends StatelessWidget {
     BuildContext context,
     double zoom,
   ) {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery =
+        MediaQuery.of(context);
 
-    final scaledMediaQuery = mediaQuery.copyWith(
-      textScaler: TextScaler.linear(zoom),
+    final scaledMediaQuery =
+        mediaQuery.copyWith(
+      textScaler:
+          TextScaler.linear(zoom),
     );
 
     return MediaQuery(
@@ -60,7 +66,8 @@ class SettingsScreen extends StatelessWidget {
     BuildContext context,
     double zoom,
   ) {
-    double s(double value) => value * zoom;
+    double s(double value) =>
+        value * zoom;
 
     return Scaffold(
       appBar: AppBar(
@@ -91,7 +98,8 @@ class SettingsScreen extends StatelessWidget {
               children: [
                 ListTile(
                   dense: true,
-                  contentPadding: EdgeInsets.symmetric(
+                  contentPadding:
+                      EdgeInsets.symmetric(
                     horizontal: s(16),
                   ),
                   leading: Icon(
@@ -109,7 +117,8 @@ class SettingsScreen extends StatelessWidget {
                   height: s(1),
                 ),
                 Padding(
-                  padding: EdgeInsets.fromLTRB(
+                  padding:
+                      EdgeInsets.fromLTRB(
                     s(8),
                     s(4),
                     s(8),
@@ -117,8 +126,10 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   child: Slider(
                     value: zoom,
-                    min: zoomValues.first,
-                    max: zoomValues.last,
+                    min:
+                        zoomValues.first,
+                    max:
+                        zoomValues.last,
                     divisions:
                         zoomValues.length - 1,
                     label:
@@ -127,8 +138,8 @@ class SettingsScreen extends StatelessWidget {
                       final snapped =
                           _snapZoom(value);
 
-                      uiScaleController.value =
-                          snapped;
+                      uiScaleController
+                          .value = snapped;
 
                       onUiScaleChanged(
                         snapped,
@@ -137,7 +148,8 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.symmetric(
+                  padding:
+                      EdgeInsets.symmetric(
                     horizontal: s(12),
                   ),
                   child: Wrap(
@@ -149,8 +161,10 @@ class SettingsScreen extends StatelessWidget {
                         ChoiceChip(
                           padding:
                               EdgeInsets.symmetric(
-                            horizontal: s(8),
-                            vertical: s(4),
+                            horizontal:
+                                s(8),
+                            vertical:
+                                s(4),
                           ),
                           label: Text(
                             '${(value * 100).round()}%',
@@ -160,8 +174,8 @@ class SettingsScreen extends StatelessWidget {
                                       .abs() <
                                   0.001,
                           onSelected: (_) {
-                            uiScaleController.value =
-                                value;
+                            uiScaleController
+                                .value = value;
 
                             onUiScaleChanged(
                               value,
@@ -177,6 +191,58 @@ class SettingsScreen extends StatelessWidget {
               ],
             ),
           ),
+          SizedBox(
+            height: s(12),
+          ),
+          Text(
+            'Game',
+            style: Theme.of(context)
+                .textTheme
+                .titleSmall,
+          ),
+          SizedBox(
+            height: s(4),
+          ),
+          ValueListenableBuilder<bool>(
+            valueListenable:
+                autoSaveController,
+            builder: (
+              context,
+              enabled,
+              _,
+            ) {
+              return Card(
+                margin: EdgeInsets.zero,
+                child: SwitchListTile(
+                  dense: true,
+                  contentPadding:
+                      EdgeInsets.symmetric(
+                    horizontal: s(16),
+                  ),
+                  secondary: Icon(
+                    enabled
+                        ? Icons.autorenew
+                        : Icons
+                            .autorenew_outlined,
+                    size: s(24),
+                  ),
+                  title: const Text(
+                    'Autosave',
+                  ),
+                  subtitle: Text(
+                    enabled
+                        ? 'Automatically save after Age Up'
+                        : 'Automatic saving is off',
+                  ),
+                  value: enabled,
+                  onChanged: (value) {
+                    autoSaveController
+                        .value = value;
+                  },
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -185,7 +251,8 @@ class SettingsScreen extends StatelessWidget {
   double _snapZoom(
     double value,
   ) {
-    var closest = zoomValues.first;
+    var closest =
+        zoomValues.first;
 
     var distance =
         (value - closest).abs();
@@ -195,9 +262,11 @@ class SettingsScreen extends StatelessWidget {
       final candidateDistance =
           (value - candidate).abs();
 
-      if (candidateDistance < distance) {
+      if (candidateDistance <
+          distance) {
         closest = candidate;
-        distance = candidateDistance;
+        distance =
+            candidateDistance;
       }
     }
 
