@@ -1,5 +1,13 @@
 import '../../domain/world/world_state.dart';
 
+enum SaveSlot {
+  autosave,
+  manual1,
+  manual2,
+  manual3,
+  manual4,
+}
+
 class SaveData {
   const SaveData({
     required this.state,
@@ -14,47 +22,30 @@ class SaveData {
 
 abstract interface class SaveRepository {
   Future<void> save(
-    SaveSlot slot,
     WorldState state, {
     required int randomState,
     required int nextTickId,
+    SaveSlot slot = SaveSlot.autosave,
   });
 
-  Future<SaveData?> load(
-    SaveSlot slot,
-  );
-
-  Future<void> delete(
-    SaveSlot slot,
-  );
-}
-  Future<void> save(
-    WorldState state, {
-    required int randomState,
-    required int nextTickId,
+  Future<SaveData?> load({
+    SaveSlot slot = SaveSlot.autosave,
   });
 
-  Future<SaveData?> load();
-
-  Future<void> delete();
+  Future<void> delete({
+    SaveSlot slot = SaveSlot.autosave,
+  });
 }
 
 class InMemorySaveRepository implements SaveRepository {
-  enum SaveSlot {
-  autosave,
-  manual1,
-  manual2,
-  manual3,
-  manual4,
-}
   final Map<SaveSlot, SaveData> _data = {};
 
   @override
   Future<void> save(
-    SaveSlot slot,
     WorldState state, {
     required int randomState,
     required int nextTickId,
+    SaveSlot slot = SaveSlot.autosave,
   }) async {
     _data[slot] = SaveData(
       state: state,
@@ -64,41 +55,16 @@ class InMemorySaveRepository implements SaveRepository {
   }
 
   @override
-  Future<SaveData?> load(
-    SaveSlot slot,
-  ) async {
+  Future<SaveData?> load({
+    SaveSlot slot = SaveSlot.autosave,
+  }) async {
     return _data[slot];
   }
 
   @override
-  Future<void> delete(
-    SaveSlot slot,
-  ) async {
-    _data.remove(slot);
-  }
-}
-  SaveData? _data;
-
-  @override
-  Future<void> save(
-    WorldState state, {
-    required int randomState,
-    required int nextTickId,
+  Future<void> delete({
+    SaveSlot slot = SaveSlot.autosave,
   }) async {
-    _data = SaveData(
-      state: state,
-      randomState: randomState,
-      nextTickId: nextTickId,
-    );
-  }
-
-  @override
-  Future<SaveData?> load() async {
-    return _data;
-  }
-
-  @override
-  Future<void> delete() async {
-    _data = null;
+    _data.remove(slot);
   }
 }
