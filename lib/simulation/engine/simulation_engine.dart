@@ -23,7 +23,6 @@ class SimulationEngine {
     int nextTickId = 1,
   })  : _state = initialState,
         _random = random,
-        _saveRepository = saveRepository,
         _saveManager = saveRepository is SaveManager
             ? saveRepository
             : SaveManager(
@@ -41,7 +40,6 @@ class SimulationEngine {
   WorldState _state;
 
   final SeededRandom _random;
-  final SaveRepository _saveRepository;
   final SaveManager _saveManager;
   final SimulationScheduler _scheduler;
   final WorldStateValidator _validator;
@@ -208,10 +206,13 @@ class SimulationEngine {
       }
 
       _state = data.state;
+
       _random.restoreState(
         data.randomState,
       );
-      _nextTickId = data.nextTickId;
+
+      _nextTickId =
+          data.nextTickId;
 
       return const Success(null);
     } catch (error) {
