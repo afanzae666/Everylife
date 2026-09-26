@@ -380,9 +380,9 @@ void main() {
         );
 
         expect(
-          find.byTooltip('Save'),
-          findsNWidgets(5),
-        );
+  find.byTooltip('Save'),
+  findsNWidgets(4),
+);
 
         expect(
           find.byTooltip('Load'),
@@ -638,4 +638,120 @@ void main() {
       },
     );
   });
+      testWidgets(
+      'manual save shows slot metadata and autosave has no save action',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine = createTestEngine(
+          repository,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        await tester.tap(
+          find.byTooltip('Save Manager'),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byTooltip('Save'),
+          findsNWidgets(4),
+        );
+
+        expect(
+          find.byTooltip('Load'),
+          findsNWidgets(5),
+        );
+
+        expect(
+          find.byTooltip('Delete'),
+          findsNWidgets(5),
+        );
+
+        await tester.tap(
+          find.byTooltip('Save').first,
+        );
+
+        await tester.pumpAndSettle();
+
+        final metadata = find.byKey(
+          const Key(
+            'save-slot-metadata-manual1',
+          ),
+        );
+
+        expect(
+          metadata,
+          findsOneWidget,
+        );
+
+        expect(
+          find.descendant(
+            of: metadata,
+            matching: find.textContaining(
+              'Age 0',
+            ),
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          find.descendant(
+            of: metadata,
+            matching: find.textContaining(
+              'Year 2026',
+            ),
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          find.descendant(
+            of: metadata,
+            matching: find.textContaining(
+              '\$0.00',
+            ),
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          find.descendant(
+            of: metadata,
+            matching: find.textContaining(
+              'Saved',
+            ),
+          ),
+          findsOneWidget,
+        );
+
+        final manualSave =
+            await repository.load(
+          slot: SaveSlot.manual1,
+        );
+
+        expect(
+          manualSave,
+          isNotNull,
+        );
+
+        expect(
+          await repository.load(
+            slot: SaveSlot.autosave,
+          ),
+          isNull,
+        );
+      },
+    );
 }
