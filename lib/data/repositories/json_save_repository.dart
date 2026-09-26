@@ -29,6 +29,7 @@ class JsonSaveRepository
       ),
       randomState: randomState,
       nextTickId: nextTickId,
+      savedAt: DateTime.now().toUtc(),
     );
 
     final json = jsonEncode(
@@ -73,6 +74,8 @@ class JsonSaveRepository
           snapshot.randomState,
       nextTickId:
           snapshot.nextTickId,
+      savedAt:
+          snapshot.savedAt,
     );
   }
 
