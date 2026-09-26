@@ -15,7 +15,8 @@ void main() {
     testWidgets(
       'starts on character creation when no save exists',
       (tester) async {
-        final repository = InMemorySaveRepository();
+        final repository =
+            InMemorySaveRepository();
 
         await tester.pumpWidget(
           LifeSimulationApp(
@@ -38,7 +39,9 @@ void main() {
         );
 
         expect(
-          find.byType(CharacterCreationScreen),
+          find.byType(
+            CharacterCreationScreen,
+          ),
           findsOneWidget,
         );
 
@@ -62,7 +65,8 @@ void main() {
     testWidgets(
       'creates a newborn character and autosaves it',
       (tester) async {
-        final repository = InMemorySaveRepository();
+        final repository =
+            InMemorySaveRepository();
 
         await tester.pumpWidget(
           LifeSimulationApp(
@@ -74,22 +78,39 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        await tester.enterText(
-          find.byType(TextField),
-          'Marshall Royce',
+        final textFields =
+            find.byType(TextField);
+
+        expect(
+          textFields,
+          findsNWidgets(2),
         );
 
-        final beginLifeButton = find.text('BEGIN LIFE');
+        await tester.enterText(
+          textFields.at(0),
+          'Marshall',
+        );
+
+        await tester.enterText(
+          textFields.at(1),
+          'Royce',
+        );
+
+        final beginLifeButton =
+            find.text('BEGIN LIFE');
 
         await tester.scrollUntilVisible(
           beginLifeButton,
           200,
-          scrollable: find.byType(Scrollable).first,
+          scrollable:
+              find.byType(Scrollable).first,
         );
 
         await tester.pumpAndSettle();
 
-        await tester.tap(beginLifeButton);
+        await tester.tap(
+          beginLifeButton,
+        );
 
         await tester.pumpAndSettle();
 
@@ -108,7 +129,8 @@ void main() {
           findsOneWidget,
         );
 
-        final saved = await repository.load();
+        final saved =
+            await repository.load();
 
         expect(
           saved,
@@ -118,6 +140,16 @@ void main() {
         expect(
           saved!.state.player.name,
           'Marshall Royce',
+        );
+
+        expect(
+          saved.state.player.firstName,
+          'Marshall',
+        );
+
+        expect(
+          saved.state.player.lastName,
+          'Royce',
         );
 
         expect(
@@ -135,15 +167,18 @@ void main() {
     testWidgets(
       'loads an existing save and opens the game',
       (tester) async {
-        final repository = InMemorySaveRepository();
+        final repository =
+            InMemorySaveRepository();
 
-        final savedState = WorldState(
+        final savedState =
+            WorldState(
           clock: const SimulationClock(
             currentYear: 2050,
           ),
           player: Character.create(
             id: 'saved-player',
-            name: 'Saved Character',
+            firstName: 'Saved',
+            lastName: 'Character',
             birthYear: 2030,
           ),
           events: const [],
@@ -171,7 +206,9 @@ void main() {
         );
 
         expect(
-          find.byType(CharacterCreationScreen),
+          find.byType(
+            CharacterCreationScreen,
+          ),
           findsNothing,
         );
 
@@ -195,15 +232,18 @@ void main() {
     testWidgets(
       'does not replace an existing save when startup succeeds',
       (tester) async {
-        final repository = InMemorySaveRepository();
+        final repository =
+            InMemorySaveRepository();
 
-        final savedState = WorldState(
+        final savedState =
+            WorldState(
           clock: const SimulationClock(
             currentYear: 2075,
           ),
           player: Character.create(
             id: 'saved-player',
-            name: 'Existing Life',
+            firstName: 'Existing',
+            lastName: 'Life',
             birthYear: 2025,
           ),
           events: const [],
@@ -225,7 +265,8 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        final loaded = await repository.load();
+        final loaded =
+            await repository.load();
 
         expect(
           loaded,
@@ -235,6 +276,16 @@ void main() {
         expect(
           loaded!.state.player.name,
           'Existing Life',
+        );
+
+        expect(
+          loaded.state.player.firstName,
+          'Existing',
+        );
+
+        expect(
+          loaded.state.player.lastName,
+          'Life',
         );
 
         expect(
