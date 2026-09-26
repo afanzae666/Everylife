@@ -1023,10 +1023,10 @@ class _AgeUpNavigationItem
           alignment: Alignment.topCenter,
           children: [
             Positioned(
-              top: -s(12),
+              top: -s(17),
               child: SizedBox(
-                width: s(68),
-                height: s(68),
+                width: s(72),
+                height: s(72),
                 child: FilledButton(
                   onPressed:
                       isProcessing ? null : onTap,
@@ -1052,8 +1052,8 @@ class _AgeUpNavigationItem
                   ),
                   child: isProcessing
                       ? SizedBox(
-                          width: s(26),
-                          height: s(26),
+                          width: s(28),
+                          height: s(28),
                           child:
                               CircularProgressIndicator(
                             strokeWidth: s(2.2),
@@ -1061,21 +1061,30 @@ class _AgeUpNavigationItem
                                 colorScheme.primary,
                           ),
                         )
-                      : Image.asset(
-                          'assets/icons/age_up.png',
-                          width: s(40),
-                          height: s(40),
-                          fit: BoxFit.contain,
-                          color:
-                              colorScheme.primary,
-                          colorBlendMode:
-                              BlendMode.srcIn,
+                      : ClipOval(
+                          child: SizedBox(
+                            width: s(58),
+                            height: s(58),
+                            child: Transform.scale(
+                              scale: 1.55,
+                              child: Image.asset(
+                                'assets/icons/age_up.png',
+                                width: s(58),
+                                height: s(58),
+                                fit: BoxFit.contain,
+                                color:
+                                    colorScheme.primary,
+                                colorBlendMode:
+                                    BlendMode.srcIn,
+                              ),
+                            ),
+                          ),
                         ),
                 ),
               ),
             ),
             Positioned(
-              top: s(54),
+              top: s(55),
               child: Text(
                 'AGE UP',
                 maxLines: 1,
