@@ -6,29 +6,56 @@ class LoadingScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisSize:
-              MainAxisSize.min,
-          children: [
-            Image.asset(
-              'assets/images/everylife_logo.png',
-              width: 260,
-              fit: BoxFit.contain,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 32,
             ),
-            const SizedBox(
-              height: 32,
+            child: Column(
+              mainAxisAlignment:
+                  MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/images/everylife_logo.png',
+                  width: 260,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(
+                  height: 48,
+                ),
+                const SizedBox(
+                  width: 30,
+                  height: 30,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                  ),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                Text(
+                  'Preparing your journey...',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                Text(
+                  'Your story is about to begin.',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-            const SizedBox(
-              width: 28,
-              height: 28,
-              child: CircularProgressIndicator(),
-            ),
-          ],
+          ),
         ),
       ),
     );
