@@ -10,12 +10,14 @@ void main() {
     late AndroidJsonSaveStorage storage;
 
     setUp(() async {
-      temporaryDirectory = await Directory.systemTemp.createTemp(
+      temporaryDirectory =
+          await Directory.systemTemp.createTemp(
         'everylife_storage_test_',
       );
 
       storage = AndroidJsonSaveStorage(
-        directoryProvider: () async => temporaryDirectory,
+        directoryProvider: () async =>
+            temporaryDirectory,
       );
     });
 
@@ -30,7 +32,8 @@ void main() {
     test(
       'returns null when no save file exists',
       () async {
-        final result = await storage.read();
+        final result =
+            await storage.read();
 
         expect(result, isNull);
       },
@@ -39,11 +42,13 @@ void main() {
     test(
       'writes and reads saved JSON',
       () async {
-        const json = '{"currentYear":2050}';
+        const json =
+            '{"currentYear":2050}';
 
         await storage.write(json);
 
-        final result = await storage.read();
+        final result =
+            await storage.read();
 
         expect(result, json);
       },
@@ -52,13 +57,17 @@ void main() {
     test(
       'overwrites the previous saved JSON',
       () async {
-        const firstJson = '{"currentYear":2050}';
-        const secondJson = '{"currentYear":2051}';
+        const firstJson =
+            '{"currentYear":2050}';
+
+        const secondJson =
+            '{"currentYear":2051}';
 
         await storage.write(firstJson);
         await storage.write(secondJson);
 
-        final result = await storage.read();
+        final result =
+            await storage.read();
 
         expect(result, secondJson);
       },
@@ -67,7 +76,8 @@ void main() {
     test(
       'creates the expected autosave file',
       () async {
-        const json = '{"currentYear":2050}';
+        const json =
+            '{"currentYear":2050}';
 
         await storage.write(json);
 
@@ -90,7 +100,8 @@ void main() {
     test(
       'creates the expected manual slot file',
       () async {
-        const json = '{"currentYear":2050}';
+        const json =
+            '{"currentYear":2050}';
 
         await storage.write(
           json,
@@ -116,8 +127,11 @@ void main() {
     test(
       'keeps autosave and manual slots separate',
       () async {
-        const autosaveJson = '{"currentYear":2050}';
-        const manualJson = '{"currentYear":2045}';
+        const autosaveJson =
+            '{"currentYear":2050}';
+
+        const manualJson =
+            '{"currentYear":2045}';
 
         await storage.write(
           autosaveJson,
@@ -145,9 +159,14 @@ void main() {
     test(
       'overwrites only the selected slot',
       () async {
-        const autosaveJson = '{"currentYear":2050}';
-        const firstManualJson = '{"currentYear":2045}';
-        const secondManualJson = '{"currentYear":2046}';
+        const autosaveJson =
+            '{"currentYear":2050}';
+
+        const firstManualJson =
+            '{"currentYear":2045}';
+
+        const secondManualJson =
+            '{"currentYear":2046}';
 
         await storage.write(
           autosaveJson,
@@ -180,8 +199,11 @@ void main() {
     test(
       'deletes only the selected slot',
       () async {
-        const autosaveJson = '{"currentYear":2050}';
-        const manualJson = '{"currentYear":2045}';
+        const autosaveJson =
+            '{"currentYear":2050}';
+
+        const manualJson =
+            '{"currentYear":2045}';
 
         await storage.write(
           autosaveJson,
@@ -213,7 +235,8 @@ void main() {
     test(
       'deletes the saved JSON',
       () async {
-        const json = '{"currentYear":2050}';
+        const json =
+            '{"currentYear":2050}';
 
         await storage.write(json);
 
@@ -239,6 +262,90 @@ void main() {
         expect(
           await storage.read(),
           isNull,
+        );
+      },
+    );
+
+    test(
+      'migrates legacy save to autosave',
+      () async {
+        const legacyJson =
+            '{"currentYear":2040}';
+
+        final legacyFile = File(
+          '${temporaryDirectory.path}/everylife_save.json',
+        );
+
+        await legacyFile.writeAsString(
+          legacyJson,
+        );
+
+        final result =
+            await storage.read();
+
+        expect(
+          result,
+          legacyJson,
+        );
+
+        final autosaveFile = File(
+          '${temporaryDirectory.path}/everylife_autosave.json',
+        );
+
+        expect(
+          await autosaveFile.exists(),
+          isTrue,
+        );
+
+        expect(
+          await autosaveFile.readAsString(),
+          legacyJson,
+        );
+
+        expect(
+          await legacyFile.exists(),
+          isFalse,
+        );
+      },
+    );
+
+    test(
+      'does not overwrite existing autosave with legacy save',
+      () async {
+        const autosaveJson =
+            '{"currentYear":2050}';
+
+        const legacyJson =
+            '{"currentYear":2040}';
+
+        await storage.write(
+          autosaveJson,
+        );
+
+        final legacyFile = File(
+          '${temporaryDirectory.path}/everylife_save.json',
+        );
+
+        await legacyFile.writeAsString(
+          legacyJson,
+        );
+
+        final result =
+            await storage.read();
+
+        expect(
+          result,
+          autosaveJson,
+        );
+
+        expect(
+          await legacyFile.exists(),
+          isTrue,
+        );
+
+        expect(
+          await legacyFile.readAsString(),
+          legacyJson,
         );
       },
     );
