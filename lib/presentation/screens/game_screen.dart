@@ -1083,20 +1083,6 @@ class _AgeUpNavigationItem
                 ),
               ),
             ),
-            Positioned(
-              top: s(55),
-              child: Text(
-                'AGE UP',
-                maxLines: 1,
-                style: textStyle.copyWith(
-                  fontSize: s(8),
-                  fontWeight:
-                      FontWeight.w800,
-                  color:
-                      colorScheme.primary,
-                ),
-              ),
-            ),
           ],
         ),
       ),
