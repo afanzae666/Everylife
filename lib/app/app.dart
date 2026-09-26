@@ -93,7 +93,70 @@ class _LifeSimulationAppState
     }
   }
 
-  Future<void> _initialize() async {
+    Future<void> _initialize() async {
+    final initializationStartedAt =
+        DateTime.now();
+
+    try {
+      final saveData =
+          await _saveRepository.load();
+
+      await _ensureMinimumLoadingDuration(
+        initializationStartedAt,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      if (saveData == null) {
+        setState(() {
+          _isInitializing = false;
+        });
+
+        return;
+      }
+
+      final engine =
+          SimulationEngine(
+        initialState:
+            saveData.state,
+        random:
+            SeededRandom.fromState(
+          saveData.randomState,
+        ),
+        saveRepository:
+            _saveRepository,
+        nextTickId:
+            saveData.nextTickId,
+      );
+
+      engine.registerSystem(
+        EventSystem(
+          random: engine.random,
+        ),
+      );
+
+      setState(() {
+        _engine = engine;
+        _isInitializing = false;
+      });
+    } catch (error) {
+      await _ensureMinimumLoadingDuration(
+        initializationStartedAt,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _startupError =
+            error.toString();
+        _isInitializing = false;
+      });
+    }
+  }
     try {
       final saveData =
           await _saveRepository.load();
@@ -144,6 +207,25 @@ class _LifeSimulationAppState
             error.toString();
         _isInitializing = false;
       });
+    }
+  }
+
+  Future<void> _ensureMinimumLoadingDuration(
+    DateTime startedAt,
+  ) async {
+    const minimumLoadingDuration =
+        Duration(seconds: 2);
+
+    final elapsed =
+        DateTime.now().difference(startedAt);
+
+    final remaining =
+        minimumLoadingDuration - elapsed;
+
+    if (remaining > Duration.zero) {
+      await Future<void>.delayed(
+        remaining,
+      );
     }
   }
 
