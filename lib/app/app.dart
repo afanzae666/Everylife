@@ -93,7 +93,7 @@ class _LifeSimulationAppState
     }
   }
 
-    Future<void> _initialize() async {
+  Future<void> _initialize() async {
     final initializationStartedAt =
         DateTime.now();
 
@@ -146,58 +146,6 @@ class _LifeSimulationAppState
         initializationStartedAt,
       );
 
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _startupError =
-            error.toString();
-        _isInitializing = false;
-      });
-    }
-  }
-    try {
-      final saveData =
-          await _saveRepository.load();
-
-      if (!mounted) {
-        return;
-      }
-
-      if (saveData == null) {
-        setState(() {
-          _isInitializing = false;
-        });
-
-        return;
-      }
-
-      final engine =
-          SimulationEngine(
-        initialState:
-            saveData.state,
-        random:
-            SeededRandom.fromState(
-          saveData.randomState,
-        ),
-        saveRepository:
-            _saveRepository,
-        nextTickId:
-            saveData.nextTickId,
-      );
-
-      engine.registerSystem(
-        EventSystem(
-          random: engine.random,
-        ),
-      );
-
-      setState(() {
-        _engine = engine;
-        _isInitializing = false;
-      });
-    } catch (error) {
       if (!mounted) {
         return;
       }
@@ -424,8 +372,8 @@ class _LifeSimulationAppState
 
   Widget _buildHome() {
     if (_isInitializing) {
-  return const LoadingScreen();
-}
+      return const LoadingScreen();
+    }
 
     if (_startupError != null) {
       return Scaffold(
