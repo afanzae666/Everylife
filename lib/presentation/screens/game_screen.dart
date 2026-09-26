@@ -33,9 +33,10 @@ class _GameScreenState extends State<GameScreen> {
   late final bool _ownsUiScaleController;
 
   bool _isProcessingTurn = false;
+
   final ScrollController _lifeEventsScrollController =
       ScrollController();
-  
+
   @override
   void initState() {
     super.initState();
@@ -49,7 +50,7 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-    @override
+  @override
   void dispose() {
     if (_ownsUiScaleController) {
       _uiScaleController.dispose();
@@ -59,7 +60,7 @@ class _GameScreenState extends State<GameScreen> {
 
     super.dispose();
   }
-  
+
   void _scrollLifeEventsToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted ||
@@ -83,7 +84,7 @@ class _GameScreenState extends State<GameScreen> {
       );
     });
   }
-  
+
   Future<void> _ageUp() async {
     if (_isProcessingTurn) {
       return;
@@ -119,9 +120,9 @@ class _GameScreenState extends State<GameScreen> {
 
     setState(() {});
 
-_scrollLifeEventsToBottom();
+    _scrollLifeEventsToBottom();
 
-final saveResult = await engine.save();
+    final saveResult = await engine.save();
 
     if (!mounted) {
       return;
@@ -156,7 +157,9 @@ final saveResult = await engine.save();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          result.isSuccess ? 'Game saved.' : 'Save failed.',
+          result.isSuccess
+              ? 'Game saved.'
+              : 'Save failed.',
         ),
       ),
     );
@@ -175,11 +178,14 @@ final saveResult = await engine.save();
 
     setState(() {});
 
-_scrollLifeEventsToBottom();
+    _scrollLifeEventsToBottom();
 
-ScaffoldMessenger.of(context).showSnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
         content: Text(
-          result.isSuccess ? 'Game loaded.' : 'Load failed.',
+          result.isSuccess
+              ? 'Game loaded.'
+              : 'Load failed.',
         ),
       ),
     );
@@ -235,7 +241,9 @@ ScaffoldMessenger.of(context).showSnackBar(
       );
   }
 
-  Future<void> _handleGameDataAction(String action) async {
+  Future<void> _handleGameDataAction(
+    String action,
+  ) async {
     switch (action) {
       case 'save':
         await _save();
@@ -547,8 +555,8 @@ ScaffoldMessenger.of(context).showSnackBar(
                             value: player
                                 .stats
                                 .fitness,
-                            icon: Icons
-                                .fitness_center,
+                            icon:
+                                Icons.fitness_center,
                             zoom: zoom,
                           );
 
@@ -654,11 +662,12 @@ ScaffoldMessenger.of(context).showSnackBar(
                               TextAlign.center,
                         ),
                       )
-                : ListView.separated(
-    controller: _lifeEventsScrollController,
-    padding: EdgeInsets.zero,
-    itemCount:
-        events.length,
+                    : ListView.separated(
+                        controller:
+                            _lifeEventsScrollController,
+                        padding: EdgeInsets.zero,
+                        itemCount:
+                            events.length,
                         separatorBuilder:
                             (
                           _,
@@ -1035,8 +1044,10 @@ class _AgeUpNavigationItem
                       isProcessing
                           ? null
                           : onTap,
-                  style: FilledButton.styleFrom(
-                    padding: EdgeInsets.zero,
+                  style:
+                      FilledButton.styleFrom(
+                    padding:
+                        EdgeInsets.zero,
                     shape:
                         const CircleBorder(),
                     backgroundColor:
@@ -1082,8 +1093,7 @@ class _AgeUpNavigationItem
                                 'assets/icons/age_up.png',
                                 width: s(58),
                                 height: s(58),
-                                fit: BoxFit
-                                    .contain,
+                                fit: BoxFit.contain,
                                 color:
                                     colorScheme
                                         .primary,
