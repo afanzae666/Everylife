@@ -8,6 +8,7 @@ class LoadingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -20,7 +21,7 @@ class LoadingScreen extends StatelessWidget {
               children: [
                 Image.asset(
                   'assets/images/everylife_logo.png',
-                  width: 260,
+                  width: 180,
                   fit: BoxFit.contain,
                 ),
                 const SizedBox(
