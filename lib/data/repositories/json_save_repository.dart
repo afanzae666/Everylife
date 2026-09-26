@@ -6,7 +6,8 @@ import '../models/world_state_snapshot.dart';
 import '../storage/json_save_storage.dart';
 import 'save_repository.dart';
 
-class JsonSaveRepository implements SaveRepository {
+class JsonSaveRepository
+    implements SaveRepository {
   const JsonSaveRepository({
     required JsonSaveStorage storage,
   }) : _storage = storage;
@@ -14,14 +15,18 @@ class JsonSaveRepository implements SaveRepository {
   final JsonSaveStorage _storage;
 
   @override
-    Future<void> save(
-    SaveSlot slot,
+  Future<void> save(
     WorldState state, {
     required int randomState,
     required int nextTickId,
+    SaveSlot slot = SaveSlot.autosave,
   }) async {
-    final snapshot = SimulationSaveSnapshot(
-      world: WorldStateSnapshot.fromWorldState(state),
+    final snapshot =
+        SimulationSaveSnapshot(
+      world:
+          WorldStateSnapshot.fromWorldState(
+        state,
+      ),
       randomState: randomState,
       nextTickId: nextTickId,
     );
@@ -30,11 +35,57 @@ class JsonSaveRepository implements SaveRepository {
       snapshot.toJson(),
     );
 
-        await _storage.write(
+    await _storage.write(
       json,
-      _slotKey(slot),
+      slotKey: _slotKey(slot),
     );
-        String _slotKey(
+  }
+
+  @override
+  Future<SaveData?> load({
+    SaveSlot slot = SaveSlot.autosave,
+  }) async {
+    final json = await _storage.read(
+      slotKey: _slotKey(slot),
+    );
+
+    if (json == null) {
+      return null;
+    }
+
+    final decoded = jsonDecode(json);
+
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException(
+        'Saved game data must be a JSON object.',
+      );
+    }
+
+    final snapshot =
+        SimulationSaveSnapshot.fromJson(
+      decoded,
+    );
+
+    return SaveData(
+      state:
+          snapshot.world.toWorldState(),
+      randomState:
+          snapshot.randomState,
+      nextTickId:
+          snapshot.nextTickId,
+    );
+  }
+
+  @override
+  Future<void> delete({
+    SaveSlot slot = SaveSlot.autosave,
+  }) async {
+    await _storage.delete(
+      slotKey: _slotKey(slot),
+    );
+  }
+
+  String _slotKey(
     SaveSlot slot,
   ) {
     switch (slot) {
@@ -54,44 +105,4 @@ class JsonSaveRepository implements SaveRepository {
         return 'manual_4';
     }
   }
-  }
-
-  @override
-    Future<SaveData?> load(
-    SaveSlot slot,
-  ) async {
-    final json = await _storage.read(
-      _slotKey(slot),
-    );
-
-    if (json == null) {
-      return null;
-    }
-
-    final decoded = jsonDecode(json);
-
-    if (decoded is! Map<String, dynamic>) {
-      throw const FormatException(
-        'Saved game data must be a JSON object.',
-      );
-    }
-
-    final snapshot = SimulationSaveSnapshot.fromJson(
-      decoded,
-    );
-
-    return SaveData(
-      state: snapshot.world.toWorldState(),
-      randomState: snapshot.randomState,
-      nextTickId: snapshot.nextTickId,
-    );
-  }
-
-    @override
-  Future<void> delete(
-    SaveSlot slot,
-  ) async {
-    await _storage.delete(
-      _slotKey(slot),
-    );
-  }
+}
