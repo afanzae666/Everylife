@@ -13,11 +13,13 @@ class SaveData {
     required this.state,
     required this.randomState,
     required this.nextTickId,
+    this.savedAt,
   });
 
   final WorldState state;
   final int randomState;
   final int nextTickId;
+  final DateTime? savedAt;
 }
 
 abstract interface class SaveRepository {
@@ -51,6 +53,7 @@ class InMemorySaveRepository implements SaveRepository {
       state: state,
       randomState: randomState,
       nextTickId: nextTickId,
+      savedAt: DateTime.now().toUtc(),
     );
   }
 
