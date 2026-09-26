@@ -246,6 +246,14 @@ class SimulationEngine {
     );
   }
 
+  Future<SaveData?> readSaveSlot(
+    SaveSlot slot,
+  ) {
+    return _saveManager.loadSlot(
+      slot,
+    );
+  }
+  
   static SimulationEngine create({
     required Character player,
     required int seed,
