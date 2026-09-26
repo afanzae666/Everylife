@@ -365,6 +365,7 @@ class _GameScreenState extends State<GameScreen> {
               },
               onSave: _saveSlot,
               onLoad: _loadSlot,
+              onRead: engine.readSaveSlot,
               onDelete: _deleteSlot,
             );
           },
@@ -981,12 +982,13 @@ class _GameScreenState extends State<GameScreen> {
 }
 
 class _SaveManagerSheet
-    extends StatelessWidget {
+    extends StatefulWidget {
   const _SaveManagerSheet({
     required this.zoom,
     required this.autoSaveEnabled,
     required this.isProcessing,
     required this.onAutoSaveChanged,
+    required this.onRead,
     required this.onSave,
     required this.onLoad,
     required this.onDelete,
@@ -996,6 +998,8 @@ class _SaveManagerSheet
   final bool autoSaveEnabled;
   final bool isProcessing;
   final ValueChanged<bool> onAutoSaveChanged;
+  final Future<SaveData?> Function(SaveSlot slot)
+      onRead;
   final Future<void> Function(SaveSlot slot)
       onSave;
   final Future<void> Function(SaveSlot slot)
@@ -1004,17 +1008,88 @@ class _SaveManagerSheet
       onDelete;
 
   @override
+  State<_SaveManagerSheet> createState() =>
+      _SaveManagerSheetState();
+}
+
+class _SaveManagerSheetState
+    extends State<_SaveManagerSheet> {
+  static const slots = [
+    SaveSlot.autosave,
+    SaveSlot.manual1,
+    SaveSlot.manual2,
+    SaveSlot.manual3,
+    SaveSlot.manual4,
+  ];
+
+  late Map<SaveSlot, SaveData?> _saveData;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _saveData = {
+      for (final slot in slots) slot: null,
+    };
+
+    _loadAllSlots();
+  }
+
+  Future<void> _loadAllSlots() async {
+    final data = <SaveSlot, SaveData?>{};
+
+    for (final slot in slots) {
+      data[slot] = await widget.onRead(slot);
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _saveData = data;
+    });
+  }
+
+  Future<void> _refreshSlot(
+    SaveSlot slot,
+  ) async {
+    final data = await widget.onRead(slot);
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _saveData[slot] = data;
+    });
+  }
+
+  Future<void> _handleSave(
+    SaveSlot slot,
+  ) async {
+    await widget.onSave(slot);
+    await _refreshSlot(slot);
+  }
+
+  Future<void> _handleLoad(
+    SaveSlot slot,
+  ) async {
+    await widget.onLoad(slot);
+    await _refreshSlot(slot);
+  }
+
+  Future<void> _handleDelete(
+    SaveSlot slot,
+  ) async {
+    await widget.onDelete(slot);
+    await _refreshSlot(slot);
+  }
+
+  @override
   Widget build(BuildContext context) {
     double s(double value) =>
-        value * zoom;
-
-    const slots = [
-      SaveSlot.autosave,
-      SaveSlot.manual1,
-      SaveSlot.manual2,
-      SaveSlot.manual3,
-      SaveSlot.manual4,
-    ];
+        value * widget.zoom;
 
     return SafeArea(
       child: Padding(
@@ -1045,32 +1120,55 @@ class _SaveManagerSheet
                   ),
                 ),
                 Icon(
-                  autoSaveEnabled
+                  widget.autoSaveEnabled
                       ? Icons.autorenew
                       : Icons.autorenew_outlined,
                   size: s(22),
                 ),
                 Switch(
-                  value: autoSaveEnabled,
+                  value: widget.autoSaveEnabled,
                   onChanged:
-                      isProcessing
+                      widget.isProcessing
                           ? null
-                          : onAutoSaveChanged,
+                          : widget.onAutoSaveChanged,
                 ),
               ],
             ),
             SizedBox(
               height: s(8),
             ),
-            for (final slot in slots)
-              _SaveSlotRow(
-                zoom: zoom,
-                slot: slot,
-                enabled: !isProcessing,
-                onSave: onSave,
-                onLoad: onLoad,
-                onDelete: onDelete,
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight:
+                    MediaQuery.sizeOf(context).height *
+                        0.75,
               ),
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: slots.length,
+                itemBuilder: (
+                  context,
+                  index,
+                ) {
+                  final slot = slots[index];
+
+                  return _SaveSlotRow(
+                    zoom: widget.zoom,
+                    slot: slot,
+                    enabled:
+                        !widget.isProcessing,
+                    saveData:
+                        _saveData[slot],
+                    onSave:
+                        slot == SaveSlot.autosave
+                            ? null
+                            : _handleSave,
+                    onLoad: _handleLoad,
+                    onDelete: _handleDelete,
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -1084,6 +1182,7 @@ class _SaveSlotRow
     required this.zoom,
     required this.slot,
     required this.enabled,
+    required this.saveData,
     required this.onSave,
     required this.onLoad,
     required this.onDelete,
@@ -1092,8 +1191,8 @@ class _SaveSlotRow
   final double zoom;
   final SaveSlot slot;
   final bool enabled;
-  final Future<void> Function(SaveSlot slot)
-      onSave;
+  final SaveData? saveData;
+  final Future<void> Function(SaveSlot slot)? onSave;
   final Future<void> Function(SaveSlot slot)
       onLoad;
   final Future<void> Function(SaveSlot slot)
@@ -1118,6 +1217,25 @@ class _SaveSlotRow
     }
   }
 
+  String _formatSavedAt(DateTime? value) {
+    if (value == null) {
+      return 'Saved —';
+    }
+
+    final local = value.toLocal();
+
+    String two(int value) {
+      return value.toString().padLeft(2, '0');
+    }
+
+    return 'Saved '
+        '${two(local.day)}/'
+        '${two(local.month)}/'
+        '${local.year} '
+        '${two(local.hour)}:'
+        '${two(local.minute)}';
+  }
+
   @override
   Widget build(BuildContext context) {
     double s(double value) =>
@@ -1125,6 +1243,10 @@ class _SaveSlotRow
 
     final isAutosave =
         slot == SaveSlot.autosave;
+
+    final metadataKey = Key(
+      'save-slot-metadata-${slot.name}',
+    );
 
     return Padding(
       padding: EdgeInsets.only(
@@ -1149,28 +1271,73 @@ class _SaveSlotRow
                 width: s(8),
               ),
               Expanded(
-                child: Text(
-                  title,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium,
+                child: Column(
+                  key: metadataKey,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium,
+                    ),
+                    SizedBox(
+                      height: s(2),
+                    ),
+                    if (saveData == null)
+                      Text(
+                        'Empty',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall,
+                      )
+                    else ...[
+                      Text(
+                        'Age '
+                        '${saveData!.state.player.ageAt(
+                          saveData!.state.clock.currentYear,
+                        )}'
+                        '  •  Year '
+                        '${saveData!.state.clock.currentYear}'
+                        '  •  Money '
+                        '${saveData!.state.player.money}',
+                        maxLines: 2,
+                        overflow:
+                            TextOverflow.ellipsis,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall,
+                      ),
+                      Text(
+                        _formatSavedAt(
+                          saveData!.savedAt,
+                        ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall,
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              IconButton(
-                tooltip: 'Save',
-                onPressed: enabled
-                    ? () => onSave(slot)
-                    : null,
-                icon: Icon(
-                  Icons.save_outlined,
-                  size: s(22),
+              if (onSave != null)
+                IconButton(
+                  tooltip: 'Save',
+                  onPressed: enabled
+                      ? () => onSave!(slot)
+                      : null,
+                  icon: Icon(
+                    Icons.save_outlined,
+                    size: s(22),
+                  ),
                 ),
-              ),
               IconButton(
                 tooltip: 'Load',
-                onPressed: enabled
-                    ? () => onLoad(slot)
-                    : null,
+                onPressed:
+                    enabled && saveData != null
+                        ? () => onLoad(slot)
+                        : null,
                 icon: Icon(
                   Icons.folder_open_outlined,
                   size: s(22),
@@ -1178,9 +1345,10 @@ class _SaveSlotRow
               ),
               IconButton(
                 tooltip: 'Delete',
-                onPressed: enabled
-                    ? () => onDelete(slot)
-                    : null,
+                onPressed:
+                    enabled && saveData != null
+                        ? () => onDelete(slot)
+                        : null,
                 icon: Icon(
                   Icons.delete_outline,
                   size: s(22),
