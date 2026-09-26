@@ -1,35 +1,28 @@
 import 'dart:io';
 
-import 'package:path_provider/path_provider.dart' as path_provider;
+import 'package:path_provider/path_provider.dart'
+    as path_provider;
 
 import 'json_save_storage.dart';
 
-class AndroidJsonSaveStorage implements JsonSaveStorage {
+class AndroidJsonSaveStorage
+    implements JsonSaveStorage {
   AndroidJsonSaveStorage({
-    Future<Directory> Function()? directoryProvider,
+    Future<Directory> Function()?
+        directoryProvider,
   }) : _directoryProvider =
-           directoryProvider ??
-           path_provider.getApplicationDocumentsDirectory;
-  
+            directoryProvider ??
+                path_provider
+                    .getApplicationDocumentsDirectory;
 
-  final Future<Directory> Function() _directoryProvider;
+  final Future<Directory> Function()
+      _directoryProvider;
 
-      Future<File> _getSaveFile(
-    String slotKey,
-  ) async {
-    final directory =
-        await _directoryProvider();
-
-    return File(
-      '${directory.path}/everylife_$slotKey.json',
-    );
-  }
-
-    @override
+  @override
   Future<void> write(
-    String json,
-    String slotKey,
-  ) async {
+    String json, {
+    String slotKey = 'autosave',
+  }) async {
     final file = await _getSaveFile(
       slotKey,
     );
@@ -40,10 +33,10 @@ class AndroidJsonSaveStorage implements JsonSaveStorage {
     );
   }
 
-    @override
-  Future<String?> read(
-    String slotKey,
-  ) async {
+  @override
+  Future<String?> read({
+    String slotKey = 'autosave',
+  }) async {
     final file = await _getSaveFile(
       slotKey,
     );
@@ -55,10 +48,10 @@ class AndroidJsonSaveStorage implements JsonSaveStorage {
     return file.readAsString();
   }
 
-    @override
-  Future<void> delete(
-    String slotKey,
-  ) async {
+  @override
+  Future<void> delete({
+    String slotKey = 'autosave',
+  }) async {
     final file = await _getSaveFile(
       slotKey,
     );
@@ -67,3 +60,15 @@ class AndroidJsonSaveStorage implements JsonSaveStorage {
       await file.delete();
     }
   }
+
+  Future<File> _getSaveFile(
+    String slotKey,
+  ) async {
+    final directory =
+        await _directoryProvider();
+
+    return File(
+      '${directory.path}/everylife_$slotKey.json',
+    );
+  }
+}
