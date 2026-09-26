@@ -1020,10 +1020,10 @@ class _AgeUpNavigationItem
         clipBehavior: Clip.none,
         children: [
           Positioned(
-            top: -s(15),
+            top: -s(9),
             child: SizedBox(
-              width: s(62),
-              height: s(62),
+              width: s(56),
+              height: s(56),
               child: FilledButton(
                 onPressed:
                     isProcessing ? null : onTap,
@@ -1043,14 +1043,14 @@ class _AgeUpNavigationItem
                         colorScheme.primary,
                     width: s(1.5),
                   ),
-                  elevation: 6,
+                  elevation: 5,
                   shadowColor:
                       Colors.black54,
                 ),
                 child: isProcessing
                     ? SizedBox(
-                        width: s(24),
-                        height: s(24),
+                        width: s(22),
+                        height: s(22),
                         child:
                             CircularProgressIndicator(
                           strokeWidth: s(2),
@@ -1066,8 +1066,8 @@ class _AgeUpNavigationItem
                         children: [
                           Image.asset(
                             'assets/icons/age_up.png',
-                            width: s(31),
-                            height: s(31),
+                            width: s(27),
+                            height: s(27),
                             fit: BoxFit.contain,
                             color:
                                 colorScheme.primary,
@@ -1080,7 +1080,7 @@ class _AgeUpNavigationItem
                           Text(
                             'AGE UP',
                             style: textStyle.copyWith(
-                              fontSize: s(8),
+                              fontSize: s(7),
                               fontWeight:
                                   FontWeight.w800,
                               color:
