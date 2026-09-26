@@ -14,6 +14,21 @@ class SaveData {
 
 abstract interface class SaveRepository {
   Future<void> save(
+    SaveSlot slot,
+    WorldState state, {
+    required int randomState,
+    required int nextTickId,
+  });
+
+  Future<SaveData?> load(
+    SaveSlot slot,
+  );
+
+  Future<void> delete(
+    SaveSlot slot,
+  );
+}
+  Future<void> save(
     WorldState state, {
     required int randomState,
     required int nextTickId,
@@ -25,6 +40,43 @@ abstract interface class SaveRepository {
 }
 
 class InMemorySaveRepository implements SaveRepository {
+  enum SaveSlot {
+  autosave,
+  manual1,
+  manual2,
+  manual3,
+  manual4,
+}
+  final Map<SaveSlot, SaveData> _data = {};
+
+  @override
+  Future<void> save(
+    SaveSlot slot,
+    WorldState state, {
+    required int randomState,
+    required int nextTickId,
+  }) async {
+    _data[slot] = SaveData(
+      state: state,
+      randomState: randomState,
+      nextTickId: nextTickId,
+    );
+  }
+
+  @override
+  Future<SaveData?> load(
+    SaveSlot slot,
+  ) async {
+    return _data[slot];
+  }
+
+  @override
+  Future<void> delete(
+    SaveSlot slot,
+  ) async {
+    _data.remove(slot);
+  }
+}
   SaveData? _data;
 
   @override
