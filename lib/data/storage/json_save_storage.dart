@@ -1,16 +1,16 @@
 abstract interface class JsonSaveStorage {
   Future<void> write(
-    String json,
-    String slotKey,
-  );
+    String json, {
+    String slotKey = 'autosave',
+  });
 
-  Future<String?> read(
-    String slotKey,
-  );
+  Future<String?> read({
+    String slotKey = 'autosave',
+  });
 
-  Future<void> delete(
-    String slotKey,
-  );
+  Future<void> delete({
+    String slotKey = 'autosave',
+  });
 }
 
 class InMemoryJsonSaveStorage
@@ -19,40 +19,23 @@ class InMemoryJsonSaveStorage
 
   @override
   Future<void> write(
-    String json,
-    String slotKey,
-  ) async {
+    String json, {
+    String slotKey = 'autosave',
+  }) async {
     _jsonBySlot[slotKey] = json;
   }
 
   @override
-  Future<String?> read(
-    String slotKey,
-  ) async {
+  Future<String?> read({
+    String slotKey = 'autosave',
+  }) async {
     return _jsonBySlot[slotKey];
   }
 
   @override
-  Future<void> delete(
-    String slotKey,
-  ) async {
+  Future<void> delete({
+    String slotKey = 'autosave',
+  }) async {
     _jsonBySlot.remove(slotKey);
-  }
-}
-  String? _json;
-
-  @override
-  Future<void> write(String json) async {
-    _json = json;
-  }
-
-  @override
-  Future<String?> read() async {
-    return _json;
-  }
-
-  @override
-  Future<void> delete() async {
-    _json = null;
   }
 }
