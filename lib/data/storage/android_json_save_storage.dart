@@ -41,11 +41,15 @@ class AndroidJsonSaveStorage
       slotKey,
     );
 
-    if (!await file.exists()) {
+    if (await file.exists()) {
+      return file.readAsString();
+    }
+
+    if (slotKey != 'autosave') {
       return null;
     }
 
-    return file.readAsString();
+    return _migrateLegacySave();
   }
 
   @override
@@ -61,6 +65,30 @@ class AndroidJsonSaveStorage
     }
   }
 
+  Future<String?> _migrateLegacySave() async {
+    final legacyFile =
+        await _getLegacySaveFile();
+
+    if (!await legacyFile.exists()) {
+      return null;
+    }
+
+    final json =
+        await legacyFile.readAsString();
+
+    final autosaveFile =
+        await _getSaveFile('autosave');
+
+    await autosaveFile.writeAsString(
+      json,
+      flush: true,
+    );
+
+    await legacyFile.delete();
+
+    return json;
+  }
+
   Future<File> _getSaveFile(
     String slotKey,
   ) async {
@@ -69,6 +97,15 @@ class AndroidJsonSaveStorage
 
     return File(
       '${directory.path}/everylife_$slotKey.json',
+    );
+  }
+
+  Future<File> _getLegacySaveFile() async {
+    final directory =
+        await _directoryProvider();
+
+    return File(
+      '${directory.path}/everylife_save.json',
     );
   }
 }
