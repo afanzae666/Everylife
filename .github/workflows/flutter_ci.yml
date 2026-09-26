@@ -82,10 +82,14 @@ jobs:
         shell: bash
         run: |
           mkdir -p android/app/src/main/res/drawable
+          mkdir -p android/app/src/main/res/drawable-v21
           mkdir -p android/app/src/main/res/values-v31
 
           cp assets/images/everylife_logo.png \
             android/app/src/main/res/drawable/everylife_logo.png
+
+          cp assets/images/everylife_logo.png \
+            android/app/src/main/res/drawable-v21/everylife_logo.png
 
           cat > android/app/src/main/res/drawable/launch_background.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
@@ -98,56 +102,37 @@ jobs:
           </layer-list>
           EOF
 
-          cat > android/app/src/main/res/drawable/normal_background.xml <<'EOF'
+          cat > android/app/src/main/res/drawable-v21/launch_background.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
-          <shape xmlns:android="http://schemas.android.com/apk/res/android"
-              android:shape="rectangle">
-              <solid android:color="@android:color/white" />
-          </shape>
-          EOF
+          <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+              <item android:drawable="@android:color/white" />
 
-          cat > android/app/src/main/res/values/styles.xml <<'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <resources>
-
-              <style
-                  name="LaunchTheme"
-                  parent="@android:style/Theme.Light.NoActionBar">
-                  <item name="android:windowBackground">
-                      @drawable/launch_background
-                  </item>
-                  <item name="android:windowNoTitle">true</item>
-                  <item name="android:fontFamily">sans</item>
-              </style>
-
-              <style
-                  name="NormalTheme"
-                  parent="@android:style/Theme.Light.NoActionBar">
-                  <item name="android:windowBackground">
-                      @drawable/normal_background
-                  </item>
-              </style>
-
-          </resources>
+              <item
+                  android:gravity="center"
+                  android:drawable="@drawable/everylife_logo" />
+          </layer-list>
           EOF
 
           cat > android/app/src/main/res/values-v31/styles.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
 
-              <style
-                  name="LaunchTheme"
-                  parent="@android:style/Theme.Light.NoActionBar">
+              <style name="LaunchTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
                   <item name="android:windowSplashScreenBackground">
                       @android:color/white
                   </item>
+
                   <item name="android:windowSplashScreenAnimatedIcon">
                       @drawable/everylife_logo
                   </item>
+
                   <item name="android:windowSplashScreenAnimationDuration">
                       200
                   </item>
-                  <item name="android:windowNoTitle">true</item>
+
+                  <item name="android:windowNoTitle">
+                      true
+                  </item>
               </style>
 
           </resources>
