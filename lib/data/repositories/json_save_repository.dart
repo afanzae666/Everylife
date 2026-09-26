@@ -14,7 +14,8 @@ class JsonSaveRepository implements SaveRepository {
   final JsonSaveStorage _storage;
 
   @override
-  Future<void> save(
+    Future<void> save(
+    SaveSlot slot,
     WorldState state, {
     required int randomState,
     required int nextTickId,
@@ -29,12 +30,39 @@ class JsonSaveRepository implements SaveRepository {
       snapshot.toJson(),
     );
 
-    await _storage.write(json);
+        await _storage.write(
+      json,
+      _slotKey(slot),
+    );
+        String _slotKey(
+    SaveSlot slot,
+  ) {
+    switch (slot) {
+      case SaveSlot.autosave:
+        return 'autosave';
+
+      case SaveSlot.manual1:
+        return 'manual_1';
+
+      case SaveSlot.manual2:
+        return 'manual_2';
+
+      case SaveSlot.manual3:
+        return 'manual_3';
+
+      case SaveSlot.manual4:
+        return 'manual_4';
+    }
+  }
   }
 
   @override
-  Future<SaveData?> load() async {
-    final json = await _storage.read();
+    Future<SaveData?> load(
+    SaveSlot slot,
+  ) async {
+    final json = await _storage.read(
+      _slotKey(slot),
+    );
 
     if (json == null) {
       return null;
@@ -59,8 +87,11 @@ class JsonSaveRepository implements SaveRepository {
     );
   }
 
-  @override
-  Future<void> delete() async {
-    await _storage.delete();
+    @override
+  Future<void> delete(
+    SaveSlot slot,
+  ) async {
+    await _storage.delete(
+      _slotKey(slot),
+    );
   }
-}
