@@ -33,7 +33,9 @@ class _GameScreenState extends State<GameScreen> {
   late final bool _ownsUiScaleController;
 
   bool _isProcessingTurn = false;
-
+  final ScrollController _lifeEventsScrollController =
+      ScrollController();
+  
   @override
   void initState() {
     super.initState();
@@ -47,15 +49,41 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  @override
+    @override
   void dispose() {
     if (_ownsUiScaleController) {
       _uiScaleController.dispose();
     }
 
+    _lifeEventsScrollController.dispose();
+
     super.dispose();
   }
+  
+  void _scrollLifeEventsToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          !_lifeEventsScrollController.hasClients) {
+        return;
+      }
 
+      final maxScrollExtent =
+          _lifeEventsScrollController.position.maxScrollExtent;
+
+      if (maxScrollExtent <= 0) {
+        return;
+      }
+
+      _lifeEventsScrollController.animateTo(
+        maxScrollExtent,
+        duration: const Duration(
+          milliseconds: 350,
+        ),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+  
   Future<void> _ageUp() async {
     if (_isProcessingTurn) {
       return;
@@ -91,7 +119,9 @@ class _GameScreenState extends State<GameScreen> {
 
     setState(() {});
 
-    final saveResult = await engine.save();
+_scrollLifeEventsToBottom();
+
+final saveResult = await engine.save();
 
     if (!mounted) {
       return;
@@ -145,8 +175,9 @@ class _GameScreenState extends State<GameScreen> {
 
     setState(() {});
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+_scrollLifeEventsToBottom();
+
+ScaffoldMessenger.of(context).showSnackBar(
         content: Text(
           result.isSuccess ? 'Game loaded.' : 'Load failed.',
         ),
@@ -623,10 +654,11 @@ class _GameScreenState extends State<GameScreen> {
                               TextAlign.center,
                         ),
                       )
-                    : ListView.separated(
-                        padding: EdgeInsets.zero,
-                        itemCount:
-                            events.length,
+                : ListView.separated(
+    controller: _lifeEventsScrollController,
+    padding: EdgeInsets.zero,
+    itemCount:
+        events.length,
                         separatorBuilder:
                             (
                           _,
