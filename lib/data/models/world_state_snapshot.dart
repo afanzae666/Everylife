@@ -11,6 +11,8 @@ class WorldStateSnapshot {
     required this.currentYear,
     required this.playerId,
     required this.playerName,
+    required this.playerFirstName,
+    required this.playerLastName,
     required this.playerGender,
     required this.playerBirthYear,
     required this.playerHealth,
@@ -29,6 +31,8 @@ class WorldStateSnapshot {
 
   final String playerId;
   final String playerName;
+  final String playerFirstName;
+  final String playerLastName;
   final Gender playerGender;
   final int playerBirthYear;
 
@@ -55,6 +59,8 @@ class WorldStateSnapshot {
       currentYear: state.clock.currentYear,
       playerId: player.id,
       playerName: player.name,
+      playerFirstName: player.resolvedFirstName,
+      playerLastName: player.resolvedLastName,
       playerGender: player.gender,
       playerBirthYear: player.birthYear,
       playerHealth: stats.health,
@@ -78,6 +84,8 @@ class WorldStateSnapshot {
       player: Character(
         id: playerId,
         name: playerName,
+        firstName: playerFirstName,
+        lastName: playerLastName,
         gender: playerGender,
         birthYear: playerBirthYear,
         stats: CharacterStats(
@@ -104,6 +112,8 @@ class WorldStateSnapshot {
       'player': {
         'id': playerId,
         'name': playerName,
+        'firstName': playerFirstName,
+        'lastName': playerLastName,
         'gender': playerGender.name,
         'birthYear': playerBirthYear,
         'stats': {
@@ -165,6 +175,12 @@ class WorldStateSnapshot {
       playerName: _requireString(
         player['name'],
         'player.name',
+      ),
+      playerFirstName: _optionalString(
+        player['firstName'],
+      ),
+      playerLastName: _optionalString(
+        player['lastName'],
       ),
       playerGender: _parseGender(
         player['gender'],
@@ -249,6 +265,22 @@ class WorldStateSnapshot {
     );
   }
 
+  static String _optionalString(
+    Object? value,
+  ) {
+    if (value == null) {
+      return '';
+    }
+
+    if (value is String) {
+      return value;
+    }
+
+    throw const FormatException(
+      'Optional name fields must be strings.',
+    );
+  }
+
   static int _requireInt(
     Object? value,
     String field,
@@ -262,7 +294,9 @@ class WorldStateSnapshot {
     );
   }
 
-  static Gender _parseGender(Object? value) {
+  static Gender _parseGender(
+    Object? value,
+  ) {
     if (value is! String) {
       throw const FormatException(
         'Field "player.gender" must be a string.',
@@ -280,7 +314,9 @@ class WorldStateSnapshot {
     );
   }
 
-  static SimulationEvent _parseEvent(Object? value) {
+  static SimulationEvent _parseEvent(
+    Object? value,
+  ) {
     final event = _requireMap(
       value,
       'event',
