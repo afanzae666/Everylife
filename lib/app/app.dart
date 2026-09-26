@@ -9,6 +9,7 @@ import '../data/repositories/ui_settings_repository.dart';
 import '../domain/character/character.dart';
 import '../presentation/screens/character_creation_screen.dart';
 import '../presentation/screens/game_screen.dart';
+import '../presentation/screens/loading_screen.dart';
 import '../simulation/engine/simulation_engine.dart';
 import '../simulation/systems/event_system.dart';
 import 'app_dependencies.dart';
@@ -341,24 +342,8 @@ class _LifeSimulationAppState
 
   Widget _buildHome() {
     if (_isInitializing) {
-      return const Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize:
-                MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(
-                height: 16,
-              ),
-              Text(
-                'Loading your life...',
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+  return const LoadingScreen();
+}
 
     if (_startupError != null) {
       return Scaffold(
