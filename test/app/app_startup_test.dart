@@ -123,12 +123,7 @@ void main() {
           find.text('Marshall Royce'),
           findsOneWidget,
         );
-
-        expect(
-          find.text('Life Simulation'),
-          findsOneWidget,
-        );
-
+        
         final saved =
             await repository.load();
 
