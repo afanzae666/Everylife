@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/result/result.dart';
 import '../../domain/character/gender.dart';
@@ -182,6 +183,25 @@ class _GameScreenState extends State<GameScreen> {
         ),
       ),
     );
+  }
+
+  void _showNavigationNotice(String destination) {
+    if (_isProcessingTurn) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            '$destination is ready for its feature screen.',
+          ),
+          duration: const Duration(
+            milliseconds: 1200,
+          ),
+        ),
+      );
   }
 
   Future<void> _handleGameDataAction(String action) async {
@@ -408,7 +428,8 @@ class _GameScreenState extends State<GameScreen> {
                             player.money.toString(),
                             textAlign: TextAlign.end,
                             maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            overflow:
+                                TextOverflow.ellipsis,
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium,
@@ -483,7 +504,8 @@ class _GameScreenState extends State<GameScreen> {
                                       value: player
                                           .stats
                                           .health,
-                                      icon: Icons.favorite,
+                                      icon:
+                                          Icons.favorite,
                                       zoom: zoom,
                                     );
 
@@ -492,7 +514,8 @@ class _GameScreenState extends State<GameScreen> {
                                       key: const Key(
                                         'core-stat-intelligence',
                                       ),
-                                      label: 'Intelligence',
+                                      label:
+                                          'Intelligence',
                                       value: player
                                           .stats
                                           .intelligence,
@@ -510,8 +533,8 @@ class _GameScreenState extends State<GameScreen> {
                                       value: player
                                           .stats
                                           .fitness,
-                                      icon:
-                                          Icons.fitness_center,
+                                      icon: Icons
+                                          .fitness_center,
                                       zoom: zoom,
                                     );
 
@@ -520,7 +543,8 @@ class _GameScreenState extends State<GameScreen> {
                                       key: const Key(
                                         'core-stat-happiness',
                                       ),
-                                      label: 'Happiness',
+                                      label:
+                                          'Happiness',
                                       value: player
                                           .stats
                                           .happiness,
@@ -534,7 +558,8 @@ class _GameScreenState extends State<GameScreen> {
                                       key: const Key(
                                         'core-stat-willpower',
                                       ),
-                                      label: 'Willpower',
+                                      label:
+                                          'Willpower',
                                       value: player
                                           .stats
                                           .willpower,
@@ -548,7 +573,8 @@ class _GameScreenState extends State<GameScreen> {
                                       key: const Key(
                                         'core-stat-charisma',
                                       ),
-                                      label: 'Charisma',
+                                      label:
+                                          'Charisma',
                                       value: player
                                           .stats
                                           .charisma,
@@ -561,7 +587,8 @@ class _GameScreenState extends State<GameScreen> {
                                       key: const Key(
                                         'core-stat-creativity',
                                       ),
-                                      label: 'Creativity',
+                                      label:
+                                          'Creativity',
                                       value: player
                                           .stats
                                           .creativity,
@@ -578,13 +605,14 @@ class _GameScreenState extends State<GameScreen> {
                                       value: player
                                           .stats
                                           .luck,
-                                      icon:
-                                          Icons.auto_awesome,
+                                      icon: Icons
+                                          .auto_awesome,
                                       zoom: zoom,
                                     );
 
                                   default:
-                                    return const SizedBox.shrink();
+                                    return const SizedBox
+                                        .shrink();
                                 }
                               },
                             );
@@ -647,7 +675,8 @@ class _GameScreenState extends State<GameScreen> {
 
                                     return Row(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                          CrossAxisAlignment
+                                              .start,
                                       children: [
                                         Padding(
                                           padding:
@@ -670,19 +699,22 @@ class _GameScreenState extends State<GameScreen> {
                                         Expanded(
                                           child: Column(
                                             crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                                CrossAxisAlignment
+                                                    .start,
                                             children: [
                                               Text(
                                                 event.title,
-                                                style: Theme.of(
+                                                style:
+                                                    Theme.of(
                                                   context,
                                                 )
-                                                    .textTheme
-                                                    .bodyMedium!
-                                                    .copyWith(
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
+                                                        .textTheme
+                                                        .bodyMedium!
+                                                        .copyWith(
+                                                          fontWeight:
+                                                              FontWeight
+                                                                  .w600,
+                                                        ),
                                               ),
                                               SizedBox(
                                                 height: s(1),
@@ -690,11 +722,12 @@ class _GameScreenState extends State<GameScreen> {
                                               Text(
                                                 '${event.year} — '
                                                 '${event.description}',
-                                                style: Theme.of(
+                                                style:
+                                                    Theme.of(
                                                   context,
                                                 )
-                                                    .textTheme
-                                                    .bodySmall,
+                                                        .textTheme
+                                                        .bodySmall,
                                               ),
                                             ],
                                           ),
@@ -710,51 +743,31 @@ class _GameScreenState extends State<GameScreen> {
                 ],
               ),
             ),
-            Container(
-              padding: EdgeInsets.fromLTRB(
-                s(8),
-                s(5),
-                s(8),
-                s(5),
-              ),
-              decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .scaffoldBackgroundColor,
-                border: Border(
-                  top: BorderSide(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .outlineVariant,
-                  ),
-                ),
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                height: s(44),
-                child: FilledButton.icon(
-                  onPressed: _isProcessingTurn
-                      ? null
-                      : _ageUp,
-                  icon: _isProcessingTurn
-                      ? SizedBox(
-                          width: s(17),
-                          height: s(17),
-                          child:
-                              const CircularProgressIndicator(
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : Icon(
-                          Icons.arrow_forward,
-                          size: s(18),
-                        ),
-                  label: Text(
-                    _isProcessingTurn
-                        ? 'SAVING...'
-                        : 'AGE UP',
-                  ),
-                ),
-              ),
+            _BottomNavigation(
+              zoom: zoom,
+              isProcessing:
+                  _isProcessingTurn,
+              onCareerTap: () {
+                _showNavigationNotice(
+                  'Career',
+                );
+              },
+              onAssetsTap: () {
+                _showNavigationNotice(
+                  'Assets',
+                );
+              },
+              onAgeUpTap: _ageUp,
+              onLifeTap: () {
+                _showNavigationNotice(
+                  'Life',
+                );
+              },
+              onMoreTap: () {
+                _showNavigationNotice(
+                  'More',
+                );
+              },
             ),
           ],
         ),
@@ -805,7 +818,288 @@ class _GameScreenState extends State<GameScreen> {
   }
 }
 
-class _ResponsiveCard extends StatelessWidget {
+class _BottomNavigation extends StatelessWidget {
+  const _BottomNavigation({
+    required this.zoom,
+    required this.isProcessing,
+    required this.onCareerTap,
+    required this.onAssetsTap,
+    required this.onAgeUpTap,
+    required this.onLifeTap,
+    required this.onMoreTap,
+  });
+
+  final double zoom;
+  final bool isProcessing;
+  final VoidCallback onCareerTap;
+  final VoidCallback onAssetsTap;
+  final VoidCallback onAgeUpTap;
+  final VoidCallback onLifeTap;
+  final VoidCallback onMoreTap;
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) => value * zoom;
+
+    final textStyle = Theme.of(context)
+        .textTheme
+        .labelSmall!
+        .copyWith(
+          fontWeight: FontWeight.w600,
+        );
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(
+        s(4),
+        s(4),
+        s(4),
+        s(4),
+      ),
+      decoration: BoxDecoration(
+        color: Theme.of(context)
+            .scaffoldBackgroundColor,
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context)
+                .colorScheme
+                .outlineVariant,
+          ),
+        ),
+      ),
+      child: SizedBox(
+        height: s(60),
+        child: Row(
+          crossAxisAlignment:
+              CrossAxisAlignment.stretch,
+          children: [
+            _BottomNavigationItem(
+              key: const Key(
+                'bottom-nav-career',
+              ),
+              label: 'Career',
+              assetPath:
+                  'assets/icons/career.svg',
+              iconSize: s(25),
+              textStyle: textStyle,
+              onTap: onCareerTap,
+            ),
+            _BottomNavigationItem(
+              key: const Key(
+                'bottom-nav-assets',
+              ),
+              label: 'Assets',
+              assetPath:
+                  'assets/icons/assets.svg',
+              iconSize: s(25),
+              textStyle: textStyle,
+              onTap: onAssetsTap,
+            ),
+            _AgeUpNavigationItem(
+              key: const Key(
+                'bottom-nav-age-up',
+              ),
+              zoom: zoom,
+              isProcessing: isProcessing,
+              onTap: onAgeUpTap,
+              textStyle: textStyle,
+            ),
+            _BottomNavigationItem(
+              key: const Key(
+                'bottom-nav-life',
+              ),
+              label: 'Life',
+              assetPath:
+                  'assets/icons/life.svg',
+              iconSize: s(25),
+              textStyle: textStyle,
+              onTap: onLifeTap,
+            ),
+            _BottomNavigationItem(
+              key: const Key(
+                'bottom-nav-more',
+              ),
+              label: 'More',
+              assetPath:
+                  'assets/icons/more.svg',
+              iconSize: s(25),
+              textStyle: textStyle,
+              onTap: onMoreTap,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BottomNavigationItem
+    extends StatelessWidget {
+  const _BottomNavigationItem({
+    required this.label,
+    required this.assetPath,
+    required this.iconSize,
+    required this.textStyle,
+    required this.onTap,
+    super.key,
+  });
+
+  final String label;
+  final String assetPath;
+  final double iconSize;
+  final TextStyle textStyle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Semantics(
+        button: true,
+        label: label,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius:
+              BorderRadius.circular(10),
+          child: Column(
+            mainAxisAlignment:
+                MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: iconSize,
+                height: iconSize,
+                child: SvgPicture.asset(
+                  assetPath,
+                  semanticsLabel: label,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              SizedBox(
+                height: 1 * (iconSize / 25),
+              ),
+              Text(
+                label,
+                maxLines: 1,
+                overflow:
+                    TextOverflow.ellipsis,
+                style: textStyle,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AgeUpNavigationItem
+    extends StatelessWidget {
+  const _AgeUpNavigationItem({
+    required this.zoom,
+    required this.isProcessing,
+    required this.onTap,
+    required this.textStyle,
+    super.key,
+  });
+
+  final double zoom;
+  final bool isProcessing;
+  final VoidCallback onTap;
+  final TextStyle textStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) => value * zoom;
+
+    final colorScheme =
+        Theme.of(context).colorScheme;
+
+    return Expanded(
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            top: -s(15),
+            child: SizedBox(
+              width: s(62),
+              height: s(62),
+              child: FilledButton(
+                onPressed:
+                    isProcessing ? null : onTap,
+                style: FilledButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  shape: const CircleBorder(),
+                  backgroundColor:
+                      colorScheme.surface,
+                  foregroundColor:
+                      colorScheme.primary,
+                  disabledBackgroundColor:
+                      colorScheme.surface,
+                  disabledForegroundColor:
+                      colorScheme.onSurfaceVariant,
+                  side: BorderSide(
+                    color:
+                        colorScheme.primary,
+                    width: s(1.5),
+                  ),
+                  elevation: 6,
+                  shadowColor:
+                      Colors.black54,
+                ),
+                child: isProcessing
+                    ? SizedBox(
+                        width: s(24),
+                        height: s(24),
+                        child:
+                            CircularProgressIndicator(
+                          strokeWidth: s(2),
+                          color:
+                              colorScheme.primary,
+                        ),
+                      )
+                    : Column(
+                        mainAxisAlignment:
+                            MainAxisAlignment.center,
+                        mainAxisSize:
+                            MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            'assets/icons/age_up.png',
+                            width: s(31),
+                            height: s(31),
+                            fit: BoxFit.contain,
+                            color:
+                                colorScheme.primary,
+                            colorBlendMode:
+                                BlendMode.srcIn,
+                          ),
+                          SizedBox(
+                            height: s(1),
+                          ),
+                          Text(
+                            'AGE UP',
+                            style: textStyle.copyWith(
+                              fontSize: s(8),
+                              fontWeight:
+                                  FontWeight.w800,
+                              color:
+                                  colorScheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ResponsiveCard
+    extends StatelessWidget {
   const _ResponsiveCard({
     required this.padding,
     required this.child,
@@ -829,7 +1123,8 @@ class _ResponsiveCard extends StatelessWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
+class _StatCard
+    extends StatelessWidget {
   const _StatCard({
     required this.label,
     required this.value,
@@ -845,7 +1140,8 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double s(double value) => value * zoom;
+    double s(double value) =>
+        value * zoom;
 
     final progress = (value / 100)
         .clamp(0.0, 1.0)
