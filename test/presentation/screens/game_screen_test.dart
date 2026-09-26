@@ -108,7 +108,7 @@ void main() {
 
         expect(
           find.text('Core Stats'),
-          findsOneWidget,
+          findsNothing,
         );
 
         expect(
@@ -333,7 +333,8 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        final gameDataButton = find.byTooltip(
+        final gameDataButton =
+            find.byTooltip(
           'Game Data',
         );
 
@@ -342,7 +343,9 @@ void main() {
           findsOneWidget,
         );
 
-        await tester.tap(gameDataButton);
+        await tester.tap(
+          gameDataButton,
+        );
 
         await tester.pumpAndSettle();
 
@@ -359,7 +362,7 @@ void main() {
     );
 
     testWidgets(
-      'life events is a separate card',
+      'life events card does not display a title',
       (tester) async {
         final repository =
             InMemorySaveRepository();
@@ -380,7 +383,7 @@ void main() {
 
         expect(
           find.text('Life Events'),
-          findsOneWidget,
+          findsNothing,
         );
 
         expect(
@@ -458,7 +461,9 @@ void main() {
           findsOneWidget,
         );
 
-        await tester.tap(ageUpButton);
+        await tester.tap(
+          ageUpButton,
+        );
 
         await tester.pumpAndSettle();
 
@@ -534,7 +539,9 @@ void main() {
           findsOneWidget,
         );
 
-        await tester.tap(ageUpButton);
+        await tester.tap(
+          ageUpButton,
+        );
 
         await tester.pumpAndSettle();
 
@@ -581,7 +588,9 @@ void main() {
           findsOneWidget,
         );
 
-        await tester.tap(ageUpButton);
+        await tester.tap(
+          ageUpButton,
+        );
 
         await tester.pumpAndSettle();
 
