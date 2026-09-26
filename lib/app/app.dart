@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../core/random/seeded_random.dart';
 import '../data/repositories/save_repository.dart';
+import '../data/repositories/ui_settings_repository.dart';
 import '../domain/character/character.dart';
 import '../presentation/screens/character_creation_screen.dart';
 import '../presentation/screens/game_screen.dart';
@@ -25,9 +26,14 @@ class LifeSimulationApp extends StatefulWidget {
 
 class _LifeSimulationAppState
     extends State<LifeSimulationApp> {
-  late final SaveRepository _saveRepository;
+  late final SaveRepository
+      _saveRepository;
 
-  late final ValueNotifier<double> _uiScaleController;
+  late final UiSettingsRepository
+      _uiSettingsRepository;
+
+  late final ValueNotifier<double>
+      _uiScaleController;
 
   SimulationEngine? _engine;
 
@@ -41,7 +47,12 @@ class _LifeSimulationAppState
     super.initState();
 
     _saveRepository =
-        widget.dependencies.createSaveRepository();
+        widget.dependencies
+            .createSaveRepository();
+
+    _uiSettingsRepository =
+        widget.dependencies
+            .createUiSettingsRepository();
 
     _uiScaleController =
         ValueNotifier<double>(1.0);
@@ -57,6 +68,17 @@ class _LifeSimulationAppState
 
   Future<void> _initialize() async {
     try {
+      final uiScale =
+          await _uiSettingsRepository
+              .loadUiScale();
+
+      if (!mounted) {
+        return;
+      }
+
+      _uiScaleController.value =
+          uiScale;
+
       final saveData =
           await _saveRepository.load();
 
@@ -73,12 +95,16 @@ class _LifeSimulationAppState
       }
 
       final engine = SimulationEngine(
-        initialState: saveData.state,
-        random: SeededRandom.fromState(
+        initialState:
+            saveData.state,
+        random:
+            SeededRandom.fromState(
           saveData.randomState,
         ),
-        saveRepository: _saveRepository,
-        nextTickId: saveData.nextTickId,
+        saveRepository:
+            _saveRepository,
+        nextTickId:
+            saveData.nextTickId,
       );
 
       engine.registerSystem(
@@ -97,10 +123,18 @@ class _LifeSimulationAppState
       }
 
       setState(() {
-        _startupError = error.toString();
+        _startupError =
+            error.toString();
         _isInitializing = false;
       });
     }
+  }
+
+  Future<void> _saveUiScale(
+    double value,
+  ) async {
+    await _uiSettingsRepository
+        .saveUiScale(value);
   }
 
   Future<void> _createCharacter(
@@ -126,7 +160,8 @@ class _LifeSimulationAppState
 
     if (!saveResult.isSuccess) {
       setState(() {
-        _isCreatingCharacter = false;
+        _isCreatingCharacter =
+            false;
       });
 
       ScaffoldMessenger.of(context)
@@ -155,7 +190,8 @@ class _LifeSimulationAppState
         SimulationEngine.create(
       player: character,
       seed: 20260924,
-      saveRepository: _saveRepository,
+      saveRepository:
+          _saveRepository,
     );
 
     engine.registerSystem(
@@ -197,25 +233,29 @@ class _LifeSimulationAppState
           baseTextTheme.headlineSmall
               ?.copyWith(
         fontSize: 27,
-        fontWeight: FontWeight.w700,
+        fontWeight:
+            FontWeight.w700,
       ),
       titleLarge:
           baseTextTheme.titleLarge
               ?.copyWith(
         fontSize: 24,
-        fontWeight: FontWeight.w700,
+        fontWeight:
+            FontWeight.w700,
       ),
       titleMedium:
           baseTextTheme.titleMedium
               ?.copyWith(
         fontSize: 20,
-        fontWeight: FontWeight.w700,
+        fontWeight:
+            FontWeight.w700,
       ),
       titleSmall:
           baseTextTheme.titleSmall
               ?.copyWith(
         fontSize: 18,
-        fontWeight: FontWeight.w700,
+        fontWeight:
+            FontWeight.w700,
       ),
       bodyLarge:
           baseTextTheme.bodyLarge
@@ -236,39 +276,45 @@ class _LifeSimulationAppState
           baseTextTheme.labelLarge
               ?.copyWith(
         fontSize: 15,
-        fontWeight: FontWeight.w700,
+        fontWeight:
+            FontWeight.w700,
       ),
       labelMedium:
           baseTextTheme.labelMedium
               ?.copyWith(
         fontSize: 14,
-        fontWeight: FontWeight.w600,
+        fontWeight:
+            FontWeight.w600,
       ),
       labelSmall:
           baseTextTheme.labelSmall
               ?.copyWith(
         fontSize: 13,
-        fontWeight: FontWeight.w600,
+        fontWeight:
+            FontWeight.w600,
       ),
     );
 
     final everyLifeTheme =
         baseTheme.copyWith(
-      textTheme: everyLifeTextTheme,
+      textTheme:
+          everyLifeTextTheme,
       appBarTheme: AppBarTheme(
         titleTextStyle:
             everyLifeTextTheme
                 .titleLarge
                 ?.copyWith(
           fontSize: 22,
-          fontWeight: FontWeight.w700,
+          fontWeight:
+              FontWeight.w700,
         ),
       ),
     );
 
     return MaterialApp(
       title: 'EveryLife',
-      debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner:
+          false,
       theme: everyLifeTheme,
       home: _buildHome(),
     );
@@ -296,8 +342,9 @@ class _LifeSimulationAppState
     if (_startupError != null) {
       return Scaffold(
         appBar: AppBar(
-          title:
-              const Text('Startup Error'),
+          title: const Text(
+            'Startup Error',
+          ),
         ),
         body: Center(
           child: Padding(
@@ -359,7 +406,8 @@ class _LifeSimulationAppState
           ),
           if (_isCreatingCharacter)
             const ColoredBox(
-              color: Color(0x66000000),
+              color:
+                  Color(0x66000000),
               child: Center(
                 child: Card(
                   child: Padding(
@@ -390,6 +438,8 @@ class _LifeSimulationAppState
       engine: _engine!,
       uiScaleController:
           _uiScaleController,
+      onUiScaleChanged:
+          _saveUiScale,
     );
   }
 }
