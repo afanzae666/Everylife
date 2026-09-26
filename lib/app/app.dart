@@ -13,10 +13,12 @@ import '../simulation/engine/simulation_engine.dart';
 import '../simulation/systems/event_system.dart';
 import 'app_dependencies.dart';
 
-class LifeSimulationApp extends StatefulWidget {
+class LifeSimulationApp
+    extends StatefulWidget {
   const LifeSimulationApp({
     super.key,
-    this.dependencies = const AppDependencies(),
+    this.dependencies =
+        const AppDependencies(),
   });
 
   final AppDependencies dependencies;
@@ -28,7 +30,8 @@ class LifeSimulationApp extends StatefulWidget {
 
 class _LifeSimulationAppState
     extends State<LifeSimulationApp> {
-  late final SaveRepository _saveRepository;
+  late final SaveRepository
+      _saveRepository;
 
   late final UiSettingsRepository
       _uiSettingsRepository;
@@ -48,17 +51,21 @@ class _LifeSimulationAppState
     super.initState();
 
     _saveRepository =
-        widget.dependencies.createSaveRepository();
+        widget.dependencies
+            .createSaveRepository();
 
     _uiSettingsRepository =
-        widget.dependencies.createUiSettingsRepository();
+        widget.dependencies
+            .createUiSettingsRepository();
 
     _uiScaleController =
         ValueNotifier<double>(1.0);
 
     _initialize();
 
-    unawaited(_loadUiScale());
+    unawaited(
+      _loadUiScale(),
+    );
   }
 
   @override
@@ -70,16 +77,18 @@ class _LifeSimulationAppState
   Future<void> _loadUiScale() async {
     try {
       final uiScale =
-          await _uiSettingsRepository.loadUiScale();
+          await _uiSettingsRepository
+              .loadUiScale();
 
       if (!mounted) {
         return;
       }
 
-      _uiScaleController.value = uiScale;
+      _uiScaleController.value =
+          uiScale;
     } catch (_) {
-      // UI preferences must never prevent
-      // the game from starting.
+      // UI preferences must never
+      // prevent the game from starting.
     }
   }
 
@@ -100,13 +109,18 @@ class _LifeSimulationAppState
         return;
       }
 
-      final engine = SimulationEngine(
-        initialState: saveData.state,
-        random: SeededRandom.fromState(
+      final engine =
+          SimulationEngine(
+        initialState:
+            saveData.state,
+        random:
+            SeededRandom.fromState(
           saveData.randomState,
         ),
-        saveRepository: _saveRepository,
-        nextTickId: saveData.nextTickId,
+        saveRepository:
+            _saveRepository,
+        nextTickId:
+            saveData.nextTickId,
       );
 
       engine.registerSystem(
@@ -125,7 +139,8 @@ class _LifeSimulationAppState
       }
 
       setState(() {
-        _startupError = error.toString();
+        _startupError =
+            error.toString();
         _isInitializing = false;
       });
     }
@@ -134,7 +149,8 @@ class _LifeSimulationAppState
   Future<void> _saveUiScale(
     double value,
   ) async {
-    await _uiSettingsRepository.saveUiScale(value);
+    await _uiSettingsRepository
+        .saveUiScale(value);
   }
 
   Future<void> _createCharacter(
@@ -148,9 +164,11 @@ class _LifeSimulationAppState
       _isCreatingCharacter = true;
     });
 
-    final engine = _createEngine(character);
+    final engine =
+        _createEngine(character);
 
-    final saveResult = await engine.save();
+    final saveResult =
+        await engine.save();
 
     if (!mounted) {
       return;
@@ -161,7 +179,8 @@ class _LifeSimulationAppState
         _isCreatingCharacter = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
         const SnackBar(
           content: Text(
             'Unable to save your new life. '
@@ -182,10 +201,12 @@ class _LifeSimulationAppState
   SimulationEngine _createEngine(
     Character character,
   ) {
-    final engine = SimulationEngine.create(
+    final engine =
+        SimulationEngine.create(
       player: character,
       seed: 20260924,
-      saveRepository: _saveRepository,
+      saveRepository:
+          _saveRepository,
     );
 
     engine.registerSystem(
@@ -207,9 +228,13 @@ class _LifeSimulationAppState
   }
 
   @override
-  Widget build(BuildContext context) {
-    final baseTheme = ThemeData(
-      colorScheme: ColorScheme.fromSeed(
+  Widget build(
+    BuildContext context,
+  ) {
+    final baseTheme =
+        ThemeData(
+      colorScheme:
+          ColorScheme.fromSeed(
         seedColor: Colors.indigo,
       ),
       useMaterial3: true,
@@ -223,69 +248,92 @@ class _LifeSimulationAppState
     final everyLifeTextTheme =
         baseTextTheme.copyWith(
       headlineSmall:
-          baseTextTheme.headlineSmall?.copyWith(
+          baseTextTheme.headlineSmall
+              ?.copyWith(
         fontSize: 27,
-        fontWeight: FontWeight.w700,
+        fontWeight:
+            FontWeight.w700,
       ),
       titleLarge:
-          baseTextTheme.titleLarge?.copyWith(
+          baseTextTheme.titleLarge
+              ?.copyWith(
         fontSize: 24,
-        fontWeight: FontWeight.w700,
+        fontWeight:
+            FontWeight.w700,
       ),
       titleMedium:
-          baseTextTheme.titleMedium?.copyWith(
+          baseTextTheme.titleMedium
+              ?.copyWith(
         fontSize: 20,
-        fontWeight: FontWeight.w700,
+        fontWeight:
+            FontWeight.w700,
       ),
       titleSmall:
-          baseTextTheme.titleSmall?.copyWith(
+          baseTextTheme.titleSmall
+              ?.copyWith(
         fontSize: 18,
-        fontWeight: FontWeight.w700,
+        fontWeight:
+            FontWeight.w700,
       ),
       bodyLarge:
-          baseTextTheme.bodyLarge?.copyWith(
+          baseTextTheme.bodyLarge
+              ?.copyWith(
         fontSize: 17,
       ),
       bodyMedium:
-          baseTextTheme.bodyMedium?.copyWith(
+          baseTextTheme.bodyMedium
+              ?.copyWith(
         fontSize: 16,
       ),
       bodySmall:
-          baseTextTheme.bodySmall?.copyWith(
+          baseTextTheme.bodySmall
+              ?.copyWith(
         fontSize: 14,
       ),
       labelLarge:
-          baseTextTheme.labelLarge?.copyWith(
+          baseTextTheme.labelLarge
+              ?.copyWith(
         fontSize: 15,
-        fontWeight: FontWeight.w700,
+        fontWeight:
+            FontWeight.w700,
       ),
       labelMedium:
-          baseTextTheme.labelMedium?.copyWith(
+          baseTextTheme.labelMedium
+              ?.copyWith(
         fontSize: 14,
-        fontWeight: FontWeight.w600,
+        fontWeight:
+            FontWeight.w600,
       ),
       labelSmall:
-          baseTextTheme.labelSmall?.copyWith(
+          baseTextTheme.labelSmall
+              ?.copyWith(
         fontSize: 13,
-        fontWeight: FontWeight.w600,
+        fontWeight:
+            FontWeight.w600,
       ),
     );
 
     final everyLifeTheme =
         baseTheme.copyWith(
-      textTheme: everyLifeTextTheme,
-      appBarTheme: AppBarTheme(
+      textTheme:
+          everyLifeTextTheme,
+      appBarTheme:
+          AppBarTheme(
         titleTextStyle:
-            everyLifeTextTheme.titleLarge?.copyWith(
+            everyLifeTextTheme
+                .titleLarge
+                ?.copyWith(
           fontSize: 22,
-          fontWeight: FontWeight.w700,
+          fontWeight:
+              FontWeight.w700,
         ),
       ),
     );
 
     return MaterialApp(
       title: 'EveryLife',
-      debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner:
+          false,
       theme: everyLifeTheme,
       home: _buildHome(),
     );
@@ -296,10 +344,13 @@ class _LifeSimulationAppState
       return const Scaffold(
         body: Center(
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize:
+                MainAxisSize.min,
             children: [
               CircularProgressIndicator(),
-              SizedBox(height: 16),
+              SizedBox(
+                height: 16,
+              ),
               Text(
                 'Loading your life...',
               ),
@@ -318,9 +369,13 @@ class _LifeSimulationAppState
         ),
         body: Center(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding:
+                const EdgeInsets.all(
+              24,
+            ),
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize:
+                  MainAxisSize.min,
               children: [
                 const Icon(
                   Icons.error_outline,
@@ -331,23 +386,28 @@ class _LifeSimulationAppState
                 ),
                 Text(
                   'Unable to load saved game.',
-                  style: Theme.of(context)
+                  style: Theme.of(
+                    context,
+                  )
                       .textTheme
                       .headlineSmall,
-                  textAlign: TextAlign.center,
+                  textAlign:
+                      TextAlign.center,
                 ),
                 const SizedBox(
                   height: 12,
                 ),
                 Text(
                   _startupError!,
-                  textAlign: TextAlign.center,
+                  textAlign:
+                      TextAlign.center,
                 ),
                 const SizedBox(
                   height: 24,
                 ),
                 FilledButton.icon(
-                  onPressed: _retryStartup,
+                  onPressed:
+                      _retryStartup,
                   icon: const Icon(
                     Icons.refresh,
                   ),
@@ -368,20 +428,28 @@ class _LifeSimulationAppState
           CharacterCreationScreen(
             onCharacterCreated:
                 _createCharacter,
+            uiScaleController:
+                _uiScaleController,
           ),
           if (_isCreatingCharacter)
             const ColoredBox(
-              color: Color(0x66000000),
+              color:
+                  Color(0x66000000),
               child: Center(
                 child: Card(
                   child: Padding(
-                    padding: EdgeInsets.all(24),
+                    padding:
+                        EdgeInsets.all(
+                      24,
+                    ),
                     child: Column(
                       mainAxisSize:
                           MainAxisSize.min,
                       children: [
                         CircularProgressIndicator(),
-                        SizedBox(height: 16),
+                        SizedBox(
+                          height: 16,
+                        ),
                         Text(
                           'Saving your new life...',
                         ),
