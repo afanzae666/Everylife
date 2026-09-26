@@ -5,6 +5,7 @@ class SimulationSaveSnapshot {
     required this.world,
     required this.randomState,
     required this.nextTickId,
+    this.savedAt,
   });
 
   static const int currentSchemaVersion = 1;
@@ -12,6 +13,7 @@ class SimulationSaveSnapshot {
   final WorldStateSnapshot world;
   final int randomState;
   final int nextTickId;
+  final DateTime? savedAt;
 
   Map<String, dynamic> toJson() {
     return {
@@ -21,6 +23,8 @@ class SimulationSaveSnapshot {
         'nextTickId': nextTickId,
       },
       'world': world.toJson(),
+      if (savedAt != null)
+        'savedAt': savedAt!.toUtc().toIso8601String(),
     };
   }
 
@@ -58,6 +62,10 @@ class SimulationSaveSnapshot {
       'engine.nextTickId',
     );
 
+    final savedAt = _parseSavedAt(
+      json['savedAt'],
+    );
+
     if (nextTickId < 1) {
       throw const FormatException(
         'Field "engine.nextTickId" must be greater than zero.',
@@ -68,6 +76,7 @@ class SimulationSaveSnapshot {
       world: WorldStateSnapshot.fromJson(world),
       randomState: _validateRandomState(randomState),
       nextTickId: nextTickId,
+      savedAt: savedAt,
     );
   }
 
@@ -101,7 +110,31 @@ class SimulationSaveSnapshot {
     );
   }
 
-  static int _validateRandomState(int state) {
+  static DateTime? _parseSavedAt(
+    Object? value,
+  ) {
+    if (value == null) {
+      return null;
+    }
+
+    if (value is! String) {
+      throw const FormatException(
+        'Field "savedAt" must be an ISO-8601 string.',
+      );
+    }
+
+    try {
+      return DateTime.parse(value).toUtc();
+    } on FormatException {
+      throw const FormatException(
+        'Field "savedAt" must be a valid ISO-8601 date.',
+      );
+    }
+  }
+
+  static int _validateRandomState(
+    int state,
+  ) {
     if (state < 0 || state > 0x7fffffff) {
       throw FormatException(
         'Field "engine.randomState" is outside the valid range.',
