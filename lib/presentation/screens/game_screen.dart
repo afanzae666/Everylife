@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/result/result.dart';
+import '../../data/repositories/save_repository.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
 import '../../simulation/engine/simulation_engine.dart';
@@ -32,6 +33,8 @@ class _GameScreenState extends State<GameScreen> {
   late final ValueNotifier<double> _uiScaleController;
   late final bool _ownsUiScaleController;
 
+  late final ValueNotifier<bool> _autoSaveController;
+
   bool _isProcessingTurn = false;
 
   final ScrollController _lifeEventsScrollController =
@@ -48,6 +51,8 @@ class _GameScreenState extends State<GameScreen> {
       _uiScaleController = ValueNotifier<double>(1.0);
       _ownsUiScaleController = true;
     }
+
+    _autoSaveController = ValueNotifier<bool>(true);
   }
 
   @override
@@ -56,6 +61,7 @@ class _GameScreenState extends State<GameScreen> {
       _uiScaleController.dispose();
     }
 
+    _autoSaveController.dispose();
     _lifeEventsScrollController.dispose();
 
     super.dispose();
@@ -122,7 +128,23 @@ class _GameScreenState extends State<GameScreen> {
 
     _scrollLifeEventsToBottom();
 
-    final saveResult = await engine.save();
+    if (_autoSaveController.value) {
+      final saveResult = await engine.save();
+
+      if (!mounted) {
+        return;
+      }
+
+      if (!saveResult.isSuccess) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Year advanced, but autosave failed.',
+            ),
+          ),
+        );
+      }
+    }
 
     if (!mounted) {
       return;
@@ -131,63 +153,222 @@ class _GameScreenState extends State<GameScreen> {
     setState(() {
       _isProcessingTurn = false;
     });
-
-    if (!saveResult.isSuccess) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Year advanced, but autosave failed.',
-          ),
-        ),
-      );
-    }
   }
 
-  Future<void> _save() async {
+  Future<void> _saveSlot(
+    SaveSlot slot,
+  ) async {
     if (_isProcessingTurn) {
       return;
     }
 
-    final result = await engine.save();
+    final result = await engine.saveToSlot(
+      slot,
+    );
 
     if (!mounted) {
       return;
     }
 
+    _showResultMessage(
+      result,
+      successMessage: _saveSuccessMessage(slot),
+      failureMessage: 'Save failed.',
+    );
+  }
+
+  Future<void> _loadSlot(
+    SaveSlot slot,
+  ) async {
+    if (_isProcessingTurn) {
+      return;
+    }
+
+    final result = await engine.loadFromSlot(
+      slot,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    if (result.isSuccess) {
+      setState(() {});
+
+      _scrollLifeEventsToBottom();
+    }
+
+    _showResultMessage(
+      result,
+      successMessage: _loadSuccessMessage(slot),
+      failureMessage: 'Load failed.',
+    );
+  }
+
+  Future<void> _deleteSlot(
+    SaveSlot slot,
+  ) async {
+    if (_isProcessingTurn) {
+      return;
+    }
+
+    final confirmed =
+        await _confirmDeleteSlot(slot);
+
+    if (!mounted || !confirmed) {
+      return;
+    }
+
+    final result = await engine.deleteSave(
+      slot,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    _showResultMessage(
+      result,
+      successMessage: _deleteSuccessMessage(slot),
+      failureMessage: 'Delete failed.',
+    );
+  }
+
+  Future<bool> _confirmDeleteSlot(
+    SaveSlot slot,
+  ) async {
+    return showDialog<bool>(
+          context: context,
+          builder: (dialogContext) {
+            final zoom = _uiScaleController.value;
+
+            return AlertDialog(
+              title: const Text(
+                'Delete Save?',
+              ),
+              content: Text(
+                'Delete ${_slotName(slot)} permanently?',
+              ),
+              actions: [
+                IconButton(
+                  tooltip: 'Cancel',
+                  onPressed: () {
+                    Navigator.of(
+                      dialogContext,
+                    ).pop(false);
+                  },
+                  icon: const Icon(
+                    Icons.close,
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Delete',
+                  onPressed: () {
+                    Navigator.of(
+                      dialogContext,
+                    ).pop(true);
+                  },
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: Theme.of(
+                      dialogContext,
+                    ).colorScheme.error,
+                    size: 24 * zoom,
+                  ),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+  }
+
+  void _showResultMessage(
+    Result<void> result, {
+    required String successMessage,
+    required String failureMessage,
+  }) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           result.isSuccess
-              ? 'Game saved.'
-              : 'Save failed.',
+              ? successMessage
+              : failureMessage,
         ),
       ),
     );
   }
 
-  Future<void> _load() async {
+  String _slotName(
+    SaveSlot slot,
+  ) {
+    switch (slot) {
+      case SaveSlot.autosave:
+        return 'Autosave';
+
+      case SaveSlot.manual1:
+        return 'Manual 1';
+
+      case SaveSlot.manual2:
+        return 'Manual 2';
+
+      case SaveSlot.manual3:
+        return 'Manual 3';
+
+      case SaveSlot.manual4:
+        return 'Manual 4';
+    }
+  }
+
+  String _saveSuccessMessage(
+    SaveSlot slot,
+  ) {
+    return '${_slotName(slot)} saved.';
+  }
+
+  String _loadSuccessMessage(
+    SaveSlot slot,
+  ) {
+    return '${_slotName(slot)} loaded.';
+  }
+
+  String _deleteSuccessMessage(
+    SaveSlot slot,
+  ) {
+    return '${_slotName(slot)} deleted.';
+  }
+
+  Future<void> _openSaveManager() async {
     if (_isProcessingTurn) {
       return;
     }
 
-    final result = await engine.load();
-
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {});
-
-    _scrollLifeEventsToBottom();
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          result.isSuccess
-              ? 'Game loaded.'
-              : 'Load failed.',
-        ),
-      ),
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) {
+        return ValueListenableBuilder<bool>(
+          valueListenable: _autoSaveController,
+          builder: (
+            context,
+            autoSaveEnabled,
+            __,
+          ) {
+            return _SaveManagerSheet(
+              zoom: _uiScaleController.value,
+              autoSaveEnabled: autoSaveEnabled,
+              isProcessing: _isProcessingTurn,
+              onAutoSaveChanged: (value) {
+                _autoSaveController.value = value;
+              },
+              onSave: _saveSlot,
+              onLoad: _loadSlot,
+              onDelete: _deleteSlot,
+            );
+          },
+        );
+      },
     );
   }
 
@@ -217,12 +398,15 @@ class _GameScreenState extends State<GameScreen> {
         builder: (_) => SettingsScreen(
           uiScaleController: _uiScaleController,
           onUiScaleChanged: widget.onUiScaleChanged,
+          autoSaveController: _autoSaveController,
         ),
       ),
     );
   }
 
-  void _showNavigationNotice(String destination) {
+  void _showNavigationNotice(
+    String destination,
+  ) {
     if (_isProcessingTurn) {
       return;
     }
@@ -241,20 +425,6 @@ class _GameScreenState extends State<GameScreen> {
       );
   }
 
-  Future<void> _handleGameDataAction(
-    String action,
-  ) async {
-    switch (action) {
-      case 'save':
-        await _save();
-        return;
-
-      case 'load':
-        await _load();
-        return;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final state = engine.state;
@@ -264,24 +434,30 @@ class _GameScreenState extends State<GameScreen> {
       state.clock.currentYear,
     );
 
-    final lifeStage = LifeStageAge.fromAge(age);
+    final lifeStage =
+        LifeStageAge.fromAge(age);
 
-    final lifeStageLabel = _formatLifeStage(
+    final lifeStageLabel =
+        _formatLifeStage(
       lifeStage,
     );
 
-    // Events are already stored chronologically.
-    // WorldState.addEvent() appends new events to the end,
-    // so do not reverse this list.
     final events = state.events;
 
     return ValueListenableBuilder<double>(
       valueListenable: _uiScaleController,
-      builder: (context, zoom, _) {
-        final mediaQuery = MediaQuery.of(context);
+      builder: (
+        context,
+        zoom,
+        _,
+      ) {
+        final mediaQuery =
+            MediaQuery.of(context);
 
-        final scaledMediaQuery = mediaQuery.copyWith(
-          textScaler: TextScaler.linear(zoom),
+        final scaledMediaQuery =
+            mediaQuery.copyWith(
+          textScaler:
+              TextScaler.linear(zoom),
         );
 
         return MediaQuery(
@@ -309,58 +485,26 @@ class _GameScreenState extends State<GameScreen> {
     String lifeStageLabel,
     List<dynamic> events,
   ) {
-    double s(double value) => value * zoom;
+    double s(double value) =>
+        value * zoom;
 
     return Scaffold(
       appBar: AppBar(
-                title: Image.asset(
+        title: Image.asset(
           'assets/images/everylife_logo.png',
           height: s(34),
           fit: BoxFit.contain,
         ),
         actions: [
-          PopupMenuButton<String>(
-            tooltip: 'Game Data',
+          IconButton(
+            tooltip: 'Save Manager',
+            onPressed: _isProcessingTurn
+                ? null
+                : _openSaveManager,
             icon: Icon(
               Icons.folder_copy_outlined,
               size: s(24),
             ),
-            enabled: !_isProcessingTurn,
-            onSelected: _handleGameDataAction,
-            itemBuilder: (context) => [
-              const PopupMenuItem<String>(
-                value: 'save',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.save_outlined,
-                    ),
-                    SizedBox(
-                      width: 12,
-                    ),
-                    Text(
-                      'Save Game',
-                    ),
-                  ],
-                ),
-              ),
-              const PopupMenuItem<String>(
-                value: 'load',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.folder_open_outlined,
-                    ),
-                    SizedBox(
-                      width: 12,
-                    ),
-                    Text(
-                      'Load Game',
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ),
           IconButton(
             tooltip: 'Settings',
@@ -391,7 +535,8 @@ class _GameScreenState extends State<GameScreen> {
                       key: const Key(
                         'character-avatar',
                       ),
-                      onTap: _openCharacterProfile,
+                      onTap:
+                          _openCharacterProfile,
                       borderRadius:
                           BorderRadius.circular(
                         s(40),
@@ -399,9 +544,11 @@ class _GameScreenState extends State<GameScreen> {
                       child: CircleAvatar(
                         radius: s(27),
                         child: Icon(
-                          player.gender == Gender.male
+                          player.gender ==
+                                  Gender.male
                               ? Icons.person
-                              : Icons.person_outline,
+                              : Icons
+                                  .person_outline,
                           size: s(29),
                         ),
                       ),
@@ -417,9 +564,10 @@ class _GameScreenState extends State<GameScreen> {
                       children: [
                         Text(
                           player.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium,
+                          style:
+                              Theme.of(context)
+                                  .textTheme
+                                  .titleMedium,
                           maxLines: 1,
                           overflow:
                               TextOverflow.ellipsis,
@@ -433,20 +581,26 @@ class _GameScreenState extends State<GameScreen> {
                           children: [
                             Text(
                               'Age $age',
-                              style: Theme.of(context)
+                              style: Theme.of(
+                                context,
+                              )
                                   .textTheme
                                   .bodySmall,
                             ),
                             Text(
                               'Year '
                               '${state.clock.currentYear}',
-                              style: Theme.of(context)
+                              style: Theme.of(
+                                context,
+                              )
                                   .textTheme
                                   .bodySmall,
                             ),
                             Text(
                               lifeStageLabel,
-                              style: Theme.of(context)
+                              style: Theme.of(
+                                context,
+                              )
                                   .textTheme
                                   .bodySmall,
                             ),
@@ -461,7 +615,8 @@ class _GameScreenState extends State<GameScreen> {
                   Flexible(
                     child: Text(
                       player.money.toString(),
-                      textAlign: TextAlign.end,
+                      textAlign:
+                          TextAlign.end,
                       maxLines: 1,
                       overflow:
                           TextOverflow.ellipsis,
@@ -473,11 +628,9 @@ class _GameScreenState extends State<GameScreen> {
                 ],
               ),
             ),
-
             SizedBox(
               height: s(4),
             ),
-
             _ResponsiveCard(
               padding: EdgeInsets.fromLTRB(
                 s(8),
@@ -557,8 +710,8 @@ class _GameScreenState extends State<GameScreen> {
                             value: player
                                 .stats
                                 .fitness,
-                            icon:
-                                Icons.fitness_center,
+                            icon: Icons
+                                .fitness_center,
                             zoom: zoom,
                           );
 
@@ -643,21 +796,20 @@ class _GameScreenState extends State<GameScreen> {
                 },
               ),
             ),
-
             SizedBox(
               height: s(4),
             ),
-
             Expanded(
               child: _ResponsiveCard(
-                padding: EdgeInsets.fromLTRB(
+                padding:
+                    EdgeInsets.fromLTRB(
                   s(8),
                   s(6),
                   s(8),
                   s(6),
                 ),
                 child: events.isEmpty
-                    ? Center(
+                    ? const Center(
                         child: Text(
                           'No events yet.',
                           textAlign:
@@ -667,7 +819,8 @@ class _GameScreenState extends State<GameScreen> {
                     : ListView.separated(
                         controller:
                             _lifeEventsScrollController,
-                        padding: EdgeInsets.zero,
+                        padding:
+                            EdgeInsets.zero,
                         itemCount:
                             events.length,
                         separatorBuilder:
@@ -716,17 +869,16 @@ class _GameScreenState extends State<GameScreen> {
                                   children: [
                                     Text(
                                       event.title,
-                                      style:
-                                          Theme.of(
+                                      style: Theme.of(
                                         context,
                                       )
-                                              .textTheme
-                                              .bodyMedium!
-                                              .copyWith(
-                                                fontWeight:
-                                                    FontWeight
-                                                        .w600,
-                                              ),
+                                          .textTheme
+                                          .bodyMedium!
+                                          .copyWith(
+                                            fontWeight:
+                                                FontWeight
+                                                    .w600,
+                                          ),
                                     ),
                                     SizedBox(
                                       height: s(1),
@@ -734,12 +886,11 @@ class _GameScreenState extends State<GameScreen> {
                                     Text(
                                       '${event.year} — '
                                       '${event.description}',
-                                      style:
-                                          Theme.of(
+                                      style: Theme.of(
                                         context,
                                       )
-                                              .textTheme
-                                              .bodySmall,
+                                          .textTheme
+                                          .bodySmall,
                                     ),
                                   ],
                                 ),
@@ -750,11 +901,9 @@ class _GameScreenState extends State<GameScreen> {
                       ),
               ),
             ),
-
             SizedBox(
               height: s(4),
             ),
-
             _BottomNavigation(
               zoom: zoom,
               isProcessing:
@@ -830,7 +979,222 @@ class _GameScreenState extends State<GameScreen> {
   }
 }
 
-class _BottomNavigation extends StatelessWidget {
+class _SaveManagerSheet
+    extends StatelessWidget {
+  const _SaveManagerSheet({
+    required this.zoom,
+    required this.autoSaveEnabled,
+    required this.isProcessing,
+    required this.onAutoSaveChanged,
+    required this.onSave,
+    required this.onLoad,
+    required this.onDelete,
+  });
+
+  final double zoom;
+  final bool autoSaveEnabled;
+  final bool isProcessing;
+  final ValueChanged<bool> onAutoSaveChanged;
+  final Future<void> Function(SaveSlot slot)
+      onSave;
+  final Future<void> Function(SaveSlot slot)
+      onLoad;
+  final Future<void> Function(SaveSlot slot)
+      onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) =>
+        value * zoom;
+
+    const slots = [
+      SaveSlot.autosave,
+      SaveSlot.manual1,
+      SaveSlot.manual2,
+      SaveSlot.manual3,
+      SaveSlot.manual4,
+    ];
+
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          s(12),
+          s(4),
+          s(12),
+          s(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.save_outlined,
+                  size: s(24),
+                ),
+                SizedBox(
+                  width: s(8),
+                ),
+                Expanded(
+                  child: Text(
+                    'Save Manager',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium,
+                  ),
+                ),
+                Icon(
+                  autoSaveEnabled
+                      ? Icons.autorenew
+                      : Icons.autorenew_outlined,
+                  size: s(22),
+                ),
+                Switch(
+                  value: autoSaveEnabled,
+                  onChanged:
+                      isProcessing
+                          ? null
+                          : onAutoSaveChanged,
+                ),
+              ],
+            ),
+            SizedBox(
+              height: s(8),
+            ),
+            for (final slot in slots)
+              _SaveSlotRow(
+                zoom: zoom,
+                slot: slot,
+                enabled: !isProcessing,
+                onSave: onSave,
+                onLoad: onLoad,
+                onDelete: onDelete,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SaveSlotRow
+    extends StatelessWidget {
+  const _SaveSlotRow({
+    required this.zoom,
+    required this.slot,
+    required this.enabled,
+    required this.onSave,
+    required this.onLoad,
+    required this.onDelete,
+  });
+
+  final double zoom;
+  final SaveSlot slot;
+  final bool enabled;
+  final Future<void> Function(SaveSlot slot)
+      onSave;
+  final Future<void> Function(SaveSlot slot)
+      onLoad;
+  final Future<void> Function(SaveSlot slot)
+      onDelete;
+
+  String get title {
+    switch (slot) {
+      case SaveSlot.autosave:
+        return 'Autosave';
+
+      case SaveSlot.manual1:
+        return 'Manual 1';
+
+      case SaveSlot.manual2:
+        return 'Manual 2';
+
+      case SaveSlot.manual3:
+        return 'Manual 3';
+
+      case SaveSlot.manual4:
+        return 'Manual 4';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) =>
+        value * zoom;
+
+    final isAutosave =
+        slot == SaveSlot.autosave;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: s(6),
+      ),
+      child: Card(
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: s(8),
+            vertical: s(4),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isAutosave
+                    ? Icons.autorenew
+                    : Icons.save_outlined,
+                size: s(22),
+              ),
+              SizedBox(
+                width: s(8),
+              ),
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium,
+                ),
+              ),
+              IconButton(
+                tooltip: 'Save',
+                onPressed: enabled
+                    ? () => onSave(slot)
+                    : null,
+                icon: Icon(
+                  Icons.save_outlined,
+                  size: s(22),
+                ),
+              ),
+              IconButton(
+                tooltip: 'Load',
+                onPressed: enabled
+                    ? () => onLoad(slot)
+                    : null,
+                icon: Icon(
+                  Icons.folder_open_outlined,
+                  size: s(22),
+                ),
+              ),
+              IconButton(
+                tooltip: 'Delete',
+                onPressed: enabled
+                    ? () => onDelete(slot)
+                    : null,
+                icon: Icon(
+                  Icons.delete_outline,
+                  size: s(22),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BottomNavigation
+    extends StatelessWidget {
   const _BottomNavigation({
     required this.zoom,
     required this.isProcessing,
@@ -851,14 +1215,17 @@ class _BottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double s(double value) => value * zoom;
+    double s(double value) =>
+        value * zoom;
 
-    final textStyle = Theme.of(context)
-        .textTheme
-        .labelSmall!
-        .copyWith(
-          fontWeight: FontWeight.w600,
-        );
+    final textStyle =
+        Theme.of(context)
+            .textTheme
+            .labelSmall!
+            .copyWith(
+              fontWeight:
+                  FontWeight.w600,
+            );
 
     return Container(
       width: double.infinity,
@@ -976,7 +1343,8 @@ class _BottomNavigationItem
           child: Column(
             mainAxisAlignment:
                 MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize:
+                MainAxisSize.min,
             children: [
               SizedBox(
                 width: iconSize,
@@ -1023,7 +1391,8 @@ class _AgeUpNavigationItem
 
   @override
   Widget build(BuildContext context) {
-    double s(double value) => value * zoom;
+    double s(double value) =>
+        value * zoom;
 
     final colorScheme =
         Theme.of(context).colorScheme;
@@ -1053,11 +1422,14 @@ class _AgeUpNavigationItem
                     shape:
                         const CircleBorder(),
                     backgroundColor:
-                        colorScheme.surface,
+                        colorScheme
+                            .surface,
                     foregroundColor:
-                        colorScheme.primary,
+                        colorScheme
+                            .primary,
                     disabledBackgroundColor:
-                        colorScheme.surface,
+                        colorScheme
+                            .surface,
                     disabledForegroundColor:
                         colorScheme
                             .onSurfaceVariant,
@@ -1084,7 +1456,8 @@ class _AgeUpNavigationItem
                           ),
                         )
                       : ClipOval(
-                          child: SizedBox(
+                          child:
+                              SizedBox(
                             width: s(58),
                             height: s(58),
                             child:
@@ -1095,7 +1468,8 @@ class _AgeUpNavigationItem
                                 'assets/icons/age_up.png',
                                 width: s(58),
                                 height: s(58),
-                                fit: BoxFit.contain,
+                                fit: BoxFit
+                                    .contain,
                                 color:
                                     colorScheme
                                         .primary,
