@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <g fill="#000000">
+    <!-- House -->
+    <path d="M18 58 L64 20 L110 58 L110 105 Q110 110 105 110 H23 Q18 110 18 105 Z"/>
+    <!-- Door -->
+    <path fill="#FFFFFF" d="M53 110 V76 Q53 72 57 72 H71 Q75 72 75 76 V110 Z"/>
+    <!-- Small vehicle silhouette -->
+    <path d="M82 70 H96 Q100 70 102 74 L107 84 H111 Q114 84 114 87 V96 Q114 99 111 99 H108
+             A7 7 0 0 1 94 99 H88 A7 7 0 0 1 74 99 H70 Q67 99 67 96 V89 Q67 86 70 86 H77 Z"/>
+    <circle fill="#FFFFFF" cx="81" cy="98" r="4"/>
+    <circle fill="#FFFFFF" cx="101" cy="98" r="4"/>
+  </g>
+</svg>
