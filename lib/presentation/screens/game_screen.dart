@@ -313,8 +313,10 @@ class _GameScreenState extends State<GameScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Life Simulation',
+                title: Image.asset(
+          'assets/images/everylife_logo.png',
+          height: s(34),
+          fit: BoxFit.contain,
         ),
         actions: [
           PopupMenuButton<String>(
