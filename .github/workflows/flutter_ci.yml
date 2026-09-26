@@ -91,25 +91,65 @@ jobs:
           cp assets/images/everylife_logo.png \
             android/app/src/main/res/drawable-v21/everylife_logo.png
 
+          cat > android/app/src/main/res/drawable/everylife_splash_logo.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <item
+                  android:width="180dp"
+                  android:height="72dp"
+                  android:gravity="center">
+
+                  <bitmap
+                      android:src="@drawable/everylife_logo"
+                      android:gravity="fill" />
+
+              </item>
+
+          </layer-list>
+          EOF
+
+          cat > android/app/src/main/res/drawable-v21/everylife_splash_logo.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+              <item
+                  android:width="180dp"
+                  android:height="72dp"
+                  android:gravity="center">
+
+                  <bitmap
+                      android:src="@drawable/everylife_logo"
+                      android:gravity="fill" />
+
+              </item>
+
+          </layer-list>
+          EOF
+
           cat > android/app/src/main/res/drawable/launch_background.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
               <item android:drawable="@android:color/white" />
 
               <item
-                  android:gravity="center"
-                  android:drawable="@drawable/everylife_logo" />
+                  android:drawable="@drawable/everylife_splash_logo"
+                  android:gravity="center" />
+
           </layer-list>
           EOF
 
           cat > android/app/src/main/res/drawable-v21/launch_background.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
               <item android:drawable="@android:color/white" />
 
               <item
-                  android:gravity="center"
-                  android:drawable="@drawable/everylife_logo" />
+                  android:drawable="@drawable/everylife_splash_logo"
+                  android:gravity="center" />
+
           </layer-list>
           EOF
 
@@ -117,22 +157,22 @@ jobs:
           <?xml version="1.0" encoding="utf-8"?>
           <resources>
 
-              <style name="LaunchTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+              <style
+                  name="LaunchTheme"
+                  parent="@android:style/Theme.Material.Light.NoActionBar">
+
                   <item name="android:windowSplashScreenBackground">
                       @android:color/white
                   </item>
 
                   <item name="android:windowSplashScreenAnimatedIcon">
-                      @drawable/everylife_logo
-                  </item>
-
-                  <item name="android:windowSplashScreenAnimationDuration">
-                      200
+                      @drawable/everylife_splash_logo
                   </item>
 
                   <item name="android:windowNoTitle">
                       true
                   </item>
+
               </style>
 
           </resources>
