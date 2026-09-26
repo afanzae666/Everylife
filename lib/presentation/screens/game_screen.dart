@@ -234,53 +234,54 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Future<bool> _confirmDeleteSlot(
+    Future<bool> _confirmDeleteSlot(
     SaveSlot slot,
   ) async {
-    return showDialog<bool>(
-          context: context,
-          builder: (dialogContext) {
-            final zoom = _uiScaleController.value;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        final zoom = _uiScaleController.value;
 
-            return AlertDialog(
-              title: const Text(
-                'Delete Save?',
+        return AlertDialog(
+          title: const Text(
+            'Delete Save?',
+          ),
+          content: Text(
+            'Delete ${_slotName(slot)} permanently?',
+          ),
+          actions: [
+            IconButton(
+              tooltip: 'Cancel',
+              onPressed: () {
+                Navigator.of(
+                  dialogContext,
+                ).pop(false);
+              },
+              icon: const Icon(
+                Icons.close,
               ),
-              content: Text(
-                'Delete ${_slotName(slot)} permanently?',
+            ),
+            IconButton(
+              tooltip: 'Delete',
+              onPressed: () {
+                Navigator.of(
+                  dialogContext,
+                ).pop(true);
+              },
+              icon: Icon(
+                Icons.delete_outline,
+                color: Theme.of(
+                  dialogContext,
+                ).colorScheme.error,
+                size: 24 * zoom,
               ),
-              actions: [
-                IconButton(
-                  tooltip: 'Cancel',
-                  onPressed: () {
-                    Navigator.of(
-                      dialogContext,
-                    ).pop(false);
-                  },
-                  icon: const Icon(
-                    Icons.close,
-                  ),
-                ),
-                IconButton(
-                  tooltip: 'Delete',
-                  onPressed: () {
-                    Navigator.of(
-                      dialogContext,
-                    ).pop(true);
-                  },
-                  icon: Icon(
-                    Icons.delete_outline,
-                    color: Theme.of(
-                      dialogContext,
-                    ).colorScheme.error,
-                    size: 24 * zoom,
-                  ),
-                ),
-              ],
-            );
-          },
-        ) ??
-        false;
+            ),
+          ],
+        );
+      },
+    );
+
+    return confirmed ?? false;
   }
 
   void _showResultMessage(
