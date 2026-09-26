@@ -10,22 +10,29 @@ class AndroidJsonSaveStorage implements JsonSaveStorage {
   }) : _directoryProvider =
            directoryProvider ??
            path_provider.getApplicationDocumentsDirectory;
-
-  static const String _fileName = 'everylife_save.json';
+  
 
   final Future<Directory> Function() _directoryProvider;
 
-  Future<File> _getSaveFile() async {
-    final directory = await _directoryProvider();
+      Future<File> _getSaveFile(
+    String slotKey,
+  ) async {
+    final directory =
+        await _directoryProvider();
 
     return File(
-      '${directory.path}/$_fileName',
+      '${directory.path}/everylife_$slotKey.json',
     );
   }
 
-  @override
-  Future<void> write(String json) async {
-    final file = await _getSaveFile();
+    @override
+  Future<void> write(
+    String json,
+    String slotKey,
+  ) async {
+    final file = await _getSaveFile(
+      slotKey,
+    );
 
     await file.writeAsString(
       json,
@@ -33,9 +40,13 @@ class AndroidJsonSaveStorage implements JsonSaveStorage {
     );
   }
 
-  @override
-  Future<String?> read() async {
-    final file = await _getSaveFile();
+    @override
+  Future<String?> read(
+    String slotKey,
+  ) async {
+    final file = await _getSaveFile(
+      slotKey,
+    );
 
     if (!await file.exists()) {
       return null;
@@ -44,12 +55,15 @@ class AndroidJsonSaveStorage implements JsonSaveStorage {
     return file.readAsString();
   }
 
-  @override
-  Future<void> delete() async {
-    final file = await _getSaveFile();
+    @override
+  Future<void> delete(
+    String slotKey,
+  ) async {
+    final file = await _getSaveFile(
+      slotKey,
+    );
 
     if (await file.exists()) {
       await file.delete();
     }
   }
-}
