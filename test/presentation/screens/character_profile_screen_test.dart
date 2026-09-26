@@ -10,7 +10,8 @@ void main() {
     (tester) async {
       final character = Character.create(
         id: 'profile-test',
-        name: 'Marshall Royce',
+        firstName: 'Marshall',
+        lastName: 'Royce',
         birthYear: 2026,
       );
 
@@ -36,12 +37,37 @@ void main() {
       );
 
       expect(
-        find.text('Basic Information'),
+        find.text('Identity'),
         findsOneWidget,
       );
 
       expect(
-        find.text('Name'),
+        find.text('First Name'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('Marshall'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('Last Name / Family Name'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('Royce'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('Full Name'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('Basic Information'),
         findsOneWidget,
       );
 
@@ -95,8 +121,11 @@ void main() {
         findsOneWidget,
       );
 
-      // Core Stats belongs to the main game screen,
-      // not the character profile.
+      expect(
+        find.text('Character Information'),
+        findsOneWidget,
+      );
+
       expect(
         find.text('Core Stats'),
         findsNothing,
@@ -140,11 +169,6 @@ void main() {
       expect(
         find.text('Luck'),
         findsNothing,
-      );
-
-      expect(
-        find.text('Character Information'),
-        findsOneWidget,
       );
     },
   );
