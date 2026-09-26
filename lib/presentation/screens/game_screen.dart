@@ -1015,84 +1015,81 @@ class _AgeUpNavigationItem
         Theme.of(context).colorScheme;
 
     return Expanded(
-      child: Stack(
-        alignment: Alignment.center,
-        clipBehavior: Clip.none,
-        children: [
-          Positioned(
-            top: -s(9),
-            child: SizedBox(
-              width: s(56),
-              height: s(56),
-              child: FilledButton(
-                onPressed:
-                    isProcessing ? null : onTap,
-                style: FilledButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  shape: const CircleBorder(),
-                  backgroundColor:
-                      colorScheme.surface,
-                  foregroundColor:
-                      colorScheme.primary,
-                  disabledBackgroundColor:
-                      colorScheme.surface,
-                  disabledForegroundColor:
-                      colorScheme.onSurfaceVariant,
-                  side: BorderSide(
-                    color:
+      child: Semantics(
+        button: true,
+        label: 'Age Up',
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.topCenter,
+          children: [
+            Positioned(
+              top: -s(12),
+              child: SizedBox(
+                width: s(68),
+                height: s(68),
+                child: FilledButton(
+                  onPressed:
+                      isProcessing ? null : onTap,
+                  style: FilledButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    shape: const CircleBorder(),
+                    backgroundColor:
+                        colorScheme.surface,
+                    foregroundColor:
                         colorScheme.primary,
-                    width: s(1.5),
+                    disabledBackgroundColor:
+                        colorScheme.surface,
+                    disabledForegroundColor:
+                        colorScheme.onSurfaceVariant,
+                    side: BorderSide(
+                      color:
+                          colorScheme.primary,
+                      width: s(1.5),
+                    ),
+                    elevation: 5,
+                    shadowColor:
+                        Colors.black54,
                   ),
-                  elevation: 5,
-                  shadowColor:
-                      Colors.black54,
-                ),
-                child: isProcessing
-                    ? SizedBox(
-                        width: s(22),
-                        height: s(22),
-                        child:
-                            CircularProgressIndicator(
-                          strokeWidth: s(2),
-                          color:
-                              colorScheme.primary,
-                        ),
-                      )
-                    : Column(
-                        mainAxisAlignment:
-                            MainAxisAlignment.center,
-                        mainAxisSize:
-                            MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            'assets/icons/age_up.png',
-                            width: s(27),
-                            height: s(27),
-                            fit: BoxFit.contain,
+                  child: isProcessing
+                      ? SizedBox(
+                          width: s(26),
+                          height: s(26),
+                          child:
+                              CircularProgressIndicator(
+                            strokeWidth: s(2.2),
                             color:
                                 colorScheme.primary,
-                            colorBlendMode:
-                                BlendMode.srcIn,
                           ),
-                          SizedBox(
-                            height: s(1),
-                          ),
-                          Text(
-                            'AGE UP',
-                            style: textStyle.copyWith(
-                              fontSize: s(7),
-                              fontWeight:
-                                  FontWeight.w800,
-                              color:
-                                  colorScheme.primary,
-                            ),
-                          ),
-                        ],
-                      ),
+                        )
+                      : Image.asset(
+                          'assets/icons/age_up.png',
+                          width: s(40),
+                          height: s(40),
+                          fit: BoxFit.contain,
+                          color:
+                              colorScheme.primary,
+                          colorBlendMode:
+                              BlendMode.srcIn,
+                        ),
+                ),
               ),
             ),
-          ),
-        ],
+            Positioned(
+              top: s(54),
+              child: Text(
+                'AGE UP',
+                maxLines: 1,
+                style: textStyle.copyWith(
+                  fontSize: s(8),
+                  fontWeight:
+                      FontWeight.w800,
+                  color:
+                      colorScheme.primary,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
