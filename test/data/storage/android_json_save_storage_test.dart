@@ -65,14 +65,14 @@ void main() {
     );
 
     test(
-      'creates the expected save file',
+      'creates the expected autosave file',
       () async {
         const json = '{"currentYear":2050}';
 
         await storage.write(json);
 
         final saveFile = File(
-          '${temporaryDirectory.path}/everylife_save.json',
+          '${temporaryDirectory.path}/everylife_autosave.json',
         );
 
         expect(
@@ -83,6 +83,129 @@ void main() {
         expect(
           await saveFile.readAsString(),
           json,
+        );
+      },
+    );
+
+    test(
+      'creates the expected manual slot file',
+      () async {
+        const json = '{"currentYear":2050}';
+
+        await storage.write(
+          json,
+          slotKey: 'manual_1',
+        );
+
+        final saveFile = File(
+          '${temporaryDirectory.path}/everylife_manual_1.json',
+        );
+
+        expect(
+          await saveFile.exists(),
+          isTrue,
+        );
+
+        expect(
+          await saveFile.readAsString(),
+          json,
+        );
+      },
+    );
+
+    test(
+      'keeps autosave and manual slots separate',
+      () async {
+        const autosaveJson = '{"currentYear":2050}';
+        const manualJson = '{"currentYear":2045}';
+
+        await storage.write(
+          autosaveJson,
+        );
+
+        await storage.write(
+          manualJson,
+          slotKey: 'manual_1',
+        );
+
+        expect(
+          await storage.read(),
+          autosaveJson,
+        );
+
+        expect(
+          await storage.read(
+            slotKey: 'manual_1',
+          ),
+          manualJson,
+        );
+      },
+    );
+
+    test(
+      'overwrites only the selected slot',
+      () async {
+        const autosaveJson = '{"currentYear":2050}';
+        const firstManualJson = '{"currentYear":2045}';
+        const secondManualJson = '{"currentYear":2046}';
+
+        await storage.write(
+          autosaveJson,
+        );
+
+        await storage.write(
+          firstManualJson,
+          slotKey: 'manual_1',
+        );
+
+        await storage.write(
+          secondManualJson,
+          slotKey: 'manual_1',
+        );
+
+        expect(
+          await storage.read(),
+          autosaveJson,
+        );
+
+        expect(
+          await storage.read(
+            slotKey: 'manual_1',
+          ),
+          secondManualJson,
+        );
+      },
+    );
+
+    test(
+      'deletes only the selected slot',
+      () async {
+        const autosaveJson = '{"currentYear":2050}';
+        const manualJson = '{"currentYear":2045}';
+
+        await storage.write(
+          autosaveJson,
+        );
+
+        await storage.write(
+          manualJson,
+          slotKey: 'manual_1',
+        );
+
+        await storage.delete(
+          slotKey: 'manual_1',
+        );
+
+        expect(
+          await storage.read(),
+          autosaveJson,
+        );
+
+        expect(
+          await storage.read(
+            slotKey: 'manual_1',
+          ),
+          isNull,
         );
       },
     );
