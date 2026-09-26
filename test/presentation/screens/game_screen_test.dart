@@ -32,9 +32,8 @@ SimulationEngine createTestEngine(
 }
 
 Finder ageUpButtonFinder() {
-  return find.widgetWithText(
-    FilledButton,
-    'AGE UP',
+  return find.byKey(
+    const Key('bottom-nav-age-up'),
   );
 }
 
@@ -411,14 +410,17 @@ void main() {
 
         await tester.pumpAndSettle();
 
+        final ageUpButton =
+            ageUpButtonFinder();
+
         expect(
-          ageUpButtonFinder(),
+          ageUpButton,
           findsOneWidget,
         );
 
         expect(
           tester.getBottomRight(
-            ageUpButtonFinder(),
+            ageUpButton,
           ).dy,
           lessThanOrEqualTo(
             tester.view.physicalSize.height /
