@@ -93,7 +93,7 @@ class CharacterProfileScreen extends StatelessWidget {
         s(8),
         s(4),
         s(8),
-        s(12),
+        s(8),
       ),
       children: [
         SizedBox(
@@ -146,7 +146,7 @@ class CharacterProfileScreen extends StatelessWidget {
         ),
 
         SizedBox(
-          height: s(7),
+          height: s(5),
         ),
 
         // =========================================================
@@ -155,9 +155,9 @@ class CharacterProfileScreen extends StatelessWidget {
         _ResponsiveCard(
           padding: EdgeInsets.fromLTRB(
             s(8),
-            s(7),
+            s(6),
             s(8),
-            s(7),
+            s(6),
           ),
           child: LayoutBuilder(
             builder: (
@@ -216,7 +216,7 @@ class CharacterProfileScreen extends StatelessWidget {
         ),
 
         SizedBox(
-          height: s(4),
+          height: s(2),
         ),
 
         // =========================================================
@@ -225,9 +225,9 @@ class CharacterProfileScreen extends StatelessWidget {
         _ResponsiveCard(
           padding: EdgeInsets.fromLTRB(
             s(8),
-            s(7),
-            s(8),
             s(6),
+            s(8),
+            s(5),
           ),
           child: Column(
             crossAxisAlignment:
