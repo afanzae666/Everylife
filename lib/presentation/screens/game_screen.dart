@@ -7,6 +7,7 @@ import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import 'character_profile_screen.dart';
+import 'save_load_screen.dart';
 import 'settings_screen.dart';
 
 Future<void> _defaultUiScaleChanged(double value) async {}
@@ -107,19 +108,7 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     if (!result.isSuccess) {
-      setState(() {
-        _isProcessingTurn = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            result is Failure
-                ? result.message
-                : 'Simulation failed.',
-          ),
-        ),
-      );
+    
 
       return;
     }
@@ -340,9 +329,30 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> _openSaveManager() async {
-    if (_isProcessingTurn) {
-      return;
-    }
+  if (_isProcessingTurn) {
+    return;
+  }
+
+  await Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => SaveLoadScreen(
+        zoom: _uiScaleController.value,
+        autoSaveController:
+            _autoSaveController,
+        onRead: engine.readSaveSlot,
+        onSave: engine.saveToSlot,
+        onLoad: engine.loadFromSlot,
+        onDelete: engine.deleteSave,
+        onGameStateChanged: () {
+          if (mounted) {
+            setState(() {});
+            _scrollLifeEventsToBottom();
+          }
+        },
+      ),
+    ),
+  );
+}
 
     await showModalBottomSheet<void>(
       context: context,
@@ -398,10 +408,9 @@ class _GameScreenState extends State<GameScreen> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => SettingsScreen(
-          uiScaleController: _uiScaleController,
-          onUiScaleChanged: widget.onUiScaleChanged,
-          autoSaveController: _autoSaveController,
-        ),
+  uiScaleController: _uiScaleController,
+  onUiScaleChanged: widget.onUiScaleChanged,
+),
       ),
     );
   }
@@ -1425,62 +1434,7 @@ class _BottomNavigation
               key: const Key(
                 'bottom-nav-career',
               ),
-              label: 'Career',
-              assetPath:
-                  'assets/icons/career.svg',
-              iconSize: s(25),
-              textStyle: textStyle,
-              onTap: onCareerTap,
-            ),
-            _BottomNavigationItem(
-              key: const Key(
-                'bottom-nav-assets',
-              ),
-              label: 'Assets',
-              assetPath:
-                  'assets/icons/assets.svg',
-              iconSize: s(25),
-              textStyle: textStyle,
-              onTap: onAssetsTap,
-            ),
-            _AgeUpNavigationItem(
-              key: const Key(
-                'bottom-nav-age-up',
-              ),
-              zoom: zoom,
-              isProcessing:
-                  isProcessing,
-              onTap: onAgeUpTap,
-              textStyle: textStyle,
-            ),
-            _BottomNavigationItem(
-              key: const Key(
-                'bottom-nav-life',
-              ),
-              label: 'Life',
-              assetPath:
-                  'assets/icons/life.svg',
-              iconSize: s(25),
-              textStyle: textStyle,
-              onTap: onLifeTap,
-            ),
-            _BottomNavigationItem(
-              key: const Key(
-                'bottom-nav-more',
-              ),
-              label: 'More',
-              assetPath:
-                  'assets/icons/more.svg',
-              iconSize: s(25),
-              textStyle: textStyle,
-              onTap: onMoreTap,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+
 
 class _BottomNavigationItem
     extends StatelessWidget {
