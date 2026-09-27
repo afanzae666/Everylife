@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../core/random/seeded_random.dart';
@@ -41,6 +42,7 @@ class _LifeSimulationAppState
 
   bool _isInitializing = true;
   bool _isCreatingCharacter = false;
+  bool _isExitDialogVisible = false;
 
   String? _startupError;
 
@@ -299,6 +301,47 @@ class _LifeSimulationAppState
     _initialize();
   }
 
+  Future<void> _handleGameScreenBack() async {
+    if (_isExitDialogVisible || !mounted) {
+      return;
+    }
+
+    _isExitDialogVisible = true;
+
+    final shouldExit = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          content: const Text(
+            'Do you want to leave this world?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext)
+                    .pop(false);
+              },
+              child: const Text('STAY'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext)
+                    .pop(true);
+              },
+              child: const Text('EXIT'),
+            ),
+          ],
+        );
+      },
+    );
+
+    _isExitDialogVisible = false;
+
+    if (shouldExit == true) {
+      await SystemNavigator.pop();
+    }
+  }
+
   @override
   Widget build(
     BuildContext context,
@@ -494,12 +537,25 @@ class _LifeSimulationAppState
       );
     }
 
-    return GameScreen(
-      engine: _engine!,
-      uiScaleController:
-          _uiScaleController,
-      onUiScaleChanged:
-          _saveUiScale,
+    return PopScope<void>(
+      canPop: false,
+      onPopInvokedWithResult:
+          (didPop, result) {
+        if (didPop) {
+          return;
+        }
+
+        unawaited(
+          _handleGameScreenBack(),
+        );
+      },
+      child: GameScreen(
+        engine: _engine!,
+        uiScaleController:
+            _uiScaleController,
+        onUiScaleChanged:
+            _saveUiScale,
+      ),
     );
   }
 }
