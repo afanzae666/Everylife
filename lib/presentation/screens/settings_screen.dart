@@ -4,7 +4,6 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({
     required this.uiScaleController,
     required this.onUiScaleChanged,
-    required this.autoSaveController,
     super.key,
   });
 
@@ -12,8 +11,6 @@ class SettingsScreen extends StatelessWidget {
 
   final Future<void> Function(double value)
       onUiScaleChanged;
-
-  final ValueNotifier<bool> autoSaveController;
 
   static const List<double> zoomValues = [
     0.8,
@@ -190,58 +187,6 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ],
             ),
-          ),
-          SizedBox(
-            height: s(12),
-          ),
-          Text(
-            'Game',
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall,
-          ),
-          SizedBox(
-            height: s(4),
-          ),
-          ValueListenableBuilder<bool>(
-            valueListenable:
-                autoSaveController,
-            builder: (
-              context,
-              enabled,
-              _,
-            ) {
-              return Card(
-                margin: EdgeInsets.zero,
-                child: SwitchListTile(
-                  dense: true,
-                  contentPadding:
-                      EdgeInsets.symmetric(
-                    horizontal: s(16),
-                  ),
-                  secondary: Icon(
-                    enabled
-                        ? Icons.autorenew
-                        : Icons
-                            .autorenew_outlined,
-                    size: s(24),
-                  ),
-                  title: const Text(
-                    'Autosave',
-                  ),
-                  subtitle: Text(
-                    enabled
-                        ? 'Automatically save after Age Up'
-                        : 'Automatic saving is off',
-                  ),
-                  value: enabled,
-                  onChanged: (value) {
-                    autoSaveController
-                        .value = value;
-                  },
-                ),
-              );
-            },
           ),
         ],
       ),
