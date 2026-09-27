@@ -211,7 +211,7 @@ class _GameScreenState
           uiScaleController:
               _uiScaleController,
           onViewAssets:
-              _openAssetsTab,
+              _openAssetsFromProfile,
         ),
       ),
     );
@@ -235,6 +235,16 @@ class _GameScreenState
   }
 
   void _openAssetsTab() {
+    if (_isProcessingTurn) {
+      return;
+    }
+
+    setState(() {
+      _selectedNavigationIndex = 1;
+    });
+  }
+
+  void _openAssetsFromProfile() {
     if (_isProcessingTurn) {
       return;
     }
