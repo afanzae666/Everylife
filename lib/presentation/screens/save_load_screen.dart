@@ -240,8 +240,7 @@ class _SaveLoadScreenState
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) {
-        final zoom = widget.zoom;
+      builder: (dialogContext) {    
 
         return AlertDialog(
           title: const Text(
