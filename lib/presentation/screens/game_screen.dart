@@ -1020,23 +1020,29 @@ class _GameScreenState
   }
 
   String _formatLifeStage(
-    LifeStageAge lifeStage,
+    LifeStage stage,
   ) {
-    switch (lifeStage) {
-      case LifeStageAge.infancy:
-        return 'Infancy';
-      case LifeStageAge.toddler:
+    switch (stage) {
+      case LifeStage.infant:
+        return 'Infant';
+
+      case LifeStage.toddler:
         return 'Toddler';
-      case LifeStageAge.childhood:
-        return 'Childhood';
-      case LifeStageAge.adolescence:
-        return 'Adolescence';
-      case LifeStageAge.earlyAdulthood:
-        return 'Early Adulthood';
-      case LifeStageAge.middleAge:
-        return 'Middle Age';
-      case LifeStageAge.lateAdulthood:
-        return 'Late Adulthood';
+
+      case LifeStage.child:
+        return 'Child';
+
+      case LifeStage.teen:
+        return 'Teen';
+
+      case LifeStage.youngAdult:
+        return 'Young Adult';
+
+      case LifeStage.adult:
+        return 'Adult';
+
+      case LifeStage.senior:
+        return 'Senior';
     }
   }
 }
