@@ -673,7 +673,7 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.tap(
-          find.byTooltip('Save Manager'),
+          find.byTooltip('Save / Load'),
         );
 
         await tester.pumpAndSettle();
@@ -715,7 +715,7 @@ void main() {
         );
 
         expect(
-          find.byTooltip('Save Manager'),
+          find.byTooltip('Save / Load'),
           findsOneWidget,
         );
 
@@ -755,7 +755,7 @@ void main() {
         // Open Save / Load again to inspect
         // the persisted slot state.
         await tester.tap(
-          find.byTooltip('Save Manager'),
+          find.byTooltip('Save / Load'),
         );
 
         await tester.pumpAndSettle();
