@@ -622,14 +622,32 @@ void main() {
         await openSaveLoadScreen(tester);
 
         await tester.tap(
-          find.byTooltip('Overwrite'),
-        );
+  find.byTooltip('Overwrite'),
+);
 
-        await tester.pumpAndSettle();
+await tester.pumpAndSettle();
 
-        await waitForLifeFeedbackToFinish(
-          tester,
-        );
+expect(
+  find.text('Overwrite Save?'),
+  findsOneWidget,
+);
+
+expect(
+  find.text(
+    'Overwrite Manual 1 with your current game?',
+  ),
+  findsOneWidget,
+);
+
+await tester.tap(
+  find.text('OVERWRITE'),
+);
+
+await tester.pumpAndSettle();
+
+await waitForLifeFeedbackToFinish(
+  tester,
+);
 
         final saved =
             await repository.load(
