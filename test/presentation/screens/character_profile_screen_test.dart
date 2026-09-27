@@ -6,7 +6,7 @@ import '../../../lib/presentation/screens/character_profile_screen.dart';
 
 void main() {
   testWidgets(
-    'displays character profile information',
+    'displays compact character information and wealth',
     (tester) async {
       final character = Character.create(
         id: 'profile-test',
@@ -27,42 +27,22 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Character'),
+        find.text('Character Information'),
         findsOneWidget,
       );
 
       expect(
         find.text('Marshall Royce'),
-        findsNWidgets(2),
-      );
-
-      expect(
-        find.text('Identity'),
         findsOneWidget,
       );
 
       expect(
-        find.text('First Name'),
+        find.text('Age 7 • 2033'),
         findsOneWidget,
       );
 
       expect(
-        find.text('Marshall'),
-        findsOneWidget,
-      );
-
-      expect(
-        find.text('Last Name / Family Name'),
-        findsOneWidget,
-      );
-
-      expect(
-        find.text('Royce'),
-        findsOneWidget,
-      );
-
-      expect(
-        find.text('Full Name'),
+        find.text('Alive'),
         findsOneWidget,
       );
 
@@ -72,12 +52,12 @@ void main() {
       );
 
       expect(
-        find.text('Gender'),
+        find.text('Personality'),
         findsOneWidget,
       );
 
       expect(
-        find.text('Birth Year'),
+        find.text('Born'),
         findsOneWidget,
       );
 
@@ -87,22 +67,12 @@ void main() {
       );
 
       expect(
-        find.text('Age'),
+        find.text('Gender'),
         findsOneWidget,
       );
 
       expect(
-        find.text('7'),
-        findsOneWidget,
-      );
-
-      expect(
-        find.text('Year'),
-        findsOneWidget,
-      );
-
-      expect(
-        find.text('2033'),
+        find.text('Male'),
         findsOneWidget,
       );
 
@@ -117,13 +87,124 @@ void main() {
       );
 
       expect(
-        find.text('Money'),
+        find.text('Occupation'),
         findsOneWidget,
       );
 
       expect(
-        find.text('Character Information'),
+        find.text('Not assigned'),
         findsOneWidget,
+      );
+
+      expect(
+        find.text('Relationship'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('Single'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('Education'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('Not specified'),
+        findsOneWidget,
+      );
+
+      for (final personality in [
+        'Discipline',
+        'Sociability',
+        'Ambition',
+        'Empathy',
+        'Honesty',
+        'Patience',
+        'Risk Taking',
+        'Aggressiveness',
+      ]) {
+        expect(
+          find.text(personality),
+          findsOneWidget,
+        );
+      }
+
+      expect(
+        find.text('Medium'),
+        findsNWidgets(8),
+      );
+
+      expect(
+        find.text('WEALTH'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('Total Assets'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('Debt'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('Net Worth'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('\$0.00'),
+        findsNWidgets(3),
+      );
+
+      expect(
+        find.text('View Assets →'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('Identity'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('First Name'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Last Name / Family Name'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Full Name'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Birth Year'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Age'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Year'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Money'),
+        findsNothing,
       );
 
       expect(
@@ -169,6 +250,70 @@ void main() {
       expect(
         find.text('Luck'),
         findsNothing,
+      );
+
+      expect(
+        find.text('Appearance'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Milestones'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Biography'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Life History'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Legacy'),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
+    'View Assets navigates through the existing Assets tab',
+    (tester) async {
+      var viewedAssets = false;
+
+      final character = Character.create(
+        id: 'assets-test',
+        firstName: 'Alex',
+        lastName: 'Anderson',
+        birthYear: 2007,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CharacterProfileScreen(
+            character: character,
+            currentYear: 2026,
+            onViewAssets: () {
+              viewedAssets = true;
+            },
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.text('View Assets →'),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(
+        viewedAssets,
+        isTrue,
       );
     },
   );
