@@ -24,10 +24,10 @@ class CareerScreen extends StatelessWidget {
         body: SafeArea(
           child: ListView(
             padding: EdgeInsets.fromLTRB(
-              s(12),
+              s(8),
+              s(6),
               s(8),
               s(12),
-              s(16),
             ),
             children: [
               _SectionCard(
@@ -59,7 +59,7 @@ class CareerScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: s(8)),
+              SizedBox(height: s(2)),
               _SectionCard(
                 zoom: zoom,
                 icon: null,
@@ -119,7 +119,7 @@ class _SectionCard extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: EdgeInsets.all(s(10)),
+        padding: EdgeInsets.all(s(8)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -144,7 +144,7 @@ class _SectionCard extends StatelessWidget {
                     size: s(30),
                     color: colorScheme.primary,
                   ),
-                SizedBox(width: s(8)),
+                SizedBox(width: s(6)),
                 Expanded(
                   child: Column(
                     crossAxisAlignment:
@@ -168,7 +168,7 @@ class _SectionCard extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: s(8)),
+            SizedBox(height: s(4)),
             ...children,
           ],
         ),
