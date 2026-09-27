@@ -239,13 +239,11 @@ class _GameScreenState
       return;
     }
 
-    if (_selectedNavigationIndex == 1) {
-      return;
-    }
-
     setState(() {
       _selectedNavigationIndex = 1;
     });
+
+    Navigator.of(context).pop();
   }
 
   void _showNavigationNotice(
