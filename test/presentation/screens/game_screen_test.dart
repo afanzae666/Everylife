@@ -314,7 +314,7 @@ void main() {
     );
 
     testWidgets(
-      'save manager button opens save manager',
+      'save load button opens standalone save load screen',
       (tester) async {
         final repository =
             InMemorySaveRepository();
@@ -350,7 +350,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(
-          find.text('Save Manager'),
+          find.text('Save / Load'),
           findsOneWidget,
         );
 
@@ -379,19 +379,26 @@ void main() {
           findsOneWidget,
         );
 
+        // Four empty manual slots have Save.
         expect(
-  find.byTooltip('Save'),
-  findsNWidgets(4),
-);
+          find.byTooltip('Save'),
+          findsNWidgets(4),
+        );
 
+        // All slots are empty initially.
         expect(
           find.byTooltip('Load'),
-          findsNWidgets(5),
+          findsNothing,
         );
 
         expect(
           find.byTooltip('Delete'),
-          findsNWidgets(5),
+          findsNothing,
+        );
+
+        expect(
+          find.byTooltip('Overwrite'),
+          findsNothing,
         );
       },
     );
@@ -635,11 +642,18 @@ void main() {
           ),
           findsNothing,
         );
+
+        expect(
+          find.text(
+            'Year advanced, but autosave failed.',
+          ),
+          findsNothing,
+        );
       },
     );
-  });
-      testWidgets(
-      'manual save shows slot metadata and autosave has no save action',
+
+    testWidgets(
+      'manual save shows metadata and correct actions',
       (tester) async {
         final repository =
             InMemorySaveRepository();
@@ -664,6 +678,8 @@ void main() {
 
         await tester.pumpAndSettle();
 
+        // Initial state:
+        // four manual slots are empty.
         expect(
           find.byTooltip('Save'),
           findsNWidgets(4),
@@ -671,71 +687,40 @@ void main() {
 
         expect(
           find.byTooltip('Load'),
-          findsNWidgets(5),
+          findsNothing,
         );
 
         expect(
           find.byTooltip('Delete'),
-          findsNWidgets(5),
+          findsNothing,
         );
 
+        expect(
+          find.byTooltip('Overwrite'),
+          findsNothing,
+        );
+
+        // Save Manual 1.
         await tester.tap(
           find.byTooltip('Save').first,
         );
 
         await tester.pumpAndSettle();
 
-        final metadata = find.byKey(
-          const Key(
-            'save-slot-metadata-manual1',
-          ),
+        // Manual Save success closes Save / Load
+        // and returns to the Game Screen.
+        expect(
+          find.text('Save / Load'),
+          findsNothing,
         );
 
         expect(
-          metadata,
+          find.byTooltip('Save Manager'),
           findsOneWidget,
         );
 
-        expect(
-          find.descendant(
-            of: metadata,
-            matching: find.textContaining(
-              'Age 0',
-            ),
-          ),
-          findsOneWidget,
-        );
-
-        expect(
-          find.descendant(
-            of: metadata,
-            matching: find.textContaining(
-              'Year 2026',
-            ),
-          ),
-          findsOneWidget,
-        );
-
-        expect(
-          find.descendant(
-            of: metadata,
-            matching: find.textContaining(
-              '\$0.00',
-            ),
-          ),
-          findsOneWidget,
-        );
-
-        expect(
-          find.descendant(
-            of: metadata,
-            matching: find.textContaining(
-              'Saved',
-            ),
-          ),
-          findsOneWidget,
-        );
-
+        // The actual repository must contain
+        // the newly saved Manual 1 slot.
         final manualSave =
             await repository.load(
           slot: SaveSlot.manual1,
@@ -747,11 +732,83 @@ void main() {
         );
 
         expect(
+          manualSave!.state.clock.currentYear,
+          2026,
+        );
+
+        expect(
+          manualSave.state.player.ageAt(
+            manualSave.state.clock.currentYear,
+          ),
+          0,
+        );
+
+        // Autosave must remain empty because
+        // manual saving does not write autosave.
+        expect(
           await repository.load(
             slot: SaveSlot.autosave,
           ),
           isNull,
         );
+
+        // Open Save / Load again to inspect
+        // the persisted slot state.
+        await tester.tap(
+          find.byTooltip('Save Manager'),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Save / Load'),
+          findsOneWidget,
+        );
+
+        // Manual 1 is now occupied:
+        // Manual 1 no longer has Save.
+        // It has Load + Overwrite + Delete.
+        expect(
+          find.byTooltip('Save'),
+          findsNWidgets(3),
+        );
+
+        expect(
+          find.byTooltip('Load'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.byTooltip('Overwrite'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.byTooltip('Delete'),
+          findsOneWidget,
+        );
+
+        // Verify saved metadata is visible.
+        expect(
+          find.textContaining('Age 0'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.textContaining('Year 2026'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.textContaining('\$0.00'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.textContaining('Saved'),
+          findsOneWidget,
+        );
       },
     );
+  });
 }
