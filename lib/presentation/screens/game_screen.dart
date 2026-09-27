@@ -14,6 +14,10 @@ import 'settings_screen.dart';
 
 Future<void> _defaultUiScaleChanged(double value) async {}
 
+const Color _everyLifeCardColor = Color(0xFFF5F2F9);
+const Color _everyLifeSurfaceColor = Color(0xFFFBF8FF);
+const Color _everyLifeAgeUpBorder = Color(0xFF5B5E86);
+
 class GameScreen extends StatefulWidget {
   const GameScreen({
     required this.engine,
@@ -325,6 +329,7 @@ class _GameScreenState extends State<GameScreen> {
     double s(double value) => value * zoom;
 
     return Scaffold(
+      backgroundColor: _everyLifeSurfaceColor,
       appBar: AppBar(
         title: Image.asset(
           'assets/images/everylife_logo.png',
@@ -460,10 +465,8 @@ class _GameScreenState extends State<GameScreen> {
           SizedBox(width: s(6)),
           Flexible(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.end,
-              mainAxisAlignment:
-                  MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   player.money.toString(),
@@ -474,8 +477,7 @@ class _GameScreenState extends State<GameScreen> {
                       .textTheme
                       .bodyMedium!
                       .copyWith(
-                        fontWeight:
-                            FontWeight.w600,
+                        fontWeight: FontWeight.w600,
                       ),
                 ),
                 Text(
@@ -518,12 +520,10 @@ class _GameScreenState extends State<GameScreen> {
               ),
             )
           : ListView.separated(
-              controller:
-                  _lifeEventsScrollController,
+              controller: _lifeEventsScrollController,
               padding: EdgeInsets.zero,
               itemCount: events.length,
-              separatorBuilder: (_, __) =>
-                  SizedBox(
+              separatorBuilder: (_, __) => SizedBox(
                 height: s(7),
               ),
               itemBuilder: (
@@ -533,24 +533,20 @@ class _GameScreenState extends State<GameScreen> {
                 final event = events[index];
 
                 final eventAge =
-                    event.year -
-                        player.birthYear;
+                    event.year - player.birthYear;
 
                 return Row(
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding:
-                          EdgeInsets.only(
+                      padding: EdgeInsets.only(
                         top: s(5),
                       ),
                       child: Icon(
                         Icons.circle,
                         size: s(6),
-                        color: Theme.of(
-                          context,
-                        )
+                        color: Theme.of(context)
                             .colorScheme
                             .primary,
                       ),
@@ -562,28 +558,21 @@ class _GameScreenState extends State<GameScreen> {
                             CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Age $eventAge • '
-                            '${event.year}',
-                            style:
-                                Theme.of(
-                              context,
-                            )
-                                    .textTheme
-                                    .bodyMedium!
-                                    .copyWith(
-                                      fontWeight:
-                                          FontWeight.w600,
-                                    ),
+                            'Age $eventAge • ${event.year}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium!
+                                .copyWith(
+                                  fontWeight:
+                                      FontWeight.w600,
+                                ),
                           ),
                           SizedBox(height: s(1)),
                           Text(
                             event.description,
-                            style:
-                                Theme.of(
-                              context,
-                            )
-                                    .textTheme
-                                    .bodySmall,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall,
                           ),
                         ],
                       ),
@@ -646,8 +635,7 @@ class _GameScreenState extends State<GameScreen> {
                       'core-stat-health',
                     ),
                     label: 'Health',
-                    value:
-                        player.stats.health,
+                    value: player.stats.health,
                     icon: Icons.favorite,
                     zoom: zoom,
                   );
@@ -657,12 +645,10 @@ class _GameScreenState extends State<GameScreen> {
                     key: const Key(
                       'core-stat-intelligence',
                     ),
-                    label:
-                        'Intelligence',
+                    label: 'Intelligence',
                     value:
                         player.stats.intelligence,
-                    icon:
-                        Icons.psychology,
+                    icon: Icons.psychology,
                     zoom: zoom,
                   );
 
@@ -672,10 +658,8 @@ class _GameScreenState extends State<GameScreen> {
                       'core-stat-fitness',
                     ),
                     label: 'Fitness',
-                    value:
-                        player.stats.fitness,
-                    icon:
-                        Icons.fitness_center,
+                    value: player.stats.fitness,
+                    icon: Icons.fitness_center,
                     zoom: zoom,
                   );
 
@@ -684,12 +668,10 @@ class _GameScreenState extends State<GameScreen> {
                     key: const Key(
                       'core-stat-happiness',
                     ),
-                    label:
-                        'Happiness',
+                    label: 'Happiness',
                     value:
                         player.stats.happiness,
-                    icon: Icons
-                        .sentiment_satisfied,
+                    icon: Icons.sentiment_satisfied,
                     zoom: zoom,
                   );
 
@@ -698,12 +680,10 @@ class _GameScreenState extends State<GameScreen> {
                     key: const Key(
                       'core-stat-willpower',
                     ),
-                    label:
-                        'Willpower',
+                    label: 'Willpower',
                     value:
                         player.stats.willpower,
-                    icon:
-                        Icons.shield_outlined,
+                    icon: Icons.shield_outlined,
                     zoom: zoom,
                   );
 
@@ -712,8 +692,7 @@ class _GameScreenState extends State<GameScreen> {
                     key: const Key(
                       'core-stat-charisma',
                     ),
-                    label:
-                        'Charisma',
+                    label: 'Charisma',
                     value:
                         player.stats.charisma,
                     icon: Icons.groups,
@@ -725,8 +704,7 @@ class _GameScreenState extends State<GameScreen> {
                     key: const Key(
                       'core-stat-creativity',
                     ),
-                    label:
-                        'Creativity',
+                    label: 'Creativity',
                     value:
                         player.stats.creativity,
                     icon: Icons.palette,
@@ -739,16 +717,13 @@ class _GameScreenState extends State<GameScreen> {
                       'core-stat-luck',
                     ),
                     label: 'Luck',
-                    value:
-                        player.stats.luck,
-                    icon:
-                        Icons.auto_awesome,
+                    value: player.stats.luck,
+                    icon: Icons.auto_awesome,
                     zoom: zoom,
                   );
 
                 default:
-                  return const SizedBox
-                      .shrink();
+                  return const SizedBox.shrink();
               }
             },
           );
@@ -763,18 +738,12 @@ class _GameScreenState extends State<GameScreen> {
   ) {
     return _BottomNavigation(
       zoom: zoom,
-      isProcessing:
-          _isProcessingTurn,
-      onCareerTap:
-          _openCareerPage,
-      onAssetsTap:
-          _openAssetsTab,
-      onAgeUpTap:
-          _ageUp,
-      onLifeTap:
-          _openLifePage,
-      onMoreTap:
-          _openMorePage,
+      isProcessing: _isProcessingTurn,
+      onCareerTap: _openCareerPage,
+      onAssetsTap: _openAssetsTab,
+      onAgeUpTap: _ageUp,
+      onLifeTap: _openLifePage,
+      onMoreTap: _openMorePage,
     );
   }
 
@@ -836,19 +805,18 @@ class _ResponsiveCard extends StatelessWidget {
 
     return Card(
       margin: EdgeInsets.zero,
-      color: theme.cardColor,
+      color: _everyLifeCardColor,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8),
         side: BorderSide(
-          color: theme.dividerColor
-              .withValues(alpha: 0.55),
+          color: theme.dividerColor.withValues(
+            alpha: 0.55,
+          ),
           width: 1,
         ),
       ),
-      clipBehavior:
-          Clip.antiAlias,
+      clipBehavior: Clip.antiAlias,
       child: Padding(
         padding: padding,
         child: child,
@@ -873,12 +841,10 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double s(double value) =>
-        value * zoom;
+    double s(double value) => value * zoom;
 
     final theme = Theme.of(context);
-    final primary =
-        theme.colorScheme.primary;
+    final primary = theme.colorScheme.primary;
 
     final progress =
         value.clamp(0, 100).toDouble();
@@ -899,71 +865,48 @@ class _StatCard extends StatelessWidget {
             width: double.infinity,
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              alignment:
-                  Alignment.centerLeft,
+              alignment: Alignment.centerLeft,
               child: Row(
-                mainAxisSize:
-                    MainAxisSize.min,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     icon,
                     size: s(15),
                     color: primary,
                   ),
-                  SizedBox(
-                    width: s(3),
-                  ),
+                  SizedBox(width: s(3)),
                   Text(
                     label,
                     maxLines: 1,
                     softWrap: false,
-                    style: theme
-                        .textTheme
-                        .bodySmall!
-                        .copyWith(
-                          fontSize: 11,
-                        ),
+                    style: theme.textTheme.bodySmall!.copyWith(
+                      fontSize: 11,
+                    ),
                   ),
-                  SizedBox(
-                    width: s(4),
-                  ),
+                  SizedBox(width: s(4)),
                   Text(
                     value.toString(),
                     maxLines: 1,
                     softWrap: false,
-                    style: theme
-                        .textTheme
-                        .bodySmall!
-                        .copyWith(
-                          fontSize: 11,
-                          fontWeight:
-                              FontWeight.w600,
-                        ),
+                    style: theme.textTheme.bodySmall!.copyWith(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-          SizedBox(
-            height: s(3),
-          ),
+          SizedBox(height: s(3)),
           ClipRRect(
-            borderRadius:
-                BorderRadius.circular(
-              s(4),
-            ),
-            child:
-                LinearProgressIndicator(
-              value:
-                  progress / 100,
+            borderRadius: BorderRadius.circular(s(4)),
+            child: LinearProgressIndicator(
+              value: progress / 100,
               minHeight: s(3),
               backgroundColor:
-                  primary.withValues(
-                alpha: 0.12,
-              ),
+                  primary.withValues(alpha: 0.12),
               valueColor:
-                  AlwaysStoppedAnimation<
-                      Color>(
+                  AlwaysStoppedAnimation<Color>(
                 primary,
               ),
             ),
@@ -974,8 +917,7 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _BottomNavigation
-    extends StatelessWidget {
+class _BottomNavigation extends StatelessWidget {
   const _BottomNavigation({
     required this.zoom,
     required this.isProcessing,
@@ -988,121 +930,69 @@ class _BottomNavigation
 
   final double zoom;
   final bool isProcessing;
-  final VoidCallback
-      onCareerTap;
-  final VoidCallback
-      onAssetsTap;
-  final Future<void> Function()
-      onAgeUpTap;
-  final VoidCallback
-      onLifeTap;
-  final VoidCallback
-      onMoreTap;
+  final VoidCallback onCareerTap;
+  final VoidCallback onAssetsTap;
+  final Future<void> Function() onAgeUpTap;
+  final VoidCallback onLifeTap;
+  final VoidCallback onMoreTap;
 
   @override
   Widget build(BuildContext context) {
-    double s(double value) =>
-        value * zoom;
+    double s(double value) => value * zoom;
 
     return SizedBox(
-      height: s(74),
+      height: s(68),
       child: Stack(
-        clipBehavior:
-            Clip.none,
-        alignment:
-            Alignment.center,
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
         children: [
           Container(
-            height: s(64),
-            decoration:
-                BoxDecoration(
-              color:
-                  Theme.of(context)
-                      .cardColor,
-              borderRadius:
-                  BorderRadius.circular(
-                8,
-              ),
-              border:
-                  Border.all(
-                color:
-                    Theme.of(context)
-                        .dividerColor
-                        .withValues(
-                          alpha: 0.55,
-                        ),
-                width: 1,
-              ),
-            ),
+            height: s(56),
+            color: _everyLifeSurfaceColor,
             child: Padding(
-              padding:
-                  EdgeInsets.symmetric(
+              padding: EdgeInsets.symmetric(
                 horizontal: s(4),
                 vertical: s(2),
               ),
               child: Row(
                 children: [
                   Expanded(
-                    child:
-                        _NavigationItem(
+                    child: _NavigationItem(
                       assetPath:
                           'assets/icons/career.svg',
-                      label:
-                          'Career',
-                      zoom:
-                          zoom,
-                      enabled:
-                          !isProcessing,
-                      onTap:
-                          onCareerTap,
+                      label: 'Career',
+                      zoom: zoom,
+                      enabled: !isProcessing,
+                      onTap: onCareerTap,
                     ),
                   ),
                   Expanded(
-                    child:
-                        _NavigationItem(
+                    child: _NavigationItem(
                       assetPath:
                           'assets/icons/assets.svg',
-                      label:
-                          'Assets',
-                      zoom:
-                          zoom,
-                      enabled:
-                          !isProcessing,
-                      onTap:
-                          onAssetsTap,
+                      label: 'Assets',
+                      zoom: zoom,
+                      enabled: !isProcessing,
+                      onTap: onAssetsTap,
                     ),
                   ),
-                  SizedBox(
-                    width: s(70),
-                  ),
+                  SizedBox(width: s(68)),
                   Expanded(
-                    child:
-                        _NavigationItem(
+                    child: _NavigationItem(
                       assetPath:
                           'assets/icons/life.svg',
-                      label:
-                          'Life',
-                      zoom:
-                          zoom,
-                      enabled:
-                          !isProcessing,
-                      onTap:
-                          onLifeTap,
+                      label: 'Life',
+                      zoom: zoom,
+                      enabled: !isProcessing,
+                      onTap: onLifeTap,
                     ),
                   ),
                   Expanded(
-                    child:
-                        _NavigationItem(
-                      assetPath:
-                          'assets/icons/more.svg',
-                      label:
-                          'More',
-                      zoom:
-                          zoom,
-                      enabled:
-                          !isProcessing,
-                      onTap:
-                          onMoreTap,
+                    child: _NavigationMoreItem(
+                      label: 'More',
+                      zoom: zoom,
+                      enabled: !isProcessing,
+                      onTap: onMoreTap,
                     ),
                   ),
                 ],
@@ -1110,35 +1000,11 @@ class _BottomNavigation
             ),
           ),
           Positioned(
-            top: -s(7),
-            child: SizedBox(
-              width: s(68),
-              height: s(68),
-              child:
-                  FloatingActionButton(
-                key: const Key(
-                  'bottom-nav-age-up',
-                ),
-                heroTag:
-                    'everylife-age-up',
-                onPressed:
-                    isProcessing
-                        ? null
-                        : () async {
-                            await onAgeUpTap();
-                          },
-                tooltip:
-                    'Age Up',
-                elevation: 4,
-                child:
-                    Image.asset(
-                  'assets/icons/age_up.png',
-                  width: s(34),
-                  height: s(34),
-                  fit:
-                      BoxFit.contain,
-                ),
-              ),
+            top: -s(30),
+            child: _AgeUpButton(
+              zoom: zoom,
+              enabled: !isProcessing,
+              onTap: onAgeUpTap,
             ),
           ),
         ],
@@ -1147,8 +1013,83 @@ class _BottomNavigation
   }
 }
 
-class _NavigationItem
-    extends StatelessWidget {
+class _AgeUpButton extends StatelessWidget {
+  const _AgeUpButton({
+    required this.zoom,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  final double zoom;
+  final bool enabled;
+  final Future<void> Function() onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) => value * zoom;
+
+    return Material(
+      key: const Key('bottom-nav-age-up'),
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: enabled
+            ? () async {
+                await onTap();
+              }
+            : null,
+        customBorder: const CircleBorder(),
+        child: Ink(
+          width: s(64),
+          height: s(64),
+          decoration: BoxDecoration(
+            color: _everyLifeSurfaceColor,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: _everyLifeAgeUpBorder,
+              width: s(1.8),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(
+                  alpha: 0.18,
+                ),
+                blurRadius: s(5),
+                offset: Offset(0, s(3)),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Container(
+              width: s(50),
+              height: s(50),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: _everyLifeAgeUpBorder.withValues(
+                    alpha: 0.35,
+                  ),
+                  width: s(1),
+                ),
+              ),
+              child: Padding(
+                padding: EdgeInsets.all(s(7)),
+                child: Opacity(
+                  opacity: enabled ? 1.0 : 0.38,
+                  child: Image.asset(
+                    'assets/icons/age_up.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavigationItem extends StatelessWidget {
   const _NavigationItem({
     required this.assetPath,
     required this.label,
@@ -1165,19 +1106,13 @@ class _NavigationItem
 
   @override
   Widget build(BuildContext context) {
-    double s(double value) =>
-        value * zoom;
+    double s(double value) => value * zoom;
 
     return InkWell(
-      onTap:
-          enabled ? onTap : null,
-      borderRadius:
-          BorderRadius.circular(
-        s(8),
-      ),
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(s(8)),
       child: Padding(
-        padding:
-            EdgeInsets.symmetric(
+        padding: EdgeInsets.symmetric(
           horizontal: s(2),
           vertical: s(2),
         ),
@@ -1186,28 +1121,72 @@ class _NavigationItem
               MainAxisAlignment.center,
           children: [
             Opacity(
-              opacity:
-                  enabled ? 1.0 : 0.38,
-              child:
-                  SvgPicture.asset(
+              opacity: enabled ? 1.0 : 0.38,
+              child: SvgPicture.asset(
                 assetPath,
                 width: s(23),
                 height: s(23),
-                fit:
-                    BoxFit.contain,
+                fit: BoxFit.contain,
               ),
             ),
-            SizedBox(
-              height: s(2),
-            ),
+            SizedBox(height: s(2)),
             Text(
               label,
               maxLines: 1,
-              overflow:
-                  TextOverflow.ellipsis,
-              style: Theme.of(
-                context,
-              )
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context)
+                  .textTheme
+                  .labelSmall,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NavigationMoreItem extends StatelessWidget {
+  const _NavigationMoreItem({
+    required this.label,
+    required this.zoom,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  final String label;
+  final double zoom;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) => value * zoom;
+
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(s(8)),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: s(2),
+          vertical: s(2),
+        ),
+        child: Column(
+          mainAxisAlignment:
+              MainAxisAlignment.center,
+          children: [
+            Opacity(
+              opacity: enabled ? 1.0 : 0.38,
+              child: Icon(
+                Icons.more_horiz_outlined,
+                size: s(23),
+              ),
+            ),
+            SizedBox(height: s(2)),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context)
                   .textTheme
                   .labelSmall,
             ),
