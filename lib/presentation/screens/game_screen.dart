@@ -1002,7 +1002,7 @@ class _BottomNavigation extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: -s(24),
+            top: -s(20),
             child: _AgeUpButton(
               zoom: zoom,
               enabled: !isProcessing,
@@ -1041,8 +1041,8 @@ class _AgeUpButton extends StatelessWidget {
             : null,
         customBorder: const CircleBorder(),
         child: Ink(
-          width: s(75),
-          height: s(75),
+          width: s(70),
+          height: s(70),
           decoration: BoxDecoration(
             color: _everyLifeSurfaceColor,
             shape: BoxShape.circle,
