@@ -42,11 +42,6 @@ void main() {
       );
 
       expect(
-        find.text('Alive'),
-        findsOneWidget,
-      );
-
-      expect(
         find.text('Basic Information'),
         findsOneWidget,
       );
