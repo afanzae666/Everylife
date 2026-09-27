@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../core/result/result.dart';
-import '../../data/repositories/save_repository.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
 import '../../simulation/engine/simulation_engine.dart';
@@ -108,7 +106,9 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     if (!result.isSuccess) {
-    
+      setState(() {
+        _isProcessingTurn = false;
+      });
 
       return;
     }
@@ -118,20 +118,10 @@ class _GameScreenState extends State<GameScreen> {
     _scrollLifeEventsToBottom();
 
     if (_autoSaveController.value) {
-      final saveResult = await engine.save();
+      await engine.save();
 
       if (!mounted) {
         return;
-      }
-
-      if (!saveResult.isSuccess) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Year advanced, but autosave failed.',
-            ),
-          ),
-        );
       }
     }
 
@@ -144,243 +134,28 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  Future<void> _saveSlot(
-    SaveSlot slot,
-  ) async {
+  Future<void> _openSaveManager() async {
     if (_isProcessingTurn) {
       return;
     }
 
-    final result = await engine.saveToSlot(
-      slot,
-    );
-
-    if (!mounted) {
-      return;
-    }
-
-    _showResultMessage(
-      result,
-      successMessage: _saveSuccessMessage(slot),
-      failureMessage: 'Save failed.',
-    );
-  }
-
-  Future<void> _loadSlot(
-    SaveSlot slot,
-  ) async {
-    if (_isProcessingTurn) {
-      return;
-    }
-
-    final result = await engine.loadFromSlot(
-      slot,
-    );
-
-    if (!mounted) {
-      return;
-    }
-
-    if (result.isSuccess) {
-      setState(() {});
-
-      _scrollLifeEventsToBottom();
-    }
-
-    _showResultMessage(
-      result,
-      successMessage: _loadSuccessMessage(slot),
-      failureMessage: 'Load failed.',
-    );
-  }
-
-  Future<void> _deleteSlot(
-    SaveSlot slot,
-  ) async {
-    if (_isProcessingTurn) {
-      return;
-    }
-
-    final confirmed =
-        await _confirmDeleteSlot(slot);
-
-    if (!mounted || !confirmed) {
-      return;
-    }
-
-    final result = await engine.deleteSave(
-      slot,
-    );
-
-    if (!mounted) {
-      return;
-    }
-
-    _showResultMessage(
-      result,
-      successMessage: _deleteSuccessMessage(slot),
-      failureMessage: 'Delete failed.',
-    );
-  }
-
-    Future<bool> _confirmDeleteSlot(
-    SaveSlot slot,
-  ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        final zoom = _uiScaleController.value;
-
-        return AlertDialog(
-          title: const Text(
-            'Delete Save?',
-          ),
-          content: Text(
-            'Delete ${_slotName(slot)} permanently?',
-          ),
-          actions: [
-            IconButton(
-              tooltip: 'Cancel',
-              onPressed: () {
-                Navigator.of(
-                  dialogContext,
-                ).pop(false);
-              },
-              icon: const Icon(
-                Icons.close,
-              ),
-            ),
-            IconButton(
-              tooltip: 'Delete',
-              onPressed: () {
-                Navigator.of(
-                  dialogContext,
-                ).pop(true);
-              },
-              icon: Icon(
-                Icons.delete_outline,
-                color: Theme.of(
-                  dialogContext,
-                ).colorScheme.error,
-                size: 24 * zoom,
-              ),
-            ),
-          ],
-        );
-      },
-    );
-
-    return confirmed ?? false;
-  }
-
-  void _showResultMessage(
-    Result<void> result, {
-    required String successMessage,
-    required String failureMessage,
-  }) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          result.isSuccess
-              ? successMessage
-              : failureMessage,
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => SaveLoadScreen(
+          zoom: _uiScaleController.value,
+          autoSaveController: _autoSaveController,
+          onRead: engine.readSaveSlot,
+          onSave: engine.saveToSlot,
+          onLoad: engine.loadFromSlot,
+          onDelete: engine.deleteSave,
+          onGameStateChanged: () {
+            if (mounted) {
+              setState(() {});
+              _scrollLifeEventsToBottom();
+            }
+          },
         ),
       ),
-    );
-  }
-
-  String _slotName(
-    SaveSlot slot,
-  ) {
-    switch (slot) {
-      case SaveSlot.autosave:
-        return 'Autosave';
-
-      case SaveSlot.manual1:
-        return 'Manual 1';
-
-      case SaveSlot.manual2:
-        return 'Manual 2';
-
-      case SaveSlot.manual3:
-        return 'Manual 3';
-
-      case SaveSlot.manual4:
-        return 'Manual 4';
-    }
-  }
-
-  String _saveSuccessMessage(
-    SaveSlot slot,
-  ) {
-    return '${_slotName(slot)} saved.';
-  }
-
-  String _loadSuccessMessage(
-    SaveSlot slot,
-  ) {
-    return '${_slotName(slot)} loaded.';
-  }
-
-  String _deleteSuccessMessage(
-    SaveSlot slot,
-  ) {
-    return '${_slotName(slot)} deleted.';
-  }
-
-  Future<void> _openSaveManager() async {
-  if (_isProcessingTurn) {
-    return;
-  }
-
-  await Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (_) => SaveLoadScreen(
-        zoom: _uiScaleController.value,
-        autoSaveController:
-            _autoSaveController,
-        onRead: engine.readSaveSlot,
-        onSave: engine.saveToSlot,
-        onLoad: engine.loadFromSlot,
-        onDelete: engine.deleteSave,
-        onGameStateChanged: () {
-          if (mounted) {
-            setState(() {});
-            _scrollLifeEventsToBottom();
-          }
-        },
-      ),
-    ),
-  );
-}
-
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (_) {
-        return ValueListenableBuilder<bool>(
-          valueListenable: _autoSaveController,
-          builder: (
-            context,
-            autoSaveEnabled,
-            __,
-          ) {
-            return _SaveManagerSheet(
-              zoom: _uiScaleController.value,
-              autoSaveEnabled: autoSaveEnabled,
-              isProcessing: _isProcessingTurn,
-              onAutoSaveChanged: (value) {
-                _autoSaveController.value = value;
-              },
-              onSave: _saveSlot,
-              onLoad: _loadSlot,
-              onRead: engine.readSaveSlot,
-              onDelete: _deleteSlot,
-            );
-          },
-        );
-      },
     );
   }
 
@@ -408,9 +183,9 @@ class _GameScreenState extends State<GameScreen> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => SettingsScreen(
-  uiScaleController: _uiScaleController,
-  onUiScaleChanged: widget.onUiScaleChanged,
-),
+          uiScaleController: _uiScaleController,
+          onUiScaleChanged: widget.onUiScaleChanged,
+        ),
       ),
     );
   }
@@ -508,7 +283,7 @@ class _GameScreenState extends State<GameScreen> {
         ),
         actions: [
           IconButton(
-            tooltip: 'Save Manager',
+            tooltip: 'Save / Load',
             onPressed: _isProcessingTurn
                 ? null
                 : _openSaveManager,
@@ -990,387 +765,6 @@ class _GameScreenState extends State<GameScreen> {
   }
 }
 
-class _SaveManagerSheet
-    extends StatefulWidget {
-  const _SaveManagerSheet({
-    required this.zoom,
-    required this.autoSaveEnabled,
-    required this.isProcessing,
-    required this.onAutoSaveChanged,
-    required this.onRead,
-    required this.onSave,
-    required this.onLoad,
-    required this.onDelete,
-  });
-
-  final double zoom;
-  final bool autoSaveEnabled;
-  final bool isProcessing;
-  final ValueChanged<bool> onAutoSaveChanged;
-  final Future<SaveData?> Function(SaveSlot slot)
-      onRead;
-  final Future<void> Function(SaveSlot slot)
-      onSave;
-  final Future<void> Function(SaveSlot slot)
-      onLoad;
-  final Future<void> Function(SaveSlot slot)
-      onDelete;
-
-  @override
-  State<_SaveManagerSheet> createState() =>
-      _SaveManagerSheetState();
-}
-
-class _SaveManagerSheetState
-    extends State<_SaveManagerSheet> {
-  static const slots = [
-    SaveSlot.autosave,
-    SaveSlot.manual1,
-    SaveSlot.manual2,
-    SaveSlot.manual3,
-    SaveSlot.manual4,
-  ];
-
-  late Map<SaveSlot, SaveData?> _saveData;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _saveData = {
-      for (final slot in slots) slot: null,
-    };
-
-    _loadAllSlots();
-  }
-
-  Future<void> _loadAllSlots() async {
-    final data = <SaveSlot, SaveData?>{};
-
-    for (final slot in slots) {
-      data[slot] = await widget.onRead(slot);
-    }
-
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      _saveData = data;
-    });
-  }
-
-  Future<void> _refreshSlot(
-    SaveSlot slot,
-  ) async {
-    final data = await widget.onRead(slot);
-
-    if (!mounted) {
-      return;
-    }
-
-    setState(() {
-      _saveData[slot] = data;
-    });
-  }
-
-  Future<void> _handleSave(
-    SaveSlot slot,
-  ) async {
-    await widget.onSave(slot);
-    await _refreshSlot(slot);
-  }
-
-  Future<void> _handleLoad(
-    SaveSlot slot,
-  ) async {
-    await widget.onLoad(slot);
-    await _refreshSlot(slot);
-  }
-
-  Future<void> _handleDelete(
-    SaveSlot slot,
-  ) async {
-    await widget.onDelete(slot);
-    await _refreshSlot(slot);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    double s(double value) =>
-        value * widget.zoom;
-
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          s(12),
-          s(4),
-          s(12),
-          s(16),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.save_outlined,
-                  size: s(24),
-                ),
-                SizedBox(
-                  width: s(8),
-                ),
-                Expanded(
-                  child: Text(
-                    'Save Manager',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium,
-                  ),
-                ),
-                Icon(
-                  widget.autoSaveEnabled
-                      ? Icons.autorenew
-                      : Icons.autorenew_outlined,
-                  size: s(22),
-                ),
-                Switch(
-                  value: widget.autoSaveEnabled,
-                  onChanged:
-                      widget.isProcessing
-                          ? null
-                          : widget.onAutoSaveChanged,
-                ),
-              ],
-            ),
-            SizedBox(
-              height: s(8),
-            ),
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight:
-                    MediaQuery.sizeOf(context).height *
-                        0.75,
-              ),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: slots.length,
-                itemBuilder: (
-                  context,
-                  index,
-                ) {
-                  final slot = slots[index];
-
-                  return _SaveSlotRow(
-                    zoom: widget.zoom,
-                    slot: slot,
-                    enabled:
-                        !widget.isProcessing,
-                    saveData:
-                        _saveData[slot],
-                    onSave:
-                        slot == SaveSlot.autosave
-                            ? null
-                            : _handleSave,
-                    onLoad: _handleLoad,
-                    onDelete: _handleDelete,
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SaveSlotRow
-    extends StatelessWidget {
-  const _SaveSlotRow({
-    required this.zoom,
-    required this.slot,
-    required this.enabled,
-    required this.saveData,
-    required this.onSave,
-    required this.onLoad,
-    required this.onDelete,
-  });
-
-  final double zoom;
-  final SaveSlot slot;
-  final bool enabled;
-  final SaveData? saveData;
-  final Future<void> Function(SaveSlot slot)? onSave;
-  final Future<void> Function(SaveSlot slot)
-      onLoad;
-  final Future<void> Function(SaveSlot slot)
-      onDelete;
-
-  String get title {
-    switch (slot) {
-      case SaveSlot.autosave:
-        return 'Autosave';
-
-      case SaveSlot.manual1:
-        return 'Manual 1';
-
-      case SaveSlot.manual2:
-        return 'Manual 2';
-
-      case SaveSlot.manual3:
-        return 'Manual 3';
-
-      case SaveSlot.manual4:
-        return 'Manual 4';
-    }
-  }
-
-  String _formatSavedAt(DateTime? value) {
-    if (value == null) {
-      return 'Saved —';
-    }
-
-    final local = value.toLocal();
-
-    String two(int value) {
-      return value.toString().padLeft(2, '0');
-    }
-
-    return 'Saved '
-        '${two(local.day)}/'
-        '${two(local.month)}/'
-        '${local.year} '
-        '${two(local.hour)}:'
-        '${two(local.minute)}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    double s(double value) =>
-        value * zoom;
-
-    final isAutosave =
-        slot == SaveSlot.autosave;
-
-    final metadataKey = Key(
-      'save-slot-metadata-${slot.name}',
-    );
-
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: s(6),
-      ),
-      child: Card(
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: s(8),
-            vertical: s(4),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                isAutosave
-                    ? Icons.autorenew
-                    : Icons.save_outlined,
-                size: s(22),
-              ),
-              SizedBox(
-                width: s(8),
-              ),
-              Expanded(
-                child: Column(
-                  key: metadataKey,
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium,
-                    ),
-                    SizedBox(
-                      height: s(2),
-                    ),
-                    if (saveData == null)
-                      Text(
-                        'Empty',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall,
-                      )
-                    else ...[
-                      Text(
-                        'Age '
-                        '${saveData!.state.player.ageAt(
-                          saveData!.state.clock.currentYear,
-                        )}'
-                        '  •  Year '
-                        '${saveData!.state.clock.currentYear}'
-                        '  •  Money '
-                        '${saveData!.state.player.money}',
-                        maxLines: 2,
-                        overflow:
-                            TextOverflow.ellipsis,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall,
-                      ),
-                      Text(
-                        _formatSavedAt(
-                          saveData!.savedAt,
-                        ),
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (onSave != null)
-                IconButton(
-                  tooltip: 'Save',
-                  onPressed: enabled
-                      ? () => onSave!(slot)
-                      : null,
-                  icon: Icon(
-                    Icons.save_outlined,
-                    size: s(22),
-                  ),
-                ),
-              IconButton(
-                tooltip: 'Load',
-                onPressed:
-                    enabled && saveData != null
-                        ? () => onLoad(slot)
-                        : null,
-                icon: Icon(
-                  Icons.folder_open_outlined,
-                  size: s(22),
-                ),
-              ),
-              IconButton(
-                tooltip: 'Delete',
-                onPressed:
-                    enabled && saveData != null
-                        ? () => onDelete(slot)
-                        : null,
-                icon: Icon(
-                  Icons.delete_outline,
-                  size: s(22),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _BottomNavigation
     extends StatelessWidget {
   const _BottomNavigation({
@@ -1434,7 +828,69 @@ class _BottomNavigation
               key: const Key(
                 'bottom-nav-career',
               ),
-
+              label: 'Career',
+              assetPath:
+                  'assets/icons/career.svg',
+              iconSize: s(25),
+              textStyle: textStyle,
+              onTap: isProcessing
+                  ? () {}
+                  : onCareerTap,
+            ),
+            _BottomNavigationItem(
+              key: const Key(
+                'bottom-nav-assets',
+              ),
+              label: 'Assets',
+              assetPath:
+                  'assets/icons/assets.svg',
+              iconSize: s(25),
+              textStyle: textStyle,
+              onTap: isProcessing
+                  ? () {}
+                  : onAssetsTap,
+            ),
+            _AgeUpNavigationItem(
+              key: const Key(
+                'bottom-nav-age-up',
+              ),
+              zoom: zoom,
+              isProcessing: isProcessing,
+              onTap: onAgeUpTap,
+              textStyle: textStyle,
+            ),
+            _BottomNavigationItem(
+              key: const Key(
+                'bottom-nav-life',
+              ),
+              label: 'Life',
+              assetPath:
+                  'assets/icons/life.svg',
+              iconSize: s(25),
+              textStyle: textStyle,
+              onTap: isProcessing
+                  ? () {}
+                  : onLifeTap,
+            ),
+            _BottomNavigationItem(
+              key: const Key(
+                'bottom-nav-more',
+              ),
+              label: 'More',
+              assetPath:
+                  'assets/icons/more.svg',
+              iconSize: s(25),
+              textStyle: textStyle,
+              onTap: isProcessing
+                  ? () {}
+                  : onMoreTap,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class _BottomNavigationItem
     extends StatelessWidget {
