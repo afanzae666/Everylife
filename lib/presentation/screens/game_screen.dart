@@ -639,7 +639,8 @@ class _GameScreenState
                                 .start,
                         children: [
                           Text(
-                            event.title,
+                            'Age $eventAge • '
+                            '${event.year}',
                             style:
                                 Theme.of(
                               context,
@@ -656,9 +657,7 @@ class _GameScreenState
                             height: s(1),
                           ),
                           Text(
-                            'Age $eventAge • '
-                            '${event.year} — '
-                            '${event.description}',
+                            event.description,
                             style:
                                 Theme.of(
                               context,
