@@ -213,14 +213,14 @@ void main() {
         );
 
         expect(
-          find.text('Test Player'),
-          findsNWidgets(2),
-        );
+  find.text('Test Player'),
+  findsOneWidget,
+);
 
         expect(
-          find.text('Birth Year'),
-          findsOneWidget,
-        );
+  find.text('Born'),
+  findsOneWidget,
+);
       },
     );
 
