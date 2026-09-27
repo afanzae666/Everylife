@@ -330,6 +330,48 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  String _formatMoney(num amount) {
+  final value = amount.abs();
+
+  if (value < 1000000) {
+    return amount.toStringAsFixed(0);
+  }
+
+  const units = <String>[
+    'M',
+    'B',
+    'T',
+    'Qa',
+    'Qi',
+    'Sx',
+    'Sp',
+    'Oc',
+    'No',
+    'Dc',
+  ];
+
+  var scaled = value.toDouble();
+  var unitIndex = -1;
+
+  while (scaled >= 1000 && unitIndex < units.length - 1) {
+    scaled /= 1000;
+    unitIndex++;
+  }
+
+  final formatted = scaled >= 100
+      ? scaled.toStringAsFixed(0)
+      : scaled >= 10
+          ? scaled.toStringAsFixed(1)
+          : scaled.toStringAsFixed(2);
+
+  final trimmed = formatted.replaceFirst(
+    RegExp(r'\.?0+$'),
+    '',
+  );
+
+  return '${amount < 0 ? '-' : ''}$trimmed${units[unitIndex]}';
+}
+  
   @override
   Widget build(BuildContext context) {
     final state = engine.state;
@@ -524,35 +566,27 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ),
           SizedBox(width: s(6)),
-          Flexible(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  player.money.toString(),
-                  textAlign: TextAlign.end,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium!
-                      .copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                Text(
-                  'Cash',
-                  textAlign: TextAlign.end,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall,
-                ),
-              ],
+          Expanded(
+  child: Align(
+    alignment: Alignment.centerRight,
+    child: FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerRight,
+      child: Text(
+        _formatMoney(player.money),
+        textAlign: TextAlign.right,
+        maxLines: 1,
+        softWrap: false,
+        style: Theme.of(context)
+            .textTheme
+            .bodyMedium!
+            .copyWith(
+              fontWeight: FontWeight.w600,
             ),
-          ),
+      ),
+    ),
+  ),
+),
         ],
       ),
     );
