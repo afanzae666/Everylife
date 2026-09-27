@@ -74,10 +74,10 @@ class SettingsScreen extends StatelessWidget {
       ),
       body: ListView(
         padding: EdgeInsets.fromLTRB(
-          s(12),
+          s(8),
+          s(6),
           s(8),
           s(12),
-          s(16),
         ),
         children: [
           Text(
@@ -87,7 +87,7 @@ class SettingsScreen extends StatelessWidget {
                 .titleSmall,
           ),
           SizedBox(
-            height: s(4),
+            height: s(2),
           ),
           Card(
             margin: EdgeInsets.zero,
@@ -97,7 +97,7 @@ class SettingsScreen extends StatelessWidget {
                   dense: true,
                   contentPadding:
                       EdgeInsets.symmetric(
-                    horizontal: s(16),
+                    horizontal: s(12),
                   ),
                   leading: Icon(
                     Icons.zoom_in_outlined,
@@ -116,10 +116,10 @@ class SettingsScreen extends StatelessWidget {
                 Padding(
                   padding:
                       EdgeInsets.fromLTRB(
-                    s(8),
+                    s(6),
+                    s(2),
+                    s(6),
                     s(4),
-                    s(8),
-                    s(8),
                   ),
                   child: Slider(
                     value: zoom,
@@ -147,11 +147,11 @@ class SettingsScreen extends StatelessWidget {
                 Padding(
                   padding:
                       EdgeInsets.symmetric(
-                    horizontal: s(12),
+                    horizontal: s(8),
                   ),
                   child: Wrap(
-                    spacing: s(4),
-                    runSpacing: s(4),
+                    spacing: s(3),
+                    runSpacing: s(3),
                     children: [
                       for (final value
                           in zoomValues)
@@ -159,9 +159,9 @@ class SettingsScreen extends StatelessWidget {
                           padding:
                               EdgeInsets.symmetric(
                             horizontal:
-                                s(8),
+                                s(7),
                             vertical:
-                                s(4),
+                                s(3),
                           ),
                           label: Text(
                             '${(value * 100).round()}%',
@@ -183,7 +183,7 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(
-                  height: s(8),
+                  height: s(4),
                 ),
               ],
             ),
