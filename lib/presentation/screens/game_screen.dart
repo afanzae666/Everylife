@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
@@ -11,9 +12,7 @@ import 'more_screen.dart';
 import 'save_load_screen.dart';
 import 'settings_screen.dart';
 
-Future<void> _defaultUiScaleChanged(
-  double value,
-) async {}
+Future<void> _defaultUiScaleChanged(double value) async {}
 
 class GameScreen extends StatefulWidget {
   const GameScreen({
@@ -431,21 +430,27 @@ class _GameScreenState extends State<GameScreen> {
               children: [
                 Text(
                   player.name,
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: s(1)),
                 Text(
                   'Age $age • ${state.clock.currentYear}',
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: s(1)),
                 Text(
                   lifeStageLabel,
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -455,8 +460,10 @@ class _GameScreenState extends State<GameScreen> {
           SizedBox(width: s(6)),
           Flexible(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment:
+                  CrossAxisAlignment.end,
+              mainAxisAlignment:
+                  MainAxisAlignment.center,
               children: [
                 Text(
                   player.money.toString(),
@@ -467,7 +474,8 @@ class _GameScreenState extends State<GameScreen> {
                       .textTheme
                       .bodyMedium!
                       .copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight:
+                            FontWeight.w600,
                       ),
                 ),
                 Text(
@@ -475,7 +483,9 @@ class _GameScreenState extends State<GameScreen> {
                   textAlign: TextAlign.end,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall,
                 ),
               ],
             ),
@@ -508,10 +518,12 @@ class _GameScreenState extends State<GameScreen> {
               ),
             )
           : ListView.separated(
-              controller: _lifeEventsScrollController,
+              controller:
+                  _lifeEventsScrollController,
               padding: EdgeInsets.zero,
               itemCount: events.length,
-              separatorBuilder: (_, __) => SizedBox(
+              separatorBuilder: (_, __) =>
+                  SizedBox(
                 height: s(7),
               ),
               itemBuilder: (
@@ -519,17 +531,26 @@ class _GameScreenState extends State<GameScreen> {
                 index,
               ) {
                 final event = events[index];
-                final eventAge = event.year - player.birthYear;
+
+                final eventAge =
+                    event.year -
+                        player.birthYear;
 
                 return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: EdgeInsets.only(top: s(5)),
+                      padding:
+                          EdgeInsets.only(
+                        top: s(5),
+                      ),
                       child: Icon(
                         Icons.circle,
                         size: s(6),
-                        color: Theme.of(context)
+                        color: Theme.of(
+                          context,
+                        )
                             .colorScheme
                             .primary,
                       ),
@@ -541,20 +562,28 @@ class _GameScreenState extends State<GameScreen> {
                             CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Age $eventAge • ${event.year}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium!
-                                .copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                            'Age $eventAge • '
+                            '${event.year}',
+                            style:
+                                Theme.of(
+                              context,
+                            )
+                                    .textTheme
+                                    .bodyMedium!
+                                    .copyWith(
+                                      fontWeight:
+                                          FontWeight.w600,
+                                    ),
                           ),
                           SizedBox(height: s(1)),
                           Text(
                             event.description,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall,
+                            style:
+                                Theme.of(
+                              context,
+                            )
+                                    .textTheme
+                                    .bodySmall,
                           ),
                         ],
                       ),
@@ -585,7 +614,8 @@ class _GameScreenState extends State<GameScreen> {
           context,
           constraints,
         ) {
-          final crossAxisCount = _getStatColumnCount(
+          final crossAxisCount =
+              _getStatColumnCount(
             constraints.maxWidth,
             zoom,
           );
@@ -594,10 +624,12 @@ class _GameScreenState extends State<GameScreen> {
 
           return GridView.builder(
             shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
+            physics:
+                const NeverScrollableScrollPhysics(),
             gridDelegate:
                 SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
+              crossAxisCount:
+                  crossAxisCount,
               crossAxisSpacing: spacing,
               mainAxisSpacing: spacing,
               mainAxisExtent: s(50),
@@ -610,70 +642,113 @@ class _GameScreenState extends State<GameScreen> {
               switch (index) {
                 case 0:
                   return _StatCard(
-                    key: const Key('core-stat-health'),
+                    key: const Key(
+                      'core-stat-health',
+                    ),
                     label: 'Health',
-                    value: player.stats.health,
+                    value:
+                        player.stats.health,
                     icon: Icons.favorite,
                     zoom: zoom,
                   );
+
                 case 1:
                   return _StatCard(
-                    key: const Key('core-stat-intelligence'),
-                    label: 'Intelligence',
-                    value: player.stats.intelligence,
-                    icon: Icons.psychology,
+                    key: const Key(
+                      'core-stat-intelligence',
+                    ),
+                    label:
+                        'Intelligence',
+                    value:
+                        player.stats.intelligence,
+                    icon:
+                        Icons.psychology,
                     zoom: zoom,
                   );
+
                 case 2:
                   return _StatCard(
-                    key: const Key('core-stat-fitness'),
+                    key: const Key(
+                      'core-stat-fitness',
+                    ),
                     label: 'Fitness',
-                    value: player.stats.fitness,
-                    icon: Icons.fitness_center,
+                    value:
+                        player.stats.fitness,
+                    icon:
+                        Icons.fitness_center,
                     zoom: zoom,
                   );
+
                 case 3:
                   return _StatCard(
-                    key: const Key('core-stat-happiness'),
-                    label: 'Happiness',
-                    value: player.stats.happiness,
-                    icon: Icons.sentiment_satisfied,
+                    key: const Key(
+                      'core-stat-happiness',
+                    ),
+                    label:
+                        'Happiness',
+                    value:
+                        player.stats.happiness,
+                    icon: Icons
+                        .sentiment_satisfied,
                     zoom: zoom,
                   );
+
                 case 4:
                   return _StatCard(
-                    key: const Key('core-stat-willpower'),
-                    label: 'Willpower',
-                    value: player.stats.willpower,
-                    icon: Icons.shield_outlined,
+                    key: const Key(
+                      'core-stat-willpower',
+                    ),
+                    label:
+                        'Willpower',
+                    value:
+                        player.stats.willpower,
+                    icon:
+                        Icons.shield_outlined,
                     zoom: zoom,
                   );
+
                 case 5:
                   return _StatCard(
-                    key: const Key('core-stat-charisma'),
-                    label: 'Charisma',
-                    value: player.stats.charisma,
+                    key: const Key(
+                      'core-stat-charisma',
+                    ),
+                    label:
+                        'Charisma',
+                    value:
+                        player.stats.charisma,
                     icon: Icons.groups,
                     zoom: zoom,
                   );
+
                 case 6:
                   return _StatCard(
-                    key: const Key('core-stat-creativity'),
-                    label: 'Creativity',
-                    value: player.stats.creativity,
+                    key: const Key(
+                      'core-stat-creativity',
+                    ),
+                    label:
+                        'Creativity',
+                    value:
+                        player.stats.creativity,
                     icon: Icons.palette,
                     zoom: zoom,
                   );
+
                 case 7:
                   return _StatCard(
-                    key: const Key('core-stat-luck'),
+                    key: const Key(
+                      'core-stat-luck',
+                    ),
                     label: 'Luck',
-                    value: player.stats.luck,
-                    icon: Icons.auto_awesome,
+                    value:
+                        player.stats.luck,
+                    icon:
+                        Icons.auto_awesome,
                     zoom: zoom,
                   );
+
                 default:
-                  return const SizedBox.shrink();
+                  return const SizedBox
+                      .shrink();
               }
             },
           );
@@ -688,12 +763,18 @@ class _GameScreenState extends State<GameScreen> {
   ) {
     return _BottomNavigation(
       zoom: zoom,
-      isProcessing: _isProcessingTurn,
-      onCareerTap: _openCareerPage,
-      onAssetsTap: _openAssetsTab,
-      onAgeUpTap: _ageUp,
-      onLifeTap: _openLifePage,
-      onMoreTap: _openMorePage,
+      isProcessing:
+          _isProcessingTurn,
+      onCareerTap:
+          _openCareerPage,
+      onAssetsTap:
+          _openAssetsTab,
+      onAgeUpTap:
+          _ageUp,
+      onLifeTap:
+          _openLifePage,
+      onMoreTap:
+          _openMorePage,
     );
   }
 
@@ -718,16 +799,22 @@ class _GameScreenState extends State<GameScreen> {
     switch (stage) {
       case LifeStage.infant:
         return 'Infant';
+
       case LifeStage.toddler:
         return 'Toddler';
+
       case LifeStage.child:
         return 'Child';
+
       case LifeStage.teen:
         return 'Teen';
+
       case LifeStage.youngAdult:
         return 'Young Adult';
+
       case LifeStage.adult:
         return 'Adult';
+
       case LifeStage.senior:
         return 'Senior';
     }
@@ -745,11 +832,23 @@ class _ResponsiveCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(8),
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      color: theme.cardColor,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius:
+            BorderRadius.circular(8),
+        side: BorderSide(
+          color: theme.dividerColor
+              .withValues(alpha: 0.55),
+          width: 1,
+        ),
       ),
+      clipBehavior:
+          Clip.antiAlias,
       child: Padding(
         padding: padding,
         child: child,
@@ -774,37 +873,100 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double s(double value) => value * zoom;
+    double s(double value) =>
+        value * zoom;
+
+    final theme = Theme.of(context);
+    final primary =
+        theme.colorScheme.primary;
+
+    final progress =
+        value.clamp(0, 100).toDouble();
 
     return _ResponsiveCard(
-      padding: EdgeInsets.symmetric(
-        horizontal: s(4),
-        vertical: s(4),
+      padding: EdgeInsets.fromLTRB(
+        s(5),
+        s(5),
+        s(5),
+        s(4),
       ),
-      child: Row(
+      child: Column(
+        mainAxisAlignment:
+            MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: s(17),
-          ),
-          SizedBox(width: s(3)),
-          Expanded(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall,
+          SizedBox(
+            height: s(19),
+            width: double.infinity,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment:
+                  Alignment.centerLeft,
+              child: Row(
+                mainAxisSize:
+                    MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: s(15),
+                    color: primary,
+                  ),
+                  SizedBox(
+                    width: s(3),
+                  ),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: theme
+                        .textTheme
+                        .bodySmall!
+                        .copyWith(
+                          fontSize: 11,
+                        ),
+                  ),
+                  SizedBox(
+                    width: s(4),
+                  ),
+                  Text(
+                    value.toString(),
+                    maxLines: 1,
+                    softWrap: false,
+                    style: theme
+                        .textTheme
+                        .bodySmall!
+                        .copyWith(
+                          fontSize: 11,
+                          fontWeight:
+                              FontWeight.w600,
+                        ),
+                  ),
+                ],
+              ),
             ),
           ),
-          SizedBox(width: s(3)),
-          Text(
-            value.toString(),
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall!
-                .copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+          SizedBox(
+            height: s(3),
+          ),
+          ClipRRect(
+            borderRadius:
+                BorderRadius.circular(
+              s(4),
+            ),
+            child:
+                LinearProgressIndicator(
+              value:
+                  progress / 100,
+              minHeight: s(3),
+              backgroundColor:
+                  primary.withValues(
+                alpha: 0.12,
+              ),
+              valueColor:
+                  AlwaysStoppedAnimation<
+                      Color>(
+                primary,
+              ),
+            ),
           ),
         ],
       ),
@@ -812,7 +974,8 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _BottomNavigation extends StatelessWidget {
+class _BottomNavigation
+    extends StatelessWidget {
   const _BottomNavigation({
     required this.zoom,
     required this.isProcessing,
@@ -825,70 +988,121 @@ class _BottomNavigation extends StatelessWidget {
 
   final double zoom;
   final bool isProcessing;
-  final VoidCallback onCareerTap;
-  final VoidCallback onAssetsTap;
-  final Future<void> Function() onAgeUpTap;
-  final VoidCallback onLifeTap;
-  final VoidCallback onMoreTap;
+  final VoidCallback
+      onCareerTap;
+  final VoidCallback
+      onAssetsTap;
+  final Future<void> Function()
+      onAgeUpTap;
+  final VoidCallback
+      onLifeTap;
+  final VoidCallback
+      onMoreTap;
 
   @override
   Widget build(BuildContext context) {
-    double s(double value) => value * zoom;
+    double s(double value) =>
+        value * zoom;
 
     return SizedBox(
-      height: s(68),
+      height: s(74),
       child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
+        clipBehavior:
+            Clip.none,
+        alignment:
+            Alignment.center,
         children: [
           Container(
-            height: s(56),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(8),
+            height: s(64),
+            decoration:
+                BoxDecoration(
+              color:
+                  Theme.of(context)
+                      .cardColor,
+              borderRadius:
+                  BorderRadius.circular(
+                8,
+              ),
+              border:
+                  Border.all(
+                color:
+                    Theme.of(context)
+                        .dividerColor
+                        .withValues(
+                          alpha: 0.55,
+                        ),
+                width: 1,
+              ),
             ),
             child: Padding(
-              padding: EdgeInsets.symmetric(
+              padding:
+                  EdgeInsets.symmetric(
                 horizontal: s(4),
                 vertical: s(2),
               ),
               child: Row(
                 children: [
                   Expanded(
-                    child: _NavigationItem(
-                      icon: Icons.work_outline,
-                      label: 'Career',
-                      zoom: zoom,
-                      enabled: !isProcessing,
-                      onTap: onCareerTap,
+                    child:
+                        _NavigationItem(
+                      assetPath:
+                          'assets/icons/career.svg',
+                      label:
+                          'Career',
+                      zoom:
+                          zoom,
+                      enabled:
+                          !isProcessing,
+                      onTap:
+                          onCareerTap,
                     ),
                   ),
                   Expanded(
-                    child: _NavigationItem(
-                      icon: Icons.home_outlined,
-                      label: 'Assets',
-                      zoom: zoom,
-                      enabled: !isProcessing,
-                      onTap: onAssetsTap,
+                    child:
+                        _NavigationItem(
+                      assetPath:
+                          'assets/icons/assets.svg',
+                      label:
+                          'Assets',
+                      zoom:
+                          zoom,
+                      enabled:
+                          !isProcessing,
+                      onTap:
+                          onAssetsTap,
                     ),
                   ),
-                  SizedBox(width: s(68)),
+                  SizedBox(
+                    width: s(70),
+                  ),
                   Expanded(
-                    child: _NavigationItem(
-                      icon: Icons.groups_outlined,
-                      label: 'Life',
-                      zoom: zoom,
-                      enabled: !isProcessing,
-                      onTap: onLifeTap,
+                    child:
+                        _NavigationItem(
+                      assetPath:
+                          'assets/icons/life.svg',
+                      label:
+                          'Life',
+                      zoom:
+                          zoom,
+                      enabled:
+                          !isProcessing,
+                      onTap:
+                          onLifeTap,
                     ),
                   ),
                   Expanded(
-                    child: _NavigationItem(
-                      icon: Icons.more_horiz_outlined,
-                      label: 'More',
-                      zoom: zoom,
-                      enabled: !isProcessing,
-                      onTap: onMoreTap,
+                    child:
+                        _NavigationItem(
+                      assetPath:
+                          'assets/icons/more.svg',
+                      label:
+                          'More',
+                      zoom:
+                          zoom,
+                      enabled:
+                          !isProcessing,
+                      onTap:
+                          onMoreTap,
                     ),
                   ),
                 ],
@@ -896,23 +1110,33 @@ class _BottomNavigation extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: -s(8),
+            top: -s(7),
             child: SizedBox(
-              width: s(64),
-              height: s(64),
-              child: FloatingActionButton(
-                key: const Key('bottom-nav-age-up'),
-                heroTag: 'everylife-age-up',
-                onPressed: isProcessing
-                    ? null
-                    : () async {
-                        await onAgeUpTap();
-                      },
-                tooltip: 'Age Up',
+              width: s(68),
+              height: s(68),
+              child:
+                  FloatingActionButton(
+                key: const Key(
+                  'bottom-nav-age-up',
+                ),
+                heroTag:
+                    'everylife-age-up',
+                onPressed:
+                    isProcessing
+                        ? null
+                        : () async {
+                            await onAgeUpTap();
+                          },
+                tooltip:
+                    'Age Up',
                 elevation: 4,
-                child: Icon(
-                  Icons.auto_awesome,
-                  size: s(28),
+                child:
+                    Image.asset(
+                  'assets/icons/age_up.png',
+                  width: s(34),
+                  height: s(34),
+                  fit:
+                      BoxFit.contain,
                 ),
               ),
             ),
@@ -923,16 +1147,17 @@ class _BottomNavigation extends StatelessWidget {
   }
 }
 
-class _NavigationItem extends StatelessWidget {
+class _NavigationItem
+    extends StatelessWidget {
   const _NavigationItem({
-    required this.icon,
+    required this.assetPath,
     required this.label,
     required this.zoom,
     required this.enabled,
     required this.onTap,
   });
 
-  final IconData icon;
+  final String assetPath;
   final String label;
   final double zoom;
   final bool enabled;
@@ -940,29 +1165,51 @@ class _NavigationItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double s(double value) => value * zoom;
+    double s(double value) =>
+        value * zoom;
 
     return InkWell(
-      onTap: enabled ? onTap : null,
-      borderRadius: BorderRadius.circular(s(8)),
+      onTap:
+          enabled ? onTap : null,
+      borderRadius:
+          BorderRadius.circular(
+        s(8),
+      ),
       child: Padding(
-        padding: EdgeInsets.symmetric(
+        padding:
+            EdgeInsets.symmetric(
           horizontal: s(2),
           vertical: s(2),
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment:
+              MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: s(23),
+            Opacity(
+              opacity:
+                  enabled ? 1.0 : 0.38,
+              child:
+                  SvgPicture.asset(
+                assetPath,
+                width: s(23),
+                height: s(23),
+                fit:
+                    BoxFit.contain,
+              ),
             ),
-            SizedBox(height: s(1)),
+            SizedBox(
+              height: s(2),
+            ),
             Text(
               label,
               maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelSmall,
+              overflow:
+                  TextOverflow.ellipsis,
+              style: Theme.of(
+                context,
+              )
+                  .textTheme
+                  .labelSmall,
             ),
           ],
         ),
