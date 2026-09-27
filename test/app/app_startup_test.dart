@@ -213,7 +213,7 @@ void main() {
         );
 
         expect(
-          find.text('Age 20'),
+          find.text('Age 20 • 2050')
           findsOneWidget,
         );
 
@@ -369,7 +369,7 @@ void main() {
         );
 
         expect(
-          find.text('Age 20'),
+          find.text('Age 20 • 2060')
           findsOneWidget,
         );
 
