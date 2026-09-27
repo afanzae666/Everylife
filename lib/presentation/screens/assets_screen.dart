@@ -26,9 +26,9 @@ class AssetsScreen extends StatelessWidget {
           child: ListView(
             padding: EdgeInsets.fromLTRB(
               s(8),
+              s(6),
               s(8),
-              s(8),
-              s(16),
+              s(12),
             ),
             children: [
               Text(
@@ -37,18 +37,18 @@ class AssetsScreen extends StatelessWidget {
                     .textTheme
                     .titleLarge,
               ),
-              SizedBox(height: s(2)),
+              SizedBox(height: s(1)),
               Text(
                 'Everything your character owns.',
                 style: Theme.of(context)
                     .textTheme
                     .bodySmall,
               ),
-              SizedBox(height: s(8)),
+              SizedBox(height: s(4)),
               Card(
                 margin: EdgeInsets.zero,
                 child: Padding(
-                  padding: EdgeInsets.all(s(10)),
+                  padding: EdgeInsets.all(s(8)),
                   child: Column(
                     crossAxisAlignment:
                         CrossAxisAlignment.start,
@@ -59,7 +59,7 @@ class AssetsScreen extends StatelessWidget {
                             .textTheme
                             .titleSmall,
                       ),
-                      SizedBox(height: s(5)),
+                      SizedBox(height: s(3)),
                       _AssetRow(
                         label: 'Cash',
                         value: player.money.toString(),
@@ -89,11 +89,11 @@ class AssetsScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(height: s(8)),
+              SizedBox(height: s(2)),
               Card(
                 margin: EdgeInsets.zero,
                 child: Padding(
-                  padding: EdgeInsets.all(s(10)),
+                  padding: EdgeInsets.all(s(8)),
                   child: Column(
                     crossAxisAlignment:
                         CrossAxisAlignment.start,
@@ -104,7 +104,7 @@ class AssetsScreen extends StatelessWidget {
                             .textTheme
                             .titleSmall,
                       ),
-                      SizedBox(height: s(4)),
+                      SizedBox(height: s(2)),
                       const _FutureAssetItem(
                         icon: Icons.home_outlined,
                         title: 'Houses',
@@ -154,7 +154,7 @@ class _AssetRow extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.symmetric(
-        vertical: s(3),
+        vertical: s(1),
       ),
       child: Row(
         children: [
@@ -166,7 +166,7 @@ class _AssetRow extends StatelessWidget {
                   .bodySmall,
             ),
           ),
-          SizedBox(width: s(8)),
+          SizedBox(width: s(6)),
           Flexible(
             child: Text(
               value,
