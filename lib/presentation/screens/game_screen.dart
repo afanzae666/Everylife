@@ -333,7 +333,7 @@ class _GameScreenState extends State<GameScreen> {
       appBar: AppBar(
         title: Image.asset(
           'assets/images/everylife_logo.png',
-          height: s(34),
+          height: s(38),
           fit: BoxFit.contain,
         ),
         actions: [
@@ -988,7 +988,9 @@ class _BottomNavigation extends StatelessWidget {
                     ),
                   ),
                   Expanded(
-                    child: _NavigationMoreItem(
+                    child: _NavigationItem(
+                      assetPath:
+                          'assets/icons/more.svg',
                       label: 'More',
                       zoom: zoom,
                       enabled: !isProcessing,
@@ -1039,8 +1041,8 @@ class _AgeUpButton extends StatelessWidget {
             : null,
         customBorder: const CircleBorder(),
         child: Ink(
-          width: s(64),
-          height: s(64),
+          width: s(70),
+          height: s(70),
           decoration: BoxDecoration(
             color: _everyLifeSurfaceColor,
             shape: BoxShape.circle,
@@ -1127,58 +1129,6 @@ class _NavigationItem extends StatelessWidget {
                 width: s(23),
                 height: s(23),
                 fit: BoxFit.contain,
-              ),
-            ),
-            SizedBox(height: s(2)),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelSmall,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NavigationMoreItem extends StatelessWidget {
-  const _NavigationMoreItem({
-    required this.label,
-    required this.zoom,
-    required this.enabled,
-    required this.onTap,
-  });
-
-  final String label;
-  final double zoom;
-  final bool enabled;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    double s(double value) => value * zoom;
-
-    return InkWell(
-      onTap: enabled ? onTap : null,
-      borderRadius: BorderRadius.circular(s(8)),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: s(2),
-          vertical: s(2),
-        ),
-        child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
-          children: [
-            Opacity(
-              opacity: enabled ? 1.0 : 0.38,
-              child: Icon(
-                Icons.more_horiz_outlined,
-                size: s(23),
               ),
             ),
             SizedBox(height: s(2)),
