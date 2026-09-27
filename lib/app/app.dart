@@ -98,8 +98,8 @@ class _LifeSimulationAppState
         DateTime.now();
 
     try {
-      final saveData =
-          await _saveRepository.load();
+            final saveData =
+          await _loadStartupSave();
 
       await _ensureMinimumLoadingDuration(
         initializationStartedAt,
@@ -184,7 +184,57 @@ class _LifeSimulationAppState
         .saveUiScale(value);
   }
 
-  Future<void> _createCharacter(
+  Future<void> 
+        Future<SaveData?> _loadStartupSave() async {
+    final autosave = await _saveRepository.load(
+      slot: SaveSlot.autosave,
+    );
+
+    if (autosave != null) {
+      return autosave;
+    }
+
+    const manualSlots = [
+      SaveSlot.manual1,
+      SaveSlot.manual2,
+      SaveSlot.manual3,
+      SaveSlot.manual4,
+    ];
+
+    SaveData? latestManualSave;
+
+    for (final slot in manualSlots) {
+      final saveData = await _saveRepository.load(
+        slot: slot,
+      );
+
+      if (saveData == null) {
+        continue;
+      }
+
+      if (latestManualSave == null) {
+        latestManualSave = saveData;
+        continue;
+      }
+
+      final currentSavedAt =
+          saveData.savedAt;
+
+      final latestSavedAt =
+          latestManualSave.savedAt;
+
+      if (currentSavedAt != null &&
+          (latestSavedAt == null ||
+              currentSavedAt.isAfter(
+                latestSavedAt,
+              ))) {
+        latestManualSave = saveData;
+      }
+    }
+
+    return latestManualSave;
+  }
+      _createCharacter(
     Character character,
   ) async {
     if (_isCreatingCharacter) {
