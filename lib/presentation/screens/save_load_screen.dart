@@ -393,7 +393,7 @@ class _SaveLoadScreenState
             children: [
               _buildAutoSaveCard(),
               SizedBox(
-                height: 12 * widget.zoom,
+                height: 4 * widget.zoom,
               ),
               Text(
                 'Manual Saves',
@@ -402,7 +402,7 @@ class _SaveLoadScreenState
                     .titleSmall,
               ),
               SizedBox(
-                height: 4 * widget.zoom,
+                height: 2 * widget.zoom,
               ),
               for (final slot in slots.skip(1))
                 _buildSlotCard(slot),
@@ -470,7 +470,7 @@ class _SaveLoadScreenState
   ) {
     return Padding(
       padding: EdgeInsets.only(
-        bottom: 6 * widget.zoom,
+        bottom: 2 * widget.zoom,
       ),
       child: Card(
         margin: EdgeInsets.zero,
@@ -492,7 +492,7 @@ class _SaveLoadScreenState
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: 8 * widget.zoom,
-        vertical: 4 * widget.zoom,
+        vertical: 2 * widget.zoom,
       ),
       child: Row(
         children: [
@@ -503,7 +503,7 @@ class _SaveLoadScreenState
             size: 22 * widget.zoom,
           ),
           SizedBox(
-            width: 8 * widget.zoom,
+            width: 6 * widget.zoom,
           ),
           Expanded(
             child: Column(
@@ -517,7 +517,7 @@ class _SaveLoadScreenState
                       .bodyMedium,
                 ),
                 SizedBox(
-                  height: 2 * widget.zoom,
+                  height: 1 * widget.zoom,
                 ),
                 if (isEmpty)
                   Text(
