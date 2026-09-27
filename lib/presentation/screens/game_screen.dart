@@ -370,7 +370,7 @@ class _GameScreenState extends State<GameScreen> {
               age,
               lifeStageLabel,
             ),
-            SizedBox(height: s(4)),
+            SizedBox(height: s(2)),
             Expanded(
               child: _buildLifeEventsCard(
                 context,
@@ -379,13 +379,13 @@ class _GameScreenState extends State<GameScreen> {
                 events,
               ),
             ),
-            SizedBox(height: s(4)),
+            SizedBox(height: s(2)),
             _buildCoreStatsCard(
               context,
               zoom,
               player,
             ),
-            SizedBox(height: s(4)),
+            SizedBox(height: s(2)),
             _buildBottomNavigation(
               context,
               zoom,
@@ -524,7 +524,7 @@ class _GameScreenState extends State<GameScreen> {
               padding: EdgeInsets.zero,
               itemCount: events.length,
               separatorBuilder: (_, __) => SizedBox(
-                height: s(7),
+                height: s(3),
               ),
               itemBuilder: (
                 context,
@@ -609,7 +609,7 @@ class _GameScreenState extends State<GameScreen> {
             zoom,
           );
 
-          final spacing = s(4);
+          final spacing = s(2);
 
           return GridView.builder(
             shrinkWrap: true,
@@ -1002,7 +1002,7 @@ class _BottomNavigation extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: -s(30),
+            top: -s(24),
             child: _AgeUpButton(
               zoom: zoom,
               enabled: !isProcessing,
@@ -1041,8 +1041,8 @@ class _AgeUpButton extends StatelessWidget {
             : null,
         customBorder: const CircleBorder(),
         child: Ink(
-          width: s(70),
-          height: s(70),
+          width: s(75),
+          height: s(75),
           decoration: BoxDecoration(
             color: _everyLifeSurfaceColor,
             shape: BoxShape.circle,
