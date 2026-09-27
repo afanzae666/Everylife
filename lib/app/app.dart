@@ -321,58 +321,58 @@ class _LifeSimulationAppState
       headlineSmall:
           baseTextTheme.headlineSmall
               ?.copyWith(
-        fontSize: 27,
+        fontSize: 24.3,
         fontWeight: FontWeight.w700,
       ),
       titleLarge:
           baseTextTheme.titleLarge
               ?.copyWith(
-        fontSize: 24,
+        fontSize: 21.6,
         fontWeight: FontWeight.w700,
       ),
       titleMedium:
           baseTextTheme.titleMedium
               ?.copyWith(
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: FontWeight.w700,
       ),
       titleSmall:
           baseTextTheme.titleSmall
               ?.copyWith(
-        fontSize: 18,
+        fontSize: 16.2,
         fontWeight: FontWeight.w700,
       ),
       bodyLarge:
           baseTextTheme.bodyLarge
               ?.copyWith(
-        fontSize: 17,
+        fontSize: 15.3,
       ),
       bodyMedium:
           baseTextTheme.bodyMedium
               ?.copyWith(
-        fontSize: 16,
+        fontSize: 14.4,
       ),
       bodySmall:
           baseTextTheme.bodySmall
               ?.copyWith(
-        fontSize: 14,
+        fontSize: 12.6,
       ),
       labelLarge:
           baseTextTheme.labelLarge
               ?.copyWith(
-        fontSize: 15,
+        fontSize: 13.5,
         fontWeight: FontWeight.w700,
       ),
       labelMedium:
           baseTextTheme.labelMedium
               ?.copyWith(
-        fontSize: 14,
+        fontSize: 12.6,
         fontWeight: FontWeight.w600,
       ),
       labelSmall:
           baseTextTheme.labelSmall
               ?.copyWith(
-        fontSize: 13,
+        fontSize: 11.7,
         fontWeight: FontWeight.w600,
       ),
     );
@@ -384,7 +384,7 @@ class _LifeSimulationAppState
         titleTextStyle:
             everyLifeTextTheme.titleLarge
                 ?.copyWith(
-          fontSize: 22,
+          fontSize: 19.8,
           fontWeight: FontWeight.w700,
         ),
       ),
