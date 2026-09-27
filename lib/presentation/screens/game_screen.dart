@@ -59,6 +59,8 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     _autoSaveController = ValueNotifier<bool>(true);
+
+    _scrollLifeEventsToBottom(jump: true);
   }
 
   @override
@@ -73,7 +75,9 @@ class _GameScreenState extends State<GameScreen> {
     super.dispose();
   }
 
-  void _scrollLifeEventsToBottom() {
+  void _scrollLifeEventsToBottom({
+    bool jump = false,
+  }) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_lifeEventsScrollController.hasClients) {
         return;
@@ -82,6 +86,13 @@ class _GameScreenState extends State<GameScreen> {
       final position = _lifeEventsScrollController.position;
 
       if (position.maxScrollExtent <= 0) {
+        return;
+      }
+
+      if (jump) {
+        _lifeEventsScrollController.jumpTo(
+          position.maxScrollExtent,
+        );
         return;
       }
 
@@ -385,7 +396,7 @@ class _GameScreenState extends State<GameScreen> {
               zoom,
               player,
             ),
-            SizedBox(height: s(2)),
+            SizedBox(height: s(6)),
             _buildBottomNavigation(
               context,
               zoom,
