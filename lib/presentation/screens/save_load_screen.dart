@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../core/result/result.dart';
 import '../../data/repositories/save_repository.dart';
-import '../../domain/world/world_state.dart';
 
 class SaveLoadScreen extends StatefulWidget {
   const SaveLoadScreen({
