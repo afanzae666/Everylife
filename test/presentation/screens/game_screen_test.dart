@@ -697,8 +697,21 @@ void main() {
 
         await openSaveLoadScreen(tester);
 
+        final manual1Card = find.ancestor(
+          of: find.text('Manual 1'),
+          matching: find.byType(Card),
+        );
+
+        expect(
+          manual1Card,
+          findsOneWidget,
+        );
+
         await tester.tap(
-          find.byTooltip('Load'),
+          find.descendant(
+            of: manual1Card,
+            matching: find.byTooltip('Load'),
+          ),
         );
 
         await tester.pumpAndSettle();
