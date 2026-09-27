@@ -299,5 +299,84 @@ void main() {
         );
       },
     );
+        testWidgets(
+      'loads a manual save when no autosave exists',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final manualState =
+            WorldState(
+          clock: const SimulationClock(
+            currentYear: 2060,
+          ),
+          player: Character.create(
+            id: 'manual-player',
+            firstName: 'Manual',
+            lastName: 'Life',
+            birthYear: 2040,
+          ),
+          events: const [],
+        );
+
+        await repository.save(
+          manualState,
+          randomState: 246810,
+          nextTickId: 50,
+          slot: SaveSlot.manual1,
+        );
+
+        expect(
+          await repository.load(
+            slot: SaveSlot.autosave,
+          ),
+          isNull,
+        );
+
+        expect(
+          await repository.load(
+            slot: SaveSlot.manual1,
+          ),
+          isNotNull,
+        );
+
+        await tester.pumpWidget(
+          LifeSimulationApp(
+            dependencies: AppDependencies(
+              saveRepository: repository,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byType(GameScreen),
+          findsOneWidget,
+        );
+
+        expect(
+          find.byType(
+            CharacterCreationScreen,
+          ),
+          findsNothing,
+        );
+
+        expect(
+          find.text('Manual Life'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Age 20'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Year 2060'),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }
