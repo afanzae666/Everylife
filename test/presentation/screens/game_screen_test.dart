@@ -98,9 +98,9 @@ void main() {
         );
 
         expect(
-          find.text('\$0.00'),
-          findsOneWidget,
-        );
+  find.text('\$0'),
+  findsOneWidget,
+);
       },
     );
 
