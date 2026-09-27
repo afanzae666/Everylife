@@ -88,12 +88,7 @@ void main() {
         );
 
         expect(
-          find.text('Age 0 • 2026')
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('Year 2026'),
+          find.text('Age 0 • 2026'),
           findsOneWidget,
         );
 
@@ -213,14 +208,14 @@ void main() {
         );
 
         expect(
-  find.text('Test Player'),
-  findsOneWidget,
-);
+          find.text('Test Player'),
+          findsOneWidget,
+        );
 
         expect(
-  find.text('Born'),
-  findsOneWidget,
-);
+          find.text('Born'),
+          findsOneWidget,
+        );
       },
     );
 
