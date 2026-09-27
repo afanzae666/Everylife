@@ -138,6 +138,13 @@ class _SaveLoadScreenState
   Future<void> _handleOverwrite(
     SaveSlot slot,
   ) async {
+    final confirmed =
+        await _confirmOverwrite(slot);
+
+    if (!mounted || !confirmed) {
+      return;
+    }
+
     await _handleSave(slot);
   }
 
@@ -190,7 +197,8 @@ class _SaveLoadScreenState
       return;
     }
 
-    final confirmed = await _confirmDelete(slot);
+    final confirmed =
+        await _confirmDelete(slot);
 
     if (!mounted || !confirmed) {
       return;
@@ -225,6 +233,47 @@ class _SaveLoadScreenState
     setState(() {
       _isProcessing = false;
     });
+  }
+
+  Future<bool> _confirmOverwrite(
+    SaveSlot slot,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        final zoom = widget.zoom;
+
+        return AlertDialog(
+          title: const Text(
+            'Overwrite Save?',
+          ),
+          content: Text(
+            'Overwrite ${_slotName(slot)} '
+            'with your current game?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(
+                  dialogContext,
+                ).pop(false);
+              },
+              child: const Text('CANCEL'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(
+                  dialogContext,
+                ).pop(true);
+              },
+              child: const Text('OVERWRITE'),
+            ),
+          ],
+        );
+      },
+    );
+
+    return confirmed ?? false;
   }
 
   Future<bool> _confirmDelete(
