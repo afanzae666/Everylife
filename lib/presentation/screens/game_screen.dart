@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../domain/character/gender.dart';
@@ -42,6 +43,7 @@ class _GameScreenState extends State<GameScreen> {
   late final ValueNotifier<bool> _autoSaveController;
 
   bool _isProcessingTurn = false;
+  bool _isExitDialogShowing = false;
 
   final ScrollController _lifeEventsScrollController =
       ScrollController();
@@ -73,6 +75,48 @@ class _GameScreenState extends State<GameScreen> {
     _lifeEventsScrollController.dispose();
 
     super.dispose();
+  }
+
+  Future<void> _confirmExitGame() async {
+    if (!mounted || _isExitDialogShowing) {
+      return;
+    }
+
+    _isExitDialogShowing = true;
+
+    try {
+      final shouldExit = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text(
+              'Do you want to leave this world?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop(false);
+                },
+                child: const Text('STAY'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop(true);
+                },
+                child: const Text('EXIT'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (shouldExit == true && mounted) {
+        await SystemNavigator.pop();
+      }
+    } finally {
+      _isExitDialogShowing = false;
+    }
   }
 
   void _scrollLifeEventsToBottom({
@@ -299,32 +343,38 @@ class _GameScreenState extends State<GameScreen> {
       LifeStageAge.fromAge(age),
     );
 
-    return ValueListenableBuilder<double>(
-      valueListenable: _uiScaleController,
-      builder: (
-        context,
-        zoom,
-        _,
-      ) {
-        final mediaQuery = MediaQuery.of(context);
-
-        final scaledMediaQuery = mediaQuery.copyWith(
-          textScaler: TextScaler.linear(zoom),
-        );
-
-        return MediaQuery(
-          data: scaledMediaQuery,
-          child: _buildScaffold(
-            context,
-            zoom,
-            state,
-            player,
-            age,
-            lifeStageLabel,
-            state.events,
-          ),
-        );
+    return PopScope<void>(
+      canPop: false,
+      onPopInvokedWithResult: (_, __) {
+        _confirmExitGame();
       },
+      child: ValueListenableBuilder<double>(
+        valueListenable: _uiScaleController,
+        builder: (
+          context,
+          zoom,
+          _,
+        ) {
+          final mediaQuery = MediaQuery.of(context);
+
+          final scaledMediaQuery = mediaQuery.copyWith(
+            textScaler: TextScaler.linear(zoom),
+          );
+
+          return MediaQuery(
+            data: scaledMediaQuery,
+            child: _buildScaffold(
+              context,
+              zoom,
+              state,
+              player,
+              age,
+              lifeStageLabel,
+              state.events,
+            ),
+          );
+        },
+      ),
     );
   }
 
