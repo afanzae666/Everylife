@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
@@ -995,7 +994,8 @@ class _GameScreenState
     return _BottomNavigation(
       zoom: zoom,
       isProcessing: _isProcessingTurn,
-      selectedIndex: _selectedNavigationIndex,
+      selectedIndex:
+          _selectedNavigationIndex,
       onCareerTap: _openCareerPage,
       onAssetsTap: _openAssetsTab,
       onAgeUpTap: _ageUp,
