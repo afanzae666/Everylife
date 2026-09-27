@@ -238,7 +238,7 @@ class _GameScreenState
     );
   }
 
-    void _openAssetsTab() {
+  void _openAssetsTab() {
     if (_isProcessingTurn) {
       return;
     }
@@ -316,16 +316,6 @@ class _GameScreenState
         ),
       ),
     );
-  }
-    if (_isProcessingTurn) {
-      return;
-    }
-
-    setState(() {
-      _selectedNavigationIndex = 1;
-    });
-
-    Navigator.of(context).pop();
   }
 
   @override
@@ -998,43 +988,21 @@ class _GameScreenState
     );
   }
 
-    Widget _buildBottomNavigation(
+  Widget _buildBottomNavigation(
     BuildContext context,
     double zoom,
   ) {
     return _BottomNavigation(
       zoom: zoom,
-      isProcessing:
-          _isProcessingTurn,
-      selectedIndex:
-          _selectedNavigationIndex,
-      onCareerTap:
-          _openCareerPage,
-      onAssetsTap:
-          _openAssetsTab,
-      onAgeUpTap:
-          _ageUp,
-      onLifeTap:
-          _openLifePage,
-      onMoreTap:
-          _openMorePage,
-    );
-  }
-    BuildContext context,
-    double zoom,
-  ) {
-    return _BottomNavigation(
-      zoom: zoom,
-      isProcessing:
-          _isProcessingTurn,
-      selectedIndex:
-          _selectedNavigationIndex,
+      isProcessing: _isProcessingTurn,
+      selectedIndex: _selectedNavigationIndex,
       onCareerTap: _openCareerPage,
-      onAssetsTap:
-          _openAssetsTab,
+      onAssetsTap: _openAssetsTab,
       onAgeUpTap: _ageUp,
       onLifeTap: _openLifePage,
       onMoreTap: _openMorePage,
+    );
+  }
 
   int _getStatColumnCount(
     double availableWidth,
@@ -1044,455 +1012,60 @@ class _GameScreenState
       return 4;
     }
 
-    if (zoom <= 1.55) {
-      return availableWidth >= 320
-          ? 3
-          : 2;
+    if (zoom <= 1.3) {
+      return 3;
     }
 
-    return availableWidth >= 320
-        ? 2
-        : 1;
+    return 2;
   }
 
   String _formatLifeStage(
-    LifeStage stage,
+    LifeStageAge lifeStage,
   ) {
-    switch (stage) {
-      case LifeStage.infant:
-        return 'Infant';
-
-      case LifeStage.toddler:
+    switch (lifeStage) {
+      case LifeStageAge.infancy:
+        return 'Infancy';
+      case LifeStageAge.toddler:
         return 'Toddler';
-
-      case LifeStage.child:
-        return 'Child';
-
-      case LifeStage.teen:
-        return 'Teen';
-
-      case LifeStage.youngAdult:
-        return 'Young Adult';
-
-      case LifeStage.adult:
-        return 'Adult';
-
-      case LifeStage.senior:
-        return 'Senior';
+      case LifeStageAge.childhood:
+        return 'Childhood';
+      case LifeStageAge.adolescence:
+        return 'Adolescence';
+      case LifeStageAge.earlyAdulthood:
+        return 'Early Adulthood';
+      case LifeStageAge.middleAge:
+        return 'Middle Age';
+      case LifeStageAge.lateAdulthood:
+        return 'Late Adulthood';
     }
   }
 }
 
-class _BottomNavigation
-    extends StatelessWidget {
-  const _BottomNavigation({
-    required this.zoom,
-    required this.isProcessing,
-    required this.selectedIndex,
-    required this.onCareerTap,
-    required this.onAssetsTap,
-    required this.onAgeUpTap,
-    required this.onLifeTap,
-    required this.onMoreTap,
-  });
-
-  final double zoom;
-  final bool isProcessing;
-  final int selectedIndex;
-  final VoidCallback onCareerTap;
-  final VoidCallback onAssetsTap;
-  final VoidCallback onAgeUpTap;
-  final VoidCallback onLifeTap;
-  final VoidCallback onMoreTap;
-
-  @override
-  Widget build(BuildContext context) {
-    double s(double value) =>
-        value * zoom;
-
-    final textStyle =
-        Theme.of(context)
-            .textTheme
-            .labelSmall!
-            .copyWith(
-              fontWeight:
-                  FontWeight.w600,
-            );
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        s(4),
-        s(4),
-        s(4),
-        s(4),
-      ),
-      decoration: BoxDecoration(
-        color: Theme.of(context)
-            .scaffoldBackgroundColor,
-        border: Border(
-          top: BorderSide(
-            color: Theme.of(context)
-                .colorScheme
-                .outlineVariant,
-          ),
-        ),
-      ),
-      child: SizedBox(
-        height: s(60),
-        child: Row(
-          crossAxisAlignment:
-              CrossAxisAlignment.stretch,
-          children: [
-            _BottomNavigationItem(
-              key: const Key(
-                'bottom-nav-career',
-              ),
-              label: 'Career',
-              assetPath:
-                  'assets/icons/career.svg',
-              iconSize: s(25),
-              textStyle: textStyle,
-              selected:
-                  selectedIndex == 0,
-              onTap: isProcessing
-                  ? () {}
-                  : onCareerTap,
-            ),
-            _BottomNavigationItem(
-              key: const Key(
-                'bottom-nav-assets',
-              ),
-              label: 'Assets',
-              assetPath:
-                  'assets/icons/assets.svg',
-              iconSize: s(25),
-              textStyle: textStyle,
-              selected:
-                  selectedIndex == 1,
-              onTap: isProcessing
-                  ? () {}
-                  : onAssetsTap,
-            ),
-            _AgeUpNavigationItem(
-              key: const Key(
-                'bottom-nav-age-up',
-              ),
-              zoom: zoom,
-              isProcessing:
-                  isProcessing,
-              onTap: onAgeUpTap,
-              textStyle: textStyle,
-            ),
-            _BottomNavigationItem(
-              key: const Key(
-                'bottom-nav-life',
-              ),
-              label: 'Life',
-              assetPath:
-                  'assets/icons/life.svg',
-              iconSize: s(25),
-              textStyle: textStyle,
-              selected:
-                  selectedIndex == 3,
-              onTap: isProcessing
-                  ? () {}
-                  : onLifeTap,
-            ),
-            _BottomNavigationItem(
-              key: const Key(
-                'bottom-nav-more',
-              ),
-              label: 'More',
-              assetPath:
-                  'assets/icons/more.svg',
-              iconSize: s(25),
-              textStyle: textStyle,
-              selected:
-                  selectedIndex == 4,
-              onTap: isProcessing
-                  ? () {}
-                  : onMoreTap,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BottomNavigationItem
-    extends StatelessWidget {
-  const _BottomNavigationItem({
-    required this.label,
-    required this.assetPath,
-    required this.iconSize,
-    required this.textStyle,
-    required this.selected,
-    required this.onTap,
-    super.key,
-  });
-
-  final String label;
-  final String assetPath;
-  final double iconSize;
-  final TextStyle textStyle;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme =
-        Theme.of(context).colorScheme;
-
-    return Expanded(
-      child: Semantics(
-        button: true,
-        selected: selected,
-        label: label,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius:
-              BorderRadius.circular(10),
-          child: Column(
-            mainAxisAlignment:
-                MainAxisAlignment.center,
-            mainAxisSize:
-                MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: iconSize,
-                height: iconSize,
-                child: SvgPicture.asset(
-                  assetPath,
-                  semanticsLabel: label,
-                  fit: BoxFit.contain,
-                  colorFilter:
-                      ColorFilter.mode(
-                    selected
-                        ? colorScheme.primary
-                        : colorScheme.onSurface,
-                    BlendMode.srcIn,
-                  ),
-                ),
-              ),
-              SizedBox(
-                height:
-                    1 *
-                        (iconSize / 25),
-              ),
-              Text(
-                label,
-                maxLines: 1,
-                overflow:
-                    TextOverflow.ellipsis,
-                style: textStyle.copyWith(
-                  color: selected
-                      ? colorScheme.primary
-                      : null,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AgeUpNavigationItem
-    extends StatelessWidget {
-  const _AgeUpNavigationItem({
-    required this.zoom,
-    required this.isProcessing,
-    required this.onTap,
-    required this.textStyle,
-    super.key,
-  });
-
-  final double zoom;
-  final bool isProcessing;
-  final VoidCallback onTap;
-  final TextStyle textStyle;
-
-  @override
-  Widget build(BuildContext context) {
-    double s(double value) =>
-        value * zoom;
-
-    final colorScheme =
-        Theme.of(context).colorScheme;
-
-    return Expanded(
-      child: Semantics(
-        button: true,
-        label: 'Age Up',
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.topCenter,
-          children: [
-            Positioned(
-              top: -s(17),
-              child: SizedBox(
-                width: s(72),
-                height: s(72),
-                child: FilledButton(
-                  onPressed:
-                      isProcessing
-                          ? null
-                          : onTap,
-                  style:
-                      FilledButton.styleFrom(
-                    padding:
-                        EdgeInsets.zero,
-                    shape:
-                        const CircleBorder(),
-                    backgroundColor:
-                        colorScheme
-                            .surface,
-                    foregroundColor:
-                        colorScheme
-                            .primary,
-                    disabledBackgroundColor:
-                        colorScheme
-                            .surface,
-                    disabledForegroundColor:
-                        colorScheme
-                            .onSurfaceVariant,
-                    side: BorderSide(
-                      color:
-                          colorScheme.primary,
-                      width: s(1.5),
-                    ),
-                    elevation: 5,
-                    shadowColor:
-                        Colors.black54,
-                  ),
-                  child: isProcessing
-                      ? SizedBox(
-                          width: s(28),
-                          height: s(28),
-                          child:
-                              CircularProgressIndicator(
-                            strokeWidth:
-                                s(2.2),
-                            color:
-                                colorScheme
-                                    .primary,
-                          ),
-                        )
-                      : ClipOval(
-                          child:
-                              SizedBox(
-                            width: s(58),
-                            height: s(58),
-                            child:
-                                Transform.scale(
-                              scale: 1.55,
-                              child:
-                                  Image.asset(
-                                'assets/icons/age_up.png',
-                                width: s(58),
-                                height: s(58),
-                                fit: BoxFit
-                                    .contain,
-                                color:
-                                    colorScheme
-                                        .primary,
-                                colorBlendMode:
-                                    BlendMode
-                                        .srcIn,
-                              ),
-                            ),
-                          ),
-                        ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ResponsiveCard
-    extends StatelessWidget {
+class _ResponsiveCard extends StatelessWidget {
   const _ResponsiveCard({
-    required this.padding,
     required this.child,
+    required this.padding,
   });
 
-  final EdgeInsets padding;
   final Widget child;
+  final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: Card(
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: padding,
-          child: child,
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: padding,
+        child: child,
       ),
     );
   }
 }
 
-class _AssetSummaryRow
-    extends StatelessWidget {
-  const _AssetSummaryRow({
-    required this.label,
-    required this.value,
-    required this.zoom,
-  });
-
-  final String label;
-  final String value;
-  final double zoom;
-
-  @override
-  Widget build(BuildContext context) {
-    double s(double value) =>
-        value * zoom;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: s(2),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall,
-            ),
-          ),
-          SizedBox(
-            width: s(8),
-          ),
-          Text(
-            value,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall!
-                .copyWith(
-                  fontWeight:
-                      FontWeight.w600,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatCard
-    extends StatelessWidget {
+class _StatCard extends StatelessWidget {
   const _StatCard({
     required this.label,
     required this.value,
@@ -1511,87 +1084,195 @@ class _StatCard
     double s(double value) =>
         value * zoom;
 
-    final progress = (value / 100)
-        .clamp(0.0, 1.0)
-        .toDouble();
-
-    return Container(
-      width: double.infinity,
+    return _ResponsiveCard(
       padding: EdgeInsets.symmetric(
         horizontal: s(4),
-        vertical: s(2),
-      ),
-      decoration: BoxDecoration(
-        borderRadius:
-            BorderRadius.circular(
-          s(7),
-        ),
-        border: Border.all(
-          color: Theme.of(context)
-              .colorScheme
-              .outlineVariant,
-        ),
+        vertical: s(4),
       ),
       child: Column(
         mainAxisAlignment:
             MainAxisAlignment.center,
         children: [
-          Row(
-            crossAxisAlignment:
-                CrossAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: s(11),
-                color: Theme.of(context)
-                    .colorScheme
-                    .primary,
-              ),
-              SizedBox(
-                width: s(3),
-              ),
-              Expanded(
-                child: Text(
-                  label,
-                  maxLines: 2,
-                  softWrap: true,
-                  textAlign:
-                      TextAlign.start,
-                  overflow:
-                      TextOverflow.ellipsis,
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelSmall,
-                ),
-              ),
-              SizedBox(
-                width: s(3),
-              ),
-              Text(
-                '$value',
-                maxLines: 1,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelSmall!
-                    .copyWith(
-                      fontWeight:
-                          FontWeight.w700,
-                    ),
-              ),
-            ],
+          Icon(
+            icon,
+            size: s(18),
           ),
           SizedBox(
-            height: s(1),
+            height: s(4),
           ),
-          LinearProgressIndicator(
-            value: progress,
-            minHeight: s(3),
-            borderRadius:
-                BorderRadius.circular(
-              s(4),
-            ),
+          Text(
+            value.toString(),
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium!
+                .copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          SizedBox(
+            height: s(2),
+          ),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AssetSummaryRow extends StatelessWidget {
+  const _AssetSummaryRow({
+    required this.label,
+    required this.value,
+    required this.zoom,
+  });
+
+  final String label;
+  final String value;
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) =>
+        value * zoom;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        vertical: s(3),
+      ),
+      child: Row(
+        mainAxisAlignment:
+            MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall,
+          ),
+          Text(
+            value,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall!
+                .copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BottomNavigation extends StatelessWidget {
+  const _BottomNavigation({
+    required this.zoom,
+    required this.isProcessing,
+    required this.selectedIndex,
+    required this.onCareerTap,
+    required this.onAssetsTap,
+    required this.onAgeUpTap,
+    required this.onLifeTap,
+    required this.onMoreTap,
+  });
+
+  final double zoom;
+  final bool isProcessing;
+  final int selectedIndex;
+  final VoidCallback onCareerTap;
+  final VoidCallback onAssetsTap;
+  final Future<void> Function() onAgeUpTap;
+  final VoidCallback onLifeTap;
+  final VoidCallback onMoreTap;
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) =>
+        value * zoom;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: s(4),
+          vertical: s(4),
+        ),
+        child: Row(
+          mainAxisAlignment:
+              MainAxisAlignment.spaceAround,
+          children: [
+            IconButton(
+              icon: Icon(
+                Icons.work_outline,
+                size: s(24),
+              ),
+              onPressed: isProcessing
+                  ? null
+                  : onCareerTap,
+              tooltip: 'Career',
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.home_outlined,
+                size: s(24),
+              ),
+              onPressed: isProcessing
+                  ? null
+                  : onAssetsTap,
+              tooltip: 'Assets',
+            ),
+            ElevatedButton(
+              onPressed: isProcessing
+                  ? null
+                  : () async {
+                      await onAgeUpTap();
+                    },
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(
+                  horizontal: s(16),
+                  vertical: s(8),
+                ),
+              ),
+              child: Text(
+                'Age Up',
+                style: Theme.of(context)
+                    .textTheme
+                    .labelSmall,
+              ),
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.favorite_outline,
+                size: s(24),
+              ),
+              onPressed: isProcessing
+                  ? null
+                  : onLifeTap,
+              tooltip: 'Life',
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.more_horiz_outlined,
+                size: s(24),
+              ),
+              onPressed: isProcessing
+                  ? null
+                  : onMoreTap,
+              tooltip: 'More',
+            ),
+          ],
+        ),
       ),
     );
   }
