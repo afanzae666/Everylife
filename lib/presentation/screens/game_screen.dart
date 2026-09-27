@@ -238,38 +238,8 @@ class _GameScreenState
     );
   }
 
-  void _openAssetsTab() {
-  if (_isProcessingTurn) {
-    return;
-  }
-
-  Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (_) => AssetsScreen(
-        player: engine.state.player,
-        zoom: _uiScaleController.value,
-      ),
-    ),
-  );
-}
+    void _openAssetsTab() {
     if (_isProcessingTurn) {
-      return;
-    }
-
-    setState(() {
-      _selectedNavigationIndex = 1;
-    });
-  }
-
-  void _openAssetsFromProfile() {
-  if (_isProcessingTurn) {
-    return;
-  }
-
-  Navigator.of(context).pop();
-
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (!mounted || _isProcessingTurn) {
       return;
     }
 
@@ -281,8 +251,72 @@ class _GameScreenState
         ),
       ),
     );
-  });
-}
+  }
+
+  void _openAssetsFromProfile() {
+    if (_isProcessingTurn) {
+      return;
+    }
+
+    Navigator.of(context).pop();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _isProcessingTurn) {
+        return;
+      }
+
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => AssetsScreen(
+            player: engine.state.player,
+            zoom: _uiScaleController.value,
+          ),
+        ),
+      );
+    });
+  }
+
+  void _openCareerPage() {
+    if (_isProcessingTurn) {
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CareerScreen(
+          zoom: _uiScaleController.value,
+        ),
+      ),
+    );
+  }
+
+  void _openLifePage() {
+    if (_isProcessingTurn) {
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LifeScreen(
+          zoom: _uiScaleController.value,
+        ),
+      ),
+    );
+  }
+
+  void _openMorePage() {
+    if (_isProcessingTurn) {
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => MoreScreen(
+          zoom: _uiScaleController.value,
+        ),
+      ),
+    );
+  }
     if (_isProcessingTurn) {
       return;
     }
@@ -292,27 +326,6 @@ class _GameScreenState
     });
 
     Navigator.of(context).pop();
-  }
-
-  void _showNavigationNotice(
-    String destination,
-  ) {
-    if (_isProcessingTurn) {
-      return;
-    }
-
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            '$destination is ready for its feature screen.',
-          ),
-          duration: const Duration(
-            milliseconds: 1200,
-          ),
-        ),
-      );
   }
 
   @override
@@ -985,7 +998,28 @@ class _GameScreenState
     );
   }
 
-  Widget _buildBottomNavigation(
+    Widget _buildBottomNavigation(
+    BuildContext context,
+    double zoom,
+  ) {
+    return _BottomNavigation(
+      zoom: zoom,
+      isProcessing:
+          _isProcessingTurn,
+      selectedIndex:
+          _selectedNavigationIndex,
+      onCareerTap:
+          _openCareerPage,
+      onAssetsTap:
+          _openAssetsTab,
+      onAgeUpTap:
+          _ageUp,
+      onLifeTap:
+          _openLifePage,
+      onMoreTap:
+          _openMorePage,
+    );
+  }
     BuildContext context,
     double zoom,
   ) {
