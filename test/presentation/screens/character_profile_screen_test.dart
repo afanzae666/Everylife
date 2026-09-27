@@ -87,17 +87,7 @@ void main() {
       );
 
       expect(
-        find.text('Not assigned'),
-        findsOneWidget,
-      );
-
-      expect(
         find.text('Relationship'),
-        findsOneWidget,
-      );
-
-      expect(
-        find.text('Single'),
         findsOneWidget,
       );
 
@@ -107,8 +97,8 @@ void main() {
       );
 
       expect(
-        find.text('Not specified'),
-        findsOneWidget,
+        find.text('—'),
+        findsNWidgets(11),
       );
 
       for (final personality in [
@@ -126,11 +116,6 @@ void main() {
           findsOneWidget,
         );
       }
-
-      expect(
-        find.text('Medium'),
-        findsNWidgets(8),
-      );
 
       expect(
         find.text('WEALTH'),
@@ -269,6 +254,16 @@ void main() {
 
       expect(
         find.text('Legacy'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Alive'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Deceased'),
         findsNothing,
       );
     },
