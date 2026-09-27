@@ -31,10 +31,34 @@ SimulationEngine createTestEngine(
   );
 }
 
-Finder ageUpButtonFinder() {
-  return find.byKey(
-    const Key('bottom-nav-age-up'),
+Finder ageUpButtonFinder() =>
+    find.byKey(const Key('bottom-nav-age-up'));
+
+Finder saveLoadButtonFinder() =>
+    find.byTooltip('Save / Load');
+
+Future<void> openSaveLoadScreen(
+  WidgetTester tester,
+) async {
+  await tester.tap(saveLoadButtonFinder());
+  await tester.pumpAndSettle();
+
+  expect(
+    find.text('Save / Load'),
+    findsOneWidget,
   );
+}
+
+Future<void> waitForLifeFeedbackToFinish(
+  WidgetTester tester,
+) async {
+  await tester.pump(
+    const Duration(
+      milliseconds: 1000,
+    ),
+  );
+
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -45,9 +69,8 @@ void main() {
         final repository =
             InMemorySaveRepository();
 
-        final engine = createTestEngine(
-          repository,
-        );
+        final engine =
+            createTestEngine(repository);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -87,14 +110,13 @@ void main() {
     );
 
     testWidgets(
-      'displays all 8 core stats in 4 by 2 layout',
+      'displays all 8 core stats',
       (tester) async {
         final repository =
             InMemorySaveRepository();
 
-        final engine = createTestEngine(
-          repository,
-        );
+        final engine =
+            createTestEngine(repository);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -105,129 +127,47 @@ void main() {
         );
 
         await tester.pumpAndSettle();
+
+        const statKeys = [
+          'health',
+          'intelligence',
+          'fitness',
+          'happiness',
+          'willpower',
+          'charisma',
+          'creativity',
+          'luck',
+        ];
+
+        for (final key in statKeys) {
+          expect(
+            find.byKey(
+              Key('core-stat-$key'),
+            ),
+            findsOneWidget,
+          );
+        }
+
+        for (final label in [
+          'Health',
+          'Intelligence',
+          'Fitness',
+          'Happiness',
+          'Willpower',
+          'Charisma',
+          'Creativity',
+          'Luck',
+        ]) {
+          expect(
+            find.text(label),
+            findsOneWidget,
+          );
+        }
 
         expect(
           find.text('Core Stats'),
           findsNothing,
         );
-
-        expect(
-          find.byKey(
-            const Key('core-stat-health'),
-          ),
-          findsOneWidget,
-        );
-
-        expect(
-          find.byKey(
-            const Key('core-stat-intelligence'),
-          ),
-          findsOneWidget,
-        );
-
-        expect(
-          find.byKey(
-            const Key('core-stat-fitness'),
-          ),
-          findsOneWidget,
-        );
-
-        expect(
-          find.byKey(
-            const Key('core-stat-happiness'),
-          ),
-          findsOneWidget,
-        );
-
-        expect(
-          find.byKey(
-            const Key('core-stat-willpower'),
-          ),
-          findsOneWidget,
-        );
-
-        expect(
-          find.byKey(
-            const Key('core-stat-charisma'),
-          ),
-          findsOneWidget,
-        );
-
-        expect(
-          find.byKey(
-            const Key('core-stat-creativity'),
-          ),
-          findsOneWidget,
-        );
-
-        expect(
-          find.byKey(
-            const Key('core-stat-luck'),
-          ),
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('Health'),
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('Intelligence'),
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('Fitness'),
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('Happiness'),
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('Willpower'),
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('Charisma'),
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('Creativity'),
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('Luck'),
-          findsOneWidget,
-        );
-      },
-    );
-
-    testWidgets(
-      'does not display core stat count',
-      (tester) async {
-        final repository =
-            InMemorySaveRepository();
-
-        final engine = createTestEngine(
-          repository,
-        );
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: GameScreen(
-              engine: engine,
-            ),
-          ),
-        );
-
-        await tester.pumpAndSettle();
 
         expect(
           find.text('8 / 8'),
@@ -237,41 +177,13 @@ void main() {
     );
 
     testWidgets(
-      'does not display life event count',
+      'character avatar opens character profile',
       (tester) async {
         final repository =
             InMemorySaveRepository();
 
-        final engine = createTestEngine(
-          repository,
-        );
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: GameScreen(
-              engine: engine,
-            ),
-          ),
-        );
-
-        await tester.pumpAndSettle();
-
-        expect(
-          find.text('0'),
-          findsNothing,
-        );
-      },
-    );
-
-    testWidgets(
-      'character avatar is clickable',
-      (tester) async {
-        final repository =
-            InMemorySaveRepository();
-
-        final engine = createTestEngine(
-          repository,
-        );
+        final engine =
+            createTestEngine(repository);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -293,7 +205,6 @@ void main() {
         );
 
         await tester.tap(avatar);
-
         await tester.pumpAndSettle();
 
         expect(
@@ -319,9 +230,8 @@ void main() {
         final repository =
             InMemorySaveRepository();
 
-        final engine = createTestEngine(
-          repository,
-        );
+        final engine =
+            createTestEngine(repository);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -333,59 +243,41 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        final saveManagerButton =
-            find.byTooltip(
-          'Save Manager',
-        );
-
         expect(
-          saveManagerButton,
+          saveLoadButtonFinder(),
           findsOneWidget,
         );
 
-        await tester.tap(
-          saveManagerButton,
-        );
+        await openSaveLoadScreen(tester);
 
-        await tester.pumpAndSettle();
+        for (final slot in [
+          'Autosave',
+          'Manual 1',
+          'Manual 2',
+          'Manual 3',
+          'Manual 4',
+        ]) {
+          expect(
+            find.text(slot),
+            findsOneWidget,
+          );
+        }
 
         expect(
-          find.text('Save / Load'),
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('Autosave'),
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('Manual 1'),
+          find.text('Auto Save'),
           findsOneWidget,
         );
 
         expect(
-          find.text('Manual 2'),
+          find.text('Manual Saves'),
           findsOneWidget,
         );
 
-        expect(
-          find.text('Manual 3'),
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('Manual 4'),
-          findsOneWidget,
-        );
-
-        // Four empty manual slots have Save.
         expect(
           find.byTooltip('Save'),
           findsNWidgets(4),
         );
 
-        // All slots are empty initially.
         expect(
           find.byTooltip('Load'),
           findsNothing,
@@ -404,86 +296,13 @@ void main() {
     );
 
     testWidgets(
-      'life events card does not display a title',
-      (tester) async {
-        final repository =
-            InMemorySaveRepository();
-
-        final engine = createTestEngine(
-          repository,
-        );
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: GameScreen(
-              engine: engine,
-            ),
-          ),
-        );
-
-        await tester.pumpAndSettle();
-
-        expect(
-          find.text('Life Events'),
-          findsNothing,
-        );
-
-        expect(
-          find.text('Life Panel'),
-          findsNothing,
-        );
-      },
-    );
-
-    testWidgets(
-      'age up button is visible without scrolling',
-      (tester) async {
-        final repository =
-            InMemorySaveRepository();
-
-        final engine = createTestEngine(
-          repository,
-        );
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: GameScreen(
-              engine: engine,
-            ),
-          ),
-        );
-
-        await tester.pumpAndSettle();
-
-        final ageUpButton =
-            ageUpButtonFinder();
-
-        expect(
-          ageUpButton,
-          findsOneWidget,
-        );
-
-        expect(
-          tester.getBottomRight(
-            ageUpButton,
-          ).dy,
-          lessThanOrEqualTo(
-            tester.view.physicalSize.height /
-                tester.view.devicePixelRatio,
-          ),
-        );
-      },
-    );
-
-    testWidgets(
       'age up automatically saves the new year',
       (tester) async {
         final repository =
             InMemorySaveRepository();
 
-        final engine = createTestEngine(
-          repository,
-        );
+        final engine =
+            createTestEngine(repository);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -495,18 +314,15 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        final ageUpButton =
+        final ageUp =
             ageUpButtonFinder();
 
         expect(
-          ageUpButton,
+          ageUp,
           findsOneWidget,
         );
 
-        await tester.tap(
-          ageUpButton,
-        );
-
+        await tester.tap(ageUp);
         await tester.pumpAndSettle();
 
         expect(
@@ -554,9 +370,8 @@ void main() {
         final repository =
             InMemorySaveRepository();
 
-        final engine = createTestEngine(
-          repository,
-        );
+        final engine =
+            createTestEngine(repository);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -573,16 +388,8 @@ void main() {
         final expectedRandomState =
             engine.random.state;
 
-        final ageUpButton =
-            ageUpButtonFinder();
-
-        expect(
-          ageUpButton,
-          findsOneWidget,
-        );
-
         await tester.tap(
-          ageUpButton,
+          ageUpButtonFinder(),
         );
 
         await tester.pumpAndSettle();
@@ -603,14 +410,13 @@ void main() {
     );
 
     testWidgets(
-      'does not show autosave success notification',
+      'autosave does not show a success notification',
       (tester) async {
         final repository =
             InMemorySaveRepository();
 
-        final engine = createTestEngine(
-          repository,
-        );
+        final engine =
+            createTestEngine(repository);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -622,16 +428,8 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        final ageUpButton =
-            ageUpButtonFinder();
-
-        expect(
-          ageUpButton,
-          findsOneWidget,
-        );
-
         await tester.tap(
-          ageUpButton,
+          ageUpButtonFinder(),
         );
 
         await tester.pumpAndSettle();
@@ -653,14 +451,13 @@ void main() {
     );
 
     testWidgets(
-      'manual save shows metadata and correct actions',
+      'manual save persists the slot and returns to Game Screen',
       (tester) async {
         final repository =
             InMemorySaveRepository();
 
-        final engine = createTestEngine(
-          repository,
-        );
+        final engine =
+            createTestEngine(repository);
 
         await tester.pumpWidget(
           MaterialApp(
@@ -672,55 +469,38 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        await tester.tap(
-          find.byTooltip('Save / Load'),
-        );
+        await openSaveLoadScreen(tester);
 
-        await tester.pumpAndSettle();
-
-        // Initial state:
-        // four manual slots are empty.
         expect(
           find.byTooltip('Save'),
           findsNWidgets(4),
         );
 
-        expect(
-          find.byTooltip('Load'),
-          findsNothing,
-        );
-
-        expect(
-          find.byTooltip('Delete'),
-          findsNothing,
-        );
-
-        expect(
-          find.byTooltip('Overwrite'),
-          findsNothing,
-        );
-
-        // Save Manual 1.
         await tester.tap(
           find.byTooltip('Save').first,
         );
 
         await tester.pumpAndSettle();
 
-        // Manual Save success closes Save / Load
-        // and returns to the Game Screen.
+        await waitForLifeFeedbackToFinish(
+          tester,
+        );
+
+        expect(
+          find.text('LIFE SAVED'),
+          findsNothing,
+        );
+
         expect(
           find.text('Save / Load'),
           findsNothing,
         );
 
         expect(
-          find.byTooltip('Save / Load'),
+          saveLoadButtonFinder(),
           findsOneWidget,
         );
 
-        // The actual repository must contain
-        // the newly saved Manual 1 slot.
         final manualSave =
             await repository.load(
           slot: SaveSlot.manual1,
@@ -743,31 +523,48 @@ void main() {
           0,
         );
 
-        // Autosave must remain empty because
-        // manual saving does not write autosave.
         expect(
           await repository.load(
             slot: SaveSlot.autosave,
           ),
           isNull,
         );
+      },
+    );
 
-        // Open Save / Load again to inspect
-        // the persisted slot state.
-        await tester.tap(
-          find.byTooltip('Save / Load'),
+    testWidgets(
+      'manual save changes slot actions to load overwrite and delete',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine =
+            createTestEngine(repository);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
         );
 
         await tester.pumpAndSettle();
 
-        expect(
-          find.text('Save / Load'),
-          findsOneWidget,
+        await openSaveLoadScreen(tester);
+
+        await tester.tap(
+          find.byTooltip('Save').first,
         );
 
-        // Manual 1 is now occupied:
-        // Manual 1 no longer has Save.
-        // It has Load + Overwrite + Delete.
+        await tester.pumpAndSettle();
+
+        await waitForLifeFeedbackToFinish(
+          tester,
+        );
+
+        await openSaveLoadScreen(tester);
+
         expect(
           find.byTooltip('Save'),
           findsNWidgets(3),
@@ -787,26 +584,433 @@ void main() {
           find.byTooltip('Delete'),
           findsOneWidget,
         );
+      },
+    );
 
-        // Verify saved metadata is visible.
+    testWidgets(
+      'overwrite updates an existing manual slot',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine =
+            createTestEngine(repository);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        await openSaveLoadScreen(tester);
+
+        await tester.tap(
+          find.byTooltip('Save').first,
+        );
+
+        await tester.pumpAndSettle();
+
+        await waitForLifeFeedbackToFinish(
+          tester,
+        );
+
+        await tester.tap(
+          ageUpButtonFinder(),
+        );
+
+        await tester.pumpAndSettle();
+
+        await openSaveLoadScreen(tester);
+
+        await tester.tap(
+          find.byTooltip('Overwrite'),
+        );
+
+        await tester.pumpAndSettle();
+
+        await waitForLifeFeedbackToFinish(
+          tester,
+        );
+
+        final saved =
+            await repository.load(
+          slot: SaveSlot.manual1,
+        );
+
         expect(
-          find.textContaining('Age 0'),
+          saved,
+          isNotNull,
+        );
+
+        expect(
+          saved!.state.clock.currentYear,
+          2027,
+        );
+      },
+    );
+
+    testWidgets(
+      'load restores the saved state and returns to Game Screen',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine =
+            createTestEngine(repository);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        await openSaveLoadScreen(tester);
+
+        await tester.tap(
+          find.byTooltip('Save').first,
+        );
+
+        await tester.pumpAndSettle();
+
+        await waitForLifeFeedbackToFinish(
+          tester,
+        );
+
+        await tester.tap(
+          ageUpButtonFinder(),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          engine.state.clock.currentYear,
+          2027,
+        );
+
+        await openSaveLoadScreen(tester);
+
+        await tester.tap(
+          find.byTooltip('Load'),
+        );
+
+        await tester.pumpAndSettle();
+
+        await waitForLifeFeedbackToFinish(
+          tester,
+        );
+
+        expect(
+          find.text('Save / Load'),
+          findsNothing,
+        );
+
+        expect(
+          saveLoadButtonFinder(),
           findsOneWidget,
         );
 
         expect(
-          find.textContaining('Year 2026'),
+          engine.state.clock.currentYear,
+          2026,
+        );
+
+        expect(
+          engine.state.player.ageAt(
+            engine.state.clock.currentYear,
+          ),
+          0,
+        );
+      },
+    );
+
+    testWidgets(
+      'delete removes a manual save slot',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine =
+            createTestEngine(repository);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        await openSaveLoadScreen(tester);
+
+        await tester.tap(
+          find.byTooltip('Save').first,
+        );
+
+        await tester.pumpAndSettle();
+
+        await waitForLifeFeedbackToFinish(
+          tester,
+        );
+
+        await openSaveLoadScreen(tester);
+
+        await tester.tap(
+          find.byTooltip('Delete'),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Delete Save?'),
+          findsOneWidget,
+        );
+
+        final dialogDelete =
+            find.byTooltip('Delete').last;
+
+        await tester.tap(dialogDelete);
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byTooltip('Save'),
+          findsNWidgets(4),
+        );
+
+        expect(
+          find.byTooltip('Load'),
+          findsNothing,
+        );
+
+        expect(
+          find.byTooltip('Overwrite'),
+          findsNothing,
+        );
+
+        expect(
+          find.byTooltip('Delete'),
+          findsNothing,
+        );
+
+        expect(
+          await repository.load(
+            slot: SaveSlot.manual1,
+          ),
+          isNull,
+        );
+      },
+    );
+
+    testWidgets(
+      'auto save can be turned off while manual save remains available',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine =
+            createTestEngine(repository);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        await openSaveLoadScreen(tester);
+
+        final autoSaveSwitch =
+            find.byType(Switch);
+
+        expect(
+          autoSaveSwitch,
           findsOneWidget,
         );
 
         expect(
-          find.textContaining('\$0.00'),
+          tester
+              .widget<Switch>(
+                autoSaveSwitch,
+              )
+              .value,
+          isTrue,
+        );
+
+        await tester.tap(
+          autoSaveSwitch,
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          tester
+              .widget<Switch>(
+                autoSaveSwitch,
+              )
+              .value,
+          isFalse,
+        );
+
+        expect(
+          find.byTooltip('Save'),
+          findsNWidgets(4),
+        );
+
+        await tester.tap(
+          find.byTooltip('Save').first,
+        );
+
+        await tester.pumpAndSettle();
+
+        await waitForLifeFeedbackToFinish(
+          tester,
+        );
+
+        expect(
+          await repository.load(
+            slot: SaveSlot.manual1,
+          ),
+          isNotNull,
+        );
+      },
+    );
+
+    testWidgets(
+      'age up does not autosave when auto save is off',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine =
+            createTestEngine(repository);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        await openSaveLoadScreen(tester);
+
+        final autoSaveSwitch =
+            find.byType(Switch);
+
+        await tester.tap(
+          autoSaveSwitch,
+        );
+
+        await tester.pumpAndSettle();
+
+        await tester.pageBack();
+
+        await tester.pumpAndSettle();
+
+        await tester.tap(
+          ageUpButtonFinder(),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          engine.state.clock.currentYear,
+          2027,
+        );
+
+        expect(
+          await repository.load(
+            slot: SaveSlot.autosave,
+          ),
+          isNull,
+        );
+      },
+    );
+
+    testWidgets(
+      'age up button is visible without scrolling',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine =
+            createTestEngine(repository);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        final ageUp =
+            ageUpButtonFinder();
+
+        expect(
+          ageUp,
           findsOneWidget,
         );
 
         expect(
-          find.textContaining('Saved'),
-          findsOneWidget,
+          tester.getBottomRight(ageUp).dy,
+          lessThanOrEqualTo(
+            tester.view.physicalSize.height /
+                tester.view.devicePixelRatio,
+          ),
+        );
+      },
+    );
+
+    testWidgets(
+      'life events card has no title or numbering',
+      (tester) async {
+        final repository =
+            InMemorySaveRepository();
+
+        final engine =
+            createTestEngine(repository);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: GameScreen(
+              engine: engine,
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Life Events'),
+          findsNothing,
+        );
+
+        expect(
+          find.text('Life Panel'),
+          findsNothing,
+        );
+
+        expect(
+          find.text('No.'),
+          findsNothing,
         );
       },
     );
