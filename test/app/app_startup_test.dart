@@ -123,7 +123,7 @@ void main() {
           find.text('Marshall Royce'),
           findsOneWidget,
         );
-        
+
         final saved =
             await repository.load();
 
@@ -299,7 +299,8 @@ void main() {
         );
       },
     );
-        testWidgets(
+
+    testWidgets(
       'loads a manual save when no autosave exists',
       (tester) async {
         final repository =
