@@ -10,6 +10,7 @@ class CharacterProfileScreen
     required this.character,
     required this.currentYear,
     this.uiScaleController,
+    this.onViewAssets,
     super.key,
   });
 
@@ -17,6 +18,7 @@ class CharacterProfileScreen
   final int currentYear;
   final ValueNotifier<double>?
       uiScaleController;
+  final VoidCallback? onViewAssets;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +76,7 @@ class CharacterProfileScreen
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Character',
+          'Character Information',
         ),
       ),
       body: SafeArea(
@@ -93,7 +95,8 @@ class CharacterProfileScreen
     double s(double value) =>
         value * zoom;
 
-    final age = character.ageAt(
+    final age =
+        character.ageAt(
       currentYear,
     );
 
@@ -115,37 +118,60 @@ class CharacterProfileScreen
         ),
         Center(
           child: CircleAvatar(
-            radius: s(48),
+            radius: s(42),
             child: Icon(
-              character.gender == Gender.male
+              character.gender ==
+                      Gender.male
                   ? Icons.person
                   : Icons.person_outline,
-              size: s(52),
+              size: s(46),
             ),
           ),
         ),
         SizedBox(
           height: s(5),
         ),
-        Center(
-          child: Padding(
-            padding:
-                EdgeInsets.symmetric(
-              horizontal: s(8),
-            ),
-            child: Text(
-              character.fullName,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge,
-              textAlign:
-                  TextAlign.center,
-              softWrap: true,
-            ),
-          ),
+        Text(
+          character.fullName,
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge!
+              .copyWith(
+                fontWeight:
+                    FontWeight.w700,
+              ),
+          textAlign:
+              TextAlign.center,
+          softWrap: true,
         ),
         SizedBox(
-          height: s(6),
+          height: s(2),
+        ),
+        Text(
+          'Age $age • $currentYear',
+          style: Theme.of(context)
+              .textTheme
+              .bodyMedium,
+          textAlign:
+              TextAlign.center,
+        ),
+        SizedBox(
+          height: s(1),
+        ),
+        Text(
+          'Alive',
+          style: Theme.of(context)
+              .textTheme
+              .bodySmall!
+              .copyWith(
+                fontWeight:
+                    FontWeight.w600,
+              ),
+          textAlign:
+              TextAlign.center,
+        ),
+        SizedBox(
+          height: s(7),
         ),
         _ResponsiveCard(
           padding: EdgeInsets.fromLTRB(
@@ -154,38 +180,50 @@ class CharacterProfileScreen
             s(8),
             s(7),
           ),
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Identity',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall,
-              ),
-              SizedBox(
-                height: s(3),
-              ),
-              _InfoRow(
-                label: 'First Name',
-                value:
-                    character.resolvedFirstName,
-                zoom: zoom,
-              ),
-              _InfoRow(
-                label:
-                    'Last Name / Family Name',
-                value:
-                    character.resolvedLastName,
-                zoom: zoom,
-              ),
-              _InfoRow(
-                label: 'Full Name',
-                value: character.fullName,
-                zoom: zoom,
-              ),
-            ],
+          child: LayoutBuilder(
+            builder: (
+              context,
+              constraints,
+            ) {
+              final compact =
+                  constraints.maxWidth <
+                      s(300);
+
+              return Row(
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _buildBasicInformation(
+                      context,
+                      zoom,
+                      lifeStage,
+                      compact,
+                    ),
+                  ),
+                  SizedBox(
+                    width: s(7),
+                  ),
+                  Container(
+                    width: s(1),
+                    height: s(250),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .outlineVariant,
+                  ),
+                  SizedBox(
+                    width: s(7),
+                  ),
+                  Expanded(
+                    child: _buildPersonality(
+                      context,
+                      zoom,
+                      compact,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
         SizedBox(
@@ -196,96 +234,214 @@ class CharacterProfileScreen
             s(8),
             s(7),
             s(8),
-            s(7),
+            s(6),
           ),
           child: Column(
             crossAxisAlignment:
                 CrossAxisAlignment.start,
             children: [
               Text(
-                'Basic Information',
+                'WEALTH',
                 style: Theme.of(context)
                     .textTheme
-                    .titleSmall,
+                    .titleSmall!
+                    .copyWith(
+                      fontWeight:
+                          FontWeight.w700,
+                      letterSpacing: 0.4,
+                    ),
               ),
               SizedBox(
-                height: s(3),
+                height: s(4),
               ),
-              _InfoRow(
-                label: 'Gender',
-                value:
-                    character.gender.label,
-                zoom: zoom,
-              ),
-              _InfoRow(
-                label: 'Birth Year',
-                value:
-                    '${character.birthYear}',
-                zoom: zoom,
-              ),
-              _InfoRow(
-                label: 'Age',
-                value: '$age',
-                zoom: zoom,
-              ),
-              _InfoRow(
-                label: 'Year',
-                value:
-                    '$currentYear',
-                zoom: zoom,
-              ),
-              _InfoRow(
-                label: 'Life Stage',
-                value:
-                    _formatLifeStage(
-                  lifeStage,
-                ),
-                zoom: zoom,
-              ),
-              _InfoRow(
-                label: 'Money',
+              _WealthRow(
+                label: 'Total Assets',
                 value:
                     character.money.toString(),
                 zoom: zoom,
               ),
+              _WealthRow(
+                label: 'Debt',
+                value: '\$0.00',
+                zoom: zoom,
+              ),
+              _WealthRow(
+                label: 'Net Worth',
+                value:
+                    character.money.toString(),
+                zoom: zoom,
+              ),
+              SizedBox(
+                height: s(5),
+              ),
+              SizedBox(
+                width: double.infinity,
+                child: Align(
+                  alignment:
+                      Alignment.centerRight,
+                  child: TextButton(
+                    onPressed:
+                        onViewAssets == null
+                            ? null
+                            : () {
+                                onViewAssets!();
+                              },
+                    child: const Text(
+                      'View Assets →',
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBasicInformation(
+    BuildContext context,
+    double zoom,
+    LifeStage lifeStage,
+    bool compact,
+  ) {
+    double s(double value) =>
+        value * zoom;
+
+    return Column(
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Basic Information',
+          style: Theme.of(context)
+              .textTheme
+              .titleSmall!
+              .copyWith(
+                fontWeight:
+                    FontWeight.w700,
+              ),
         ),
         SizedBox(
           height: s(4),
         ),
-        _ResponsiveCard(
-          padding: EdgeInsets.fromLTRB(
-            s(8),
-            s(7),
-            s(8),
-            s(7),
+        _CompactInfoRow(
+          label: 'Born',
+          value:
+              '${character.birthYear}',
+          zoom: zoom,
+          compact: compact,
+        ),
+        _CompactInfoRow(
+          label: 'Gender',
+          value:
+              character.gender.label,
+          zoom: zoom,
+          compact: compact,
+        ),
+        _CompactInfoRow(
+          label: 'Life Stage',
+          value:
+              _formatLifeStage(
+            lifeStage,
           ),
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Character Information',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall,
+          zoom: zoom,
+          compact: compact,
+        ),
+        _CompactInfoRow(
+          label: 'Occupation',
+          value: 'Not assigned',
+          zoom: zoom,
+          compact: compact,
+        ),
+        _CompactInfoRow(
+          label: 'Relationship',
+          value: 'Single',
+          zoom: zoom,
+          compact: compact,
+        ),
+        _CompactInfoRow(
+          label: 'Education',
+          value: 'Not specified',
+          zoom: zoom,
+          compact: compact,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPersonality(
+    BuildContext context,
+    double zoom,
+    bool compact,
+  ) {
+    double s(double value) =>
+        value * zoom;
+
+    return Column(
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Personality',
+          style: Theme.of(context)
+              .textTheme
+              .titleSmall!
+              .copyWith(
+                fontWeight:
+                    FontWeight.w700,
               ),
-              SizedBox(
-                height: s(2),
-              ),
-              Text(
-                'This profile will become the '
-                'home for additional character '
-                'information as the life '
-                'simulation expands.',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall,
-                softWrap: true,
-              ),
-            ],
-          ),
+        ),
+        SizedBox(
+          height: s(4),
+        ),
+        _CompactInfoRow(
+          label: 'Discipline',
+          value: 'Medium',
+          zoom: zoom,
+          compact: compact,
+        ),
+        _CompactInfoRow(
+          label: 'Sociability',
+          value: 'Medium',
+          zoom: zoom,
+          compact: compact,
+        ),
+        _CompactInfoRow(
+          label: 'Ambition',
+          value: 'Medium',
+          zoom: zoom,
+          compact: compact,
+        ),
+        _CompactInfoRow(
+          label: 'Empathy',
+          value: 'Medium',
+          zoom: zoom,
+          compact: compact,
+        ),
+        _CompactInfoRow(
+          label: 'Honesty',
+          value: 'Medium',
+          zoom: zoom,
+          compact: compact,
+        ),
+        _CompactInfoRow(
+          label: 'Patience',
+          value: 'Medium',
+          zoom: zoom,
+          compact: compact,
+        ),
+        _CompactInfoRow(
+          label: 'Risk Taking',
+          value: 'Medium',
+          zoom: zoom,
+          compact: compact,
+        ),
+        _CompactInfoRow(
+          label: 'Aggressiveness',
+          value: 'Medium',
+          zoom: zoom,
+          compact: compact,
         ),
       ],
     );
@@ -297,16 +453,22 @@ class CharacterProfileScreen
     switch (stage) {
       case LifeStage.infant:
         return 'Infant';
+
       case LifeStage.toddler:
         return 'Toddler';
+
       case LifeStage.child:
         return 'Child';
+
       case LifeStage.teen:
         return 'Teen';
+
       case LifeStage.youngAdult:
         return 'Young Adult';
+
       case LifeStage.adult:
         return 'Adult';
+
       case LifeStage.senior:
         return 'Senior';
     }
@@ -338,9 +500,73 @@ class _ResponsiveCard
   }
 }
 
-class _InfoRow
+class _CompactInfoRow
     extends StatelessWidget {
-  const _InfoRow({
+  const _CompactInfoRow({
+    required this.label,
+    required this.value,
+    required this.zoom,
+    required this.compact,
+  });
+
+  final String label;
+  final String value;
+  final double zoom;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) =>
+        value * zoom;
+
+    final textStyle =
+        Theme.of(context)
+            .textTheme
+            .bodySmall;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        vertical: s(
+          compact ? 1.5 : 2,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 5,
+            child: Text(
+              label,
+              style: textStyle,
+              softWrap: true,
+            ),
+          ),
+          SizedBox(
+            width: s(3),
+          ),
+          Flexible(
+            flex: 4,
+            child: Text(
+              value,
+              textAlign:
+                  TextAlign.end,
+              style: textStyle!.copyWith(
+                fontWeight:
+                    FontWeight.w600,
+              ),
+              softWrap: true,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WealthRow
+    extends StatelessWidget {
+  const _WealthRow({
     required this.label,
     required this.value,
     required this.zoom,
@@ -355,99 +581,39 @@ class _InfoRow
     double s(double value) =>
         value * zoom;
 
-    return LayoutBuilder(
-      builder: (
-        context,
-        constraints,
-      ) {
-        final narrow =
-            constraints.maxWidth <
-                s(280);
-
-        if (narrow) {
-          return Padding(
-            padding:
-                EdgeInsets.symmetric(
-              vertical: s(2),
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        vertical: s(2),
+      ),
+      child: Row(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall,
             ),
-            child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall,
-                  softWrap: true,
-                ),
-                SizedBox(
-                  height: s(1),
-                ),
-                Padding(
-                  padding:
-                      EdgeInsets.only(
-                    left: s(4),
-                  ),
-                  child: Text(
-                    value,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall!
-                        .copyWith(
-                          fontWeight:
-                              FontWeight.w600,
-                        ),
-                    softWrap: true,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return Padding(
-          padding:
-              EdgeInsets.symmetric(
-            vertical: s(1),
           ),
-          child: Row(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 2,
-                child: Text(
-                  label,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall,
-                  softWrap: true,
-                ),
-              ),
-              SizedBox(
-                width: s(8),
-              ),
-              Expanded(
-                flex: 3,
-                child: Text(
-                  value,
-                  textAlign:
-                      TextAlign.end,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall!
-                      .copyWith(
-                        fontWeight:
-                            FontWeight.w600,
-                      ),
-                  softWrap: true,
-                ),
-              ),
-            ],
+          SizedBox(
+            width: s(8),
           ),
-        );
-      },
+          Text(
+            value,
+            textAlign:
+                TextAlign.end,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall!
+                .copyWith(
+                  fontWeight:
+                      FontWeight.w700,
+                ),
+          ),
+        ],
+      ),
     );
   }
 }
