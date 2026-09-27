@@ -39,6 +39,7 @@ class _GameScreenState
 
   late final ValueNotifier<double>
       _uiScaleController;
+
   late final bool
       _ownsUiScaleController;
 
@@ -79,6 +80,7 @@ class _GameScreenState
     }
 
     _autoSaveController.dispose();
+
     _lifeEventsScrollController
         .dispose();
 
@@ -389,444 +391,33 @@ class _GameScreenState
               )
             : Column(
                 children: [
-                  _ResponsiveCard(
-                    padding:
-                        EdgeInsets.all(
-                      s(8),
-                    ),
-                    child: Row(
-                      crossAxisAlignment:
-                          CrossAxisAlignment
-                              .center,
-                      children: [
-                        Material(
-                          color:
-                              Colors.transparent,
-                          child: InkWell(
-                            key: const Key(
-                              'character-avatar',
-                            ),
-                            onTap:
-                                _openCharacterProfile,
-                            borderRadius:
-                                BorderRadius
-                                    .circular(
-                              s(40),
-                            ),
-                            child:
-                                CircleAvatar(
-                              radius: s(27),
-                              child: Icon(
-                                player.gender ==
-                                        Gender.male
-                                    ? Icons.person
-                                    : Icons
-                                        .person_outline,
-                                size: s(29),
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: s(8),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start,
-                            children: [
-                              Text(
-                                player.name,
-                                style: Theme.of(
-                                  context,
-                                )
-                                    .textTheme
-                                    .titleMedium,
-                                maxLines: 1,
-                                overflow:
-                                    TextOverflow
-                                        .ellipsis,
-                              ),
-                              SizedBox(
-                                height: s(1),
-                              ),
-                              Wrap(
-                                spacing: s(8),
-                                runSpacing: 0,
-                                children: [
-                                  Text(
-                                    'Age $age',
-                                    style: Theme.of(
-                                      context,
-                                    )
-                                        .textTheme
-                                        .bodySmall,
-                                  ),
-                                  Text(
-                                    'Year '
-                                    '${state.clock.currentYear}',
-                                    style: Theme.of(
-                                      context,
-                                    )
-                                        .textTheme
-                                        .bodySmall,
-                                  ),
-                                  Text(
-                                    lifeStageLabel,
-                                    style: Theme.of(
-                                      context,
-                                    )
-                                        .textTheme
-                                        .bodySmall,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                          width: s(6),
-                        ),
-                        Flexible(
-                          child: Text(
-                            player.money
-                                .toString(),
-                            textAlign:
-                                TextAlign.end,
-                            maxLines: 1,
-                            overflow:
-                                TextOverflow
-                                    .ellipsis,
-                            style: Theme.of(
-                              context,
-                            )
-                                .textTheme
-                                .bodyMedium,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: s(4),
-                  ),
-                  _ResponsiveCard(
-                    padding:
-                        EdgeInsets.fromLTRB(
-                      s(8),
-                      s(6),
-                      s(8),
-                      s(7),
-                    ),
-                    child: LayoutBuilder(
-                      builder: (
-                        context,
-                        constraints,
-                      ) {
-                        final crossAxisCount =
-                            _getStatColumnCount(
-                          constraints
-                              .maxWidth,
-                          zoom,
-                        );
-
-                        final spacing = s(4);
-
-                        return GridView
-                            .builder(
-                          shrinkWrap:
-                              true,
-                          physics:
-                              const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount:
-                                crossAxisCount,
-                            crossAxisSpacing:
-                                spacing,
-                            mainAxisSpacing:
-                                spacing,
-                            mainAxisExtent:
-                                s(50),
-                          ),
-                          itemCount: 8,
-                          itemBuilder: (
-                            context,
-                            index,
-                          ) {
-                            switch (index) {
-                              case 0:
-                                return _StatCard(
-                                  key:
-                                      const Key(
-                                    'core-stat-health',
-                                  ),
-                                  label:
-                                      'Health',
-                                  value:
-                                      player
-                                          .stats
-                                          .health,
-                                  icon:
-                                      Icons
-                                          .favorite,
-                                  zoom:
-                                      zoom,
-                                );
-
-                              case 1:
-                                return _StatCard(
-                                  key:
-                                      const Key(
-                                    'core-stat-intelligence',
-                                  ),
-                                  label:
-                                      'Intelligence',
-                                  value:
-                                      player
-                                          .stats
-                                          .intelligence,
-                                  icon:
-                                      Icons
-                                          .psychology,
-                                  zoom:
-                                      zoom,
-                                );
-
-                              case 2:
-                                return _StatCard(
-                                  key:
-                                      const Key(
-                                    'core-stat-fitness',
-                                  ),
-                                  label:
-                                      'Fitness',
-                                  value:
-                                      player
-                                          .stats
-                                          .fitness,
-                                  icon:
-                                      Icons
-                                          .fitness_center,
-                                  zoom:
-                                      zoom,
-                                );
-
-                              case 3:
-                                return _StatCard(
-                                  key:
-                                      const Key(
-                                    'core-stat-happiness',
-                                  ),
-                                  label:
-                                      'Happiness',
-                                  value:
-                                      player
-                                          .stats
-                                          .happiness,
-                                  icon:
-                                      Icons
-                                          .sentiment_satisfied,
-                                  zoom:
-                                      zoom,
-                                );
-
-                              case 4:
-                                return _StatCard(
-                                  key:
-                                      const Key(
-                                    'core-stat-willpower',
-                                  ),
-                                  label:
-                                      'Willpower',
-                                  value:
-                                      player
-                                          .stats
-                                          .willpower,
-                                  icon:
-                                      Icons
-                                          .shield_outlined,
-                                  zoom:
-                                      zoom,
-                                );
-
-                              case 5:
-                                return _StatCard(
-                                  key:
-                                      const Key(
-                                    'core-stat-charisma',
-                                  ),
-                                  label:
-                                      'Charisma',
-                                  value:
-                                      player
-                                          .stats
-                                          .charisma,
-                                  icon:
-                                      Icons.groups,
-                                  zoom:
-                                      zoom,
-                                );
-
-                              case 6:
-                                return _StatCard(
-                                  key:
-                                      const Key(
-                                    'core-stat-creativity',
-                                  ),
-                                  label:
-                                      'Creativity',
-                                  value:
-                                      player
-                                          .stats
-                                          .creativity,
-                                  icon:
-                                      Icons.palette,
-                                  zoom:
-                                      zoom,
-                                );
-
-                              case 7:
-                                return _StatCard(
-                                  key:
-                                      const Key(
-                                    'core-stat-luck',
-                                  ),
-                                  label:
-                                      'Luck',
-                                  value:
-                                      player
-                                          .stats
-                                          .luck,
-                                  icon:
-                                      Icons
-                                          .auto_awesome,
-                                  zoom:
-                                      zoom,
-                                );
-
-                              default:
-                                return const SizedBox
-                                    .shrink();
-                            }
-                          },
-                        );
-                      },
-                    ),
+                  _buildCharacterCard(
+                    context,
+                    zoom,
+                    state,
+                    player,
+                    age,
+                    lifeStageLabel,
                   ),
                   SizedBox(
                     height: s(4),
                   ),
                   Expanded(
                     child:
-                        _ResponsiveCard(
-                      padding:
-                          EdgeInsets.fromLTRB(
-                        s(8),
-                        s(6),
-                        s(8),
-                        s(6),
-                      ),
-                      child: events.isEmpty
-                          ? const Center(
-                              child: Text(
-                                'No events yet.',
-                                textAlign:
-                                    TextAlign.center,
-                              ),
-                            )
-                          : ListView
-                              .separated(
-                              controller:
-                                  _lifeEventsScrollController,
-                              padding:
-                                  EdgeInsets.zero,
-                              itemCount:
-                                  events.length,
-                              separatorBuilder:
-                                  (
-                                _,
-                                __,
-                              ) =>
-                                      SizedBox(
-                                height: s(7),
-                              ),
-                              itemBuilder: (
-                                context,
-                                index,
-                              ) {
-                                final event =
-                                    events[index];
-
-                                return Row(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment
-                                          .start,
-                                  children: [
-                                    Padding(
-                                      padding:
-                                          EdgeInsets.only(
-                                        top: s(5),
-                                      ),
-                                      child:
-                                          Icon(
-                                        Icons
-                                            .circle,
-                                        size:
-                                            s(6),
-                                        color: Theme.of(
-                                          context,
-                                        )
-                                            .colorScheme
-                                            .primary,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width:
-                                          s(7),
-                                    ),
-                                    Expanded(
-                                      child:
-                                          Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment
-                                                .start,
-                                        children: [
-                                          Text(
-                                            event
-                                                .title,
-                                            style: Theme.of(
-                                              context,
-                                            )
-                                                .textTheme
-                                                .bodyMedium!
-                                                .copyWith(
-                                                  fontWeight:
-                                                      FontWeight.w600,
-                                                ),
-                                          ),
-                                          SizedBox(
-                                            height:
-                                                s(1),
-                                          ),
-                                          Text(
-                                            '${event.year} — '
-                                            '${event.description}',
-                                            style: Theme.of(
-                                              context,
-                                            )
-                                                .textTheme
-                                                .bodySmall,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
+                        _buildLifeEventsCard(
+                      context,
+                      zoom,
+                      player,
+                      events,
                     ),
+                  ),
+                  SizedBox(
+                    height: s(4),
+                  ),
+                  _buildCoreStatsCard(
+                    context,
+                    zoom,
+                    player,
                   ),
                   SizedBox(
                     height: s(4),
@@ -837,6 +428,416 @@ class _GameScreenState
                   ),
                 ],
               ),
+      ),
+    );
+  }
+
+  Widget _buildCharacterCard(
+    BuildContext context,
+    double zoom,
+    dynamic state,
+    dynamic player,
+    int age,
+    String lifeStageLabel,
+  ) {
+    double s(double value) =>
+        value * zoom;
+
+    return _ResponsiveCard(
+      padding: EdgeInsets.all(
+        s(8),
+      ),
+      child: Row(
+        crossAxisAlignment:
+            CrossAxisAlignment.center,
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              key: const Key(
+                'character-avatar',
+              ),
+              onTap:
+                  _openCharacterProfile,
+              borderRadius:
+                  BorderRadius.circular(
+                s(40),
+              ),
+              child: CircleAvatar(
+                radius: s(27),
+                child: Icon(
+                  player.gender ==
+                          Gender.male
+                      ? Icons.person
+                      : Icons.person_outline,
+                  size: s(29),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: s(8),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                Text(
+                  player.name,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium,
+                  maxLines: 1,
+                  overflow:
+                      TextOverflow.ellipsis,
+                ),
+                SizedBox(
+                  height: s(1),
+                ),
+                Text(
+                  'Age $age • '
+                  '${state.clock.currentYear}',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall,
+                  maxLines: 1,
+                  overflow:
+                      TextOverflow.ellipsis,
+                ),
+                SizedBox(
+                  height: s(1),
+                ),
+                Text(
+                  lifeStageLabel,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall,
+                  maxLines: 1,
+                  overflow:
+                      TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: s(6),
+          ),
+          Flexible(
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.end,
+              mainAxisAlignment:
+                  MainAxisAlignment.center,
+              children: [
+                Text(
+                  player.money.toString(),
+                  textAlign:
+                      TextAlign.end,
+                  maxLines: 1,
+                  overflow:
+                      TextOverflow.ellipsis,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium!
+                      .copyWith(
+                        fontWeight:
+                            FontWeight.w600,
+                      ),
+                ),
+                Text(
+                  'Cash',
+                  textAlign:
+                      TextAlign.end,
+                  maxLines: 1,
+                  overflow:
+                      TextOverflow.ellipsis,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLifeEventsCard(
+    BuildContext context,
+    double zoom,
+    dynamic player,
+    List<dynamic> events,
+  ) {
+    double s(double value) =>
+        value * zoom;
+
+    return _ResponsiveCard(
+      padding: EdgeInsets.fromLTRB(
+        s(8),
+        s(6),
+        s(8),
+        s(6),
+      ),
+      child: events.isEmpty
+          ? const Center(
+              child: Text(
+                'No events yet.',
+                textAlign:
+                    TextAlign.center,
+              ),
+            )
+          : ListView.separated(
+              controller:
+                  _lifeEventsScrollController,
+              padding: EdgeInsets.zero,
+              itemCount: events.length,
+              separatorBuilder:
+                  (_, __) =>
+                      SizedBox(
+                height: s(7),
+              ),
+              itemBuilder: (
+                context,
+                index,
+              ) {
+                final event =
+                    events[index];
+
+                final eventAge =
+                    event.year -
+                        player.birthYear;
+
+                return Row(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding:
+                          EdgeInsets.only(
+                        top: s(5),
+                      ),
+                      child: Icon(
+                        Icons.circle,
+                        size: s(6),
+                        color:
+                            Theme.of(
+                          context,
+                        )
+                                .colorScheme
+                                .primary,
+                      ),
+                    ),
+                    SizedBox(
+                      width: s(7),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment
+                                .start,
+                        children: [
+                          Text(
+                            event.title,
+                            style:
+                                Theme.of(
+                              context,
+                            )
+                                    .textTheme
+                                    .bodyMedium!
+                                    .copyWith(
+                                      fontWeight:
+                                          FontWeight
+                                              .w600,
+                                    ),
+                          ),
+                          SizedBox(
+                            height: s(1),
+                          ),
+                          Text(
+                            'Age $eventAge • '
+                            '${event.year} — '
+                            '${event.description}',
+                            style:
+                                Theme.of(
+                              context,
+                            )
+                                    .textTheme
+                                    .bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+    );
+  }
+
+  Widget _buildCoreStatsCard(
+    BuildContext context,
+    double zoom,
+    dynamic player,
+  ) {
+    double s(double value) =>
+        value * zoom;
+
+    return _ResponsiveCard(
+      padding: EdgeInsets.fromLTRB(
+        s(8),
+        s(6),
+        s(8),
+        s(7),
+      ),
+      child: LayoutBuilder(
+        builder: (
+          context,
+          constraints,
+        ) {
+          final crossAxisCount =
+              _getStatColumnCount(
+            constraints.maxWidth,
+            zoom,
+          );
+
+          final spacing = s(4);
+
+          return GridView.builder(
+            shrinkWrap: true,
+            physics:
+                const NeverScrollableScrollPhysics(),
+            gridDelegate:
+                SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount:
+                  crossAxisCount,
+              crossAxisSpacing:
+                  spacing,
+              mainAxisSpacing:
+                  spacing,
+              mainAxisExtent:
+                  s(50),
+            ),
+            itemCount: 8,
+            itemBuilder: (
+              context,
+              index,
+            ) {
+              switch (index) {
+                case 0:
+                  return _StatCard(
+                    key: const Key(
+                      'core-stat-health',
+                    ),
+                    label: 'Health',
+                    value:
+                        player.stats.health,
+                    icon: Icons.favorite,
+                    zoom: zoom,
+                  );
+
+                case 1:
+                  return _StatCard(
+                    key: const Key(
+                      'core-stat-intelligence',
+                    ),
+                    label:
+                        'Intelligence',
+                    value: player
+                        .stats
+                        .intelligence,
+                    icon:
+                        Icons.psychology,
+                    zoom: zoom,
+                  );
+
+                case 2:
+                  return _StatCard(
+                    key: const Key(
+                      'core-stat-fitness',
+                    ),
+                    label: 'Fitness',
+                    value:
+                        player.stats.fitness,
+                    icon:
+                        Icons.fitness_center,
+                    zoom: zoom,
+                  );
+
+                case 3:
+                  return _StatCard(
+                    key: const Key(
+                      'core-stat-happiness',
+                    ),
+                    label:
+                        'Happiness',
+                    value:
+                        player.stats.happiness,
+                    icon: Icons
+                        .sentiment_satisfied,
+                    zoom: zoom,
+                  );
+
+                case 4:
+                  return _StatCard(
+                    key: const Key(
+                      'core-stat-willpower',
+                    ),
+                    label:
+                        'Willpower',
+                    value:
+                        player.stats.willpower,
+                    icon: Icons
+                        .shield_outlined,
+                    zoom: zoom,
+                  );
+
+                case 5:
+                  return _StatCard(
+                    key: const Key(
+                      'core-stat-charisma',
+                    ),
+                    label: 'Charisma',
+                    value:
+                        player.stats.charisma,
+                    icon: Icons.groups,
+                    zoom: zoom,
+                  );
+
+                case 6:
+                  return _StatCard(
+                    key: const Key(
+                      'core-stat-creativity',
+                    ),
+                    label:
+                        'Creativity',
+                    value:
+                        player.stats.creativity,
+                    icon: Icons.palette,
+                    zoom: zoom,
+                  );
+
+                case 7:
+                  return _StatCard(
+                    key: const Key(
+                      'core-stat-luck',
+                    ),
+                    label: 'Luck',
+                    value:
+                        player.stats.luck,
+                    icon:
+                        Icons.auto_awesome,
+                    zoom: zoom,
+                  );
+
+                default:
+                  return const SizedBox
+                      .shrink();
+              }
+            },
+          );
+        },
       ),
     );
   }
