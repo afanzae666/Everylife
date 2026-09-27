@@ -4,8 +4,7 @@ import '../../domain/character/character.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
 
-class CharacterProfileScreen
-    extends StatelessWidget {
+class CharacterProfileScreen extends StatelessWidget {
   const CharacterProfileScreen({
     required this.character,
     required this.currentYear,
@@ -16,33 +15,21 @@ class CharacterProfileScreen
 
   final Character character;
   final int currentYear;
-  final ValueNotifier<double>?
-      uiScaleController;
+  final ValueNotifier<double>? uiScaleController;
   final VoidCallback? onViewAssets;
 
   @override
   Widget build(BuildContext context) {
-    final controller =
-        uiScaleController;
+    final controller = uiScaleController;
 
     if (controller == null) {
-      return _buildScaledPage(
-        context,
-        1.0,
-      );
+      return _buildScaledPage(context, 1.0);
     }
 
     return ValueListenableBuilder<double>(
       valueListenable: controller,
-      builder: (
-        context,
-        zoom,
-        _,
-      ) {
-        return _buildScaledPage(
-          context,
-          zoom,
-        );
+      builder: (context, zoom, _) {
+        return _buildScaledPage(context, zoom);
       },
     );
   }
@@ -51,13 +38,10 @@ class CharacterProfileScreen
     BuildContext context,
     double zoom,
   ) {
-    final mediaQuery =
-        MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(context);
 
-    final scaledMediaQuery =
-        mediaQuery.copyWith(
-      textScaler:
-          TextScaler.linear(zoom),
+    final scaledMediaQuery = mediaQuery.copyWith(
+      textScaler: TextScaler.linear(zoom),
     );
 
     return MediaQuery(
@@ -95,8 +79,7 @@ class CharacterProfileScreen
     double s(double value) =>
         value * zoom;
 
-    final age =
-        character.ageAt(
+    final age = character.ageAt(
       currentYear,
     );
 
@@ -116,6 +99,8 @@ class CharacterProfileScreen
         SizedBox(
           height: s(2),
         ),
+
+        // Avatar tetap berada di luar card.
         Center(
           child: CircleAvatar(
             radius: s(42),
@@ -128,9 +113,11 @@ class CharacterProfileScreen
             ),
           ),
         ),
+
         SizedBox(
           height: s(5),
         ),
+
         Text(
           character.fullName,
           style: Theme.of(context)
@@ -144,9 +131,11 @@ class CharacterProfileScreen
               TextAlign.center,
           softWrap: true,
         ),
+
         SizedBox(
           height: s(2),
         ),
+
         Text(
           'Age $age • $currentYear',
           style: Theme.of(context)
@@ -155,24 +144,14 @@ class CharacterProfileScreen
           textAlign:
               TextAlign.center,
         ),
-        SizedBox(
-          height: s(1),
-        ),
-        Text(
-          'Alive',
-          style: Theme.of(context)
-              .textTheme
-              .bodySmall!
-              .copyWith(
-                fontWeight:
-                    FontWeight.w600,
-              ),
-          textAlign:
-              TextAlign.center,
-        ),
+
         SizedBox(
           height: s(7),
         ),
+
+        // =========================================================
+        // CARD 1 — CHARACTER INFORMATION
+        // =========================================================
         _ResponsiveCard(
           padding: EdgeInsets.fromLTRB(
             s(8),
@@ -191,31 +170,40 @@ class CharacterProfileScreen
 
               return Row(
                 crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                    CrossAxisAlignment
+                        .start,
                 children: [
                   Expanded(
-                    child: _buildBasicInformation(
+                    child:
+                        _buildBasicInformation(
                       context,
                       zoom,
                       lifeStage,
                       compact,
                     ),
                   ),
+
                   SizedBox(
                     width: s(7),
                   ),
+
                   Container(
                     width: s(1),
                     height: s(250),
-                    color: Theme.of(context)
+                    color: Theme.of(
+                      context,
+                    )
                         .colorScheme
                         .outlineVariant,
                   ),
+
                   SizedBox(
                     width: s(7),
                   ),
+
                   Expanded(
-                    child: _buildPersonality(
+                    child:
+                        _buildPersonality(
                       context,
                       zoom,
                       compact,
@@ -226,9 +214,14 @@ class CharacterProfileScreen
             },
           ),
         ),
+
         SizedBox(
           height: s(4),
         ),
+
+        // =========================================================
+        // CARD 2 — WEALTH
+        // =========================================================
         _ResponsiveCard(
           padding: EdgeInsets.fromLTRB(
             s(8),
@@ -251,29 +244,37 @@ class CharacterProfileScreen
                       letterSpacing: 0.4,
                     ),
               ),
+
               SizedBox(
                 height: s(4),
               ),
+
               _WealthRow(
                 label: 'Total Assets',
                 value:
-                    character.money.toString(),
+                    character.money
+                        .toString(),
                 zoom: zoom,
               ),
+
               _WealthRow(
                 label: 'Debt',
                 value: '\$0.00',
                 zoom: zoom,
               ),
+
               _WealthRow(
                 label: 'Net Worth',
                 value:
-                    character.money.toString(),
+                    character.money
+                        .toString(),
                 zoom: zoom,
               ),
+
               SizedBox(
                 height: s(5),
               ),
+
               SizedBox(
                 width: double.infinity,
                 child: Align(
@@ -281,12 +282,9 @@ class CharacterProfileScreen
                       Alignment.centerRight,
                   child: TextButton(
                     onPressed:
-                        onViewAssets == null
-                            ? null
-                            : () {
-                                onViewAssets!();
-                              },
-                    child: const Text(
+                        onViewAssets,
+                    child:
+                        const Text(
                       'View Assets →',
                     ),
                   ),
@@ -322,9 +320,11 @@ class CharacterProfileScreen
                     FontWeight.w700,
               ),
         ),
+
         SizedBox(
           height: s(4),
         ),
+
         _CompactInfoRow(
           label: 'Born',
           value:
@@ -332,6 +332,7 @@ class CharacterProfileScreen
           zoom: zoom,
           compact: compact,
         ),
+
         _CompactInfoRow(
           label: 'Gender',
           value:
@@ -339,6 +340,7 @@ class CharacterProfileScreen
           zoom: zoom,
           compact: compact,
         ),
+
         _CompactInfoRow(
           label: 'Life Stage',
           value:
@@ -348,21 +350,24 @@ class CharacterProfileScreen
           zoom: zoom,
           compact: compact,
         ),
+
         _CompactInfoRow(
           label: 'Occupation',
-          value: 'Not assigned',
+          value: '—',
           zoom: zoom,
           compact: compact,
         ),
+
         _CompactInfoRow(
           label: 'Relationship',
-          value: 'Single',
+          value: '—',
           zoom: zoom,
           compact: compact,
         ),
+
         _CompactInfoRow(
           label: 'Education',
-          value: 'Not specified',
+          value: '—',
           zoom: zoom,
           compact: compact,
         ),
@@ -392,54 +397,63 @@ class CharacterProfileScreen
                     FontWeight.w700,
               ),
         ),
+
         SizedBox(
           height: s(4),
         ),
+
         _CompactInfoRow(
           label: 'Discipline',
-          value: 'Medium',
+          value: '—',
           zoom: zoom,
           compact: compact,
         ),
+
         _CompactInfoRow(
           label: 'Sociability',
-          value: 'Medium',
+          value: '—',
           zoom: zoom,
           compact: compact,
         ),
+
         _CompactInfoRow(
           label: 'Ambition',
-          value: 'Medium',
+          value: '—',
           zoom: zoom,
           compact: compact,
         ),
+
         _CompactInfoRow(
           label: 'Empathy',
-          value: 'Medium',
+          value: '—',
           zoom: zoom,
           compact: compact,
         ),
+
         _CompactInfoRow(
           label: 'Honesty',
-          value: 'Medium',
+          value: '—',
           zoom: zoom,
           compact: compact,
         ),
+
         _CompactInfoRow(
           label: 'Patience',
-          value: 'Medium',
+          value: '—',
           zoom: zoom,
           compact: compact,
         ),
+
         _CompactInfoRow(
           label: 'Risk Taking',
-          value: 'Medium',
+          value: '—',
           zoom: zoom,
           compact: compact,
         ),
+
         _CompactInfoRow(
           label: 'Aggressiveness',
-          value: 'Medium',
+          value: '—',
           zoom: zoom,
           compact: compact,
         ),
@@ -486,7 +500,9 @@ class _ResponsiveCard
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     return SizedBox(
       width: double.infinity,
       child: Card(
@@ -515,7 +531,9 @@ class _CompactInfoRow
   final bool compact;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     double s(double value) =>
         value * zoom;
 
@@ -525,7 +543,8 @@ class _CompactInfoRow
             .bodySmall;
 
     return Padding(
-      padding: EdgeInsets.symmetric(
+      padding:
+          EdgeInsets.symmetric(
         vertical: s(
           compact ? 1.5 : 2,
         ),
@@ -542,16 +561,19 @@ class _CompactInfoRow
               softWrap: true,
             ),
           ),
+
           SizedBox(
             width: s(3),
           ),
+
           Flexible(
             flex: 4,
             child: Text(
               value,
               textAlign:
                   TextAlign.end,
-              style: textStyle!.copyWith(
+              style:
+                  textStyle!.copyWith(
                 fontWeight:
                     FontWeight.w600,
               ),
@@ -577,12 +599,15 @@ class _WealthRow
   final double zoom;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     double s(double value) =>
         value * zoom;
 
     return Padding(
-      padding: EdgeInsets.symmetric(
+      padding:
+          EdgeInsets.symmetric(
         vertical: s(2),
       ),
       child: Row(
@@ -597,9 +622,11 @@ class _WealthRow
                   .bodySmall,
             ),
           ),
+
           SizedBox(
             width: s(8),
           ),
+
           Text(
             value,
             textAlign:
