@@ -42,8 +42,7 @@ Future<void> pumpSaveLoadScreen(
         onSave: onSave,
         onLoad: onLoad,
         onDelete: onDelete,
-        onGameStateChanged:
-            onGameStateChanged ?? () {},
+        onGameStateChanged: onGameStateChanged ?? () {},
       ),
     ),
   );
@@ -85,7 +84,7 @@ void main() {
         await pumpSaveLoadScreen(
           tester,
           autoSaveController: autoSaveController,
-          onRead: repository.load,
+          onRead: (slot) => repository.load(slot: slot),
           onSave: (slot) async {
             await repository.save(
               state,
@@ -163,7 +162,7 @@ void main() {
         await pumpSaveLoadScreen(
           tester,
           autoSaveController: autoSaveController,
-          onRead: repository.load,
+          onRead: (slot) => repository.load(slot: slot),
           onSave: (slot) async {
             await repository.save(
               state,
@@ -216,7 +215,7 @@ void main() {
         await pumpSaveLoadScreen(
           tester,
           autoSaveController: autoSaveController,
-          onRead: repository.load,
+          onRead: (slot) => repository.load(slot: slot),
           onSave: (slot) async {
             await repository.save(
               state,
@@ -279,8 +278,7 @@ void main() {
           findsNothing,
         );
 
-        final saved =
-            await repository.load(
+        final saved = await repository.load(
           slot: SaveSlot.manual1,
         );
 
@@ -304,7 +302,7 @@ void main() {
         await pumpSaveLoadScreen(
           tester,
           autoSaveController: autoSaveController,
-          onRead: repository.load,
+          onRead: (slot) => repository.load(slot: slot),
           onSave: (slot) async {
             await repository.save(
               state,
@@ -379,7 +377,7 @@ void main() {
         await pumpSaveLoadScreen(
           tester,
           autoSaveController: autoSaveController,
-          onRead: repository.load,
+          onRead: (slot) => repository.load(slot: slot),
           onSave: (slot) async {
             await repository.save(
               state,
@@ -440,7 +438,7 @@ void main() {
         await pumpSaveLoadScreen(
           tester,
           autoSaveController: autoSaveController,
-          onRead: repository.load,
+          onRead: (slot) => repository.load(slot: slot),
           onSave: (slot) async {
             await repository.save(
               state,
@@ -454,8 +452,7 @@ void main() {
           onLoad: (slot) async {
             loadCalled = true;
 
-            final data =
-                await repository.load(
+            final data = await repository.load(
               slot: slot,
             );
 
@@ -535,7 +532,7 @@ void main() {
         await pumpSaveLoadScreen(
           tester,
           autoSaveController: autoSaveController,
-          onRead: repository.load,
+          onRead: (slot) => repository.load(slot: slot),
           onSave: (slot) async {
             await repository.save(
               state,
@@ -618,7 +615,7 @@ void main() {
         await pumpSaveLoadScreen(
           tester,
           autoSaveController: autoSaveController,
-          onRead: repository.load,
+          onRead: (slot) => repository.load(slot: slot),
           onSave: (slot) async {
             await repository.save(
               state,
@@ -689,7 +686,7 @@ void main() {
         await pumpSaveLoadScreen(
           tester,
           autoSaveController: autoSaveController,
-          onRead: repository.load,
+          onRead: (slot) => repository.load(slot: slot),
           onSave: (slot) async {
             await repository.save(
               state,
@@ -771,7 +768,7 @@ void main() {
         await pumpSaveLoadScreen(
           tester,
           autoSaveController: autoSaveController,
-          onRead: repository.load,
+          onRead: (slot) => repository.load(slot: slot),
           onSave: (slot) async {
             await repository.save(
               state,
@@ -809,13 +806,11 @@ void main() {
           findsNWidgets(2),
         );
 
-        final manual1 =
-            await repository.load(
+        final manual1 = await repository.load(
           slot: SaveSlot.manual1,
         );
 
-        final manual2 =
-            await repository.load(
+        final manual2 = await repository.load(
           slot: SaveSlot.manual2,
         );
 
@@ -847,7 +842,7 @@ void main() {
         await pumpSaveLoadScreen(
           tester,
           autoSaveController: autoSaveController,
-          onRead: repository.load,
+          onRead: (slot) => repository.load(slot: slot),
           onSave: (_) async {
             return const Failure(
               'Save failed.',
@@ -901,7 +896,7 @@ void main() {
         await pumpSaveLoadScreen(
           tester,
           autoSaveController: autoSaveController,
-          onRead: repository.load,
+          onRead: (slot) => repository.load(slot: slot),
           onSave: (slot) async {
             await repository.save(
               state,
