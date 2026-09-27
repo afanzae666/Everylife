@@ -7,6 +7,10 @@ import '../../simulation/engine/simulation_engine.dart';
 import 'character_profile_screen.dart';
 import 'save_load_screen.dart';
 import 'settings_screen.dart';
+import 'assets_screen.dart';
+import 'career_screen.dart';
+import 'life_screen.dart';
+import 'more_screen.dart';
 
 Future<void> _defaultUiScaleChanged(
   double value,
@@ -235,6 +239,19 @@ class _GameScreenState
   }
 
   void _openAssetsTab() {
+  if (_isProcessingTurn) {
+    return;
+  }
+
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => AssetsScreen(
+        player: engine.state.player,
+        zoom: _uiScaleController.value,
+      ),
+    ),
+  );
+}
     if (_isProcessingTurn) {
       return;
     }
@@ -245,6 +262,27 @@ class _GameScreenState
   }
 
   void _openAssetsFromProfile() {
+  if (_isProcessingTurn) {
+    return;
+  }
+
+  Navigator.of(context).pop();
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!mounted || _isProcessingTurn) {
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => AssetsScreen(
+          player: engine.state.player,
+          zoom: _uiScaleController.value,
+        ),
+      ),
+    );
+  });
+}
     if (_isProcessingTurn) {
       return;
     }
@@ -957,38 +995,12 @@ class _GameScreenState
           _isProcessingTurn,
       selectedIndex:
           _selectedNavigationIndex,
-      onCareerTap: () {
-        setState(() {
-          _selectedNavigationIndex = 0;
-        });
-
-        _showNavigationNotice(
-          'Career',
-        );
-      },
+      onCareerTap: _openCareerPage,
       onAssetsTap:
           _openAssetsTab,
       onAgeUpTap: _ageUp,
-      onLifeTap: () {
-        setState(() {
-          _selectedNavigationIndex = 3;
-        });
-
-        _showNavigationNotice(
-          'Life',
-        );
-      },
-      onMoreTap: () {
-        setState(() {
-          _selectedNavigationIndex = 4;
-        });
-
-        _showNavigationNotice(
-          'More',
-        );
-      },
-    );
-  }
+      onLifeTap: _openLifePage,
+      onMoreTap: _openMorePage,
 
   int _getStatColumnCount(
     double availableWidth,
