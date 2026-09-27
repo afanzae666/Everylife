@@ -8,50 +8,68 @@ import 'character_profile_screen.dart';
 import 'save_load_screen.dart';
 import 'settings_screen.dart';
 
-Future<void> _defaultUiScaleChanged(double value) async {}
+Future<void> _defaultUiScaleChanged(
+  double value,
+) async {}
 
 class GameScreen extends StatefulWidget {
   const GameScreen({
     required this.engine,
-    this.onUiScaleChanged = _defaultUiScaleChanged,
+    this.onUiScaleChanged =
+        _defaultUiScaleChanged,
     this.uiScaleController,
     super.key,
   });
 
   final SimulationEngine engine;
-  final Future<void> Function(double value) onUiScaleChanged;
-  final ValueNotifier<double>? uiScaleController;
+  final Future<void> Function(double value)
+      onUiScaleChanged;
+  final ValueNotifier<double>?
+      uiScaleController;
 
   @override
-  State<GameScreen> createState() => _GameScreenState();
+  State<GameScreen> createState() =>
+      _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
-  SimulationEngine get engine => widget.engine;
+class _GameScreenState
+    extends State<GameScreen> {
+  SimulationEngine get engine =>
+      widget.engine;
 
-  late final ValueNotifier<double> _uiScaleController;
-  late final bool _ownsUiScaleController;
+  late final ValueNotifier<double>
+      _uiScaleController;
+  late final bool
+      _ownsUiScaleController;
 
-  late final ValueNotifier<bool> _autoSaveController;
+  late final ValueNotifier<bool>
+      _autoSaveController;
 
   bool _isProcessingTurn = false;
 
-  final ScrollController _lifeEventsScrollController =
+  int _selectedNavigationIndex = 0;
+
+  final ScrollController
+      _lifeEventsScrollController =
       ScrollController();
 
   @override
   void initState() {
     super.initState();
 
-    if (widget.uiScaleController != null) {
-      _uiScaleController = widget.uiScaleController!;
+    if (widget.uiScaleController !=
+        null) {
+      _uiScaleController =
+          widget.uiScaleController!;
       _ownsUiScaleController = false;
     } else {
-      _uiScaleController = ValueNotifier<double>(1.0);
+      _uiScaleController =
+          ValueNotifier<double>(1.0);
       _ownsUiScaleController = true;
     }
 
-    _autoSaveController = ValueNotifier<bool>(true);
+    _autoSaveController =
+        ValueNotifier<bool>(true);
   }
 
   @override
@@ -61,26 +79,32 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     _autoSaveController.dispose();
-    _lifeEventsScrollController.dispose();
+    _lifeEventsScrollController
+        .dispose();
 
     super.dispose();
   }
 
   void _scrollLifeEventsToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) {
       if (!mounted ||
-          !_lifeEventsScrollController.hasClients) {
+          !_lifeEventsScrollController
+              .hasClients) {
         return;
       }
 
       final maxScrollExtent =
-          _lifeEventsScrollController.position.maxScrollExtent;
+          _lifeEventsScrollController
+              .position
+              .maxScrollExtent;
 
       if (maxScrollExtent <= 0) {
         return;
       }
 
-      _lifeEventsScrollController.animateTo(
+      _lifeEventsScrollController
+          .animateTo(
         maxScrollExtent,
         duration: const Duration(
           milliseconds: 350,
@@ -99,7 +123,8 @@ class _GameScreenState extends State<GameScreen> {
       _isProcessingTurn = true;
     });
 
-    final result = engine.ageUp();
+    final result =
+        engine.ageUp();
 
     if (!mounted) {
       return;
@@ -141,13 +166,20 @@ class _GameScreenState extends State<GameScreen> {
 
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => SaveLoadScreen(
-          zoom: _uiScaleController.value,
-          autoSaveController: _autoSaveController,
-          onRead: engine.readSaveSlot,
-          onSave: engine.saveToSlot,
-          onLoad: engine.loadFromSlot,
-          onDelete: engine.deleteSave,
+        builder: (_) =>
+            SaveLoadScreen(
+          zoom:
+              _uiScaleController.value,
+          autoSaveController:
+              _autoSaveController,
+          onRead:
+              engine.readSaveSlot,
+          onSave:
+              engine.saveToSlot,
+          onLoad:
+              engine.loadFromSlot,
+          onDelete:
+              engine.deleteSave,
           onGameStateChanged: () {
             if (mounted) {
               setState(() {});
@@ -166,10 +198,18 @@ class _GameScreenState extends State<GameScreen> {
 
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => CharacterProfileScreen(
-          character: engine.state.player,
-          currentYear: engine.state.clock.currentYear,
-          uiScaleController: _uiScaleController,
+        builder: (_) =>
+            CharacterProfileScreen(
+          character:
+              engine.state.player,
+          currentYear: engine
+              .state
+              .clock
+              .currentYear,
+          uiScaleController:
+              _uiScaleController,
+          onViewAssets:
+              _openAssetsTab,
         ),
       ),
     );
@@ -183,11 +223,27 @@ class _GameScreenState extends State<GameScreen> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => SettingsScreen(
-          uiScaleController: _uiScaleController,
-          onUiScaleChanged: widget.onUiScaleChanged,
+          uiScaleController:
+              _uiScaleController,
+          onUiScaleChanged:
+              widget.onUiScaleChanged,
         ),
       ),
     );
+  }
+
+  void _openAssetsTab() {
+    if (_isProcessingTurn) {
+      return;
+    }
+
+    if (_selectedNavigationIndex == 1) {
+      return;
+    }
+
+    setState(() {
+      _selectedNavigationIndex = 1;
+    });
   }
 
   void _showNavigationNotice(
@@ -231,7 +287,8 @@ class _GameScreenState extends State<GameScreen> {
     final events = state.events;
 
     return ValueListenableBuilder<double>(
-      valueListenable: _uiScaleController,
+      valueListenable:
+          _uiScaleController,
       builder: (
         context,
         zoom,
@@ -274,6 +331,9 @@ class _GameScreenState extends State<GameScreen> {
     double s(double value) =>
         value * zoom;
 
+    final showAssets =
+        _selectedNavigationIndex == 1;
+
     return Scaffold(
       appBar: AppBar(
         title: Image.asset(
@@ -284,9 +344,10 @@ class _GameScreenState extends State<GameScreen> {
         actions: [
           IconButton(
             tooltip: 'Save / Load',
-            onPressed: _isProcessingTurn
-                ? null
-                : _openSaveManager,
+            onPressed:
+                _isProcessingTurn
+                    ? null
+                    : _openSaveManager,
             icon: Icon(
               Icons.folder_copy_outlined,
               size: s(24),
@@ -294,9 +355,10 @@ class _GameScreenState extends State<GameScreen> {
           ),
           IconButton(
             tooltip: 'Settings',
-            onPressed: _isProcessingTurn
-                ? null
-                : _openSettings,
+            onPressed:
+                _isProcessingTurn
+                    ? null
+                    : _openSettings,
             icon: Icon(
               Icons.settings_outlined,
               size: s(24),
@@ -305,420 +367,618 @@ class _GameScreenState extends State<GameScreen> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            _ResponsiveCard(
-              padding: EdgeInsets.all(
-                s(8),
-              ),
-              child: Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.center,
+        child: showAssets
+            ? Column(
                 children: [
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      key: const Key(
-                        'character-avatar',
-                      ),
-                      onTap:
-                          _openCharacterProfile,
-                      borderRadius:
-                          BorderRadius.circular(
-                        s(40),
-                      ),
-                      child: CircleAvatar(
-                        radius: s(27),
-                        child: Icon(
-                          player.gender ==
-                                  Gender.male
-                              ? Icons.person
-                              : Icons
-                                  .person_outline,
-                          size: s(29),
-                        ),
-                      ),
+                  Expanded(
+                    child:
+                        _buildAssetsTab(
+                      context,
+                      zoom,
+                      player,
                     ),
                   ),
                   SizedBox(
-                    width: s(8),
+                    height: s(4),
                   ),
-                  Expanded(
-                    child: Column(
+                  _buildBottomNavigation(
+                    context,
+                    zoom,
+                  ),
+                ],
+              )
+            : Column(
+                children: [
+                  _ResponsiveCard(
+                    padding:
+                        EdgeInsets.all(
+                      s(8),
+                    ),
+                    child: Row(
                       crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                          CrossAxisAlignment
+                              .center,
                       children: [
-                        Text(
-                          player.name,
-                          style:
-                              Theme.of(context)
-                                  .textTheme
-                                  .titleMedium,
-                          maxLines: 1,
-                          overflow:
-                              TextOverflow.ellipsis,
+                        Material(
+                          color:
+                              Colors.transparent,
+                          child: InkWell(
+                            key: const Key(
+                              'character-avatar',
+                            ),
+                            onTap:
+                                _openCharacterProfile,
+                            borderRadius:
+                                BorderRadius
+                                    .circular(
+                              s(40),
+                            ),
+                            child:
+                                CircleAvatar(
+                              radius: s(27),
+                              child: Icon(
+                                player.gender ==
+                                        Gender.male
+                                    ? Icons.person
+                                    : Icons
+                                        .person_outline,
+                                size: s(29),
+                              ),
+                            ),
+                          ),
                         ),
                         SizedBox(
-                          height: s(1),
+                          width: s(8),
                         ),
-                        Wrap(
-                          spacing: s(8),
-                          runSpacing: 0,
-                          children: [
-                            Text(
-                              'Age $age',
-                              style: Theme.of(
-                                context,
-                              )
-                                  .textTheme
-                                  .bodySmall,
-                            ),
-                            Text(
-                              'Year '
-                              '${state.clock.currentYear}',
-                              style: Theme.of(
-                                context,
-                              )
-                                  .textTheme
-                                  .bodySmall,
-                            ),
-                            Text(
-                              lifeStageLabel,
-                              style: Theme.of(
-                                context,
-                              )
-                                  .textTheme
-                                  .bodySmall,
-                            ),
-                          ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment:
+                                CrossAxisAlignment
+                                    .start,
+                            children: [
+                              Text(
+                                player.name,
+                                style: Theme.of(
+                                  context,
+                                )
+                                    .textTheme
+                                    .titleMedium,
+                                maxLines: 1,
+                                overflow:
+                                    TextOverflow
+                                        .ellipsis,
+                              ),
+                              SizedBox(
+                                height: s(1),
+                              ),
+                              Wrap(
+                                spacing: s(8),
+                                runSpacing: 0,
+                                children: [
+                                  Text(
+                                    'Age $age',
+                                    style: Theme.of(
+                                      context,
+                                    )
+                                        .textTheme
+                                        .bodySmall,
+                                  ),
+                                  Text(
+                                    'Year '
+                                    '${state.clock.currentYear}',
+                                    style: Theme.of(
+                                      context,
+                                    )
+                                        .textTheme
+                                        .bodySmall,
+                                  ),
+                                  Text(
+                                    lifeStageLabel,
+                                    style: Theme.of(
+                                      context,
+                                    )
+                                        .textTheme
+                                        .bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          width: s(6),
+                        ),
+                        Flexible(
+                          child: Text(
+                            player.money
+                                .toString(),
+                            textAlign:
+                                TextAlign.end,
+                            maxLines: 1,
+                            overflow:
+                                TextOverflow
+                                    .ellipsis,
+                            style: Theme.of(
+                              context,
+                            )
+                                .textTheme
+                                .bodyMedium,
+                          ),
                         ),
                       ],
                     ),
                   ),
                   SizedBox(
-                    width: s(6),
+                    height: s(4),
                   ),
-                  Flexible(
-                    child: Text(
-                      player.money.toString(),
-                      textAlign:
-                          TextAlign.end,
-                      maxLines: 1,
-                      overflow:
-                          TextOverflow.ellipsis,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium,
+                  _ResponsiveCard(
+                    padding:
+                        EdgeInsets.fromLTRB(
+                      s(8),
+                      s(6),
+                      s(8),
+                      s(7),
+                    ),
+                    child: LayoutBuilder(
+                      builder: (
+                        context,
+                        constraints,
+                      ) {
+                        final crossAxisCount =
+                            _getStatColumnCount(
+                          constraints
+                              .maxWidth,
+                          zoom,
+                        );
+
+                        final spacing = s(4);
+
+                        return GridView
+                            .builder(
+                          shrinkWrap:
+                              true,
+                          physics:
+                              const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount:
+                                crossAxisCount,
+                            crossAxisSpacing:
+                                spacing,
+                            mainAxisSpacing:
+                                spacing,
+                            mainAxisExtent:
+                                s(50),
+                          ),
+                          itemCount: 8,
+                          itemBuilder: (
+                            context,
+                            index,
+                          ) {
+                            switch (index) {
+                              case 0:
+                                return _StatCard(
+                                  key:
+                                      const Key(
+                                    'core-stat-health',
+                                  ),
+                                  label:
+                                      'Health',
+                                  value:
+                                      player
+                                          .stats
+                                          .health,
+                                  icon:
+                                      Icons
+                                          .favorite,
+                                  zoom:
+                                      zoom,
+                                );
+
+                              case 1:
+                                return _StatCard(
+                                  key:
+                                      const Key(
+                                    'core-stat-intelligence',
+                                  ),
+                                  label:
+                                      'Intelligence',
+                                  value:
+                                      player
+                                          .stats
+                                          .intelligence,
+                                  icon:
+                                      Icons
+                                          .psychology,
+                                  zoom:
+                                      zoom,
+                                );
+
+                              case 2:
+                                return _StatCard(
+                                  key:
+                                      const Key(
+                                    'core-stat-fitness',
+                                  ),
+                                  label:
+                                      'Fitness',
+                                  value:
+                                      player
+                                          .stats
+                                          .fitness,
+                                  icon:
+                                      Icons
+                                          .fitness_center,
+                                  zoom:
+                                      zoom,
+                                );
+
+                              case 3:
+                                return _StatCard(
+                                  key:
+                                      const Key(
+                                    'core-stat-happiness',
+                                  ),
+                                  label:
+                                      'Happiness',
+                                  value:
+                                      player
+                                          .stats
+                                          .happiness,
+                                  icon:
+                                      Icons
+                                          .sentiment_satisfied,
+                                  zoom:
+                                      zoom,
+                                );
+
+                              case 4:
+                                return _StatCard(
+                                  key:
+                                      const Key(
+                                    'core-stat-willpower',
+                                  ),
+                                  label:
+                                      'Willpower',
+                                  value:
+                                      player
+                                          .stats
+                                          .willpower,
+                                  icon:
+                                      Icons
+                                          .shield_outlined,
+                                  zoom:
+                                      zoom,
+                                );
+
+                              case 5:
+                                return _StatCard(
+                                  key:
+                                      const Key(
+                                    'core-stat-charisma',
+                                  ),
+                                  label:
+                                      'Charisma',
+                                  value:
+                                      player
+                                          .stats
+                                          .charisma,
+                                  icon:
+                                      Icons.groups,
+                                  zoom:
+                                      zoom,
+                                );
+
+                              case 6:
+                                return _StatCard(
+                                  key:
+                                      const Key(
+                                    'core-stat-creativity',
+                                  ),
+                                  label:
+                                      'Creativity',
+                                  value:
+                                      player
+                                          .stats
+                                          .creativity,
+                                  icon:
+                                      Icons.palette,
+                                  zoom:
+                                      zoom,
+                                );
+
+                              case 7:
+                                return _StatCard(
+                                  key:
+                                      const Key(
+                                    'core-stat-luck',
+                                  ),
+                                  label:
+                                      'Luck',
+                                  value:
+                                      player
+                                          .stats
+                                          .luck,
+                                  icon:
+                                      Icons
+                                          .auto_awesome,
+                                  zoom:
+                                      zoom,
+                                );
+
+                              default:
+                                return const SizedBox
+                                    .shrink();
+                            }
+                          },
+                        );
+                      },
                     ),
                   ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: s(4),
-            ),
-            _ResponsiveCard(
-              padding: EdgeInsets.fromLTRB(
-                s(8),
-                s(6),
-                s(8),
-                s(7),
-              ),
-              child: LayoutBuilder(
-                builder: (
-                  context,
-                  constraints,
-                ) {
-                  final crossAxisCount =
-                      _getStatColumnCount(
-                    constraints.maxWidth,
-                    zoom,
-                  );
-
-                  final spacing = s(4);
-
-                  return GridView.builder(
-                    shrinkWrap: true,
-                    physics:
-                        const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount:
-                          crossAxisCount,
-                      crossAxisSpacing:
-                          spacing,
-                      mainAxisSpacing:
-                          spacing,
-                      mainAxisExtent:
-                          s(50),
-                    ),
-                    itemCount: 8,
-                    itemBuilder: (
-                      context,
-                      index,
-                    ) {
-                      switch (index) {
-                        case 0:
-                          return _StatCard(
-                            key: const Key(
-                              'core-stat-health',
-                            ),
-                            label: 'Health',
-                            value: player
-                                .stats
-                                .health,
-                            icon:
-                                Icons.favorite,
-                            zoom: zoom,
-                          );
-
-                        case 1:
-                          return _StatCard(
-                            key: const Key(
-                              'core-stat-intelligence',
-                            ),
-                            label:
-                                'Intelligence',
-                            value: player
-                                .stats
-                                .intelligence,
-                            icon:
-                                Icons.psychology,
-                            zoom: zoom,
-                          );
-
-                        case 2:
-                          return _StatCard(
-                            key: const Key(
-                              'core-stat-fitness',
-                            ),
-                            label: 'Fitness',
-                            value: player
-                                .stats
-                                .fitness,
-                            icon: Icons
-                                .fitness_center,
-                            zoom: zoom,
-                          );
-
-                        case 3:
-                          return _StatCard(
-                            key: const Key(
-                              'core-stat-happiness',
-                            ),
-                            label:
-                                'Happiness',
-                            value: player
-                                .stats
-                                .happiness,
-                            icon: Icons
-                                .sentiment_satisfied,
-                            zoom: zoom,
-                          );
-
-                        case 4:
-                          return _StatCard(
-                            key: const Key(
-                              'core-stat-willpower',
-                            ),
-                            label:
-                                'Willpower',
-                            value: player
-                                .stats
-                                .willpower,
-                            icon: Icons
-                                .shield_outlined,
-                            zoom: zoom,
-                          );
-
-                        case 5:
-                          return _StatCard(
-                            key: const Key(
-                              'core-stat-charisma',
-                            ),
-                            label:
-                                'Charisma',
-                            value: player
-                                .stats
-                                .charisma,
-                            icon: Icons.groups,
-                            zoom: zoom,
-                          );
-
-                        case 6:
-                          return _StatCard(
-                            key: const Key(
-                              'core-stat-creativity',
-                            ),
-                            label:
-                                'Creativity',
-                            value: player
-                                .stats
-                                .creativity,
-                            icon: Icons.palette,
-                            zoom: zoom,
-                          );
-
-                        case 7:
-                          return _StatCard(
-                            key: const Key(
-                              'core-stat-luck',
-                            ),
-                            label: 'Luck',
-                            value: player
-                                .stats
-                                .luck,
-                            icon: Icons
-                                .auto_awesome,
-                            zoom: zoom,
-                          );
-
-                        default:
-                          return const SizedBox
-                              .shrink();
-                      }
-                    },
-                  );
-                },
-              ),
-            ),
-            SizedBox(
-              height: s(4),
-            ),
-            Expanded(
-              child: _ResponsiveCard(
-                padding:
-                    EdgeInsets.fromLTRB(
-                  s(8),
-                  s(6),
-                  s(8),
-                  s(6),
-                ),
-                child: events.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'No events yet.',
-                          textAlign:
-                              TextAlign.center,
-                        ),
-                      )
-                    : ListView.separated(
-                        controller:
-                            _lifeEventsScrollController,
-                        padding:
-                            EdgeInsets.zero,
-                        itemCount:
-                            events.length,
-                        separatorBuilder:
-                            (
-                          _,
-                          __,
-                        ) =>
-                                SizedBox(
-                          height: s(7),
-                        ),
-                        itemBuilder: (
-                          context,
-                          index,
-                        ) {
-                          final event =
-                              events[index];
-
-                          return Row(
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start,
-                            children: [
-                              Padding(
-                                padding:
-                                    EdgeInsets.only(
-                                  top: s(5),
-                                ),
-                                child: Icon(
-                                  Icons.circle,
-                                  size: s(6),
-                                  color: Theme.of(
-                                    context,
-                                  )
-                                      .colorScheme
-                                      .primary,
-                                ),
+                  SizedBox(
+                    height: s(4),
+                  ),
+                  Expanded(
+                    child:
+                        _ResponsiveCard(
+                      padding:
+                          EdgeInsets.fromLTRB(
+                        s(8),
+                        s(6),
+                        s(8),
+                        s(6),
+                      ),
+                      child: events.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'No events yet.',
+                                textAlign:
+                                    TextAlign.center,
                               ),
-                              SizedBox(
-                                width: s(7),
+                            )
+                          : ListView
+                              .separated(
+                              controller:
+                                  _lifeEventsScrollController,
+                              padding:
+                                  EdgeInsets.zero,
+                              itemCount:
+                                  events.length,
+                              separatorBuilder:
+                                  (
+                                _,
+                                __,
+                              ) =>
+                                      SizedBox(
+                                height: s(7),
                               ),
-                              Expanded(
-                                child: Column(
+                              itemBuilder: (
+                                context,
+                                index,
+                              ) {
+                                final event =
+                                    events[index];
+
+                                return Row(
                                   crossAxisAlignment:
                                       CrossAxisAlignment
                                           .start,
                                   children: [
-                                    Text(
-                                      event.title,
-                                      style: Theme.of(
-                                        context,
-                                      )
-                                          .textTheme
-                                          .bodyMedium!
-                                          .copyWith(
-                                            fontWeight:
-                                                FontWeight
-                                                    .w600,
-                                          ),
+                                    Padding(
+                                      padding:
+                                          EdgeInsets.only(
+                                        top: s(5),
+                                      ),
+                                      child:
+                                          Icon(
+                                        Icons
+                                            .circle,
+                                        size:
+                                            s(6),
+                                        color: Theme.of(
+                                          context,
+                                        )
+                                            .colorScheme
+                                            .primary,
+                                      ),
                                     ),
                                     SizedBox(
-                                      height: s(1),
+                                      width:
+                                          s(7),
                                     ),
-                                    Text(
-                                      '${event.year} — '
-                                      '${event.description}',
-                                      style: Theme.of(
-                                        context,
-                                      )
-                                          .textTheme
-                                          .bodySmall,
+                                    Expanded(
+                                      child:
+                                          Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment
+                                                .start,
+                                        children: [
+                                          Text(
+                                            event
+                                                .title,
+                                            style: Theme.of(
+                                              context,
+                                            )
+                                                .textTheme
+                                                .bodyMedium!
+                                                .copyWith(
+                                                  fontWeight:
+                                                      FontWeight.w600,
+                                                ),
+                                          ),
+                                          SizedBox(
+                                            height:
+                                                s(1),
+                                          ),
+                                          Text(
+                                            '${event.year} — '
+                                            '${event.description}',
+                                            style: Theme.of(
+                                              context,
+                                            )
+                                                .textTheme
+                                                .bodySmall,
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ],
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
+                                );
+                              },
+                            ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: s(4),
+                  ),
+                  _buildBottomNavigation(
+                    context,
+                    zoom,
+                  ),
+                ],
               ),
-            ),
-            SizedBox(
-              height: s(4),
-            ),
-            _BottomNavigation(
-              zoom: zoom,
-              isProcessing:
-                  _isProcessingTurn,
-              onCareerTap: () {
-                _showNavigationNotice(
-                  'Career',
-                );
-              },
-              onAssetsTap: () {
-                _showNavigationNotice(
-                  'Assets',
-                );
-              },
-              onAgeUpTap: _ageUp,
-              onLifeTap: () {
-                _showNavigationNotice(
-                  'Life',
-                );
-              },
-              onMoreTap: () {
-                _showNavigationNotice(
-                  'More',
-                );
-              },
-            ),
-          ],
-        ),
       ),
+    );
+  }
+
+  Widget _buildAssetsTab(
+    BuildContext context,
+    double zoom,
+    dynamic player,
+  ) {
+    double s(double value) =>
+        value * zoom;
+
+    return ListView(
+      padding: EdgeInsets.fromLTRB(
+        s(8),
+        s(4),
+        s(8),
+        s(12),
+      ),
+      children: [
+        SizedBox(
+          height: s(2),
+        ),
+        Text(
+          'Assets',
+          style: Theme.of(context)
+              .textTheme
+              .titleLarge!
+              .copyWith(
+                fontWeight:
+                    FontWeight.w700,
+              ),
+        ),
+        SizedBox(
+          height: s(2),
+        ),
+        Text(
+          'Everything your character owns.',
+          style: Theme.of(context)
+              .textTheme
+              .bodySmall,
+        ),
+        SizedBox(
+          height: s(6),
+        ),
+        _ResponsiveCard(
+          padding: EdgeInsets.fromLTRB(
+            s(8),
+            s(7),
+            s(8),
+            s(7),
+          ),
+          child: Column(
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Current Assets',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleSmall!
+                    .copyWith(
+                      fontWeight:
+                          FontWeight.w700,
+                    ),
+              ),
+              SizedBox(
+                height: s(4),
+              ),
+              _AssetSummaryRow(
+                label: 'Cash',
+                value:
+                    player.money.toString(),
+                zoom: zoom,
+              ),
+              _AssetSummaryRow(
+                label: 'Property',
+                value: 'None',
+                zoom: zoom,
+              ),
+              _AssetSummaryRow(
+                label: 'Businesses',
+                value: 'None',
+                zoom: zoom,
+              ),
+              _AssetSummaryRow(
+                label: 'Investments',
+                value: 'None',
+                zoom: zoom,
+              ),
+              _AssetSummaryRow(
+                label: 'Vehicles',
+                value: 'None',
+                zoom: zoom,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomNavigation(
+    BuildContext context,
+    double zoom,
+  ) {
+    return _BottomNavigation(
+      zoom: zoom,
+      isProcessing:
+          _isProcessingTurn,
+      selectedIndex:
+          _selectedNavigationIndex,
+      onCareerTap: () {
+        setState(() {
+          _selectedNavigationIndex = 0;
+        });
+
+        _showNavigationNotice(
+          'Career',
+        );
+      },
+      onAssetsTap:
+          _openAssetsTab,
+      onAgeUpTap: _ageUp,
+      onLifeTap: () {
+        setState(() {
+          _selectedNavigationIndex = 3;
+        });
+
+        _showNavigationNotice(
+          'Life',
+        );
+      },
+      onMoreTap: () {
+        setState(() {
+          _selectedNavigationIndex = 4;
+        });
+
+        _showNavigationNotice(
+          'More',
+        );
+      },
     );
   }
 
@@ -731,10 +991,14 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     if (zoom <= 1.55) {
-      return availableWidth >= 320 ? 3 : 2;
+      return availableWidth >= 320
+          ? 3
+          : 2;
     }
 
-    return availableWidth >= 320 ? 2 : 1;
+    return availableWidth >= 320
+        ? 2
+        : 1;
   }
 
   String _formatLifeStage(
@@ -770,6 +1034,7 @@ class _BottomNavigation
   const _BottomNavigation({
     required this.zoom,
     required this.isProcessing,
+    required this.selectedIndex,
     required this.onCareerTap,
     required this.onAssetsTap,
     required this.onAgeUpTap,
@@ -779,6 +1044,7 @@ class _BottomNavigation
 
   final double zoom;
   final bool isProcessing;
+  final int selectedIndex;
   final VoidCallback onCareerTap;
   final VoidCallback onAssetsTap;
   final VoidCallback onAgeUpTap;
@@ -833,6 +1099,8 @@ class _BottomNavigation
                   'assets/icons/career.svg',
               iconSize: s(25),
               textStyle: textStyle,
+              selected:
+                  selectedIndex == 0,
               onTap: isProcessing
                   ? () {}
                   : onCareerTap,
@@ -846,6 +1114,8 @@ class _BottomNavigation
                   'assets/icons/assets.svg',
               iconSize: s(25),
               textStyle: textStyle,
+              selected:
+                  selectedIndex == 1,
               onTap: isProcessing
                   ? () {}
                   : onAssetsTap,
@@ -855,7 +1125,8 @@ class _BottomNavigation
                 'bottom-nav-age-up',
               ),
               zoom: zoom,
-              isProcessing: isProcessing,
+              isProcessing:
+                  isProcessing,
               onTap: onAgeUpTap,
               textStyle: textStyle,
             ),
@@ -868,6 +1139,8 @@ class _BottomNavigation
                   'assets/icons/life.svg',
               iconSize: s(25),
               textStyle: textStyle,
+              selected:
+                  selectedIndex == 3,
               onTap: isProcessing
                   ? () {}
                   : onLifeTap,
@@ -881,6 +1154,8 @@ class _BottomNavigation
                   'assets/icons/more.svg',
               iconSize: s(25),
               textStyle: textStyle,
+              selected:
+                  selectedIndex == 4,
               onTap: isProcessing
                   ? () {}
                   : onMoreTap,
@@ -899,6 +1174,7 @@ class _BottomNavigationItem
     required this.assetPath,
     required this.iconSize,
     required this.textStyle,
+    required this.selected,
     required this.onTap,
     super.key,
   });
@@ -907,13 +1183,18 @@ class _BottomNavigationItem
   final String assetPath;
   final double iconSize;
   final TextStyle textStyle;
+  final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme =
+        Theme.of(context).colorScheme;
+
     return Expanded(
       child: Semantics(
         button: true,
+        selected: selected,
         label: label,
         child: InkWell(
           onTap: onTap,
@@ -932,18 +1213,30 @@ class _BottomNavigationItem
                   assetPath,
                   semanticsLabel: label,
                   fit: BoxFit.contain,
+                  colorFilter:
+                      ColorFilter.mode(
+                    selected
+                        ? colorScheme.primary
+                        : colorScheme.onSurface,
+                    BlendMode.srcIn,
+                  ),
                 ),
               ),
               SizedBox(
                 height:
-                    1 * (iconSize / 25),
+                    1 *
+                        (iconSize / 25),
               ),
               Text(
                 label,
                 maxLines: 1,
                 overflow:
                     TextOverflow.ellipsis,
-                style: textStyle,
+                style: textStyle.copyWith(
+                  color: selected
+                      ? colorScheme.primary
+                      : null,
+                ),
               ),
             ],
           ),
@@ -1089,6 +1382,56 @@ class _ResponsiveCard
           padding: padding,
           child: child,
         ),
+      ),
+    );
+  }
+}
+
+class _AssetSummaryRow
+    extends StatelessWidget {
+  const _AssetSummaryRow({
+    required this.label,
+    required this.value,
+    required this.zoom,
+  });
+
+  final String label;
+  final String value;
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) =>
+        value * zoom;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        vertical: s(2),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall,
+            ),
+          ),
+          SizedBox(
+            width: s(8),
+          ),
+          Text(
+            value,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall!
+                .copyWith(
+                  fontWeight:
+                      FontWeight.w600,
+                ),
+          ),
+        ],
       ),
     );
   }
