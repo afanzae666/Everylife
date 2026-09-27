@@ -190,8 +190,7 @@ class _SaveLoadScreenState
       return;
     }
 
-    final confirmed =
-        await _confirmDelete(slot);
+    final confirmed = await _confirmDelete(slot);
 
     if (!mounted || !confirmed) {
       return;
@@ -231,8 +230,7 @@ class _SaveLoadScreenState
   Future<bool> _confirmDelete(
     SaveSlot slot,
   ) async {
-    final confirmed =
-        await showDialog<bool>(
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         final zoom = widget.zoom;
@@ -437,8 +435,7 @@ class _SaveLoadScreenState
                 secondary: Icon(
                   enabled
                       ? Icons.autorenew
-                      : Icons
-                          .autorenew_outlined,
+                      : Icons.autorenew_outlined,
                   size: 24 * widget.zoom,
                 ),
                 title: const Text(
@@ -634,7 +631,7 @@ class _SaveLoadScreenState
 }
 
 class _LifeFeedbackCard
-    extends StatelessWidget {
+    extends StatefulWidget {
   const _LifeFeedbackCard({
     required this.zoom,
     required this.title,
@@ -648,40 +645,63 @@ class _LifeFeedbackCard
   final IconData icon;
 
   @override
+  State<_LifeFeedbackCard> createState() =>
+      _LifeFeedbackCardState();
+}
+
+class _LifeFeedbackCardState
+    extends State<_LifeFeedbackCard> {
+  @override
+  void initState() {
+    super.initState();
+
+    Future<void>.delayed(
+      const Duration(milliseconds: 900),
+      () {
+        if (!mounted) {
+          return;
+        }
+
+        Navigator.of(context).pop();
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: Card(
         margin: EdgeInsets.symmetric(
-          horizontal: 32 * zoom,
+          horizontal: 32 * widget.zoom,
         ),
         elevation: 8,
         child: Padding(
           padding: EdgeInsets.all(
-            24 * zoom,
+            24 * widget.zoom,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                icon,
-                size: 46 * zoom,
+                widget.icon,
+                size: 46 * widget.zoom,
               ),
               SizedBox(
-                height: 12 * zoom,
+                height: 12 * widget.zoom,
               ),
               Text(
-                title,
+                widget.title,
                 textAlign: TextAlign.center,
                 style: Theme.of(context)
                     .textTheme
                     .titleLarge,
               ),
               SizedBox(
-                height: 6 * zoom,
+                height: 6 * widget.zoom,
               ),
               Text(
-                message,
+                widget.message,
                 textAlign: TextAlign.center,
                 style: Theme.of(context)
                     .textTheme
