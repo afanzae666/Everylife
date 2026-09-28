@@ -930,17 +930,6 @@ class _CharacterCreationScreenState
       );
     }
 
-    Widget fixedSvg({
-      required String assetPath,
-    }) {
-      return SvgPicture.asset(
-        assetPath,
-        width: s(180),
-        height: s(180),
-        fit: BoxFit.contain,
-      );
-    }
-
     return Container(
       width: double.infinity,
       height: s(230),
@@ -973,9 +962,6 @@ class _CharacterCreationScreenState
             clipBehavior:
                 Clip.none,
             children: [
-              // --------------------------------------------------
-              // BASE SKIN
-              // --------------------------------------------------
               Positioned(
                 left: s(27),
                 top: s(27),
@@ -1007,9 +993,6 @@ class _CharacterCreationScreenState
                   ),
                 ),
               ),
-              // --------------------------------------------------
-              // HAIR (Back layer)
-              // --------------------------------------------------
               Positioned(
                 left: s(0),
                 top: s(10),
@@ -1023,9 +1006,6 @@ class _CharacterCreationScreenState
                   ),
                 ),
               ),
-              // --------------------------------------------------
-              // EYEBROWS
-              // --------------------------------------------------
               Positioned(
                 left: s(35),
                 top: s(60),
@@ -1039,9 +1019,6 @@ class _CharacterCreationScreenState
                   ),
                 ),
               ),
-              // --------------------------------------------------
-              // EYES
-              // --------------------------------------------------
               Positioned(
                 left: s(40),
                 top: s(80),
@@ -1055,16 +1032,50 @@ class _CharacterCreationScreenState
                   ),
                 ),
               ),
+              Positioned(
+                left: s(82),
+                top: s(89),
+                child: Transform.rotate(
+                  angle: 0.08,
+                  child: Container(
+                    width: s(14),
+                    height: s(36),
+                    decoration: BoxDecoration(
+                      color: skinColor.withValues(
+                        alpha: 0.92,
+                      ),
+                      borderRadius:
+                          BorderRadius.only(
+                        topLeft: Radius.circular(
+                          s(8),
+                        ),
+                        topRight: Radius.circular(
+                          s(8),
+                        ),
+                        bottomLeft: Radius.circular(
+                          s(7),
+                        ),
+                        bottomRight: Radius.circular(
+                          s(7),
+                        ),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: s(3),
+                          offset: Offset(0, s(1)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
   }
-
-  // --------------------------------------------------
-  // UI BUILDER METHODS
-  // --------------------------------------------------
 
   Widget _buildSkinToneSelector(
     BuildContext context,
