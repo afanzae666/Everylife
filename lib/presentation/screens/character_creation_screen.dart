@@ -14,7 +14,6 @@ class CharacterCreationScreen extends StatefulWidget {
   });
 
   final void Function(Character character) onCharacterCreated;
-
   final ValueNotifier<double>? uiScaleController;
 
   @override
@@ -110,7 +109,8 @@ class _CharacterCreationScreenState
   void initState() {
     super.initState();
 
-    _birthYearController.text = _birthYear.toString();
+    _birthYearController.text =
+        _birthYear.toString();
 
     _birthYearController.addListener(
       _handleBirthYearTextChanged,
@@ -133,7 +133,8 @@ class _CharacterCreationScreenState
       return;
     }
 
-    final int? parsed = int.tryParse(text);
+    final int? parsed =
+        int.tryParse(text);
 
     if (parsed == null) {
       return;
@@ -157,12 +158,14 @@ class _CharacterCreationScreenState
       _maximumBirthYear,
     );
 
-    final String text = clamped.toString();
+    final String text =
+        clamped.toString();
 
     setState(() {
       _birthYear = clamped;
 
-      if (_birthYearController.text != text) {
+      if (_birthYearController.text !=
+          text) {
         _birthYearController.value =
             TextEditingValue(
           text: text,
@@ -179,7 +182,8 @@ class _CharacterCreationScreenState
     final String text =
         _birthYearController.text.trim();
 
-    final int? parsed = int.tryParse(text);
+    final int? parsed =
+        int.tryParse(text);
 
     if (parsed == null) {
       _birthYearController.value =
@@ -202,7 +206,8 @@ class _CharacterCreationScreenState
   }
 
   String _capitalizeName(String value) {
-    final String normalized = value.trim();
+    final String normalized =
+        value.trim();
 
     if (normalized.isEmpty) {
       return '';
@@ -425,8 +430,7 @@ class _CharacterCreationScreenState
                   EdgeInsets.all(s(8)),
               child: Column(
                 crossAxisAlignment:
-                    CrossAxisAlignment
-                        .start,
+                    CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Create Your Character',
@@ -721,8 +725,7 @@ class _CharacterCreationScreenState
                           .bodySmall!
                           .copyWith(
                             fontWeight:
-                                FontWeight
-                                    .w600,
+                                FontWeight.w600,
                           ),
                 ),
                 Text(
@@ -769,16 +772,21 @@ class _CharacterCreationScreenState
                 .titleMedium,
           ),
           SizedBox(height: s(5)),
+
           _buildAppearancePreview(
             context,
             zoom,
           ),
+
           SizedBox(height: s(8)),
+
           _buildSkinToneSelector(
             context,
             zoom,
           ),
+
           SizedBox(height: s(8)),
+
           _buildAssetSelector(
             context: context,
             zoom: zoom,
@@ -801,7 +809,9 @@ class _CharacterCreationScreenState
                     _appearance
                         .hairColor],
           ),
+
           SizedBox(height: s(8)),
+
           _buildColorSelector(
             context: context,
             zoom: zoom,
@@ -818,7 +828,9 @@ class _CharacterCreationScreenState
               );
             },
           ),
+
           SizedBox(height: s(8)),
+
           _buildAssetSelector(
             context: context,
             zoom: zoom,
@@ -841,7 +853,9 @@ class _CharacterCreationScreenState
                     _appearance
                         .eyeColor],
           ),
+
           SizedBox(height: s(8)),
+
           _buildColorSelector(
             context: context,
             zoom: zoom,
@@ -858,7 +872,9 @@ class _CharacterCreationScreenState
               );
             },
           ),
+
           SizedBox(height: s(8)),
+
           _buildAssetSelector(
             context: context,
             zoom: zoom,
@@ -888,13 +904,136 @@ class _CharacterCreationScreenState
   }
 
   // ==============================================================
-  // DIAGNOSTIC APPEARANCE PREVIEW
+  // SVG DIAGNOSTIC LOADER
+  // ==============================================================
+
+  Future<String> _loadSvg(
+    String path,
+  ) async {
+    return rootBundle.loadString(
+      path,
+    );
+  }
+
+  Widget _diagnosticSvg(
+    String path, {
+    required double size,
+  }) {
+    return FutureBuilder<String>(
+      future: _loadSvg(path),
+      builder: (
+        BuildContext context,
+        AsyncSnapshot<String> snapshot,
+      ) {
+        if (snapshot.connectionState ==
+            ConnectionState.waiting) {
+          return const Center(
+            child:
+                CircularProgressIndicator(),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Container(
+            alignment:
+                Alignment.center,
+            padding:
+                const EdgeInsets.all(8),
+            color: Colors.red.withValues(
+              alpha: 0.15,
+            ),
+            child: SingleChildScrollView(
+              child: Text(
+                'SVG LOAD ERROR\n\n'
+                '$path\n\n'
+                '${snapshot.error}',
+                textAlign:
+                    TextAlign.center,
+                style:
+                    const TextStyle(
+                  fontSize: 9,
+                  color: Colors.red,
+                ),
+              ),
+            ),
+          );
+        }
+
+        if (!snapshot.hasData ||
+            snapshot.data!.isEmpty) {
+          return Container(
+            alignment:
+                Alignment.center,
+            color:
+                Colors.orange.withValues(
+              alpha: 0.15,
+            ),
+            child: const Text(
+              'SVG EMPTY',
+              textAlign:
+                  TextAlign.center,
+            ),
+          );
+        }
+
+        return SvgPicture.string(
+          snapshot.data!,
+          width: size,
+          height: size,
+          fit: BoxFit.contain,
+          errorBuilder: (
+            BuildContext context,
+            Object error,
+            StackTrace stackTrace,
+          ) {
+            return Container(
+              alignment:
+                  Alignment.center,
+              padding:
+                  const EdgeInsets.all(8),
+              color:
+                  Colors.red.withValues(
+                alpha: 0.15,
+              ),
+              child:
+                  SingleChildScrollView(
+                child: Text(
+                  'SVG PARSE ERROR\n\n'
+                  '$path\n\n'
+                  '$error',
+                  textAlign:
+                      TextAlign.center,
+                  style:
+                      const TextStyle(
+                    fontSize: 9,
+                    color: Colors.red,
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ==============================================================
+  // DIAGNOSTIC PREVIEW
   //
-  // Hair, eyes, and eyebrows are rendered using their original
-  // 256x256 SVG canvas with NO ColorFilter.
+  // IMPORTANT:
+  // This preview intentionally does NOT use the skin container.
+  // It tests SVG loading directly.
   //
-  // This intentionally removes tinting and custom scaling so we
-  // can determine whether the raw SVG assets render correctly.
+  // Every SVG is loaded through:
+  //
+  // rootBundle.loadString()
+  //        ↓
+  // SvgPicture.string()
+  //
+  // Therefore:
+  // - missing asset = visible LOAD ERROR
+  // - invalid SVG = visible PARSE ERROR
+  // - valid SVG = visible SVG
   // ==============================================================
 
   Widget _buildAppearancePreview(
@@ -904,22 +1043,13 @@ class _CharacterCreationScreenState
     double s(double value) =>
         value * zoom;
 
-    final Color skinColor =
-        _skinToneColors[
-                _appearance.skinTone] ??
-            _skinToneColors.values
-                .first;
-
     return Container(
       width: double.infinity,
-      height: s(280),
+      height: s(300),
       decoration: BoxDecoration(
         color: Theme.of(context)
             .colorScheme
-            .surfaceContainerHighest
-            .withValues(
-              alpha: 0.35,
-            ),
+            .surfaceContainerHighest,
         borderRadius:
             BorderRadius.circular(
           s(10),
@@ -937,115 +1067,30 @@ class _CharacterCreationScreenState
           width: s(256),
           height: s(256),
           child: Stack(
-            clipBehavior:
-                Clip.none,
             children: [
-              // ====================================================
-              // BASE SKIN
-              // ====================================================
-              Positioned(
-                left: s(35),
-                top: s(35),
-                child: Container(
-                  width: s(186),
-                  height: s(218),
-                  decoration:
-                      BoxDecoration(
-                    color: skinColor,
-                    borderRadius:
-                        BorderRadius.only(
-                      topLeft:
-                          Radius.circular(
-                        s(90),
-                      ),
-                      topRight:
-                          Radius.circular(
-                        s(90),
-                      ),
-                      bottomLeft:
-                          Radius.circular(
-                        s(70),
-                      ),
-                      bottomRight:
-                          Radius.circular(
-                        s(70),
-                      ),
-                    ),
-                  ),
-                ),
+              _diagnosticSvg(
+                'assets/character/hair/hair_short.svg',
+                size: s(256),
               ),
 
-              // ====================================================
-              // HAIR
-              // No ColorFilter.
-              // ====================================================
-              Positioned.fill(
-                child:
-                    SvgPicture.asset(
-                  'assets/character/hair/'
-                  '${_appearance.hair}.svg',
-                  width: s(256),
-                  height: s(256),
-                  fit: BoxFit.contain,
-                ),
+              _diagnosticSvg(
+                'assets/character/eyes/eyes_normal.svg',
+                size: s(256),
               ),
 
-              // ====================================================
-              // EYEBROWS
-              // No ColorFilter.
-              // ====================================================
-              Positioned.fill(
-                child:
-                    SvgPicture.asset(
-                  'assets/character/eyebrows/'
-                  '${_appearance.eyebrows}.svg',
-                  width: s(256),
-                  height: s(256),
-                  fit: BoxFit.contain,
-                ),
+              _diagnosticSvg(
+                'assets/character/eyebrows/brows_normal.svg',
+                size: s(256),
               ),
 
-              // ====================================================
-              // EYES
-              // No ColorFilter.
-              // ====================================================
-              Positioned.fill(
-                child:
-                    SvgPicture.asset(
-                  'assets/character/eyes/'
-                  '${_appearance.eyes}.svg',
-                  width: s(256),
-                  height: s(256),
-                  fit: BoxFit.contain,
-                ),
+              _diagnosticSvg(
+                'assets/character/base/nose_fixed.svg',
+                size: s(256),
               ),
 
-              // ====================================================
-              // NOSE
-              // ====================================================
-              Positioned.fill(
-                child:
-                    SvgPicture.asset(
-                  'assets/character/base/'
-                  'nose_fixed.svg',
-                  width: s(256),
-                  height: s(256),
-                  fit: BoxFit.contain,
-                ),
-              ),
-
-              // ====================================================
-              // MOUTH
-              // ====================================================
-              Positioned.fill(
-                child:
-                    SvgPicture.asset(
-                  'assets/character/base/'
-                  'mouth_fixed.svg',
-                  width: s(256),
-                  height: s(256),
-                  fit: BoxFit.contain,
-                ),
+              _diagnosticSvg(
+                'assets/character/base/mouth_fixed.svg',
+                size: s(256),
               ),
             ],
           ),
