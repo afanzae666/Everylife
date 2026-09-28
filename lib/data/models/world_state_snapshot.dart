@@ -1,4 +1,5 @@
 import '../../core/money/money.dart';
+import '../../domain/character/appearance.dart';
 import '../../domain/character/character.dart';
 import '../../domain/character/character_stats.dart';
 import '../../domain/character/gender.dart';
@@ -24,6 +25,7 @@ class WorldStateSnapshot {
     required this.playerCreativity,
     required this.playerLuck,
     required this.playerMoneyMinorUnits,
+    required this.playerAppearance,
     required this.events,
   });
 
@@ -46,6 +48,8 @@ class WorldStateSnapshot {
   final int playerLuck;
 
   final int playerMoneyMinorUnits;
+
+  final CharacterAppearance playerAppearance;
 
   final List<SimulationEvent> events;
 
@@ -72,6 +76,7 @@ class WorldStateSnapshot {
       playerCreativity: stats.creativity,
       playerLuck: stats.luck,
       playerMoneyMinorUnits: player.money.minorUnits,
+      playerAppearance: player.appearance,
       events: List.unmodifiable(state.events),
     );
   }
@@ -101,6 +106,7 @@ class WorldStateSnapshot {
         money: Money.fromMinorUnits(
           playerMoneyMinorUnits,
         ),
+        appearance: playerAppearance,
       ),
       events: List.unmodifiable(events),
     );
@@ -127,6 +133,15 @@ class WorldStateSnapshot {
           'luck': playerLuck,
         },
         'moneyMinorUnits': playerMoneyMinorUnits,
+        'appearance': {
+          'base': playerAppearance.base,
+          'skinTone': playerAppearance.skinTone,
+          'hair': playerAppearance.hair,
+          'hairColor': playerAppearance.hairColor,
+          'eyes': playerAppearance.eyes,
+          'eyeColor': playerAppearance.eyeColor,
+          'eyebrows': playerAppearance.eyebrows,
+        },
       },
       'events': events
           .map(
@@ -154,6 +169,8 @@ class WorldStateSnapshot {
       player['stats'],
       'player.stats',
     );
+
+    final appearanceJson = player['appearance'];
 
     final eventsJson = json['events'];
 
@@ -225,6 +242,11 @@ class WorldStateSnapshot {
         player['moneyMinorUnits'],
         'player.moneyMinorUnits',
       ),
+      playerAppearance: appearanceJson == null
+          ? const CharacterAppearance()
+          : _parseAppearance(
+              appearanceJson,
+            ),
       events: List.unmodifiable(
         eventsJson
             .map(
@@ -232,6 +254,67 @@ class WorldStateSnapshot {
             )
             .toList(growable: false),
       ),
+    );
+  }
+
+  static CharacterAppearance _parseAppearance(
+    Object? value,
+  ) {
+    final appearance = _requireMap(
+      value,
+      'player.appearance',
+    );
+
+    return CharacterAppearance(
+      base: _optionalString(
+        appearance['base'],
+      ).isEmpty
+          ? 'default'
+          : _optionalString(
+              appearance['base'],
+            ),
+      skinTone: _optionalString(
+        appearance['skinTone'],
+      ).isEmpty
+          ? 'default'
+          : _optionalString(
+              appearance['skinTone'],
+            ),
+      hair: _optionalString(
+        appearance['hair'],
+      ).isEmpty
+          ? 'default'
+          : _optionalString(
+              appearance['hair'],
+            ),
+      hairColor: _optionalString(
+        appearance['hairColor'],
+      ).isEmpty
+          ? 'default'
+          : _optionalString(
+              appearance['hairColor'],
+            ),
+      eyes: _optionalString(
+        appearance['eyes'],
+      ).isEmpty
+          ? 'default'
+          : _optionalString(
+              appearance['eyes'],
+            ),
+      eyeColor: _optionalString(
+        appearance['eyeColor'],
+      ).isEmpty
+          ? 'default'
+          : _optionalString(
+              appearance['eyeColor'],
+            ),
+      eyebrows: _optionalString(
+        appearance['eyebrows'],
+      ).isEmpty
+          ? 'default'
+          : _optionalString(
+              appearance['eyebrows'],
+            ),
     );
   }
 
@@ -277,7 +360,7 @@ class WorldStateSnapshot {
     }
 
     throw const FormatException(
-      'Optional name fields must be strings.',
+      'Optional string fields must be strings.',
     );
   }
 
