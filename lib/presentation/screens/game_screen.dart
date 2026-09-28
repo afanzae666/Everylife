@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/money/money.dart';
+import '../../data/settings/auto_save_settings.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
 import '../../simulation/engine/simulation_engine.dart';
@@ -42,7 +43,9 @@ class _GameScreenState extends State<GameScreen> {
   late final ValueNotifier<double> _uiScaleController;
   late final bool _ownsUiScaleController;
   late final ValueNotifier<bool> _autoSaveController;
+  late final AutoSaveSettings _autoSaveSettings;
 
+  bool _autoSaveSettingReady = false;
   bool _isProcessingTurn = false;
   bool _isExitDialogShowing = false;
 
@@ -63,6 +66,14 @@ class _GameScreenState extends State<GameScreen> {
 
     _autoSaveController = ValueNotifier<bool>(true);
 
+    _autoSaveSettings = AutoSaveSettings();
+
+    _autoSaveController.addListener(
+      _handleAutoSaveSettingChanged,
+    );
+
+    _loadAutoSaveSetting();
+
     _scrollLifeEventsToBottom(jump: true);
   }
 
@@ -72,10 +83,36 @@ class _GameScreenState extends State<GameScreen> {
       _uiScaleController.dispose();
     }
 
+    _autoSaveController.removeListener(
+      _handleAutoSaveSettingChanged,
+    );
+
     _autoSaveController.dispose();
     _lifeEventsScrollController.dispose();
 
     super.dispose();
+  }
+
+  Future<void> _loadAutoSaveSetting() async {
+    final enabled = await _autoSaveSettings.load();
+
+    if (!mounted) {
+      return;
+    }
+
+    _autoSaveSettingReady = true;
+
+    _autoSaveController.value = enabled;
+  }
+
+  void _handleAutoSaveSettingChanged() {
+    if (!_autoSaveSettingReady) {
+      return;
+    }
+
+    _autoSaveSettings.save(
+      _autoSaveController.value,
+    );
   }
 
   Future<void> _confirmExitGame() async {
