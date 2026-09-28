@@ -655,6 +655,17 @@ class _GameScreenState extends State<GameScreen> {
   ) {
     double s(double value) => value * zoom;
 
+    final eventsByYear = <int, List<dynamic>>{};
+
+    for (final event in events) {
+      eventsByYear.putIfAbsent(
+        event.year as int,
+        () => [],
+      ).add(event);
+    }
+
+    final groupedEvents = eventsByYear.entries.toList();
+
     return _ResponsiveCard(
       padding: EdgeInsets.fromLTRB(
         s(8),
@@ -662,7 +673,7 @@ class _GameScreenState extends State<GameScreen> {
         s(8),
         s(6),
       ),
-      child: events.isEmpty
+      child: groupedEvents.isEmpty
           ? const Center(
               child: Text(
                 'No events yet.',
@@ -672,43 +683,44 @@ class _GameScreenState extends State<GameScreen> {
           : ListView.separated(
               controller: _lifeEventsScrollController,
               padding: EdgeInsets.zero,
-              itemCount: events.length,
+              itemCount: groupedEvents.length,
               separatorBuilder: (_, __) => SizedBox(
-                height: s(3),
+                height: s(7),
               ),
               itemBuilder: (
                 context,
                 index,
               ) {
-                final event = events[index];
-
+                final yearGroup = groupedEvents[index];
+                final year = yearGroup.key;
+                final yearEvents = yearGroup.value;
                 final eventAge =
-                    event.year - player.birthYear;
+                    year - player.birthYear;
 
-                return Row(
+                return Column(
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: EdgeInsets.only(
-                        top: s(5),
-                      ),
-                      child: Icon(
-                        Icons.circle,
-                        size: s(6),
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary,
-                      ),
-                    ),
-                    SizedBox(width: s(7)),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Age $eventAge • ${event.year}',
+                    Row(
+                      crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(
+                            top: s(5),
+                          ),
+                          child: Icon(
+                            Icons.circle,
+                            size: s(6),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary,
+                          ),
+                        ),
+                        SizedBox(width: s(7)),
+                        Expanded(
+                          child: Text(
+                            'Age $eventAge • $year',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium!
@@ -717,13 +729,63 @@ class _GameScreenState extends State<GameScreen> {
                                       FontWeight.w600,
                                 ),
                           ),
-                          SizedBox(height: s(1)),
-                          Text(
-                            event.description,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall,
-                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: s(2)),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        left: s(13),
+                      ),
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                        children: [
+                          for (
+                            var eventIndex = 0;
+                            eventIndex <
+                                yearEvents.length;
+                            eventIndex++
+                          ) ...[
+                            if (eventIndex > 0)
+                              SizedBox(height: s(2)),
+                            Row(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding:
+                                      EdgeInsets.only(
+                                    top: s(4),
+                                  ),
+                                  child: Icon(
+                                    Icons.circle,
+                                    size: s(4),
+                                    color: Theme.of(
+                                      context,
+                                    )
+                                        .colorScheme
+                                        .primary
+                                        .withValues(
+                                          alpha: 0.7,
+                                        ),
+                                  ),
+                                ),
+                                SizedBox(width: s(6)),
+                                Expanded(
+                                  child: Text(
+                                    yearEvents[eventIndex]
+                                        .description,
+                                    style: Theme.of(
+                                      context,
+                                    )
+                                        .textTheme
+                                        .bodySmall,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),
