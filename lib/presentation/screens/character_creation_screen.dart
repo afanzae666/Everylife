@@ -1007,72 +1007,52 @@ class _CharacterCreationScreenState
                   ),
                 ),
               ),
-
               // --------------------------------------------------
-              // EYES
+              // HAIR (Back layer)
               // --------------------------------------------------
               Positioned(
-                left: 0,
+                left: s(0),
                 top: s(10),
-                child: tintedSvg(
-                  assetPath:
-                      'assets/character/eyes/'
-                      '${_appearance.eyes}.svg',
-                  color: eyeColor,
+                child: SizedBox(
+                  width: s(180),
+                  height: s(110),
+                  child: tintedSvg(
+                    assetPath:
+                        'assets/character/hair/${_appearance.hair}.svg',
+                    color: hairColor,
+                  ),
                 ),
               ),
-
               // --------------------------------------------------
               // EYEBROWS
               // --------------------------------------------------
               Positioned(
-                left: 0,
-                top: s(10),
-                child: tintedSvg(
-                  assetPath:
-                      'assets/character/eyebrows/'
-                      '${_appearance.eyebrows}.svg',
-                  color: eyebrowColor,
+                left: s(35),
+                top: s(60),
+                child: SizedBox(
+                  width: s(110),
+                  height: s(25),
+                  child: tintedSvg(
+                    assetPath:
+                        'assets/character/eyebrows/${_appearance.eyebrows}.svg',
+                    color: eyebrowColor,
+                  ),
                 ),
               ),
-
               // --------------------------------------------------
-              // NOSE
-              // --------------------------------------------------
-              Positioned(
-                left: 0,
-                top: s(10),
-                child: fixedSvg(
-                  assetPath:
-                      'assets/character/base/'
-                      'nose_fixed.svg',
-                ),
-              ),
-
-              // --------------------------------------------------
-              // MOUTH
+              // EYES
               // --------------------------------------------------
               Positioned(
-                left: 0,
-                top: s(10),
-                child: fixedSvg(
-                  assetPath:
-                      'assets/character/base/'
-                      'mouth_fixed.svg',
-                ),
-              ),
-
-              // --------------------------------------------------
-              // HAIR
-              // --------------------------------------------------
-              Positioned(
-                left: 0,
-                top: s(10),
-                child: tintedSvg(
-                  assetPath:
-                      'assets/character/hair/'
-                      '${_appearance.hair}.svg',
-                  color: hairColor,
+                left: s(40),
+                top: s(80),
+                child: SizedBox(
+                  width: s(100),
+                  height: s(30),
+                  child: tintedSvg(
+                    assetPath:
+                        'assets/character/eyes/${_appearance.eyes}.svg',
+                    color: eyeColor,
+                  ),
                 ),
               ),
             ],
@@ -1081,6 +1061,10 @@ class _CharacterCreationScreenState
       ),
     );
   }
+
+  // --------------------------------------------------
+  // UI BUILDER METHODS
+  // --------------------------------------------------
 
   Widget _buildSkinToneSelector(
     BuildContext context,
@@ -1097,147 +1081,71 @@ class _CharacterCreationScreenState
           'Skin Tone',
           style: Theme.of(context)
               .textTheme
-              .titleSmall,
+              .labelMedium,
         ),
-        SizedBox(height: s(4)),
-        Wrap(
-          spacing: s(7),
-          runSpacing: s(7),
-          children:
-              _skinToneColors.entries
-                  .map(
-            (
-              MapEntry<String, Color>
-                  entry,
-            ) {
-              final bool selected =
-                  _appearance
-                          .skinTone ==
-                      entry.key;
+        SizedBox(height: s(3)),
+        SingleChildScrollView(
+          scrollDirection:
+              Axis.horizontal,
+          child: Row(
+            children: _skinToneColors
+                .entries
+                .map(
+                  (MapEntry<String,
+                          Color>
+                      entry) {
+                    final bool isSelected =
+                        _appearance
+                                .skinTone ==
+                            entry.key;
 
-              return InkWell(
-                borderRadius:
-                    BorderRadius
-                        .circular(
-                  s(20),
-                ),
-                onTap: () {
-                  _updateAppearance(
-                    _appearance.copyWith(
-                      skinTone:
-                          entry.key,
-                    ),
-                  );
-                },
-                child: Container(
-                  width: s(34),
-                  height: s(34),
-                  decoration:
-                      BoxDecoration(
-                    shape:
-                        BoxShape.circle,
-                    color: entry.value,
-                    border:
-                        Border.all(
-                      color: selected
-                          ? Theme.of(
-                              context,
-                            )
-                              .colorScheme
-                              .primary
-                          : Theme.of(
-                              context,
-                            )
-                              .dividerColor,
-                      width: selected
-                          ? s(3)
-                          : s(1),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildColorSelector({
-    required BuildContext context,
-    required double zoom,
-    required String title,
-    required Map<String, Color> colors,
-    required String selected,
-    required ValueChanged<String>
-        onSelected,
-  }) {
-    double s(double value) =>
-        value * zoom;
-
-    return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: Theme.of(context)
-              .textTheme
-              .titleSmall,
-        ),
-        SizedBox(height: s(4)),
-        Wrap(
-          spacing: s(7),
-          runSpacing: s(7),
-          children: colors.entries
-              .map(
-            (
-              MapEntry<String, Color>
-                  entry,
-            ) {
-              final bool isSelected =
-                  entry.key == selected;
-
-              return InkWell(
-                borderRadius:
-                    BorderRadius
-                        .circular(
-                  s(20),
-                ),
-                onTap: () {
-                  onSelected(
-                    entry.key,
-                  );
-                },
-                child: Container(
-                  width: s(34),
-                  height: s(34),
-                  decoration:
-                      BoxDecoration(
-                    shape:
-                        BoxShape.circle,
-                    color: entry.value,
-                    border:
-                        Border.all(
-                      color: isSelected
-                          ? Theme.of(
-                              context,
-                            )
-                              .colorScheme
-                              .primary
-                          : Theme.of(
-                              context,
-                            )
-                              .dividerColor,
-                      width: isSelected
-                          ? s(3)
-                          : s(1),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ).toList(),
+                    return Padding(
+                      padding:
+                          EdgeInsets.only(
+                        right: s(2),
+                      ),
+                      child:
+                          GestureDetector(
+                        onTap: () {
+                          _updateAppearance(
+                            _appearance
+                                .copyWith(
+                              skinTone:
+                                  entry
+                                      .key,
+                            ),
+                          );
+                        },
+                        child:
+                            Container(
+                          width: s(30),
+                          height: s(30),
+                          decoration:
+                              BoxDecoration(
+                            color:
+                                entry
+                                    .value,
+                            shape: BoxShape
+                                .circle,
+                            border:
+                                Border.all(
+                              color: isSelected
+                                  ? Theme.of(
+                                        context,
+                                      ).colorScheme
+                                      .primary
+                                  : Colors
+                                      .transparent,
+                              width: s(2),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                )
+                .toList(),
+          ),
         ),
       ],
     );
@@ -1250,7 +1158,7 @@ class _CharacterCreationScreenState
     required List<String> values,
     required String selected,
     required String assetDirectory,
-    required ValueChanged<String>
+    required Function(String)
         onSelected,
     required Color? color,
   }) {
@@ -1265,202 +1173,189 @@ class _CharacterCreationScreenState
           title,
           style: Theme.of(context)
               .textTheme
-              .titleSmall,
+              .labelMedium,
         ),
-        SizedBox(height: s(4)),
-        SizedBox(
-          height: s(88),
-          child: ListView.separated(
-            scrollDirection:
-                Axis.horizontal,
-            itemCount:
-                values.length,
-            separatorBuilder:
-                (
-              BuildContext context,
-              int index,
-            ) {
-              return SizedBox(
-                width: s(6),
-              );
-            },
-            itemBuilder:
-                (
-              BuildContext context,
-              int index,
-            ) {
-              final String value =
-                  values[index];
+        SizedBox(height: s(3)),
+        SingleChildScrollView(
+          scrollDirection:
+              Axis.horizontal,
+          child: Row(
+            children: values
+                .map(
+                  (String value) {
+                    final bool isSelected =
+                        selected == value;
 
-              final bool isSelected =
-                  value == selected;
-
-              final String assetPath =
-                  '$assetDirectory/'
-                  '$value.svg';
-
-              return InkWell(
-                borderRadius:
-                    BorderRadius
-                        .circular(
-                  s(8),
-                ),
-                onTap: () {
-                  onSelected(value);
-                },
-                child: Container(
-                  width: s(78),
-                  padding:
-                      EdgeInsets.all(
-                    s(4),
-                  ),
-                  decoration:
-                      BoxDecoration(
-                    color: isSelected
-                        ? Theme.of(
-                            context,
-                          )
-                            .colorScheme
-                            .primary
-                            .withValues(
-                              alpha: 0.10,
-                            )
-                        : Theme.of(
-                            context,
-                          )
-                            .colorScheme
-                            .surface,
-                    borderRadius:
-                        BorderRadius
-                            .circular(
-                      s(8),
-                    ),
-                    border:
-                        Border.all(
-                      color: isSelected
-                          ? Theme.of(
-                              context,
-                            )
-                              .colorScheme
-                              .primary
-                          : Theme.of(
-                              context,
-                            )
-                              .dividerColor
-                              .withValues(
-                                alpha:
-                                    0.6,
-                              ),
-                      width: isSelected
-                          ? s(2)
-                          : s(1),
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment:
-                        MainAxisAlignment
-                            .center,
-                    children: [
-                      Expanded(
+                    return Padding(
+                      padding:
+                          EdgeInsets.only(
+                        right: s(4),
+                      ),
+                      child:
+                          GestureDetector(
+                        onTap: () {
+                          onSelected(
+                            value,
+                          );
+                        },
                         child:
-                            SvgPicture.asset(
-                          assetPath,
-                          fit: BoxFit
-                              .contain,
-                          colorFilter:
-                              color == null
-                                  ? null
-                                  : ColorFilter
-                                      .mode(
-                                      color,
-                                      BlendMode
-                                          .srcIn,
-                                    ),
+                            Container(
+                          width: s(50),
+                          height: s(50),
+                          decoration:
+                              BoxDecoration(
+                            border:
+                                Border.all(
+                              color: isSelected
+                                  ? Theme.of(
+                                        context,
+                                      ).colorScheme
+                                      .primary
+                                  : Theme.of(
+                                        context,
+                                      ).dividerColor,
+                              width:
+                                  isSelected
+                                      ? s(2)
+                                      : s(1),
+                            ),
+                            borderRadius:
+                                BorderRadius
+                                    .circular(
+                              s(6),
+                            ),
+                          ),
+                          child: SvgPicture
+                              .asset(
+                            '$assetDirectory/$value.svg',
+                            width: s(48),
+                            height: s(48),
+                            fit: BoxFit
+                                .contain,
+                            colorFilter:
+                                color !=
+                                    null
+                                    ? ColorFilter
+                                        .mode(
+                                        color,
+                                        BlendMode
+                                            .srcIn,
+                                      )
+                                    : null,
+                          ),
                         ),
                       ),
-                      SizedBox(
-                        height: s(2),
-                      ),
-                      Text(
-                        _prettyLabel(
-                          value,
-                        ),
-                        maxLines: 1,
-                        overflow:
-                            TextOverflow.ellipsis,
-                        textAlign:
-                            TextAlign.center,
-                        style:
-                            Theme.of(
-                          context,
-                        )
-                                .textTheme
-                                .labelSmall,
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
+                    );
+                  },
+                )
+                .toList(),
           ),
         ),
       ],
     );
   }
 
-  String _prettyLabel(
-    String value,
-  ) {
-    final String withoutPrefix =
-        value.replaceFirst(
-      RegExp(
-        r'^(hair_|eyes_|brows_)',
-      ),
-      '',
-    );
+  Widget _buildColorSelector({
+    required BuildContext context,
+    required double zoom,
+    required String title,
+    required Map<String, Color>
+        colors,
+    required String selected,
+    required Function(String)
+        onSelected,
+  }) {
+    double s(double value) =>
+        value * zoom;
 
-    return withoutPrefix
-        .split('_')
-        .where(
-          (String word) =>
-              word.isNotEmpty,
-        )
-        .map(
-          (String word) {
-            return word.substring(
-                  0,
-                  1,
-                ).toUpperCase() +
-                word.substring(1)
-                    .toLowerCase();
-          },
-        )
-        .join(' ');
+    return Column(
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: Theme.of(context)
+              .textTheme
+              .labelMedium,
+        ),
+        SizedBox(height: s(3)),
+        SingleChildScrollView(
+          scrollDirection:
+              Axis.horizontal,
+          child: Row(
+            children: colors.entries
+                .map(
+                  (MapEntry<String,
+                          Color>
+                      entry) {
+                    final bool isSelected =
+                        selected == entry.key;
+
+                    return Padding(
+                      padding:
+                          EdgeInsets.only(
+                        right: s(3),
+                      ),
+                      child:
+                          GestureDetector(
+                        onTap: () {
+                          onSelected(
+                            entry.key,
+                          );
+                        },
+                        child:
+                            Container(
+                          width: s(32),
+                          height: s(32),
+                          decoration:
+                              BoxDecoration(
+                            color:
+                                entry
+                                    .value,
+                            shape: BoxShape
+                                .circle,
+                            border:
+                                Border.all(
+                              color: isSelected
+                                  ? Theme.of(
+                                        context,
+                                      ).colorScheme
+                                      .primary
+                                  : Colors
+                                      .transparent,
+                              width: s(2),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                )
+                .toList(),
+          ),
+        ),
+      ],
+    );
   }
 }
 
 class _ResponsiveCard
     extends StatelessWidget {
   const _ResponsiveCard({
-    required this.padding,
     required this.child,
+    required this.padding,
+    super.key,
   });
 
-  final EdgeInsets padding;
   final Widget child;
+  final EdgeInsets padding;
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
-    return SizedBox(
-      width: double.infinity,
-      child: Card(
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: padding,
-          child: child,
-        ),
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: padding,
+        child: child,
       ),
     );
   }
