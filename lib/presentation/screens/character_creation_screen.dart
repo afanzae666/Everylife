@@ -153,12 +153,37 @@ class _CharacterCreationScreenState
 
     setState(() {
       _birthYear = clamped;
-      _birthYearController.text = clamped.toString();
-      _birthYearController.selection =
-          TextSelection.collapsed(
-        offset: _birthYearController.text.length,
-      );
+
+      final text = clamped.toString();
+
+      if (_birthYearController.text != text) {
+        _birthYearController.value =
+            TextEditingValue(
+          text: text,
+          selection: TextSelection.collapsed(
+            offset: text.length,
+          ),
+        );
+      }
     });
+  }
+
+  void _commitManualBirthYear() {
+    final text = _birthYearController.text.trim();
+
+    final parsed = int.tryParse(text);
+
+    if (parsed == null) {
+      _birthYearController.text =
+          _birthYear.toString();
+
+      FocusScope.of(context).unfocus();
+      return;
+    }
+
+    _setBirthYear(parsed);
+
+    FocusScope.of(context).unfocus();
   }
 
   String _capitalizeName(String value) {
@@ -168,7 +193,7 @@ class _CharacterCreationScreenState
       return '';
     }
 
-    final words = normalized
+    return normalized
         .split(RegExp(r'\s+'))
         .where((word) => word.isNotEmpty)
         .map(
@@ -182,15 +207,18 @@ class _CharacterCreationScreenState
           },
         )
         .join(' ');
-
-    return words;
   }
 
   void _normalizeNameFields() {
     final firstName =
-        _capitalizeName(_firstNameController.text);
+        _capitalizeName(
+      _firstNameController.text,
+    );
+
     final lastName =
-        _capitalizeName(_lastNameController.text);
+        _capitalizeName(
+      _lastNameController.text,
+    );
 
     if (_firstNameController.text != firstName) {
       _firstNameController.value =
@@ -217,10 +245,14 @@ class _CharacterCreationScreenState
     _normalizeNameFields();
 
     final firstName =
-        _capitalizeName(_firstNameController.text);
+        _capitalizeName(
+      _firstNameController.text,
+    );
 
     final lastName =
-        _capitalizeName(_lastNameController.text);
+        _capitalizeName(
+      _lastNameController.text,
+    );
 
     final birthYearText =
         _birthYearController.text.trim();
@@ -265,15 +297,13 @@ class _CharacterCreationScreenState
       return;
     }
 
-    _birthYear = parsedBirthYear;
-
     final character = Character.create(
       id: 'player-'
           '${DateTime.now().microsecondsSinceEpoch}',
       firstName: firstName,
       lastName: lastName,
       gender: _gender,
-      birthYear: _birthYear,
+      birthYear: parsedBirthYear,
       appearance: _appearance,
     );
 
@@ -456,6 +486,7 @@ class _CharacterCreationScreenState
                 TextInputAction.next,
             onEditingComplete: () {
               _normalizeNameFields();
+
               FocusScope.of(context)
                   .nextFocus();
             },
@@ -478,6 +509,7 @@ class _CharacterCreationScreenState
                 TextInputAction.done,
             onEditingComplete: () {
               _normalizeNameFields();
+
               FocusScope.of(context)
                   .unfocus();
             },
@@ -671,23 +703,6 @@ class _CharacterCreationScreenState
     );
   }
 
-  void _commitManualBirthYear() {
-    final text =
-        _birthYearController.text.trim();
-
-    final parsed = int.tryParse(text);
-
-    if (parsed == null) {
-      _birthYearController.text =
-          _birthYear.toString();
-      return;
-    }
-
-    _setBirthYear(parsed);
-
-    FocusScope.of(context).unfocus();
-  }
-
   Widget _buildAppearanceCard(
     BuildContext context,
     double zoom,
@@ -732,13 +747,6 @@ class _CharacterCreationScreenState
                 _appearance.hair,
             assetDirectory:
                 'assets/character/hair',
-            assetPrefix: 'hair_',
-            colorMapper:
-                _HairColorMapper(
-              color: _hairColors[
-                      _appearance.hairColor] ??
-                  _hairColors.values.first,
-            ),
             onSelected: (value) {
               _updateAppearance(
                 _appearance.copyWith(
@@ -773,13 +781,6 @@ class _CharacterCreationScreenState
                 _appearance.eyes,
             assetDirectory:
                 'assets/character/eyes',
-            assetPrefix: 'eyes_',
-            colorMapper:
-                _EyeColorMapper(
-              color: _eyeColors[
-                      _appearance.eyeColor] ??
-                  _eyeColors.values.first,
-            ),
             onSelected: (value) {
               _updateAppearance(
                 _appearance.copyWith(
@@ -814,13 +815,6 @@ class _CharacterCreationScreenState
                 _appearance.eyebrows,
             assetDirectory:
                 'assets/character/eyebrows',
-            assetPrefix: 'brows_',
-            colorMapper:
-                _HairColorMapper(
-              color: _hairColors[
-                      _appearance.hairColor] ??
-                  _hairColors.values.first,
-            ),
             onSelected: (value) {
               _updateAppearance(
                 _appearance.copyWith(
@@ -858,14 +852,14 @@ class _CharacterCreationScreenState
 
     return Container(
       width: double.infinity,
-      height: s(170),
+      height: s(210),
       decoration: BoxDecoration(
         color: Theme.of(context)
             .colorScheme
             .surfaceContainerHighest
             .withValues(alpha: 0.35),
         borderRadius:
-            BorderRadius.circular(s(8)),
+            BorderRadius.circular(s(10)),
         border: Border.all(
           color: Theme.of(context)
               .dividerColor
@@ -874,55 +868,103 @@ class _CharacterCreationScreenState
       ),
       child: Center(
         child: SizedBox(
-          width: s(128),
-          height: s(128),
+          width: s(160),
+          height: s(180),
           child: Stack(
             alignment: Alignment.center,
+            clipBehavior: Clip.none,
             children: [
+              // Skin foundation.
+              Container(
+                width: s(126),
+                height: s(142),
+                decoration:
+                    BoxDecoration(
+                  color: skinColor,
+                  borderRadius:
+                      BorderRadius.circular(
+                    s(58),
+                  ),
+                ),
+              ),
+
+              // Actual head asset.
               SvgPicture.asset(
                 'assets/character/base/'
                 'head_base.svg',
-                width: s(128),
-                height: s(128),
+                width: s(142),
+                height: s(158),
                 fit: BoxFit.contain,
-                colorMapper:
-                    _SkinOnlyColorMapper(
-                  skinColor: skinColor,
-                ),
               ),
-              if (_appearance.hair !=
-                  'hair_bald')
-                SvgPicture.asset(
-                  'assets/character/hair/'
-                  '${_appearance.hair}.svg',
-                  width: s(128),
-                  height: s(128),
+
+              // Eyes.
+              ColorFiltered(
+                colorFilter:
+                    ColorFilter.mode(
+                  eyeColor,
+                  BlendMode.srcIn,
+                ),
+                child:
+                    SvgPicture.asset(
+                  'assets/character/eyes/'
+                  '${_appearance.eyes}.svg',
+                  width: s(142),
+                  height: s(158),
                   fit: BoxFit.contain,
-                  colorMapper:
-                      _HairColorMapper(
-                    color: hairColor,
-                  ),
-                ),
-              SvgPicture.asset(
-                'assets/character/eyes/'
-                '${_appearance.eyes}.svg',
-                width: s(128),
-                height: s(128),
-                fit: BoxFit.contain,
-                colorMapper:
-                    _EyeColorMapper(
-                  color: eyeColor,
                 ),
               ),
+
+              // Eyebrows.
               SvgPicture.asset(
                 'assets/character/eyebrows/'
                 '${_appearance.eyebrows}.svg',
-                width: s(128),
-                height: s(128),
+                width: s(142),
+                height: s(158),
                 fit: BoxFit.contain,
-                colorMapper:
-                    _HairColorMapper(
-                  color: hairColor,
+              ),
+
+              // Nose.
+              SvgPicture.asset(
+                'assets/character/base/'
+                'nose.fixed.svg',
+                width: s(142),
+                height: s(158),
+                fit: BoxFit.contain,
+              ),
+
+              // Mouth.
+              SvgPicture.asset(
+                'assets/character/base/'
+                'mouth.fixed.svg',
+                width: s(142),
+                height: s(158),
+                fit: BoxFit.contain,
+              ),
+
+              // Neutral expression layer.
+              SvgPicture.asset(
+                'assets/character/expression/'
+                'expression_neutral.svg',
+                width: s(142),
+                height: s(158),
+                fit: BoxFit.contain,
+              ),
+
+              // Hair is rendered last so it sits
+              // above the other facial layers.
+              ColorFiltered(
+                colorFilter:
+                    ColorFilter.mode(
+                  hairColor,
+                  BlendMode.srcIn,
+                ),
+                child:
+                    SvgPicture.asset(
+                  'assets/character/hair/'
+                  '${_appearance.hair}.svg',
+                  width: s(142),
+                  height: s(158),
+                  fit: BoxFit.contain,
                 ),
               ),
             ],
@@ -1088,8 +1130,6 @@ class _CharacterCreationScreenState
     required List<String> values,
     required String selected,
     required String assetDirectory,
-    required String assetPrefix,
-    required ColorMapper colorMapper,
     required ValueChanged<String> onSelected,
   }) {
     double s(double value) =>
@@ -1121,7 +1161,9 @@ class _CharacterCreationScreenState
               context,
               index,
             ) {
-              final value = values[index];
+              final value =
+                  values[index];
+
               final isSelected =
                   value == selected;
 
@@ -1182,8 +1224,6 @@ class _CharacterCreationScreenState
                             SvgPicture.asset(
                           assetPath,
                           fit: BoxFit.contain,
-                          colorMapper:
-                              colorMapper,
                         ),
                       ),
                       SizedBox(
@@ -1229,142 +1269,12 @@ class _CharacterCreationScreenState
             }
 
             return word.substring(0, 1)
-                .toUpperCase() +
+                    .toUpperCase() +
                 word.substring(1);
           },
         )
         .join(' ');
   }
-}
-
-class _SkinOnlyColorMapper
-    extends ColorMapper {
-  const _SkinOnlyColorMapper({
-    required this.skinColor,
-  });
-
-  final Color skinColor;
-
-  static const Color _skinSource =
-      Color(0xFFEEB088);
-
-  static const Color _hairSource =
-      Color(0xFF2E2320);
-
-  @override
-  Color substitute(
-    String? id,
-    String elementName,
-    String attributeName,
-    Color color,
-  ) {
-    if (color == _skinSource) {
-      return skinColor;
-    }
-
-    if (color == _hairSource) {
-      return Colors.transparent;
-    }
-
-    return color;
-  }
-
-  @override
-  bool operator ==(
-    Object other,
-  ) {
-    return other is _SkinOnlyColorMapper &&
-        other.skinColor == skinColor;
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(
-        runtimeType,
-        skinColor,
-      );
-}
-
-class _HairColorMapper
-    extends ColorMapper {
-  const _HairColorMapper({
-    required this.color,
-  });
-
-  final Color color;
-
-  static const Color _hairSource =
-      Color(0xFF2E2320);
-
-  @override
-  Color substitute(
-    String? id,
-    String elementName,
-    String attributeName,
-    Color sourceColor,
-  ) {
-    if (sourceColor == _hairSource) {
-      return color;
-    }
-
-    return sourceColor;
-  }
-
-  @override
-  bool operator ==(
-    Object other,
-  ) {
-    return other is _HairColorMapper &&
-        other.color == color;
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(
-        runtimeType,
-        color,
-      );
-}
-
-class _EyeColorMapper
-    extends ColorMapper {
-  const _EyeColorMapper({
-    required this.color,
-  });
-
-  final Color color;
-
-  static const Color _eyeSource =
-      Color(0xFF2E2320);
-
-  @override
-  Color substitute(
-    String? id,
-    String elementName,
-    String attributeName,
-    Color sourceColor,
-  ) {
-    if (sourceColor == _eyeSource) {
-      return color;
-    }
-
-    return sourceColor;
-  }
-
-  @override
-  bool operator ==(
-    Object other,
-  ) {
-    return other is _EyeColorMapper &&
-        other.color == color;
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(
-        runtimeType,
-        color,
-      );
 }
 
 class _ResponsiveCard
