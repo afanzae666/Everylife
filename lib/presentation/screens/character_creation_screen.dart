@@ -1061,40 +1061,130 @@ class _CharacterCreationScreenState
               ),
 
               // --------------------------------------------------
-              // NOSE
-              // --------------------------------------------------
-              Positioned(
-                left: 0,
-                top: s(10),
-                child: fixedSvg(
-                  assetPath:
-                      'assets/character/base/'
-                      'nose_fixed.svg',
-                  width: 180,
-                  height: 180,
-                ),
-              ),
+Widget _buildAppearancePreview(
+  BuildContext context,
+  double zoom,
+) {
+  double s(double value) => value * zoom;
 
-              // --------------------------------------------------
-              // MOUTH
-              // --------------------------------------------------
-              Positioned(
-                left: 0,
-                top: s(10),
-                child: fixedSvg(
-                  assetPath:
-                      'assets/character/base/'
-                      'mouth_fixed.svg',
-                  width: 180,
-                  height: 180,
+  final Color skinColor =
+      _skinToneColors[_appearance.skinTone] ??
+          _skinToneColors.values.first;
+
+  return Container(
+    width: double.infinity,
+    height: s(280),
+    decoration: BoxDecoration(
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withValues(alpha: 0.35),
+      borderRadius: BorderRadius.circular(s(10)),
+      border: Border.all(
+        color: Theme.of(context)
+            .dividerColor
+            .withValues(alpha: 0.5),
+      ),
+    ),
+    child: Center(
+      child: SizedBox(
+        width: s(256),
+        height: s(256),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // =====================================================
+            // BASE SKIN
+            // =====================================================
+            Positioned(
+              left: s(35),
+              top: s(35),
+              child: Container(
+                width: s(186),
+                height: s(218),
+                decoration: BoxDecoration(
+                  color: skinColor,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(s(90)),
+                    topRight: Radius.circular(s(90)),
+                    bottomLeft: Radius.circular(s(70)),
+                    bottomRight: Radius.circular(s(70)),
+                  ),
                 ),
               ),
-            ],
-          ),
+            ),
+
+            // =====================================================
+            // HAIR
+            // Diagnostic: NO ColorFilter
+            // =====================================================
+            Positioned.fill(
+              child: SvgPicture.asset(
+                'assets/character/hair/'
+                '${_appearance.hair}.svg',
+                width: s(256),
+                height: s(256),
+                fit: BoxFit.contain,
+              ),
+            ),
+
+            // =====================================================
+            // EYEBROWS
+            // Diagnostic: NO ColorFilter
+            // =====================================================
+            Positioned.fill(
+              child: SvgPicture.asset(
+                'assets/character/eyebrows/'
+                '${_appearance.eyebrows}.svg',
+                width: s(256),
+                height: s(256),
+                fit: BoxFit.contain,
+              ),
+            ),
+
+            // =====================================================
+            // EYES
+            // Diagnostic: NO ColorFilter
+            // =====================================================
+            Positioned.fill(
+              child: SvgPicture.asset(
+                'assets/character/eyes/'
+                '${_appearance.eyes}.svg',
+                width: s(256),
+                height: s(256),
+                fit: BoxFit.contain,
+              ),
+            ),
+
+            // =====================================================
+            // NOSE
+            // =====================================================
+            Positioned.fill(
+              child: SvgPicture.asset(
+                'assets/character/base/nose_fixed.svg',
+                width: s(256),
+                height: s(256),
+                fit: BoxFit.contain,
+              ),
+            ),
+
+            // =====================================================
+            // MOUTH
+            // =====================================================
+            Positioned.fill(
+              child: SvgPicture.asset(
+                'assets/character/base/mouth_fixed.svg',
+                width: s(256),
+                height: s(256),
+                fit: BoxFit.contain,
+              ),
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildSkinToneSelector(
     BuildContext context,
