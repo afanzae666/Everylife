@@ -6,6 +6,20 @@ import '../../../lib/presentation/screens/character_creation_screen.dart';
 
 void main() {
   group('CharacterCreationScreen', () {
+    Future<void> scrollToBeginLife(
+      WidgetTester tester,
+    ) async {
+      final beginLifeButton = find.text('BEGIN LIFE');
+
+      await tester.scrollUntilVisible(
+        beginLifeButton,
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+
+      await tester.pumpAndSettle();
+    }
+
     testWidgets(
       'shows character creation controls',
       (tester) async {
@@ -19,6 +33,13 @@ void main() {
               },
             ),
           ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Create Character'),
+          findsOneWidget,
         );
 
         expect(
@@ -62,18 +83,21 @@ void main() {
         );
 
         expect(
-          find.text(
-            'Your character will begin life as a newborn in 2026.',
-          ),
+          find.text('Your life begins at birth.'),
           findsOneWidget,
         );
+
+        await scrollToBeginLife(tester);
 
         expect(
           find.text('BEGIN LIFE'),
           findsOneWidget,
         );
 
-        expect(created, isFalse);
+        expect(
+          created,
+          isFalse,
+        );
       },
     );
 
@@ -100,6 +124,8 @@ void main() {
           ),
         );
 
+        await tester.pumpAndSettle();
+
         final textFields = find.byType(TextField);
 
         expect(
@@ -116,6 +142,8 @@ void main() {
           textFields.at(1),
           'royce',
         );
+
+        await scrollToBeginLife(tester);
 
         await tester.tap(
           find.text('BEGIN LIFE'),
@@ -170,6 +198,8 @@ void main() {
           ),
         );
 
+        await tester.pumpAndSettle();
+
         final textFields = find.byType(TextField);
 
         expect(
@@ -206,6 +236,8 @@ void main() {
           findsWidgets,
         );
 
+        await scrollToBeginLife(tester);
+
         await tester.tap(
           find.text('BEGIN LIFE'),
         );
@@ -239,6 +271,8 @@ void main() {
           ),
         );
 
+        await tester.pumpAndSettle();
+
         final textFields = find.byType(TextField);
 
         expect(
@@ -262,6 +296,8 @@ void main() {
         );
 
         await tester.pump();
+
+        await scrollToBeginLife(tester);
 
         await tester.tap(
           find.text('BEGIN LIFE'),
@@ -291,10 +327,14 @@ void main() {
           ),
         );
 
+        await tester.pumpAndSettle();
+
         await tester.enterText(
           find.byType(TextField).at(1),
           'Royce',
         );
+
+        await scrollToBeginLife(tester);
 
         await tester.tap(
           find.text('BEGIN LIFE'),
@@ -331,10 +371,14 @@ void main() {
           ),
         );
 
+        await tester.pumpAndSettle();
+
         await tester.enterText(
           find.byType(TextField).at(0),
           'Marshall',
         );
+
+        await scrollToBeginLife(tester);
 
         await tester.tap(
           find.text('BEGIN LIFE'),
@@ -371,6 +415,8 @@ void main() {
           ),
         );
 
+        await tester.pumpAndSettle();
+
         await tester.tap(
           find.text('Female'),
         );
@@ -391,6 +437,8 @@ void main() {
           textFields.at(1),
           'Character',
         );
+
+        await scrollToBeginLife(tester);
 
         await tester.tap(
           find.text('BEGIN LIFE'),
