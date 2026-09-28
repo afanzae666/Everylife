@@ -24,9 +24,14 @@ class CharacterCreationScreen extends StatefulWidget {
 
 class _CharacterCreationScreenState
     extends State<CharacterCreationScreen> {
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _birthYearController = TextEditingController();
+  final TextEditingController _firstNameController =
+      TextEditingController();
+
+  final TextEditingController _lastNameController =
+      TextEditingController();
+
+  final TextEditingController _birthYearController =
+      TextEditingController();
 
   Gender _gender = Gender.male;
 
@@ -121,19 +126,20 @@ class _CharacterCreationScreenState
   }
 
   void _handleBirthYearTextChanged() {
-    final text = _birthYearController.text.trim();
+    final String text =
+        _birthYearController.text.trim();
 
     if (text.isEmpty) {
       return;
     }
 
-    final parsed = int.tryParse(text);
+    final int? parsed = int.tryParse(text);
 
     if (parsed == null) {
       return;
     }
 
-    final clamped = parsed.clamp(
+    final int clamped = parsed.clamp(
       _minimumBirthYear,
       _maximumBirthYear,
     );
@@ -146,21 +152,22 @@ class _CharacterCreationScreenState
   }
 
   void _setBirthYear(int value) {
-    final clamped = value.clamp(
+    final int clamped = value.clamp(
       _minimumBirthYear,
       _maximumBirthYear,
     );
 
+    final String text = clamped.toString();
+
     setState(() {
       _birthYear = clamped;
-
-      final text = clamped.toString();
 
       if (_birthYearController.text != text) {
         _birthYearController.value =
             TextEditingValue(
           text: text,
-          selection: TextSelection.collapsed(
+          selection:
+              TextSelection.collapsed(
             offset: text.length,
           ),
         );
@@ -169,13 +176,21 @@ class _CharacterCreationScreenState
   }
 
   void _commitManualBirthYear() {
-    final text = _birthYearController.text.trim();
+    final String text =
+        _birthYearController.text.trim();
 
-    final parsed = int.tryParse(text);
+    final int? parsed = int.tryParse(text);
 
     if (parsed == null) {
-      _birthYearController.text =
-          _birthYear.toString();
+      _birthYearController.value =
+          TextEditingValue(
+        text: _birthYear.toString(),
+        selection:
+            TextSelection.collapsed(
+          offset:
+              _birthYear.toString().length,
+        ),
+      );
 
       FocusScope.of(context).unfocus();
       return;
@@ -187,7 +202,7 @@ class _CharacterCreationScreenState
   }
 
   String _capitalizeName(String value) {
-    final normalized = value.trim();
+    final String normalized = value.trim();
 
     if (normalized.isEmpty) {
       return '';
@@ -195,9 +210,12 @@ class _CharacterCreationScreenState
 
     return normalized
         .split(RegExp(r'\s+'))
-        .where((word) => word.isNotEmpty)
+        .where(
+          (String word) =>
+              word.isNotEmpty,
+        )
         .map(
-          (word) {
+          (String word) {
             if (word.length == 1) {
               return word.toUpperCase();
             }
@@ -210,31 +228,35 @@ class _CharacterCreationScreenState
   }
 
   void _normalizeNameFields() {
-    final firstName =
+    final String firstName =
         _capitalizeName(
       _firstNameController.text,
     );
 
-    final lastName =
+    final String lastName =
         _capitalizeName(
       _lastNameController.text,
     );
 
-    if (_firstNameController.text != firstName) {
+    if (_firstNameController.text !=
+        firstName) {
       _firstNameController.value =
           TextEditingValue(
         text: firstName,
-        selection: TextSelection.collapsed(
+        selection:
+            TextSelection.collapsed(
           offset: firstName.length,
         ),
       );
     }
 
-    if (_lastNameController.text != lastName) {
+    if (_lastNameController.text !=
+        lastName) {
       _lastNameController.value =
           TextEditingValue(
         text: lastName,
-        selection: TextSelection.collapsed(
+        selection:
+            TextSelection.collapsed(
           offset: lastName.length,
         ),
       );
@@ -244,24 +266,24 @@ class _CharacterCreationScreenState
   void _createCharacter() {
     _normalizeNameFields();
 
-    final firstName =
+    final String firstName =
         _capitalizeName(
       _firstNameController.text,
     );
 
-    final lastName =
+    final String lastName =
         _capitalizeName(
       _lastNameController.text,
     );
 
-    final birthYearText =
-        _birthYearController.text.trim();
-
-    final parsedBirthYear =
-        int.tryParse(birthYearText);
+    final int? parsedBirthYear =
+        int.tryParse(
+      _birthYearController.text.trim(),
+    );
 
     if (firstName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
         const SnackBar(
           content: Text(
             'Please enter your first name.',
@@ -272,7 +294,8 @@ class _CharacterCreationScreenState
     }
 
     if (lastName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
         const SnackBar(
           content: Text(
             'Please enter your last name.',
@@ -283,9 +306,12 @@ class _CharacterCreationScreenState
     }
 
     if (parsedBirthYear == null ||
-        parsedBirthYear < _minimumBirthYear ||
-        parsedBirthYear > _maximumBirthYear) {
-      ScaffoldMessenger.of(context).showSnackBar(
+        parsedBirthYear <
+            _minimumBirthYear ||
+        parsedBirthYear >
+            _maximumBirthYear) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
         SnackBar(
           content: Text(
             'Birth year must be between '
@@ -297,9 +323,10 @@ class _CharacterCreationScreenState
       return;
     }
 
-    final character = Character.create(
-      id: 'player-'
-          '${DateTime.now().microsecondsSinceEpoch}',
+    final Character character =
+        Character.create(
+      id:
+          'player-${DateTime.now().microsecondsSinceEpoch}',
       firstName: firstName,
       lastName: lastName,
       gender: _gender,
@@ -322,7 +349,8 @@ class _CharacterCreationScreenState
 
   @override
   Widget build(BuildContext context) {
-    final controller =
+    final ValueNotifier<double>?
+        controller =
         widget.uiScaleController;
 
     if (controller == null) {
@@ -335,9 +363,9 @@ class _CharacterCreationScreenState
     return ValueListenableBuilder<double>(
       valueListenable: controller,
       builder: (
-        context,
-        zoom,
-        _,
+        BuildContext context,
+        double zoom,
+        Widget? child,
       ) {
         return _buildScaledPage(
           context,
@@ -351,10 +379,11 @@ class _CharacterCreationScreenState
     BuildContext context,
     double zoom,
   ) {
-    final mediaQuery =
+    final MediaQueryData mediaQuery =
         MediaQuery.of(context);
 
-    final scaledMediaQuery =
+    final MediaQueryData
+        scaledMediaQuery =
         mediaQuery.copyWith(
       textScaler:
           TextScaler.linear(zoom),
@@ -392,25 +421,29 @@ class _CharacterCreationScreenState
           ),
           children: [
             _ResponsiveCard(
-              padding: EdgeInsets.all(s(8)),
+              padding:
+                  EdgeInsets.all(s(8)),
               child: Column(
                 crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                    CrossAxisAlignment
+                        .start,
                 children: [
                   Text(
                     'Create Your Character',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge,
+                    style:
+                        Theme.of(context)
+                            .textTheme
+                            .titleLarge,
                   ),
                   SizedBox(
                     height: s(2),
                   ),
                   Text(
                     'Your life begins at birth.',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyLarge,
+                    style:
+                        Theme.of(context)
+                            .textTheme
+                            .bodyLarge,
                   ),
                 ],
               ),
@@ -465,7 +498,8 @@ class _CharacterCreationScreenState
         value * zoom;
 
     return _ResponsiveCard(
-      padding: EdgeInsets.all(s(8)),
+      padding:
+          EdgeInsets.all(s(8)),
       child: Column(
         crossAxisAlignment:
             CrossAxisAlignment.start,
@@ -486,7 +520,6 @@ class _CharacterCreationScreenState
                 TextInputAction.next,
             onEditingComplete: () {
               _normalizeNameFields();
-
               FocusScope.of(context)
                   .nextFocus();
             },
@@ -509,7 +542,6 @@ class _CharacterCreationScreenState
                 TextInputAction.done,
             onEditingComplete: () {
               _normalizeNameFields();
-
               FocusScope.of(context)
                   .unfocus();
             },
@@ -557,22 +589,27 @@ class _CharacterCreationScreenState
           SizedBox(height: s(3)),
           SizedBox(
             width: double.infinity,
-            child: SegmentedButton<Gender>(
+            child:
+                SegmentedButton<Gender>(
               segments: const [
                 ButtonSegment<Gender>(
                   value: Gender.male,
                   label: Text('Male'),
-                  icon: Icon(Icons.male),
+                  icon:
+                      Icon(Icons.male),
                 ),
                 ButtonSegment<Gender>(
                   value: Gender.female,
-                  label: Text('Female'),
-                  icon: Icon(Icons.female),
+                  label:
+                      Text('Female'),
+                  icon:
+                      Icon(Icons.female),
                 ),
               ],
               selected: {_gender},
               onSelectionChanged:
-                  (selection) {
+                  (Set<Gender>
+                      selection) {
                 setState(() {
                   _gender =
                       selection.first;
@@ -639,10 +676,12 @@ class _CharacterCreationScreenState
           ),
           SizedBox(height: s(2)),
           Slider(
-            min: _minimumBirthYear
-                .toDouble(),
-            max: _maximumBirthYear
-                .toDouble(),
+            min:
+                _minimumBirthYear
+                    .toDouble(),
+            max:
+                _maximumBirthYear
+                    .toDouble(),
             divisions:
                 _maximumBirthYear -
                     _minimumBirthYear,
@@ -650,7 +689,8 @@ class _CharacterCreationScreenState
                 _birthYear.toDouble(),
             label:
                 '$_birthYear',
-            onChanged: (value) {
+            onChanged:
+                (double value) {
               _setBirthYear(
                 value.round(),
               );
@@ -663,29 +703,34 @@ class _CharacterCreationScreenState
             ),
             child: Row(
               mainAxisAlignment:
-                  MainAxisAlignment.spaceBetween,
+                  MainAxisAlignment
+                      .spaceBetween,
               children: [
                 Text(
                   '$_minimumBirthYear',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall,
+                  style:
+                      Theme.of(context)
+                          .textTheme
+                          .bodySmall,
                 ),
                 Text(
                   '$_birthYear',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall!
-                      .copyWith(
-                        fontWeight:
-                            FontWeight.w600,
-                      ),
+                  style:
+                      Theme.of(context)
+                          .textTheme
+                          .bodySmall!
+                          .copyWith(
+                            fontWeight:
+                                FontWeight
+                                    .w600,
+                          ),
                 ),
                 Text(
                   '$_maximumBirthYear',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall,
+                  style:
+                      Theme.of(context)
+                          .textTheme
+                          .bodySmall,
                 ),
               ],
             ),
@@ -694,9 +739,10 @@ class _CharacterCreationScreenState
           Text(
             'Choose a year by sliding or '
             'entering it manually.',
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall,
+            style:
+                Theme.of(context)
+                    .textTheme
+                    .bodySmall,
           ),
         ],
       ),
@@ -711,12 +757,7 @@ class _CharacterCreationScreenState
         value * zoom;
 
     return _ResponsiveCard(
-      padding: EdgeInsets.fromLTRB(
-        s(8),
-        s(8),
-        s(8),
-        s(8),
-      ),
+      padding: EdgeInsets.all(s(8)),
       child: Column(
         crossAxisAlignment:
             CrossAxisAlignment.start,
@@ -747,13 +788,18 @@ class _CharacterCreationScreenState
                 _appearance.hair,
             assetDirectory:
                 'assets/character/hair',
-            onSelected: (value) {
+            onSelected:
+                (String value) {
               _updateAppearance(
                 _appearance.copyWith(
                   hair: value,
                 ),
               );
             },
+            color:
+                _hairColors[
+                    _appearance
+                        .hairColor],
           ),
           SizedBox(height: s(8)),
           _buildColorSelector(
@@ -763,7 +809,8 @@ class _CharacterCreationScreenState
             colors: _hairColors,
             selected:
                 _appearance.hairColor,
-            onSelected: (value) {
+            onSelected:
+                (String value) {
               _updateAppearance(
                 _appearance.copyWith(
                   hairColor: value,
@@ -781,13 +828,18 @@ class _CharacterCreationScreenState
                 _appearance.eyes,
             assetDirectory:
                 'assets/character/eyes',
-            onSelected: (value) {
+            onSelected:
+                (String value) {
               _updateAppearance(
                 _appearance.copyWith(
                   eyes: value,
                 ),
               );
             },
+            color:
+                _eyeColors[
+                    _appearance
+                        .eyeColor],
           ),
           SizedBox(height: s(8)),
           _buildColorSelector(
@@ -797,7 +849,8 @@ class _CharacterCreationScreenState
             colors: _eyeColors,
             selected:
                 _appearance.eyeColor,
-            onSelected: (value) {
+            onSelected:
+                (String value) {
               _updateAppearance(
                 _appearance.copyWith(
                   eyeColor: value,
@@ -810,18 +863,24 @@ class _CharacterCreationScreenState
             context: context,
             zoom: zoom,
             title: 'Eyebrows',
-            values: _eyebrowStyles,
+            values:
+                _eyebrowStyles,
             selected:
                 _appearance.eyebrows,
             assetDirectory:
                 'assets/character/eyebrows',
-            onSelected: (value) {
+            onSelected:
+                (String value) {
               _updateAppearance(
                 _appearance.copyWith(
                   eyebrows: value,
                 ),
               );
             },
+            color:
+                const Color(
+              0xFF2C211E,
+            ),
           ),
         ],
       ),
@@ -835,136 +894,156 @@ class _CharacterCreationScreenState
     double s(double value) =>
         value * zoom;
 
-    final skinColor =
+    final Color skinColor =
         _skinToneColors[
                 _appearance.skinTone] ??
-            _skinToneColors.values.first;
+            _skinToneColors.values
+                .first;
 
-    final hairColor =
+    final Color hairColor =
         _hairColors[
                 _appearance.hairColor] ??
             _hairColors.values.first;
 
-    final eyeColor =
+    final Color eyeColor =
         _eyeColors[
                 _appearance.eyeColor] ??
             _eyeColors.values.first;
 
     return Container(
       width: double.infinity,
-      height: s(210),
+      height: s(230),
       decoration: BoxDecoration(
         color: Theme.of(context)
             .colorScheme
             .surfaceContainerHighest
-            .withValues(alpha: 0.35),
+            .withValues(
+              alpha: 0.35,
+            ),
         borderRadius:
-            BorderRadius.circular(s(10)),
+            BorderRadius.circular(
+          s(10),
+        ),
         border: Border.all(
           color: Theme.of(context)
               .dividerColor
-              .withValues(alpha: 0.5),
+              .withValues(
+                alpha: 0.5,
+              ),
         ),
       ),
       child: Center(
         child: SizedBox(
-          width: s(160),
-          height: s(180),
+          width: s(180),
+          height: s(200),
           child: Stack(
-            alignment: Alignment.center,
-            clipBehavior: Clip.none,
+            alignment:
+                Alignment.center,
+            clipBehavior:
+                Clip.none,
             children: [
-              // Skin foundation.
-              Container(
-                width: s(126),
-                height: s(142),
-                decoration:
-                    BoxDecoration(
-                  color: skinColor,
-                  borderRadius:
-                      BorderRadius.circular(
-                    s(58),
+              // --------------------------------------------------
+              // BASE SKIN
+              // --------------------------------------------------
+              Positioned(
+                left: s(27),
+                top: s(27),
+                child: Container(
+                  width: s(126),
+                  height: s(158),
+                  decoration:
+                      BoxDecoration(
+                    color: skinColor,
+                    borderRadius:
+                        BorderRadius.only(
+                      topLeft:
+                          Radius.circular(
+                        s(62),
+                      ),
+                      topRight:
+                          Radius.circular(
+                        s(62),
+                      ),
+                      bottomLeft:
+                          Radius.circular(
+                        s(52),
+                      ),
+                      bottomRight:
+                          Radius.circular(
+                        s(52),
+                      ),
+                    ),
                   ),
                 ),
               ),
 
-              // Actual head asset.
+              // --------------------------------------------------
+              // EYES
+              // --------------------------------------------------
               SvgPicture.asset(
-                'assets/character/base/'
-                'head_base.svg',
-                width: s(142),
-                height: s(158),
+                'assets/character/eyes/'
+                '${_appearance.eyes}.svg',
+                width: s(180),
+                height: s(180),
                 fit: BoxFit.contain,
-              ),
-
-              // Eyes.
-              ColorFiltered(
                 colorFilter:
                     ColorFilter.mode(
                   eyeColor,
                   BlendMode.srcIn,
                 ),
-                child:
-                    SvgPicture.asset(
-                  'assets/character/eyes/'
-                  '${_appearance.eyes}.svg',
-                  width: s(142),
-                  height: s(158),
-                  fit: BoxFit.contain,
-                ),
               ),
 
-              // Eyebrows.
+              // --------------------------------------------------
+              // EYEBROWS
+              // --------------------------------------------------
               SvgPicture.asset(
                 'assets/character/eyebrows/'
                 '${_appearance.eyebrows}.svg',
-                width: s(142),
-                height: s(158),
+                width: s(180),
+                height: s(180),
                 fit: BoxFit.contain,
+                colorFilter:
+                    const ColorFilter.mode(
+                  Color(0xFF2C211E),
+                  BlendMode.srcIn,
+                ),
               ),
 
-              // Nose.
+              // --------------------------------------------------
+              // NOSE
+              // --------------------------------------------------
               SvgPicture.asset(
                 'assets/character/base/'
-                'nose.fixed.svg',
-                width: s(142),
-                height: s(158),
+                'nose_fixed.svg',
+                width: s(180),
+                height: s(180),
                 fit: BoxFit.contain,
               ),
 
-              // Mouth.
+              // --------------------------------------------------
+              // MOUTH
+              // --------------------------------------------------
               SvgPicture.asset(
                 'assets/character/base/'
-                'mouth.fixed.svg',
-                width: s(142),
-                height: s(158),
+                'mouth_fixed.svg',
+                width: s(180),
+                height: s(180),
                 fit: BoxFit.contain,
               ),
 
-              // Neutral expression layer.
+              // --------------------------------------------------
+              // HAIR
+              // --------------------------------------------------
               SvgPicture.asset(
-                'assets/character/expression/'
-                'expression_neutral.svg',
-                width: s(142),
-                height: s(158),
+                'assets/character/hair/'
+                '${_appearance.hair}.svg',
+                width: s(180),
+                height: s(180),
                 fit: BoxFit.contain,
-              ),
-
-              // Hair is rendered last so it sits
-              // above the other facial layers.
-              ColorFiltered(
                 colorFilter:
                     ColorFilter.mode(
                   hairColor,
                   BlendMode.srcIn,
-                ),
-                child:
-                    SvgPicture.asset(
-                  'assets/character/hair/'
-                  '${_appearance.hair}.svg',
-                  width: s(142),
-                  height: s(158),
-                  fit: BoxFit.contain,
                 ),
               ),
             ],
@@ -998,53 +1077,58 @@ class _CharacterCreationScreenState
           children:
               _skinToneColors.entries
                   .map(
-                    (entry) {
-                      final selected =
-                          _appearance.skinTone ==
-                              entry.key;
+            (
+              MapEntry<String, Color>
+                  entry,
+            ) {
+              final bool selected =
+                  _appearance
+                          .skinTone ==
+                      entry.key;
 
-                      return InkWell(
-                        borderRadius:
-                            BorderRadius.circular(
-                          s(20),
-                        ),
-                        onTap: () {
-                          _updateAppearance(
-                            _appearance.copyWith(
-                              skinTone:
-                                  entry.key,
-                            ),
-                          );
-                        },
-                        child: Container(
-                          width: s(34),
-                          height: s(34),
-                          decoration:
-                              BoxDecoration(
-                            shape:
-                                BoxShape.circle,
-                            color: entry.value,
-                            border: Border.all(
-                              color: selected
-                                  ? Theme.of(
-                                      context,
-                                    )
-                                      .colorScheme
-                                      .primary
-                                  : Theme.of(
-                                      context,
-                                    )
-                                      .dividerColor,
-                              width: selected
-                                  ? s(3)
-                                  : s(1),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  )
-                  .toList(),
+              return InkWell(
+                borderRadius:
+                    BorderRadius
+                        .circular(
+                  s(20),
+                ),
+                onTap: () {
+                  _updateAppearance(
+                    _appearance.copyWith(
+                      skinTone:
+                          entry.key,
+                    ),
+                  );
+                },
+                child: Container(
+                  width: s(34),
+                  height: s(34),
+                  decoration:
+                      BoxDecoration(
+                    shape:
+                        BoxShape.circle,
+                    color: entry.value,
+                    border:
+                        Border.all(
+                      color: selected
+                          ? Theme.of(
+                              context,
+                            )
+                              .colorScheme
+                              .primary
+                          : Theme.of(
+                              context,
+                            )
+                              .dividerColor,
+                      width: selected
+                          ? s(3)
+                          : s(1),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ).toList(),
         ),
       ],
     );
@@ -1056,7 +1140,8 @@ class _CharacterCreationScreenState
     required String title,
     required Map<String, Color> colors,
     required String selected,
-    required ValueChanged<String> onSelected,
+    required ValueChanged<String>
+        onSelected,
   }) {
     double s(double value) =>
         value * zoom;
@@ -1077,47 +1162,53 @@ class _CharacterCreationScreenState
           runSpacing: s(7),
           children: colors.entries
               .map(
-                (entry) {
-                  final isSelected =
-                      entry.key == selected;
+            (
+              MapEntry<String, Color>
+                  entry,
+            ) {
+              final bool isSelected =
+                  entry.key == selected;
 
-                  return InkWell(
-                    borderRadius:
-                        BorderRadius.circular(
-                      s(20),
-                    ),
-                    onTap: () {
-                      onSelected(entry.key);
-                    },
-                    child: Container(
-                      width: s(34),
-                      height: s(34),
-                      decoration:
-                          BoxDecoration(
-                        shape:
-                            BoxShape.circle,
-                        color: entry.value,
-                        border: Border.all(
-                          color: isSelected
-                              ? Theme.of(
-                                  context,
-                                )
-                                  .colorScheme
-                                  .primary
-                              : Theme.of(
-                                  context,
-                                )
-                                  .dividerColor,
-                          width: isSelected
-                              ? s(3)
-                              : s(1),
-                        ),
-                      ),
-                    ),
+              return InkWell(
+                borderRadius:
+                    BorderRadius
+                        .circular(
+                  s(20),
+                ),
+                onTap: () {
+                  onSelected(
+                    entry.key,
                   );
                 },
-              )
-              .toList(),
+                child: Container(
+                  width: s(34),
+                  height: s(34),
+                  decoration:
+                      BoxDecoration(
+                    shape:
+                        BoxShape.circle,
+                    color: entry.value,
+                    border:
+                        Border.all(
+                      color: isSelected
+                          ? Theme.of(
+                              context,
+                            )
+                              .colorScheme
+                              .primary
+                          : Theme.of(
+                              context,
+                            )
+                              .dividerColor,
+                      width: isSelected
+                          ? s(3)
+                          : s(1),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ).toList(),
         ),
       ],
     );
@@ -1130,7 +1221,9 @@ class _CharacterCreationScreenState
     required List<String> values,
     required String selected,
     required String assetDirectory,
-    required ValueChanged<String> onSelected,
+    required ValueChanged<String>
+        onSelected,
+    required Color? color,
   }) {
     double s(double value) =>
         value * zoom;
@@ -1147,67 +1240,87 @@ class _CharacterCreationScreenState
         ),
         SizedBox(height: s(4)),
         SizedBox(
-          height: s(86),
+          height: s(88),
           child: ListView.separated(
             scrollDirection:
                 Axis.horizontal,
-            itemCount: values.length,
-            separatorBuilder: (
-              _,
-              __,
-            ) =>
-                SizedBox(width: s(6)),
-            itemBuilder: (
-              context,
-              index,
+            itemCount:
+                values.length,
+            separatorBuilder:
+                (
+              BuildContext context,
+              int index,
             ) {
-              final value =
+              return SizedBox(
+                width: s(6),
+              );
+            },
+            itemBuilder:
+                (
+              BuildContext context,
+              int index,
+            ) {
+              final String value =
                   values[index];
 
-              final isSelected =
+              final bool isSelected =
                   value == selected;
 
-              final assetPath =
+              final String assetPath =
                   '$assetDirectory/'
                   '$value.svg';
 
               return InkWell(
                 borderRadius:
-                    BorderRadius.circular(
+                    BorderRadius
+                        .circular(
                   s(8),
                 ),
                 onTap: () {
                   onSelected(value);
                 },
                 child: Container(
-                  width: s(76),
+                  width: s(78),
                   padding:
-                      EdgeInsets.all(s(4)),
+                      EdgeInsets.all(
+                    s(4),
+                  ),
                   decoration:
                       BoxDecoration(
                     color: isSelected
-                        ? Theme.of(context)
+                        ? Theme.of(
+                            context,
+                          )
                             .colorScheme
                             .primary
                             .withValues(
                               alpha: 0.10,
                             )
-                        : Theme.of(context)
+                        : Theme.of(
+                            context,
+                          )
                             .colorScheme
                             .surface,
                     borderRadius:
-                        BorderRadius.circular(
+                        BorderRadius
+                            .circular(
                       s(8),
                     ),
-                    border: Border.all(
+                    border:
+                        Border.all(
                       color: isSelected
-                          ? Theme.of(context)
+                          ? Theme.of(
+                              context,
+                            )
                               .colorScheme
                               .primary
-                          : Theme.of(context)
+                          : Theme.of(
+                              context,
+                            )
                               .dividerColor
                               .withValues(
-                                alpha: 0.6,
+                                alpha:
+                                    0.6,
                               ),
                       width: isSelected
                           ? s(2)
@@ -1223,22 +1336,38 @@ class _CharacterCreationScreenState
                         child:
                             SvgPicture.asset(
                           assetPath,
-                          fit: BoxFit.contain,
+                          fit: BoxFit
+                              .contain,
+                          colorFilter:
+                              color == null
+                                  ? null
+                                  : ColorFilter
+                                      .mode(
+                                      color,
+                                      BlendMode
+                                          .srcIn,
+                                    ),
                         ),
                       ),
                       SizedBox(
                         height: s(2),
                       ),
                       Text(
-                        _prettyLabel(value),
+                        _prettyLabel(
+                          value,
+                        ),
                         maxLines: 1,
                         overflow:
-                            TextOverflow.ellipsis,
+                            TextOverflow
+                                .ellipsis,
                         textAlign:
                             TextAlign.center,
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelSmall,
+                        style:
+                            Theme.of(
+                          context,
+                        )
+                                .textTheme
+                                .labelSmall,
                       ),
                     ],
                   ),
@@ -1251,26 +1380,31 @@ class _CharacterCreationScreenState
     );
   }
 
-  String _prettyLabel(String value) {
-    final withoutPrefix = value
-        .replaceFirst(
-          RegExp(
-            r'^(hair_|eyes_|brows_)',
-          ),
-          '',
-        );
+  String _prettyLabel(
+    String value,
+  ) {
+    final String withoutPrefix =
+        value.replaceFirst(
+      RegExp(
+        r'^(hair_|eyes_|brows_)',
+      ),
+      '',
+    );
 
     return withoutPrefix
         .split('_')
+        .where(
+          (String word) =>
+              word.isNotEmpty,
+        )
         .map(
-          (word) {
-            if (word.isEmpty) {
-              return word;
-            }
-
-            return word.substring(0, 1)
-                    .toUpperCase() +
-                word.substring(1);
+          (String word) {
+            return word.substring(
+                  0,
+                  1,
+                ).toUpperCase() +
+                word.substring(1)
+                    .toLowerCase();
           },
         )
         .join(' ');
@@ -1288,7 +1422,9 @@ class _ResponsiveCard
   final Widget child;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     return SizedBox(
       width: double.infinity,
       child: Card(
