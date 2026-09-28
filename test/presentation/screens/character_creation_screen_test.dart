@@ -32,7 +32,7 @@ void main() {
         );
 
         expect(
-          find.text('Last Name / Family Name'),
+          find.text('Last Name'),
           findsOneWidget,
         );
 
@@ -58,7 +58,7 @@ void main() {
 
         expect(
           find.text('2026'),
-          findsOneWidget,
+          findsWidgets,
         );
 
         expect(
@@ -91,35 +91,30 @@ void main() {
             home: CharacterCreationScreen(
               onCharacterCreated: (character) {
                 createdName = character.name;
-                createdFirstName =
-                    character.firstName;
-                createdLastName =
-                    character.lastName;
-                createdGender =
-                    character.gender;
-                createdBirthYear =
-                    character.birthYear;
+                createdFirstName = character.firstName;
+                createdLastName = character.lastName;
+                createdGender = character.gender;
+                createdBirthYear = character.birthYear;
               },
             ),
           ),
         );
 
-        final textFields =
-            find.byType(TextField);
+        final textFields = find.byType(TextField);
 
         expect(
           textFields,
-          findsNWidgets(2),
+          findsNWidgets(3),
         );
 
         await tester.enterText(
           textFields.at(0),
-          'Marshall',
+          'marshall',
         );
 
         await tester.enterText(
           textFields.at(1),
-          'Royce',
+          'royce',
         );
 
         await tester.tap(
@@ -169,15 +164,18 @@ void main() {
           MaterialApp(
             home: CharacterCreationScreen(
               onCharacterCreated: (character) {
-                createdBirthYear =
-                    character.birthYear;
+                createdBirthYear = character.birthYear;
               },
             ),
           ),
         );
 
-        final textFields =
-            find.byType(TextField);
+        final textFields = find.byType(TextField);
+
+        expect(
+          textFields,
+          findsNWidgets(3),
+        );
 
         await tester.enterText(
           textFields.at(0),
@@ -189,8 +187,7 @@ void main() {
           'Character',
         );
 
-        final slider =
-            find.byType(Slider);
+        final slider = find.byType(Slider);
 
         expect(
           slider,
@@ -223,6 +220,58 @@ void main() {
         expect(
           2026 - createdBirthYear!,
           126,
+        );
+      },
+    );
+
+    testWidgets(
+      'allows birth year to be entered manually',
+      (tester) async {
+        int? createdBirthYear;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: CharacterCreationScreen(
+              onCharacterCreated: (character) {
+                createdBirthYear = character.birthYear;
+              },
+            ),
+          ),
+        );
+
+        final textFields = find.byType(TextField);
+
+        expect(
+          textFields,
+          findsNWidgets(3),
+        );
+
+        await tester.enterText(
+          textFields.at(0),
+          'Test',
+        );
+
+        await tester.enterText(
+          textFields.at(1),
+          'Character',
+        );
+
+        await tester.enterText(
+          textFields.at(2),
+          '2000',
+        );
+
+        await tester.pump();
+
+        await tester.tap(
+          find.text('BEGIN LIFE'),
+        );
+
+        await tester.pump();
+
+        expect(
+          createdBirthYear,
+          2000,
         );
       },
     );
@@ -268,7 +317,7 @@ void main() {
     );
 
     testWidgets(
-      'requires a family name before creating character',
+      'requires a last name before creating character',
       (tester) async {
         var created = false;
 
@@ -300,7 +349,7 @@ void main() {
 
         expect(
           find.text(
-            'Please enter your family name.',
+            'Please enter your last name.',
           ),
           findsOneWidget,
         );
@@ -316,8 +365,7 @@ void main() {
           MaterialApp(
             home: CharacterCreationScreen(
               onCharacterCreated: (character) {
-                createdGender =
-                    character.gender;
+                createdGender = character.gender;
               },
             ),
           ),
@@ -327,8 +375,12 @@ void main() {
           find.text('Female'),
         );
 
-        final textFields =
-            find.byType(TextField);
+        final textFields = find.byType(TextField);
+
+        expect(
+          textFields,
+          findsNWidgets(3),
+        );
 
         await tester.enterText(
           textFields.at(0),
