@@ -887,6 +887,16 @@ class _CharacterCreationScreenState
     );
   }
 
+  // ==============================================================
+  // DIAGNOSTIC APPEARANCE PREVIEW
+  //
+  // Hair, eyes, and eyebrows are rendered using their original
+  // 256x256 SVG canvas with NO ColorFilter.
+  //
+  // This intentionally removes tinting and custom scaling so we
+  // can determine whether the raw SVG assets render correctly.
+  // ==============================================================
+
   Widget _buildAppearancePreview(
     BuildContext context,
     double zoom,
@@ -900,54 +910,9 @@ class _CharacterCreationScreenState
             _skinToneColors.values
                 .first;
 
-    final Color hairColor =
-        _hairColors[
-                _appearance.hairColor] ??
-            _hairColors.values.first;
-
-    final Color eyeColor =
-        _eyeColors[
-                _appearance.eyeColor] ??
-            _eyeColors.values.first;
-
-    const Color eyebrowColor =
-        Color(0xFF2C211E);
-
-    Widget tintedSvg({
-      required String assetPath,
-      required Color color,
-      required double width,
-      required double height,
-    }) {
-      return SvgPicture.asset(
-        assetPath,
-        width: s(width),
-        height: s(height),
-        fit: BoxFit.contain,
-        colorFilter:
-            ColorFilter.mode(
-          color,
-          BlendMode.srcIn,
-        ),
-      );
-    }
-
-    Widget fixedSvg({
-      required String assetPath,
-      required double width,
-      required double height,
-    }) {
-      return SvgPicture.asset(
-        assetPath,
-        width: s(width),
-        height: s(height),
-        fit: BoxFit.contain,
-      );
-    }
-
     return Container(
       width: double.infinity,
-      height: s(230),
+      height: s(280),
       decoration: BoxDecoration(
         color: Theme.of(context)
             .colorScheme
@@ -969,23 +934,21 @@ class _CharacterCreationScreenState
       ),
       child: Center(
         child: SizedBox(
-          width: s(180),
-          height: s(200),
+          width: s(256),
+          height: s(256),
           child: Stack(
-            alignment:
-                Alignment.center,
             clipBehavior:
                 Clip.none,
             children: [
-              // --------------------------------------------------
+              // ====================================================
               // BASE SKIN
-              // --------------------------------------------------
+              // ====================================================
               Positioned(
-                left: s(27),
-                top: s(27),
+                left: s(35),
+                top: s(35),
                 child: Container(
-                  width: s(126),
-                  height: s(158),
+                  width: s(186),
+                  height: s(218),
                   decoration:
                       BoxDecoration(
                     color: skinColor,
@@ -993,198 +956,103 @@ class _CharacterCreationScreenState
                         BorderRadius.only(
                       topLeft:
                           Radius.circular(
-                        s(62),
+                        s(90),
                       ),
                       topRight:
                           Radius.circular(
-                        s(62),
+                        s(90),
                       ),
                       bottomLeft:
                           Radius.circular(
-                        s(52),
+                        s(70),
                       ),
                       bottomRight:
                           Radius.circular(
-                        s(52),
+                        s(70),
                       ),
                     ),
                   ),
                 ),
               ),
 
-              // --------------------------------------------------
+              // ====================================================
               // HAIR
-              // --------------------------------------------------
-              Positioned(
-                left: s(0),
-                top: s(10),
-                child: tintedSvg(
-                  assetPath:
-                      'assets/character/hair/'
-                      '${_appearance.hair}.svg',
-                  color: hairColor,
-                  width: 180,
-                  height: 110,
+              // No ColorFilter.
+              // ====================================================
+              Positioned.fill(
+                child:
+                    SvgPicture.asset(
+                  'assets/character/hair/'
+                  '${_appearance.hair}.svg',
+                  width: s(256),
+                  height: s(256),
+                  fit: BoxFit.contain,
                 ),
               ),
 
-              // --------------------------------------------------
+              // ====================================================
               // EYEBROWS
-              // --------------------------------------------------
-              Positioned(
-                left: s(35),
-                top: s(60),
-                child: tintedSvg(
-                  assetPath:
-                      'assets/character/eyebrows/'
-                      '${_appearance.eyebrows}.svg',
-                  color: eyebrowColor,
-                  width: 110,
-                  height: 25,
+              // No ColorFilter.
+              // ====================================================
+              Positioned.fill(
+                child:
+                    SvgPicture.asset(
+                  'assets/character/eyebrows/'
+                  '${_appearance.eyebrows}.svg',
+                  width: s(256),
+                  height: s(256),
+                  fit: BoxFit.contain,
                 ),
               ),
 
-              // --------------------------------------------------
+              // ====================================================
               // EYES
-              // --------------------------------------------------
-              Positioned(
-                left: s(40),
-                top: s(80),
-                child: tintedSvg(
-                  assetPath:
-                      'assets/character/eyes/'
-                      '${_appearance.eyes}.svg',
-                  color: eyeColor,
-                  width: 100,
-                  height: 30,
+              // No ColorFilter.
+              // ====================================================
+              Positioned.fill(
+                child:
+                    SvgPicture.asset(
+                  'assets/character/eyes/'
+                  '${_appearance.eyes}.svg',
+                  width: s(256),
+                  height: s(256),
+                  fit: BoxFit.contain,
                 ),
               ),
 
-              // --------------------------------------------------
-Widget _buildAppearancePreview(
-  BuildContext context,
-  double zoom,
-) {
-  double s(double value) => value * zoom;
-
-  final Color skinColor =
-      _skinToneColors[_appearance.skinTone] ??
-          _skinToneColors.values.first;
-
-  return Container(
-    width: double.infinity,
-    height: s(280),
-    decoration: BoxDecoration(
-      color: Theme.of(context)
-          .colorScheme
-          .surfaceContainerHighest
-          .withValues(alpha: 0.35),
-      borderRadius: BorderRadius.circular(s(10)),
-      border: Border.all(
-        color: Theme.of(context)
-            .dividerColor
-            .withValues(alpha: 0.5),
-      ),
-    ),
-    child: Center(
-      child: SizedBox(
-        width: s(256),
-        height: s(256),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // =====================================================
-            // BASE SKIN
-            // =====================================================
-            Positioned(
-              left: s(35),
-              top: s(35),
-              child: Container(
-                width: s(186),
-                height: s(218),
-                decoration: BoxDecoration(
-                  color: skinColor,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(s(90)),
-                    topRight: Radius.circular(s(90)),
-                    bottomLeft: Radius.circular(s(70)),
-                    bottomRight: Radius.circular(s(70)),
-                  ),
+              // ====================================================
+              // NOSE
+              // ====================================================
+              Positioned.fill(
+                child:
+                    SvgPicture.asset(
+                  'assets/character/base/'
+                  'nose_fixed.svg',
+                  width: s(256),
+                  height: s(256),
+                  fit: BoxFit.contain,
                 ),
               ),
-            ),
 
-            // =====================================================
-            // HAIR
-            // Diagnostic: NO ColorFilter
-            // =====================================================
-            Positioned.fill(
-              child: SvgPicture.asset(
-                'assets/character/hair/'
-                '${_appearance.hair}.svg',
-                width: s(256),
-                height: s(256),
-                fit: BoxFit.contain,
+              // ====================================================
+              // MOUTH
+              // ====================================================
+              Positioned.fill(
+                child:
+                    SvgPicture.asset(
+                  'assets/character/base/'
+                  'mouth_fixed.svg',
+                  width: s(256),
+                  height: s(256),
+                  fit: BoxFit.contain,
+                ),
               ),
-            ),
-
-            // =====================================================
-            // EYEBROWS
-            // Diagnostic: NO ColorFilter
-            // =====================================================
-            Positioned.fill(
-              child: SvgPicture.asset(
-                'assets/character/eyebrows/'
-                '${_appearance.eyebrows}.svg',
-                width: s(256),
-                height: s(256),
-                fit: BoxFit.contain,
-              ),
-            ),
-
-            // =====================================================
-            // EYES
-            // Diagnostic: NO ColorFilter
-            // =====================================================
-            Positioned.fill(
-              child: SvgPicture.asset(
-                'assets/character/eyes/'
-                '${_appearance.eyes}.svg',
-                width: s(256),
-                height: s(256),
-                fit: BoxFit.contain,
-              ),
-            ),
-
-            // =====================================================
-            // NOSE
-            // =====================================================
-            Positioned.fill(
-              child: SvgPicture.asset(
-                'assets/character/base/nose_fixed.svg',
-                width: s(256),
-                height: s(256),
-                fit: BoxFit.contain,
-              ),
-            ),
-
-            // =====================================================
-            // MOUTH
-            // =====================================================
-            Positioned.fill(
-              child: SvgPicture.asset(
-                'assets/character/base/mouth_fixed.svg',
-                width: s(256),
-                height: s(256),
-                fit: BoxFit.contain,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildSkinToneSelector(
     BuildContext context,
