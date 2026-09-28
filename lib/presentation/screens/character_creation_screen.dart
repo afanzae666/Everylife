@@ -110,7 +110,8 @@ class _CharacterCreationScreenState
   void initState() {
     super.initState();
 
-    _birthYearController.text = _birthYear.toString();
+    _birthYearController.text =
+        _birthYear.toString();
 
     _birthYearController.addListener(
       _handleBirthYearTextChanged,
@@ -133,7 +134,8 @@ class _CharacterCreationScreenState
       return;
     }
 
-    final int? parsed = int.tryParse(text);
+    final int? parsed =
+        int.tryParse(text);
 
     if (parsed == null) {
       return;
@@ -157,12 +159,14 @@ class _CharacterCreationScreenState
       _maximumBirthYear,
     );
 
-    final String text = clamped.toString();
+    final String text =
+        clamped.toString();
 
     setState(() {
       _birthYear = clamped;
 
-      if (_birthYearController.text != text) {
+      if (_birthYearController.text !=
+          text) {
         _birthYearController.value =
             TextEditingValue(
           text: text,
@@ -179,7 +183,8 @@ class _CharacterCreationScreenState
     final String text =
         _birthYearController.text.trim();
 
-    final int? parsed = int.tryParse(text);
+    final int? parsed =
+        int.tryParse(text);
 
     if (parsed == null) {
       _birthYearController.value =
@@ -202,7 +207,8 @@ class _CharacterCreationScreenState
   }
 
   String _capitalizeName(String value) {
-    final String normalized = value.trim();
+    final String normalized =
+        value.trim();
 
     if (normalized.isEmpty) {
       return '';
@@ -889,23 +895,86 @@ class _CharacterCreationScreenState
 
   // ==============================================================
   // SAFE SVG LOADER
-  // Mencegah error 'SVG LOAD ERROR' saat file aset tidak ditemukan
+  //
+  // Asset error tidak lagi dibuat kosong.
+  // Jika SVG gagal dimuat, layar akan menunjukkan error
+  // sehingga penyebabnya tidak tersembunyi.
   // ==============================================================
+
   Widget _buildSafeSvg(
     String path, {
     double? width,
     double? height,
     BoxFit fit = BoxFit.contain,
-    ColorFilter? colorFilter,
   }) {
     return SvgPicture.asset(
       path,
       width: width,
       height: height,
       fit: fit,
-      colorFilter: colorFilter,
-      errorBuilder: (context, error, stackTrace) {
-        return SizedBox(width: width, height: height);
+      errorBuilder: (
+        BuildContext context,
+        Object error,
+        StackTrace? stackTrace,
+      ) {
+        return Container(
+          width: width,
+          height: height,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color:
+                Colors.red.withValues(
+              alpha: 0.10,
+            ),
+            border: Border.all(
+              color: Colors.red,
+              width: 1,
+            ),
+          ),
+          padding:
+              const EdgeInsets.all(4),
+          child: Column(
+            mainAxisAlignment:
+                MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                color: Colors.red,
+                size: 22,
+              ),
+              const SizedBox(
+                height: 4,
+              ),
+              const Text(
+                'SVG ERROR',
+                textAlign:
+                    TextAlign.center,
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight:
+                      FontWeight.bold,
+                  fontSize: 10,
+                ),
+              ),
+              const SizedBox(
+                height: 2,
+              ),
+              Text(
+                path,
+                textAlign:
+                    TextAlign.center,
+                maxLines: 4,
+                overflow:
+                    TextOverflow.ellipsis,
+                style:
+                    const TextStyle(
+                  color: Colors.red,
+                  fontSize: 8,
+                ),
+              ),
+            ],
+          ),
+        );
       },
     );
   }
@@ -922,12 +991,6 @@ class _CharacterCreationScreenState
                 _appearance.skinTone] ??
             _skinToneColors.values
                 .first;
-
-    final Color? hairColor =
-        _hairColors[_appearance.hairColor];
-
-    final Color? eyeColor =
-        _eyeColors[_appearance.eyeColor];
 
     return Container(
       width: double.infinity,
@@ -959,7 +1022,13 @@ class _CharacterCreationScreenState
             clipBehavior:
                 Clip.none,
             children: [
+              // ==================================================
               // BASE SKIN
+              //
+              // Tetap menggunakan warna skin dari Flutter.
+              // Ini memastikan skin tone tetap bekerja.
+              // ==================================================
+
               Positioned(
                 left: s(35),
                 top: s(35),
@@ -992,24 +1061,44 @@ class _CharacterCreationScreenState
                 ),
               ),
 
-              // HAIR (Hanya di-render jika bukan 'hair_bald')
-              if (_appearance.hair != 'hair_bald')
+              // ==================================================
+              // HEAD BASE
+              //
+              // Ini adalah asset dasar karakter dari repository.
+              // Tidak menggunakan ColorFilter.
+              // ==================================================
+
+              Positioned.fill(
+                child: _buildSafeSvg(
+                  'assets/character/base/'
+                  'head_base.svg',
+                  width: s(256),
+                  height: s(256),
+                ),
+              ),
+
+              // ==================================================
+              // HAIR
+              //
+              // Tanpa BlendMode.srcIn untuk memastikan SVG
+              // asli dapat dirender terlebih dahulu.
+              // ==================================================
+
+              if (_appearance.hair !=
+                  'hair_bald')
                 Positioned.fill(
                   child: _buildSafeSvg(
                     'assets/character/hair/'
                     '${_appearance.hair}.svg',
                     width: s(256),
                     height: s(256),
-                    colorFilter: hairColor != null
-                        ? ColorFilter.mode(
-                            hairColor,
-                            BlendMode.srcIn,
-                          )
-                        : null,
                   ),
                 ),
 
+              // ==================================================
               // EYEBROWS
+              // ==================================================
+
               Positioned.fill(
                 child: _buildSafeSvg(
                   'assets/character/eyebrows/'
@@ -1019,23 +1108,23 @@ class _CharacterCreationScreenState
                 ),
               ),
 
+              // ==================================================
               // EYES
+              // ==================================================
+
               Positioned.fill(
                 child: _buildSafeSvg(
                   'assets/character/eyes/'
                   '${_appearance.eyes}.svg',
                   width: s(256),
                   height: s(256),
-                  colorFilter: eyeColor != null
-                      ? ColorFilter.mode(
-                          eyeColor,
-                          BlendMode.srcIn,
-                        )
-                      : null,
                 ),
               ),
 
+              // ==================================================
               // NOSE
+              // ==================================================
+
               Positioned.fill(
                 child: _buildSafeSvg(
                   'assets/character/base/'
@@ -1045,7 +1134,10 @@ class _CharacterCreationScreenState
                 ),
               ),
 
+              // ==================================================
               // MOUTH
+              // ==================================================
+
               Positioned.fill(
                 child: _buildSafeSvg(
                   'assets/character/base/'
@@ -1341,22 +1433,19 @@ class _CharacterCreationScreenState
                             .center,
                     children: [
                       Expanded(
-                        child: value == 'hair_bald'
+                        child: value ==
+                                'hair_bald'
                             ? Icon(
                                 Icons.block,
                                 size: s(28),
-                                color: Theme.of(context)
+                                color: Theme.of(
+                                  context,
+                                )
                                     .colorScheme
                                     .outline,
                               )
                             : _buildSafeSvg(
                                 assetPath,
-                                colorFilter: color == null
-                                    ? null
-                                    : ColorFilter.mode(
-                                        color,
-                                        BlendMode.srcIn,
-                                      ),
                               ),
                       ),
                       SizedBox(
