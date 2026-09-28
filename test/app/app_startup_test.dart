@@ -15,8 +15,7 @@ void main() {
     testWidgets(
       'starts on character creation when no save exists',
       (tester) async {
-        final repository =
-            InMemorySaveRepository();
+        final repository = InMemorySaveRepository();
 
         await tester.pumpWidget(
           LifeSimulationApp(
@@ -65,8 +64,7 @@ void main() {
     testWidgets(
       'creates a newborn character and autosaves it',
       (tester) async {
-        final repository =
-            InMemorySaveRepository();
+        final repository = InMemorySaveRepository();
 
         await tester.pumpWidget(
           LifeSimulationApp(
@@ -78,32 +76,29 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        final textFields =
-            find.byType(TextField);
+        final textFields = find.byType(TextField);
 
         expect(
           textFields,
-          findsNWidgets(2),
+          findsNWidgets(3),
         );
 
         await tester.enterText(
           textFields.at(0),
-          'Marshall',
+          'marshall',
         );
 
         await tester.enterText(
           textFields.at(1),
-          'Royce',
+          'royce',
         );
 
-        final beginLifeButton =
-            find.text('BEGIN LIFE');
+        final beginLifeButton = find.text('BEGIN LIFE');
 
         await tester.scrollUntilVisible(
           beginLifeButton,
           200,
-          scrollable:
-              find.byType(Scrollable).first,
+          scrollable: find.byType(Scrollable).first,
         );
 
         await tester.pumpAndSettle();
@@ -124,8 +119,7 @@ void main() {
           findsOneWidget,
         );
 
-        final saved =
-            await repository.load();
+        final saved = await repository.load();
 
         expect(
           saved,
@@ -162,11 +156,9 @@ void main() {
     testWidgets(
       'loads an existing save and opens the game',
       (tester) async {
-        final repository =
-            InMemorySaveRepository();
+        final repository = InMemorySaveRepository();
 
-        final savedState =
-            WorldState(
+        final savedState = WorldState(
           clock: const SimulationClock(
             currentYear: 2050,
           ),
@@ -222,11 +214,9 @@ void main() {
     testWidgets(
       'does not replace an existing save when startup succeeds',
       (tester) async {
-        final repository =
-            InMemorySaveRepository();
+        final repository = InMemorySaveRepository();
 
-        final savedState =
-            WorldState(
+        final savedState = WorldState(
           clock: const SimulationClock(
             currentYear: 2075,
           ),
@@ -255,8 +245,7 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        final loaded =
-            await repository.load();
+        final loaded = await repository.load();
 
         expect(
           loaded,
@@ -298,11 +287,9 @@ void main() {
     testWidgets(
       'loads a manual save when no autosave exists',
       (tester) async {
-        final repository =
-            InMemorySaveRepository();
+        final repository = InMemorySaveRepository();
 
-        final manualState =
-            WorldState(
+        final manualState = WorldState(
           clock: const SimulationClock(
             currentYear: 2060,
           ),
