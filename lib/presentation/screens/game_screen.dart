@@ -634,7 +634,7 @@ class _GameScreenState extends State<GameScreen> {
                   softWrap: false,
                   style: Theme.of(context)
                       .textTheme
-                      .bodyMedium!
+                      .bodyLarge!
                       .copyWith(
                         fontWeight: FontWeight.w600,
                       ),
