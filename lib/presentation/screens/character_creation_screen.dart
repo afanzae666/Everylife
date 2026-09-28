@@ -733,6 +733,12 @@ class _CharacterCreationScreenState
             assetDirectory:
                 'assets/character/hair',
             assetPrefix: 'hair_',
+            colorMapper:
+                _HairColorMapper(
+              color: _hairColors[
+                      _appearance.hairColor] ??
+                  _hairColors.values.first,
+            ),
             onSelected: (value) {
               _updateAppearance(
                 _appearance.copyWith(
@@ -768,6 +774,12 @@ class _CharacterCreationScreenState
             assetDirectory:
                 'assets/character/eyes',
             assetPrefix: 'eyes_',
+            colorMapper:
+                _EyeColorMapper(
+              color: _eyeColors[
+                      _appearance.eyeColor] ??
+                  _eyeColors.values.first,
+            ),
             onSelected: (value) {
               _updateAppearance(
                 _appearance.copyWith(
@@ -803,6 +815,12 @@ class _CharacterCreationScreenState
             assetDirectory:
                 'assets/character/eyebrows',
             assetPrefix: 'brows_',
+            colorMapper:
+                _HairColorMapper(
+              color: _hairColors[
+                      _appearance.hairColor] ??
+                  _hairColors.values.first,
+            ),
             onSelected: (value) {
               _updateAppearance(
                 _appearance.copyWith(
@@ -828,6 +846,16 @@ class _CharacterCreationScreenState
                 _appearance.skinTone] ??
             _skinToneColors.values.first;
 
+    final hairColor =
+        _hairColors[
+                _appearance.hairColor] ??
+            _hairColors.values.first;
+
+    final eyeColor =
+        _eyeColors[
+                _appearance.eyeColor] ??
+            _eyeColors.values.first;
+
     return Container(
       width: double.infinity,
       height: s(170),
@@ -845,45 +873,60 @@ class _CharacterCreationScreenState
         ),
       ),
       child: Center(
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: s(118),
-              height: s(118),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: skinColor,
+        child: SizedBox(
+          width: s(128),
+          height: s(128),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              SvgPicture.asset(
+                'assets/character/base/'
+                'head_base.svg',
+                width: s(128),
+                height: s(128),
+                fit: BoxFit.contain,
+                colorMapper:
+                    _SkinOnlyColorMapper(
+                  skinColor: skinColor,
+                ),
               ),
-            ),
-            SvgPicture.asset(
-              'assets/character/eyes/'
-              '${_appearance.eyes}.svg',
-              width: s(118),
-              height: s(118),
-            ),
-            SvgPicture.asset(
-              'assets/character/eyebrows/'
-              '${_appearance.eyebrows}.svg',
-              width: s(118),
-              height: s(118),
-            ),
-            ColorFiltered(
-              colorFilter:
-                  ColorFilter.mode(
-                _hairColors[
-                        _appearance.hairColor] ??
-                    Colors.black,
-                BlendMode.srcIn,
+              if (_appearance.hair !=
+                  'hair_bald')
+                SvgPicture.asset(
+                  'assets/character/hair/'
+                  '${_appearance.hair}.svg',
+                  width: s(128),
+                  height: s(128),
+                  fit: BoxFit.contain,
+                  colorMapper:
+                      _HairColorMapper(
+                    color: hairColor,
+                  ),
+                ),
+              SvgPicture.asset(
+                'assets/character/eyes/'
+                '${_appearance.eyes}.svg',
+                width: s(128),
+                height: s(128),
+                fit: BoxFit.contain,
+                colorMapper:
+                    _EyeColorMapper(
+                  color: eyeColor,
+                ),
               ),
-              child: SvgPicture.asset(
-                'assets/character/hair/'
-                '${_appearance.hair}.svg',
-                width: s(118),
-                height: s(118),
+              SvgPicture.asset(
+                'assets/character/eyebrows/'
+                '${_appearance.eyebrows}.svg',
+                width: s(128),
+                height: s(128),
+                fit: BoxFit.contain,
+                colorMapper:
+                    _HairColorMapper(
+                  color: hairColor,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1046,6 +1089,7 @@ class _CharacterCreationScreenState
     required String selected,
     required String assetDirectory,
     required String assetPrefix,
+    required ColorMapper colorMapper,
     required ValueChanged<String> onSelected,
   }) {
     double s(double value) =>
@@ -1138,6 +1182,8 @@ class _CharacterCreationScreenState
                             SvgPicture.asset(
                           assetPath,
                           fit: BoxFit.contain,
+                          colorMapper:
+                              colorMapper,
                         ),
                       ),
                       SizedBox(
@@ -1189,6 +1235,136 @@ class _CharacterCreationScreenState
         )
         .join(' ');
   }
+}
+
+class _SkinOnlyColorMapper
+    extends ColorMapper {
+  const _SkinOnlyColorMapper({
+    required this.skinColor,
+  });
+
+  final Color skinColor;
+
+  static const Color _skinSource =
+      Color(0xFFEEB088);
+
+  static const Color _hairSource =
+      Color(0xFF2E2320);
+
+  @override
+  Color substitute(
+    String? id,
+    String elementName,
+    String attributeName,
+    Color color,
+  ) {
+    if (color == _skinSource) {
+      return skinColor;
+    }
+
+    if (color == _hairSource) {
+      return Colors.transparent;
+    }
+
+    return color;
+  }
+
+  @override
+  bool operator ==(
+    Object other,
+  ) {
+    return other is _SkinOnlyColorMapper &&
+        other.skinColor == skinColor;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(
+        runtimeType,
+        skinColor,
+      );
+}
+
+class _HairColorMapper
+    extends ColorMapper {
+  const _HairColorMapper({
+    required this.color,
+  });
+
+  final Color color;
+
+  static const Color _hairSource =
+      Color(0xFF2E2320);
+
+  @override
+  Color substitute(
+    String? id,
+    String elementName,
+    String attributeName,
+    Color sourceColor,
+  ) {
+    if (sourceColor == _hairSource) {
+      return color;
+    }
+
+    return sourceColor;
+  }
+
+  @override
+  bool operator ==(
+    Object other,
+  ) {
+    return other is _HairColorMapper &&
+        other.color == color;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(
+        runtimeType,
+        color,
+      );
+}
+
+class _EyeColorMapper
+    extends ColorMapper {
+  const _EyeColorMapper({
+    required this.color,
+  });
+
+  final Color color;
+
+  static const Color _eyeSource =
+      Color(0xFF2E2320);
+
+  @override
+  Color substitute(
+    String? id,
+    String elementName,
+    String attributeName,
+    Color sourceColor,
+  ) {
+    if (sourceColor == _eyeSource) {
+      return color;
+    }
+
+    return sourceColor;
+  }
+
+  @override
+  bool operator ==(
+    Object other,
+  ) {
+    return other is _EyeColorMapper &&
+        other.color == color;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(
+        runtimeType,
+        color,
+      );
 }
 
 class _ResponsiveCard
