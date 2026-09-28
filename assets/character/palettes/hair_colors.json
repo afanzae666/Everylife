@@ -1,0 +1,30 @@
+[
+  {
+    "id": "black",
+    "hex": "#211A18"
+  },
+  {
+    "id": "dark_brown",
+    "hex": "#3A2720"
+  },
+  {
+    "id": "brown",
+    "hex": "#5B3A2D"
+  },
+  {
+    "id": "warm_brown",
+    "hex": "#7A5039"
+  },
+  {
+    "id": "dark_blonde",
+    "hex": "#A77A4D"
+  },
+  {
+    "id": "gray",
+    "hex": "#9A9A9A"
+  },
+  {
+    "id": "white",
+    "hex": "#D8D8D2"
+  }
+]
