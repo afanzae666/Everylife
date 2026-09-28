@@ -916,11 +916,13 @@ class _CharacterCreationScreenState
     Widget tintedSvg({
       required String assetPath,
       required Color color,
+      required double width,
+      required double height,
     }) {
       return SvgPicture.asset(
         assetPath,
-        width: s(180),
-        height: s(180),
+        width: s(width),
+        height: s(height),
         fit: BoxFit.contain,
         colorFilter:
             ColorFilter.mode(
@@ -932,11 +934,13 @@ class _CharacterCreationScreenState
 
     Widget fixedSvg({
       required String assetPath,
+      required double width,
+      required double height,
     }) {
       return SvgPicture.asset(
         assetPath,
-        width: s(180),
-        height: s(180),
+        width: s(width),
+        height: s(height),
         fit: BoxFit.contain,
       );
     }
@@ -1009,16 +1013,18 @@ class _CharacterCreationScreenState
               ),
 
               // --------------------------------------------------
-              // EYES
+              // HAIR
               // --------------------------------------------------
               Positioned(
-                left: 0,
+                left: s(0),
                 top: s(10),
                 child: tintedSvg(
                   assetPath:
-                      'assets/character/eyes/'
-                      '${_appearance.eyes}.svg',
-                  color: eyeColor,
+                      'assets/character/hair/'
+                      '${_appearance.hair}.svg',
+                  color: hairColor,
+                  width: 180,
+                  height: 110,
                 ),
               ),
 
@@ -1026,13 +1032,31 @@ class _CharacterCreationScreenState
               // EYEBROWS
               // --------------------------------------------------
               Positioned(
-                left: 0,
-                top: s(10),
+                left: s(35),
+                top: s(60),
                 child: tintedSvg(
                   assetPath:
                       'assets/character/eyebrows/'
                       '${_appearance.eyebrows}.svg',
                   color: eyebrowColor,
+                  width: 110,
+                  height: 25,
+                ),
+              ),
+
+              // --------------------------------------------------
+              // EYES
+              // --------------------------------------------------
+              Positioned(
+                left: s(40),
+                top: s(80),
+                child: tintedSvg(
+                  assetPath:
+                      'assets/character/eyes/'
+                      '${_appearance.eyes}.svg',
+                  color: eyeColor,
+                  width: 100,
+                  height: 30,
                 ),
               ),
 
@@ -1046,6 +1070,8 @@ class _CharacterCreationScreenState
                   assetPath:
                       'assets/character/base/'
                       'nose_fixed.svg',
+                  width: 180,
+                  height: 180,
                 ),
               ),
 
@@ -1059,20 +1085,8 @@ class _CharacterCreationScreenState
                   assetPath:
                       'assets/character/base/'
                       'mouth_fixed.svg',
-                ),
-              ),
-
-              // --------------------------------------------------
-              // HAIR
-              // --------------------------------------------------
-              Positioned(
-                left: 0,
-                top: s(10),
-                child: tintedSvg(
-                  assetPath:
-                      'assets/character/hair/'
-                      '${_appearance.hair}.svg',
-                  color: hairColor,
+                  width: 180,
+                  height: 180,
                 ),
               ),
             ],
