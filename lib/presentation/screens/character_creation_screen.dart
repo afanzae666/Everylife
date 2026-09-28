@@ -14,6 +14,7 @@ class CharacterCreationScreen extends StatefulWidget {
   });
 
   final void Function(Character character) onCharacterCreated;
+
   final ValueNotifier<double>? uiScaleController;
 
   @override
@@ -109,8 +110,7 @@ class _CharacterCreationScreenState
   void initState() {
     super.initState();
 
-    _birthYearController.text =
-        _birthYear.toString();
+    _birthYearController.text = _birthYear.toString();
 
     _birthYearController.addListener(
       _handleBirthYearTextChanged,
@@ -133,8 +133,7 @@ class _CharacterCreationScreenState
       return;
     }
 
-    final int? parsed =
-        int.tryParse(text);
+    final int? parsed = int.tryParse(text);
 
     if (parsed == null) {
       return;
@@ -158,14 +157,12 @@ class _CharacterCreationScreenState
       _maximumBirthYear,
     );
 
-    final String text =
-        clamped.toString();
+    final String text = clamped.toString();
 
     setState(() {
       _birthYear = clamped;
 
-      if (_birthYearController.text !=
-          text) {
+      if (_birthYearController.text != text) {
         _birthYearController.value =
             TextEditingValue(
           text: text,
@@ -182,8 +179,7 @@ class _CharacterCreationScreenState
     final String text =
         _birthYearController.text.trim();
 
-    final int? parsed =
-        int.tryParse(text);
+    final int? parsed = int.tryParse(text);
 
     if (parsed == null) {
       _birthYearController.value =
@@ -206,8 +202,7 @@ class _CharacterCreationScreenState
   }
 
   String _capitalizeName(String value) {
-    final String normalized =
-        value.trim();
+    final String normalized = value.trim();
 
     if (normalized.isEmpty) {
       return '';
@@ -430,7 +425,8 @@ class _CharacterCreationScreenState
                   EdgeInsets.all(s(8)),
               child: Column(
                 crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                    CrossAxisAlignment
+                        .start,
                 children: [
                   Text(
                     'Create Your Character',
@@ -725,7 +721,8 @@ class _CharacterCreationScreenState
                           .bodySmall!
                           .copyWith(
                             fontWeight:
-                                FontWeight.w600,
+                                FontWeight
+                                    .w600,
                           ),
                 ),
                 Text(
@@ -772,21 +769,16 @@ class _CharacterCreationScreenState
                 .titleMedium,
           ),
           SizedBox(height: s(5)),
-
           _buildAppearancePreview(
             context,
             zoom,
           ),
-
           SizedBox(height: s(8)),
-
           _buildSkinToneSelector(
             context,
             zoom,
           ),
-
           SizedBox(height: s(8)),
-
           _buildAssetSelector(
             context: context,
             zoom: zoom,
@@ -809,9 +801,7 @@ class _CharacterCreationScreenState
                     _appearance
                         .hairColor],
           ),
-
           SizedBox(height: s(8)),
-
           _buildColorSelector(
             context: context,
             zoom: zoom,
@@ -828,9 +818,7 @@ class _CharacterCreationScreenState
               );
             },
           ),
-
           SizedBox(height: s(8)),
-
           _buildAssetSelector(
             context: context,
             zoom: zoom,
@@ -853,9 +841,7 @@ class _CharacterCreationScreenState
                     _appearance
                         .eyeColor],
           ),
-
           SizedBox(height: s(8)),
-
           _buildColorSelector(
             context: context,
             zoom: zoom,
@@ -872,9 +858,7 @@ class _CharacterCreationScreenState
               );
             },
           ),
-
           SizedBox(height: s(8)),
-
           _buildAssetSelector(
             context: context,
             zoom: zoom,
@@ -904,137 +888,27 @@ class _CharacterCreationScreenState
   }
 
   // ==============================================================
-  // SVG DIAGNOSTIC LOADER
+  // SAFE SVG LOADER
+  // Mencegah error 'SVG LOAD ERROR' saat file aset tidak ditemukan
   // ==============================================================
-
-  Future<String> _loadSvg(
-    String path,
-  ) async {
-    return rootBundle.loadString(
-      path,
-    );
-  }
-
-  Widget _diagnosticSvg(
+  Widget _buildSafeSvg(
     String path, {
-    required double size,
+    double? width,
+    double? height,
+    BoxFit fit = BoxFit.contain,
+    ColorFilter? colorFilter,
   }) {
-    return FutureBuilder<String>(
-      future: _loadSvg(path),
-      builder: (
-        BuildContext context,
-        AsyncSnapshot<String> snapshot,
-      ) {
-        if (snapshot.connectionState ==
-            ConnectionState.waiting) {
-          return const Center(
-            child:
-                CircularProgressIndicator(),
-          );
-        }
-
-        if (snapshot.hasError) {
-          return Container(
-            alignment:
-                Alignment.center,
-            padding:
-                const EdgeInsets.all(8),
-            color: Colors.red.withValues(
-              alpha: 0.15,
-            ),
-            child: SingleChildScrollView(
-              child: Text(
-                'SVG LOAD ERROR\n\n'
-                '$path\n\n'
-                '${snapshot.error}',
-                textAlign:
-                    TextAlign.center,
-                style:
-                    const TextStyle(
-                  fontSize: 9,
-                  color: Colors.red,
-                ),
-              ),
-            ),
-          );
-        }
-
-        if (!snapshot.hasData ||
-            snapshot.data!.isEmpty) {
-          return Container(
-            alignment:
-                Alignment.center,
-            color:
-                Colors.orange.withValues(
-              alpha: 0.15,
-            ),
-            child: const Text(
-              'SVG EMPTY',
-              textAlign:
-                  TextAlign.center,
-            ),
-          );
-        }
-
-        return SvgPicture.string(
-          snapshot.data!,
-          width: size,
-          height: size,
-          fit: BoxFit.contain,
-          errorBuilder: (
-            BuildContext context,
-            Object error,
-            StackTrace stackTrace,
-          ) {
-            return Container(
-              alignment:
-                  Alignment.center,
-              padding:
-                  const EdgeInsets.all(8),
-              color:
-                  Colors.red.withValues(
-                alpha: 0.15,
-              ),
-              child:
-                  SingleChildScrollView(
-                child: Text(
-                  'SVG PARSE ERROR\n\n'
-                  '$path\n\n'
-                  '$error',
-                  textAlign:
-                      TextAlign.center,
-                  style:
-                      const TextStyle(
-                    fontSize: 9,
-                    color: Colors.red,
-                  ),
-                ),
-              ),
-            );
-          },
-        );
+    return SvgPicture.asset(
+      path,
+      width: width,
+      height: height,
+      fit: fit,
+      colorFilter: colorFilter,
+      errorBuilder: (context, error, stackTrace) {
+        return SizedBox(width: width, height: height);
       },
     );
   }
-
-  // ==============================================================
-  // DIAGNOSTIC PREVIEW
-  //
-  // IMPORTANT:
-  // This preview intentionally does NOT use the skin container.
-  // It tests SVG loading directly.
-  //
-  // Every SVG is loaded through:
-  //
-  // rootBundle.loadString()
-  //        ↓
-  // SvgPicture.string()
-  //
-  // Therefore:
-  // - missing asset = visible LOAD ERROR
-  // - invalid SVG = visible PARSE ERROR
-  // - valid SVG = visible SVG
-  // ==============================================================
 
   Widget _buildAppearancePreview(
     BuildContext context,
@@ -1043,13 +917,28 @@ class _CharacterCreationScreenState
     double s(double value) =>
         value * zoom;
 
+    final Color skinColor =
+        _skinToneColors[
+                _appearance.skinTone] ??
+            _skinToneColors.values
+                .first;
+
+    final Color? hairColor =
+        _hairColors[_appearance.hairColor];
+
+    final Color? eyeColor =
+        _eyeColors[_appearance.eyeColor];
+
     return Container(
       width: double.infinity,
-      height: s(300),
+      height: s(280),
       decoration: BoxDecoration(
         color: Theme.of(context)
             .colorScheme
-            .surfaceContainerHighest,
+            .surfaceContainerHighest
+            .withValues(
+              alpha: 0.35,
+            ),
         borderRadius:
             BorderRadius.circular(
           s(10),
@@ -1067,30 +956,103 @@ class _CharacterCreationScreenState
           width: s(256),
           height: s(256),
           child: Stack(
+            clipBehavior:
+                Clip.none,
             children: [
-              _diagnosticSvg(
-                'assets/character/hair/hair_short.svg',
-                size: s(256),
+              // BASE SKIN
+              Positioned(
+                left: s(35),
+                top: s(35),
+                child: Container(
+                  width: s(186),
+                  height: s(218),
+                  decoration:
+                      BoxDecoration(
+                    color: skinColor,
+                    borderRadius:
+                        BorderRadius.only(
+                      topLeft:
+                          Radius.circular(
+                        s(90),
+                      ),
+                      topRight:
+                          Radius.circular(
+                        s(90),
+                      ),
+                      bottomLeft:
+                          Radius.circular(
+                        s(70),
+                      ),
+                      bottomRight:
+                          Radius.circular(
+                        s(70),
+                      ),
+                    ),
+                  ),
+                ),
               ),
 
-              _diagnosticSvg(
-                'assets/character/eyes/eyes_normal.svg',
-                size: s(256),
+              // HAIR (Hanya di-render jika bukan 'hair_bald')
+              if (_appearance.hair != 'hair_bald')
+                Positioned.fill(
+                  child: _buildSafeSvg(
+                    'assets/character/hair/'
+                    '${_appearance.hair}.svg',
+                    width: s(256),
+                    height: s(256),
+                    colorFilter: hairColor != null
+                        ? ColorFilter.mode(
+                            hairColor,
+                            BlendMode.srcIn,
+                          )
+                        : null,
+                  ),
+                ),
+
+              // EYEBROWS
+              Positioned.fill(
+                child: _buildSafeSvg(
+                  'assets/character/eyebrows/'
+                  '${_appearance.eyebrows}.svg',
+                  width: s(256),
+                  height: s(256),
+                ),
               ),
 
-              _diagnosticSvg(
-                'assets/character/eyebrows/brows_normal.svg',
-                size: s(256),
+              // EYES
+              Positioned.fill(
+                child: _buildSafeSvg(
+                  'assets/character/eyes/'
+                  '${_appearance.eyes}.svg',
+                  width: s(256),
+                  height: s(256),
+                  colorFilter: eyeColor != null
+                      ? ColorFilter.mode(
+                          eyeColor,
+                          BlendMode.srcIn,
+                        )
+                      : null,
+                ),
               ),
 
-              _diagnosticSvg(
-                'assets/character/base/nose_fixed.svg',
-                size: s(256),
+              // NOSE
+              Positioned.fill(
+                child: _buildSafeSvg(
+                  'assets/character/base/'
+                  'nose_fixed.svg',
+                  width: s(256),
+                  height: s(256),
+                ),
               ),
 
-              _diagnosticSvg(
-                'assets/character/base/mouth_fixed.svg',
-                size: s(256),
+              // MOUTH
+              Positioned.fill(
+                child: _buildSafeSvg(
+                  'assets/character/base/'
+                  'mouth_fixed.svg',
+                  width: s(256),
+                  height: s(256),
+                ),
               ),
             ],
           ),
@@ -1379,21 +1341,23 @@ class _CharacterCreationScreenState
                             .center,
                     children: [
                       Expanded(
-                        child:
-                            SvgPicture.asset(
-                          assetPath,
-                          fit: BoxFit
-                              .contain,
-                          colorFilter:
-                              color == null
-                                  ? null
-                                  : ColorFilter
-                                      .mode(
-                                      color,
-                                      BlendMode
-                                          .srcIn,
-                                    ),
-                        ),
+                        child: value == 'hair_bald'
+                            ? Icon(
+                                Icons.block,
+                                size: s(28),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .outline,
+                              )
+                            : _buildSafeSvg(
+                                assetPath,
+                                colorFilter: color == null
+                                    ? null
+                                    : ColorFilter.mode(
+                                        color,
+                                        BlendMode.srcIn,
+                                      ),
+                              ),
                       ),
                       SizedBox(
                         height: s(2),
