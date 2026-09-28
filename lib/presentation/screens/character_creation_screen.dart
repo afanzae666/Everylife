@@ -925,7 +925,7 @@ class _CharacterCreationScreenState
         colorFilter:
             ColorFilter.mode(
           color,
-          BlendMode.srcATop,
+          BlendMode.srcIn,
         ),
       );
     }
@@ -1374,7 +1374,7 @@ class _CharacterCreationScreenState
                                       .mode(
                                       color,
                                       BlendMode
-                                          .srcATop,
+                                          .srcIn,
                                     ),
                         ),
                       ),
