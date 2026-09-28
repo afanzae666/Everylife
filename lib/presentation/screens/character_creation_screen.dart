@@ -910,6 +910,37 @@ class _CharacterCreationScreenState
                 _appearance.eyeColor] ??
             _eyeColors.values.first;
 
+    const Color eyebrowColor =
+        Color(0xFF2C211E);
+
+    Widget tintedSvg({
+      required String assetPath,
+      required Color color,
+    }) {
+      return SvgPicture.asset(
+        assetPath,
+        width: s(180),
+        height: s(180),
+        fit: BoxFit.contain,
+        colorFilter:
+            ColorFilter.mode(
+          color,
+          BlendMode.srcATop,
+        ),
+      );
+    }
+
+    Widget fixedSvg({
+      required String assetPath,
+    }) {
+      return SvgPicture.asset(
+        assetPath,
+        width: s(180),
+        height: s(180),
+        fit: BoxFit.contain,
+      );
+    }
+
     return Container(
       width: double.infinity,
       height: s(230),
@@ -980,70 +1011,68 @@ class _CharacterCreationScreenState
               // --------------------------------------------------
               // EYES
               // --------------------------------------------------
-              SvgPicture.asset(
-                'assets/character/eyes/'
-                '${_appearance.eyes}.svg',
-                width: s(180),
-                height: s(180),
-                fit: BoxFit.contain,
-                colorFilter:
-                    ColorFilter.mode(
-                  eyeColor,
-                  BlendMode.srcIn,
+              Positioned(
+                left: 0,
+                top: s(10),
+                child: tintedSvg(
+                  assetPath:
+                      'assets/character/eyes/'
+                      '${_appearance.eyes}.svg',
+                  color: eyeColor,
                 ),
               ),
 
               // --------------------------------------------------
               // EYEBROWS
               // --------------------------------------------------
-              SvgPicture.asset(
-                'assets/character/eyebrows/'
-                '${_appearance.eyebrows}.svg',
-                width: s(180),
-                height: s(180),
-                fit: BoxFit.contain,
-                colorFilter:
-                    const ColorFilter.mode(
-                  Color(0xFF2C211E),
-                  BlendMode.srcIn,
+              Positioned(
+                left: 0,
+                top: s(10),
+                child: tintedSvg(
+                  assetPath:
+                      'assets/character/eyebrows/'
+                      '${_appearance.eyebrows}.svg',
+                  color: eyebrowColor,
                 ),
               ),
 
               // --------------------------------------------------
               // NOSE
               // --------------------------------------------------
-              SvgPicture.asset(
-                'assets/character/base/'
-                'nose_fixed.svg',
-                width: s(180),
-                height: s(180),
-                fit: BoxFit.contain,
+              Positioned(
+                left: 0,
+                top: s(10),
+                child: fixedSvg(
+                  assetPath:
+                      'assets/character/base/'
+                      'nose_fixed.svg',
+                ),
               ),
 
               // --------------------------------------------------
               // MOUTH
               // --------------------------------------------------
-              SvgPicture.asset(
-                'assets/character/base/'
-                'mouth_fixed.svg',
-                width: s(180),
-                height: s(180),
-                fit: BoxFit.contain,
+              Positioned(
+                left: 0,
+                top: s(10),
+                child: fixedSvg(
+                  assetPath:
+                      'assets/character/base/'
+                      'mouth_fixed.svg',
+                ),
               ),
 
               // --------------------------------------------------
               // HAIR
               // --------------------------------------------------
-              SvgPicture.asset(
-                'assets/character/hair/'
-                '${_appearance.hair}.svg',
-                width: s(180),
-                height: s(180),
-                fit: BoxFit.contain,
-                colorFilter:
-                    ColorFilter.mode(
-                  hairColor,
-                  BlendMode.srcIn,
+              Positioned(
+                left: 0,
+                top: s(10),
+                child: tintedSvg(
+                  assetPath:
+                      'assets/character/hair/'
+                      '${_appearance.hair}.svg',
+                  color: hairColor,
                 ),
               ),
             ],
@@ -1345,7 +1374,7 @@ class _CharacterCreationScreenState
                                       .mode(
                                       color,
                                       BlendMode
-                                          .srcIn,
+                                          .srcATop,
                                     ),
                         ),
                       ),
@@ -1358,8 +1387,7 @@ class _CharacterCreationScreenState
                         ),
                         maxLines: 1,
                         overflow:
-                            TextOverflow
-                                .ellipsis,
+                            TextOverflow.ellipsis,
                         textAlign:
                             TextAlign.center,
                         style:
