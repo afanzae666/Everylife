@@ -1,4 +1,5 @@
 import '../../core/money/money.dart';
+import 'appearance.dart';
 import 'character_stats.dart';
 import 'gender.dart';
 import 'life_stage.dart';
@@ -13,6 +14,7 @@ class Character {
     required this.birthYear,
     required this.stats,
     required this.money,
+    this.appearance = const CharacterAppearance(),
   });
 
   final String id;
@@ -34,6 +36,7 @@ class Character {
   final int birthYear;
   final CharacterStats stats;
   final Money money;
+  final CharacterAppearance appearance;
 
   String get fullName {
     final first = resolvedFirstName;
@@ -104,14 +107,14 @@ class Character {
     int? birthYear,
     CharacterStats? stats,
     Money? money,
+    CharacterAppearance? appearance,
   }) {
-    final nextFirstName =
-        firstName ?? this.firstName;
+    final nextFirstName = firstName ?? this.firstName;
 
-    final nextLastName =
-        lastName ?? this.lastName;
+    final nextLastName = lastName ?? this.lastName;
 
-    final nextName = name ??
+    final nextName =
+        name ??
         _buildFullName(
           nextFirstName,
           nextLastName,
@@ -127,6 +130,7 @@ class Character {
       birthYear: birthYear ?? this.birthYear,
       stats: stats ?? this.stats,
       money: money ?? this.money,
+      appearance: appearance ?? this.appearance,
     );
   }
 
@@ -138,20 +142,18 @@ class Character {
     Gender gender = Gender.male,
     required int birthYear,
     CharacterStats? stats,
+    CharacterAppearance appearance = const CharacterAppearance(),
   }) {
-    var resolvedFirstName =
-        firstName?.trim() ?? '';
+    var resolvedFirstName = firstName?.trim() ?? '';
 
-    var resolvedLastName =
-        lastName?.trim() ?? '';
+    var resolvedLastName = lastName?.trim() ?? '';
 
     if (resolvedFirstName.isEmpty &&
         name != null &&
         name.trim().isNotEmpty) {
       final parts = _nameParts(name);
 
-      resolvedFirstName =
-          parts.isEmpty ? '' : parts.first;
+      resolvedFirstName = parts.isEmpty ? '' : parts.first;
 
       resolvedLastName = parts.length <= 1
           ? ''
@@ -179,6 +181,7 @@ class Character {
       birthYear: birthYear,
       stats: stats ?? const CharacterStats(),
       money: const Money.zero(),
+      appearance: appearance,
     );
   }
 
