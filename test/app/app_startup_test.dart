@@ -12,6 +12,23 @@ import '../../lib/presentation/screens/game_screen.dart';
 
 void main() {
   group('LifeSimulationApp startup', () {
+    Future<void> scrollToBeginLife(
+      WidgetTester tester,
+    ) async {
+      final beginLifeButton = find.text(
+        'BEGIN LIFE',
+      );
+
+      await tester.scrollUntilVisible(
+        beginLifeButton,
+        300,
+        scrollable:
+            find.byType(Scrollable).first,
+      );
+
+      await tester.pumpAndSettle();
+    }
+
     testWidgets(
       'starts on character creation when no save exists',
       (tester) async {
@@ -48,6 +65,10 @@ void main() {
         expect(
           find.text('Birth Year'),
           findsOneWidget,
+        );
+
+        await scrollToBeginLife(
+          tester,
         );
 
         expect(
