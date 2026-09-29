@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../domain/character/appearance.dart';
@@ -28,6 +29,52 @@ class _CharacterCreationScreenState
 
   final TextEditingController _lastNameController =
       TextEditingController();
+
+  static final TextInputFormatter _nameCapitalizationFormatter =
+      TextInputFormatter.withFunction(
+    (
+      TextEditingValue oldValue,
+      TextEditingValue newValue,
+    ) {
+      if (newValue.text.isEmpty) {
+        return newValue;
+      }
+
+      final StringBuffer buffer =
+          StringBuffer();
+
+      bool capitalizeNext = true;
+
+      for (final int rune
+          in newValue.text.runes) {
+        final String character =
+            String.fromCharCode(rune);
+
+        if (RegExp(r'\s').hasMatch(
+          character,
+        )) {
+          buffer.write(character);
+          capitalizeNext = true;
+          continue;
+        }
+
+        if (capitalizeNext) {
+          buffer.write(
+            character.toUpperCase(),
+          );
+          capitalizeNext = false;
+        } else {
+          buffer.write(character);
+        }
+      }
+
+      return newValue.copyWith(
+        text: buffer.toString(),
+        selection: newValue.selection,
+        composing: newValue.composing,
+      );
+    },
+  );
 
   Gender _gender = Gender.male;
 
@@ -131,7 +178,7 @@ class _CharacterCreationScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Please enter your family name.',
+            'Please enter your last name.',
           ),
         ),
       );
@@ -394,6 +441,9 @@ class _CharacterCreationScreenState
                 _firstNameController,
             textCapitalization:
                 TextCapitalization.words,
+            inputFormatters: [
+              _nameCapitalizationFormatter,
+            ],
             textInputAction:
                 TextInputAction.next,
             decoration:
@@ -411,6 +461,9 @@ class _CharacterCreationScreenState
                 _lastNameController,
             textCapitalization:
                 TextCapitalization.words,
+            inputFormatters: [
+              _nameCapitalizationFormatter,
+            ],
             textInputAction:
                 TextInputAction.done,
             onSubmitted: (_) {
@@ -418,10 +471,9 @@ class _CharacterCreationScreenState
             },
             decoration:
                 const InputDecoration(
-              labelText:
-                  'Last Name / Family Name',
+              labelText: 'Last Name',
               hintText:
-                  'Enter family name',
+                  'Enter last name',
               border:
                   OutlineInputBorder(),
             ),
@@ -821,37 +873,16 @@ class _CharacterCreationScreenState
                 Clip.none,
             children: [
               // --------------------------------------------------
-              // BASE SKIN
+              // BASE HEAD
               // --------------------------------------------------
               Positioned(
-                left: s(27),
-                top: s(27),
-                child: Container(
-                  width: s(126),
-                  height: s(158),
-                  decoration:
-                      BoxDecoration(
-                    color: skinColor,
-                    borderRadius:
-                        BorderRadius.only(
-                      topLeft:
-                          Radius.circular(
-                        s(62),
-                      ),
-                      topRight:
-                          Radius.circular(
-                        s(62),
-                      ),
-                      bottomLeft:
-                          Radius.circular(
-                        s(52),
-                      ),
-                      bottomRight:
-                          Radius.circular(
-                        s(52),
-                      ),
-                    ),
-                  ),
+                left: 0,
+                top: s(10),
+                child: tintedSvg(
+                  assetPath:
+                      'assets/character/base/'
+                      'head_base.svg',
+                  color: skinColor,
                 ),
               ),
 
