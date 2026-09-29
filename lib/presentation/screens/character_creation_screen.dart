@@ -210,70 +210,478 @@ class _CharacterCreationScreenState
   }
 
   void _showBirthYearPicker() {
+    int temporaryYear = _birthYear;
+
     showDialog<void>(
       context: context,
       builder: (
-        BuildContext context,
+        BuildContext dialogContext,
       ) {
-        return AlertDialog(
-          title: const Text(
-            'Select Birth Year',
-          ),
-          content: SizedBox(
-            width: double.maxFinite,
-            height: 420,
-            child: ListView.builder(
-              itemCount:
-                  _maximumBirthYear -
-                      _minimumBirthYear +
-                      1,
-              itemBuilder: (
-                BuildContext context,
-                int index,
-              ) {
-                final int year =
-                    _maximumBirthYear -
-                        index;
+        return StatefulBuilder(
+          builder: (
+            BuildContext context,
+            StateSetter setDialogState,
+          ) {
+            final int initialItem =
+                _maximumBirthYear -
+                    temporaryYear;
 
-                final bool selected =
-                    year == _birthYear;
+            return AlertDialog(
+              title: const Text(
+                'Birth Year',
+              ),
+              content: SizedBox(
+                width: 300,
+                height: 320,
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment:
+                          MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          tooltip:
+                              'Previous year',
+                          onPressed:
+                              temporaryYear >
+                                      _minimumBirthYear
+                                  ? () {
+                                      setDialogState(
+                                        () {
+                                          temporaryYear--;
+                                        },
+                                      );
+                                    }
+                                  : null,
+                          icon: const Icon(
+                            Icons.remove,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 110,
+                          child: Center(
+                            child: Text(
+                              '$temporaryYear',
+                              style: Theme.of(
+                                context,
+                              )
+                                  .textTheme
+                                  .headlineMedium,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          tooltip:
+                              'Next year',
+                          onPressed:
+                              temporaryYear <
+                                      _maximumBirthYear
+                                  ? () {
+                                      setDialogState(
+                                        () {
+                                          temporaryYear++;
+                                        },
+                                      );
+                                    }
+                                  : null,
+                          icon: const Icon(
+                            Icons.add,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 8,
+                    ),
+                    Expanded(
+                      child:
+                          ListWheelScrollView.useDelegate(
+                        controller:
+                            FixedExtentScrollController(
+                          initialItem:
+                              initialItem,
+                        ),
+                        itemExtent: 44,
+                        perspective: 0.003,
+                        diameterRatio: 1.4,
+                        physics:
+                            const FixedExtentScrollPhysics(),
+                        onSelectedItemChanged:
+                            (
+                          int index,
+                        ) {
+                          final int year =
+                              _maximumBirthYear -
+                                  index;
 
-                return ListTile(
-                  dense: true,
-                  selected: selected,
-                  title: Text(
-                    '$year',
+                          setDialogState(
+                            () {
+                              temporaryYear =
+                                  year;
+                            },
+                          );
+                        },
+                        childDelegate:
+                            ListWheelChildBuilderDelegate(
+                          childCount:
+                              _maximumBirthYear -
+                                  _minimumBirthYear +
+                                  1,
+                          builder: (
+                            BuildContext context,
+                            int index,
+                          ) {
+                            final int year =
+                                _maximumBirthYear -
+                                    index;
+
+                            final bool selected =
+                                year ==
+                                    temporaryYear;
+
+                            return Center(
+                              child: Text(
+                                '$year',
+                                style:
+                                    TextStyle(
+                                  fontSize:
+                                      selected
+                                          ? 22
+                                          : 17,
+                                  fontWeight:
+                                      selected
+                                          ? FontWeight
+                                              .w600
+                                          : FontWeight
+                                              .normal,
+                                  color: selected
+                                      ? Theme.of(
+                                          context,
+                                        )
+                                          .colorScheme
+                                          .primary
+                                      : null,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(
+                      dialogContext,
+                    ).pop();
+                  },
+                  child: const Text(
+                    'CANCEL',
                   ),
-                  trailing: selected
-                      ? Icon(
-                          Icons.check,
-                          color: Theme.of(
-                            context,
-                          )
-                              .colorScheme
-                              .primary,
-                        )
-                      : null,
-                  onTap: () {
+                ),
+                FilledButton(
+                  onPressed: () {
                     setState(() {
-                      _birthYear = year;
+                      _birthYear =
+                          temporaryYear;
                     });
 
                     Navigator.of(
-                      context,
+                      dialogContext,
                     ).pop();
                   },
-                );
-              },
-            ),
-          ),
+                  child: const Text(
+                    'DONE',
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showAppearanceDialog() {
+    CharacterAppearance temporaryAppearance =
+        _appearance;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (
+        BuildContext dialogContext,
+      ) {
+        return StatefulBuilder(
+          builder: (
+            BuildContext context,
+            StateSetter setDialogState,
+          ) {
+            void updateTemporaryAppearance(
+              CharacterAppearance next,
+            ) {
+              setDialogState(() {
+                temporaryAppearance =
+                    next;
+              });
+            }
+
+            return Dialog(
+              insetPadding:
+                  const EdgeInsets.symmetric(
+                horizontal: 18,
+                vertical: 24,
+              ),
+              child: ConstrainedBox(
+                constraints:
+                    const BoxConstraints(
+                  maxWidth: 520,
+                  maxHeight: 720,
+                ),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Customize Appearance',
+                              style: Theme.of(
+                                context,
+                              )
+                                  .textTheme
+                                  .titleLarge,
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'Close',
+                            onPressed: () {
+                              Navigator.of(
+                                dialogContext,
+                              ).pop();
+                            },
+                            icon: const Icon(
+                              Icons.close,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 4,
+                      ),
+                      Expanded(
+                        child:
+                            SingleChildScrollView(
+                          padding:
+                              const EdgeInsets.only(
+                            bottom: 8,
+                          ),
+                          child: Column(
+                            crossAxisAlignment:
+                                CrossAxisAlignment
+                                    .start,
+                            children: [
+                              _buildAppearancePreviewFor(
+                                context,
+                                1.0,
+                                temporaryAppearance,
+                              ),
+                              const SizedBox(
+                                height: 14,
+                              ),
+                              _buildSkinToneSelectorFor(
+                                context,
+                                1.0,
+                                temporaryAppearance,
+                                updateTemporaryAppearance,
+                              ),
+                              const SizedBox(
+                                height: 14,
+                              ),
+                              _buildAssetSelectorFor(
+                                context: context,
+                                zoom: 1.0,
+                                title: 'Hair',
+                                values:
+                                    _hairStyles,
+                                selected:
+                                    temporaryAppearance
+                                        .hair,
+                                assetDirectory:
+                                    'assets/character/hair',
+                                onSelected:
+                                    (
+                                  String value,
+                                ) {
+                                  updateTemporaryAppearance(
+                                    temporaryAppearance
+                                        .copyWith(
+                                      hair: value,
+                                    ),
+                                  );
+                                },
+                                color:
+                                    _hairColors[
+                                        temporaryAppearance
+                                            .hairColor],
+                              ),
+                              const SizedBox(
+                                height: 14,
+                              ),
+                              _buildColorSelectorFor(
+                                context: context,
+                                zoom: 1.0,
+                                title: 'Hair Color',
+                                colors:
+                                    _hairColors,
+                                selected:
+                                    temporaryAppearance
+                                        .hairColor,
+                                onSelected:
+                                    (
+                                  String value,
+                                ) {
+                                  updateTemporaryAppearance(
+                                    temporaryAppearance
+                                        .copyWith(
+                                      hairColor:
+                                          value,
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(
+                                height: 14,
+                              ),
+                              _buildAssetSelectorFor(
+                                context: context,
+                                zoom: 1.0,
+                                title: 'Eyes',
+                                values:
+                                    _eyeStyles,
+                                selected:
+                                    temporaryAppearance
+                                        .eyes,
+                                assetDirectory:
+                                    'assets/character/eyes',
+                                onSelected:
+                                    (
+                                  String value,
+                                ) {
+                                  updateTemporaryAppearance(
+                                    temporaryAppearance
+                                        .copyWith(
+                                      eyes: value,
+                                    ),
+                                  );
+                                },
+                                color:
+                                    _eyeColors[
+                                        temporaryAppearance
+                                            .eyeColor],
+                              ),
+                              const SizedBox(
+                                height: 14,
+                              ),
+                              _buildColorSelectorFor(
+                                context: context,
+                                zoom: 1.0,
+                                title: 'Eye Color',
+                                colors:
+                                    _eyeColors,
+                                selected:
+                                    temporaryAppearance
+                                        .eyeColor,
+                                onSelected:
+                                    (
+                                  String value,
+                                ) {
+                                  updateTemporaryAppearance(
+                                    temporaryAppearance
+                                        .copyWith(
+                                      eyeColor:
+                                          value,
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(
+                                height: 14,
+                              ),
+                              _buildAssetSelectorFor(
+                                context: context,
+                                zoom: 1.0,
+                                title: 'Eyebrows',
+                                values:
+                                    _eyebrowStyles,
+                                selected:
+                                    temporaryAppearance
+                                        .eyebrows,
+                                assetDirectory:
+                                    'assets/character/eyebrows',
+                                onSelected:
+                                    (
+                                  String value,
+                                ) {
+                                  updateTemporaryAppearance(
+                                    temporaryAppearance
+                                        .copyWith(
+                                      eyebrows:
+                                          value,
+                                    ),
+                                  );
+                                },
+                                color:
+                                    const Color(
+                                  0xFF2C211E,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 46,
+                        child: FilledButton(
+                          onPressed: () {
+                            setState(() {
+                              _appearance =
+                                  temporaryAppearance;
+                            });
+
+                            Navigator.of(
+                              dialogContext,
+                            ).pop();
+                          },
+                          child: const Text(
+                            'DONE',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     final ValueNotifier<double>?
         controller =
         widget.uiScaleController;
@@ -337,456 +745,110 @@ class _CharacterCreationScreenState
         ),
       ),
       body: SafeArea(
-        child: ListView(
+        child: Padding(
           padding: EdgeInsets.fromLTRB(
-            s(8),
-            s(4),
-            s(8),
-            s(12),
+            s(10),
+            s(6),
+            s(10),
+            s(10),
           ),
-          children: [
-            _ResponsiveCard(
-              padding:
-                  EdgeInsets.all(s(8)),
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment
-                        .start,
-                children: [
-                  Text(
-                    'Create Your Character',
-                    style:
-                        Theme.of(context)
-                            .textTheme
-                            .titleLarge,
-                  ),
-                  SizedBox(
-                    height: s(2),
-                  ),
-                  Text(
-                    'Your life begins at birth.',
-                    style:
-                        Theme.of(context)
-                            .textTheme
-                            .bodyLarge,
-                  ),
-                ],
+          child: Column(
+            children: [
+              Text(
+                'Create Your Character',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge,
+                textAlign: TextAlign.center,
               ),
-            ),
-            SizedBox(height: s(4)),
-            _buildBasicIdentityCard(
-              context,
-              zoom,
-            ),
-            SizedBox(height: s(4)),
-            _buildGenderCard(
-              context,
-              zoom,
-            ),
-            SizedBox(height: s(4)),
-            _buildBirthYearCard(
-              context,
-              zoom,
-            ),
-            SizedBox(height: s(4)),
-            _buildAppearanceCard(
-              context,
-              zoom,
-            ),
-            SizedBox(height: s(6)),
-            SizedBox(
-              width: double.infinity,
-              height: s(44),
-              child: FilledButton.icon(
-                onPressed:
-                    _createCharacter,
-                icon: Icon(
-                  Icons.child_friendly,
-                  size: s(18),
-                ),
-                label: const Text(
-                  'BEGIN LIFE',
+              SizedBox(
+                height: s(2),
+              ),
+              Text(
+                'Your life begins at birth.',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall,
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(
+                height: s(5),
+              ),
+              Expanded(
+                child: _ResponsiveCard(
+                  padding:
+                      EdgeInsets.fromLTRB(
+                    s(10),
+                    s(8),
+                    s(10),
+                    s(8),
+                  ),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        flex: 5,
+                        child:
+                            _buildMainAvatarPreview(
+                          context,
+                          zoom,
+                        ),
+                      ),
+                      SizedBox(
+                        height: s(2),
+                      ),
+                      TextButton.icon(
+                        onPressed:
+                            _showAppearanceDialog,
+                        icon: Icon(
+                          Icons
+                              .tune,
+                          size: s(17),
+                        ),
+                        label: const Text(
+                          'Customize Appearance',
+                        ),
+                      ),
+                      SizedBox(
+                        height: s(4),
+                      ),
+                      Expanded(
+                        flex: 4,
+                        child:
+                            _buildCompactIdentityFields(
+                          context,
+                          zoom,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+              SizedBox(
+                height: s(8),
+              ),
+              SizedBox(
+                width: double.infinity,
+                height: s(46),
+                child: FilledButton.icon(
+                  onPressed:
+                      _createCharacter,
+                  icon: Icon(
+                    Icons.child_friendly,
+                    size: s(18),
+                  ),
+                  label: const Text(
+                    'BEGIN LIFE',
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildBasicIdentityCard(
-    BuildContext context,
-    double zoom,
-  ) {
-    double s(double value) =>
-        value * zoom;
-
-    return _ResponsiveCard(
-      padding:
-          EdgeInsets.all(s(8)),
-      child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Basic Identity',
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall,
-          ),
-          SizedBox(height: s(4)),
-          TextField(
-            controller:
-                _firstNameController,
-            textCapitalization:
-                TextCapitalization.words,
-            inputFormatters: [
-              _nameCapitalizationFormatter,
-            ],
-            textInputAction:
-                TextInputAction.next,
-            decoration:
-                const InputDecoration(
-              labelText: 'First Name',
-              hintText:
-                  'Enter first name',
-              border:
-                  OutlineInputBorder(),
-            ),
-          ),
-          SizedBox(height: s(5)),
-          TextField(
-            controller:
-                _lastNameController,
-            textCapitalization:
-                TextCapitalization.words,
-            inputFormatters: [
-              _nameCapitalizationFormatter,
-            ],
-            textInputAction:
-                TextInputAction.done,
-            onSubmitted: (_) {
-              _createCharacter();
-            },
-            decoration:
-                const InputDecoration(
-              labelText: 'Last Name',
-              hintText:
-                  'Enter last name',
-              border:
-                  OutlineInputBorder(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGenderCard(
-    BuildContext context,
-    double zoom,
-  ) {
-    double s(double value) =>
-        value * zoom;
-
-    return _ResponsiveCard(
-      padding: EdgeInsets.fromLTRB(
-        s(8),
-        s(7),
-        s(8),
-        s(7),
-      ),
-      child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Gender',
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall,
-          ),
-          SizedBox(height: s(3)),
-          SizedBox(
-            width: double.infinity,
-            child:
-                SegmentedButton<Gender>(
-              segments: const [
-                ButtonSegment<Gender>(
-                  value: Gender.male,
-                  label: Text('Male'),
-                  icon:
-                      Icon(Icons.male),
-                ),
-                ButtonSegment<Gender>(
-                  value: Gender.female,
-                  label:
-                      Text('Female'),
-                  icon:
-                      Icon(Icons.female),
-                ),
-              ],
-              selected: {_gender},
-              onSelectionChanged:
-                  (Set<Gender>
-                      selection) {
-                setState(() {
-                  _gender =
-                      selection.first;
-                });
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBirthYearCard(
-    BuildContext context,
-    double zoom,
-  ) {
-    double s(double value) =>
-        value * zoom;
-
-    return _ResponsiveCard(
-      padding: EdgeInsets.fromLTRB(
-        s(8),
-        s(7),
-        s(8),
-        s(7),
-      ),
-      child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Birth Year',
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall,
-          ),
-          SizedBox(height: s(4)),
-          InkWell(
-            borderRadius:
-                BorderRadius.circular(
-              s(8),
-            ),
-            onTap:
-                _showBirthYearPicker,
-            child: Container(
-              width: double.infinity,
-              padding:
-                  EdgeInsets.symmetric(
-                horizontal: s(12),
-                vertical: s(12),
-              ),
-              decoration:
-                  BoxDecoration(
-                border: Border.all(
-                  color: Theme.of(
-                    context,
-                  ).dividerColor,
-                ),
-                borderRadius:
-                    BorderRadius.circular(
-                  s(8),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment:
-                    MainAxisAlignment
-                        .spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment
-                            .start,
-                    children: [
-                      Text(
-                        '$_birthYear',
-                        style: Theme.of(
-                          context,
-                        )
-                            .textTheme
-                            .titleLarge,
-                      ),
-                      SizedBox(
-                        height: s(1),
-                      ),
-                      Text(
-                        'AD',
-                        style: Theme.of(
-                          context,
-                        )
-                            .textTheme
-                            .bodySmall,
-                      ),
-                    ],
-                  ),
-                  Icon(
-                    Icons
-                        .arrow_drop_down,
-                    size: s(28),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(height: s(4)),
-          Text(
-            'Tap the year to choose '
-            'your character\'s birth year.',
-            style:
-                Theme.of(context)
-                    .textTheme
-                    .bodySmall,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppearanceCard(
-    BuildContext context,
-    double zoom,
-  ) {
-    double s(double value) =>
-        value * zoom;
-
-    return _ResponsiveCard(
-      padding: EdgeInsets.all(s(8)),
-      child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Appearance',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium,
-          ),
-          SizedBox(height: s(5)),
-          _buildAppearancePreview(
-            context,
-            zoom,
-          ),
-          SizedBox(height: s(8)),
-          _buildSkinToneSelector(
-            context,
-            zoom,
-          ),
-          SizedBox(height: s(8)),
-          _buildAssetSelector(
-            context: context,
-            zoom: zoom,
-            title: 'Hair',
-            values: _hairStyles,
-            selected:
-                _appearance.hair,
-            assetDirectory:
-                'assets/character/hair',
-            onSelected:
-                (String value) {
-              _updateAppearance(
-                _appearance.copyWith(
-                  hair: value,
-                ),
-              );
-            },
-            color:
-                _hairColors[
-                    _appearance
-                        .hairColor],
-          ),
-          SizedBox(height: s(8)),
-          _buildColorSelector(
-            context: context,
-            zoom: zoom,
-            title: 'Hair Color',
-            colors: _hairColors,
-            selected:
-                _appearance.hairColor,
-            onSelected:
-                (String value) {
-              _updateAppearance(
-                _appearance.copyWith(
-                  hairColor: value,
-                ),
-              );
-            },
-          ),
-          SizedBox(height: s(8)),
-          _buildAssetSelector(
-            context: context,
-            zoom: zoom,
-            title: 'Eyes',
-            values: _eyeStyles,
-            selected:
-                _appearance.eyes,
-            assetDirectory:
-                'assets/character/eyes',
-            onSelected:
-                (String value) {
-              _updateAppearance(
-                _appearance.copyWith(
-                  eyes: value,
-                ),
-              );
-            },
-            color:
-                _eyeColors[
-                    _appearance
-                        .eyeColor],
-          ),
-          SizedBox(height: s(8)),
-          _buildColorSelector(
-            context: context,
-            zoom: zoom,
-            title: 'Eye Color',
-            colors: _eyeColors,
-            selected:
-                _appearance.eyeColor,
-            onSelected:
-                (String value) {
-              _updateAppearance(
-                _appearance.copyWith(
-                  eyeColor: value,
-                ),
-              );
-            },
-          ),
-          SizedBox(height: s(8)),
-          _buildAssetSelector(
-            context: context,
-            zoom: zoom,
-            title: 'Eyebrows',
-            values:
-                _eyebrowStyles,
-            selected:
-                _appearance.eyebrows,
-            assetDirectory:
-                'assets/character/eyebrows',
-            onSelected:
-                (String value) {
-              _updateAppearance(
-                _appearance.copyWith(
-                  eyebrows: value,
-                ),
-              );
-            },
-            color:
-                const Color(
-              0xFF2C211E,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppearancePreview(
+  Widget _buildMainAvatarPreview(
     BuildContext context,
     double zoom,
   ) {
@@ -796,8 +858,7 @@ class _CharacterCreationScreenState
     final Color skinColor =
         _skinToneColors[
                 _appearance.skinTone] ??
-            _skinToneColors.values
-                .first;
+            _skinToneColors.values.first;
 
     final Color hairColor =
         _hairColors[
@@ -807,6 +868,351 @@ class _CharacterCreationScreenState
     final Color eyeColor =
         _eyeColors[
                 _appearance.eyeColor] ??
+            _eyeColors.values.first;
+
+    const Color eyebrowColor =
+        Color(0xFF2C211E);
+
+    Widget tintedSvg({
+      required String assetPath,
+      required Color color,
+    }) {
+      return SvgPicture.asset(
+        assetPath,
+        width: s(190),
+        height: s(190),
+        fit: BoxFit.contain,
+        colorFilter:
+            ColorFilter.mode(
+          color,
+          BlendMode.srcIn,
+        ),
+      );
+    }
+
+    Widget fixedSvg({
+      required String assetPath,
+    }) {
+      return SvgPicture.asset(
+        assetPath,
+        width: s(190),
+        height: s(190),
+        fit: BoxFit.contain,
+      );
+    }
+
+    return Center(
+      child: SizedBox(
+        width: s(200),
+        height: s(200),
+        child: Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              left: 5 * zoom,
+              top: 5 * zoom,
+              child: tintedSvg(
+                assetPath:
+                    'assets/character/base/'
+                    'head_base.svg',
+                color: skinColor,
+              ),
+            ),
+            Positioned(
+              left: 5 * zoom,
+              top: 5 * zoom,
+              child: tintedSvg(
+                assetPath:
+                    'assets/character/eyes/'
+                    '${_appearance.eyes}.svg',
+                color: eyeColor,
+              ),
+            ),
+            Positioned(
+              left: 5 * zoom,
+              top: 5 * zoom,
+              child: tintedSvg(
+                assetPath:
+                    'assets/character/eyebrows/'
+                    '${_appearance.eyebrows}.svg',
+                color: eyebrowColor,
+              ),
+            ),
+            Positioned(
+              left: 5 * zoom,
+              top: 5 * zoom,
+              child: fixedSvg(
+                assetPath:
+                    'assets/character/base/'
+                    'nose_fixed.svg',
+              ),
+            ),
+            Positioned(
+              left: 5 * zoom,
+              top: 5 * zoom,
+              child: fixedSvg(
+                assetPath:
+                    'assets/character/base/'
+                    'mouth_fixed.svg',
+              ),
+            ),
+            Positioned(
+              left: 5 * zoom,
+              top: 5 * zoom,
+              child: tintedSvg(
+                assetPath:
+                    'assets/character/hair/'
+                    '${_appearance.hair}.svg',
+                color: hairColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactIdentityFields(
+    BuildContext context,
+    double zoom,
+  ) {
+    double s(double value) =>
+        value * zoom;
+
+    return Column(
+      children: [
+        Row(
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: TextField(
+                controller:
+                    _firstNameController,
+                textCapitalization:
+                    TextCapitalization.words,
+                inputFormatters: [
+                  _nameCapitalizationFormatter,
+                ],
+                textInputAction:
+                    TextInputAction.next,
+                decoration:
+                    const InputDecoration(
+                  labelText: 'First Name',
+                  hintText: 'First name',
+                  border:
+                      OutlineInputBorder(),
+                  isDense: true,
+                ),
+              ),
+            ),
+            SizedBox(
+              width: s(8),
+            ),
+            Expanded(
+              child: TextField(
+                controller:
+                    _lastNameController,
+                textCapitalization:
+                    TextCapitalization.words,
+                inputFormatters: [
+                  _nameCapitalizationFormatter,
+                ],
+                textInputAction:
+                    TextInputAction.next,
+                decoration:
+                    const InputDecoration(
+                  labelText: 'Last Name',
+                  hintText: 'Last name',
+                  border:
+                      OutlineInputBorder(),
+                  isDense: true,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(
+          height: s(8),
+        ),
+        Row(
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _buildGenderField(
+                context,
+                zoom,
+              ),
+            ),
+            SizedBox(
+              width: s(8),
+            ),
+            Expanded(
+              child: _buildBirthYearField(
+                context,
+                zoom,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGenderField(
+    BuildContext context,
+    double zoom,
+  ) {
+    double s(double value) =>
+        value * zoom;
+
+    return InkWell(
+      borderRadius:
+          BorderRadius.circular(
+        s(8),
+      ),
+      onTap: () {
+        _showGenderPicker();
+      },
+      child: InputDecorator(
+        decoration:
+            const InputDecoration(
+          labelText: 'Gender',
+          border:
+              OutlineInputBorder(),
+          isDense: true,
+          suffixIcon:
+              Icon(
+            Icons.arrow_drop_down,
+          ),
+        ),
+        child: Text(
+          _gender == Gender.male
+              ? 'Male'
+              : 'Female',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBirthYearField(
+    BuildContext context,
+    double zoom,
+  ) {
+    return InkWell(
+      borderRadius:
+          BorderRadius.circular(
+        8 * zoom,
+      ),
+      onTap:
+          _showBirthYearPicker,
+      child: InputDecorator(
+        decoration:
+            const InputDecoration(
+          labelText: 'Birth Year',
+          border:
+              OutlineInputBorder(),
+          isDense: true,
+          suffixIcon:
+              Icon(
+            Icons.arrow_drop_down,
+          ),
+        ),
+        child: Text(
+          '$_birthYear',
+        ),
+      ),
+    );
+  }
+
+  void _showGenderPicker() {
+    showDialog<void>(
+      context: context,
+      builder: (
+        BuildContext dialogContext,
+      ) {
+        return AlertDialog(
+          title: const Text(
+            'Gender',
+          ),
+          content: Column(
+            mainAxisSize:
+                MainAxisSize.min,
+            children: [
+              RadioListTile<Gender>(
+                value: Gender.male,
+                groupValue: _gender,
+                title: const Text(
+                  'Male',
+                ),
+                onChanged: (
+                  Gender? value,
+                ) {
+                  if (value == null) {
+                    return;
+                  }
+
+                  setState(() {
+                    _gender = value;
+                  });
+
+                  Navigator.of(
+                    dialogContext,
+                  ).pop();
+                },
+              ),
+              RadioListTile<Gender>(
+                value: Gender.female,
+                groupValue: _gender,
+                title: const Text(
+                  'Female',
+                ),
+                onChanged: (
+                  Gender? value,
+                ) {
+                  if (value == null) {
+                    return;
+                  }
+
+                  setState(() {
+                    _gender = value;
+                  });
+
+                  Navigator.of(
+                    dialogContext,
+                  ).pop();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAppearancePreviewFor(
+    BuildContext context,
+    double zoom,
+    CharacterAppearance appearance,
+  ) {
+    double s(double value) =>
+        value * zoom;
+
+    final Color skinColor =
+        _skinToneColors[
+                appearance.skinTone] ??
+            _skinToneColors.values.first;
+
+    final Color hairColor =
+        _hairColors[
+                appearance.hairColor] ??
+            _hairColors.values.first;
+
+    final Color eyeColor =
+        _eyeColors[
+                appearance.eyeColor] ??
             _eyeColors.values.first;
 
     const Color eyebrowColor =
@@ -842,7 +1248,7 @@ class _CharacterCreationScreenState
 
     return Container(
       width: double.infinity,
-      height: s(230),
+      height: s(205),
       decoration: BoxDecoration(
         color: Theme.of(context)
             .colorScheme
@@ -865,19 +1271,16 @@ class _CharacterCreationScreenState
       child: Center(
         child: SizedBox(
           width: s(180),
-          height: s(200),
+          height: s(190),
           child: Stack(
             alignment:
                 Alignment.center,
             clipBehavior:
                 Clip.none,
             children: [
-              // --------------------------------------------------
-              // BASE HEAD
-              // --------------------------------------------------
               Positioned(
                 left: 0,
-                top: s(10),
+                top: s(5),
                 child: tintedSvg(
                   assetPath:
                       'assets/character/base/'
@@ -885,71 +1288,51 @@ class _CharacterCreationScreenState
                   color: skinColor,
                 ),
               ),
-
-              // --------------------------------------------------
-              // EYES
-              // --------------------------------------------------
               Positioned(
                 left: 0,
-                top: s(10),
+                top: s(5),
                 child: tintedSvg(
                   assetPath:
                       'assets/character/eyes/'
-                      '${_appearance.eyes}.svg',
+                      '${appearance.eyes}.svg',
                   color: eyeColor,
                 ),
               ),
-
-              // --------------------------------------------------
-              // EYEBROWS
-              // --------------------------------------------------
               Positioned(
                 left: 0,
-                top: s(10),
+                top: s(5),
                 child: tintedSvg(
                   assetPath:
                       'assets/character/eyebrows/'
-                      '${_appearance.eyebrows}.svg',
+                      '${appearance.eyebrows}.svg',
                   color: eyebrowColor,
                 ),
               ),
-
-              // --------------------------------------------------
-              // NOSE
-              // --------------------------------------------------
               Positioned(
                 left: 0,
-                top: s(10),
+                top: s(5),
                 child: fixedSvg(
                   assetPath:
                       'assets/character/base/'
                       'nose_fixed.svg',
                 ),
               ),
-
-              // --------------------------------------------------
-              // MOUTH
-              // --------------------------------------------------
               Positioned(
                 left: 0,
-                top: s(10),
+                top: s(5),
                 child: fixedSvg(
                   assetPath:
                       'assets/character/base/'
                       'mouth_fixed.svg',
                 ),
               ),
-
-              // --------------------------------------------------
-              // HAIR
-              // --------------------------------------------------
               Positioned(
                 left: 0,
-                top: s(10),
+                top: s(5),
                 child: tintedSvg(
                   assetPath:
                       'assets/character/hair/'
-                      '${_appearance.hair}.svg',
+                      '${appearance.hair}.svg',
                   color: hairColor,
                 ),
               ),
@@ -960,9 +1343,12 @@ class _CharacterCreationScreenState
     );
   }
 
-  Widget _buildSkinToneSelector(
+  Widget _buildSkinToneSelectorFor(
     BuildContext context,
     double zoom,
+    CharacterAppearance appearance,
+    ValueChanged<CharacterAppearance>
+        onChanged,
   ) {
     double s(double value) =>
         value * zoom;
@@ -977,71 +1363,62 @@ class _CharacterCreationScreenState
               .textTheme
               .titleSmall,
         ),
-        SizedBox(height: s(4)),
-        Wrap(
-          spacing: s(7),
-          runSpacing: s(7),
-          children:
-              _skinToneColors.entries
-                  .map(
-            (
-              MapEntry<String, Color>
-                  entry,
+        SizedBox(
+          height: s(5),
+        ),
+        SizedBox(
+          height: s(44),
+          child: ListView.separated(
+            scrollDirection:
+                Axis.horizontal,
+            itemCount:
+                _skinToneColors.length,
+            separatorBuilder:
+                (
+              BuildContext context,
+              int index,
             ) {
-              final bool selected =
-                  _appearance
-                          .skinTone ==
-                      entry.key;
+              return SizedBox(
+                width: s(8),
+              );
+            },
+            itemBuilder:
+                (
+              BuildContext context,
+              int index,
+            ) {
+              final String key =
+                  _skinToneColors.keys
+                      .elementAt(index);
 
-              return InkWell(
-                borderRadius:
-                    BorderRadius
-                        .circular(
-                  s(20),
-                ),
+              final Color color =
+                  _skinToneColors[key]!;
+
+              final bool selected =
+                  appearance.skinTone ==
+                      key;
+
+              return _buildColorDot(
+                context: context,
+                zoom: zoom,
+                color: color,
+                selected: selected,
                 onTap: () {
-                  _updateAppearance(
-                    _appearance.copyWith(
-                      skinTone:
-                          entry.key,
+                  onChanged(
+                    appearance.copyWith(
+                      skinTone: key,
                     ),
                   );
                 },
-                child: Container(
-                  width: s(34),
-                  height: s(34),
-                  decoration:
-                      BoxDecoration(
-                    shape:
-                        BoxShape.circle,
-                    color: entry.value,
-                    border:
-                        Border.all(
-                      color: selected
-                          ? Theme.of(
-                              context,
-                            )
-                              .colorScheme
-                              .primary
-                          : Theme.of(
-                              context,
-                            )
-                              .dividerColor,
-                      width: selected
-                          ? s(3)
-                          : s(1),
-                    ),
-                  ),
-                ),
               );
             },
-          ).toList(),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildColorSelector({
+  Widget _buildColorSelectorFor({
     required BuildContext context,
     required double zoom,
     required String title,
@@ -1063,65 +1440,106 @@ class _CharacterCreationScreenState
               .textTheme
               .titleSmall,
         ),
-        SizedBox(height: s(4)),
-        Wrap(
-          spacing: s(7),
-          runSpacing: s(7),
-          children: colors.entries
-              .map(
-            (
-              MapEntry<String, Color>
-                  entry,
+        SizedBox(
+          height: s(5),
+        ),
+        SizedBox(
+          height: s(44),
+          child: ListView.separated(
+            scrollDirection:
+                Axis.horizontal,
+            itemCount:
+                colors.length,
+            separatorBuilder:
+                (
+              BuildContext context,
+              int index,
             ) {
-              final bool isSelected =
-                  entry.key == selected;
-
-              return InkWell(
-                borderRadius:
-                    BorderRadius
-                        .circular(
-                  s(20),
-                ),
-                onTap: () {
-                  onSelected(
-                    entry.key,
-                  );
-                },
-                child: Container(
-                  width: s(34),
-                  height: s(34),
-                  decoration:
-                      BoxDecoration(
-                    shape:
-                        BoxShape.circle,
-                    color: entry.value,
-                    border:
-                        Border.all(
-                      color: isSelected
-                          ? Theme.of(
-                              context,
-                            )
-                              .colorScheme
-                              .primary
-                          : Theme.of(
-                              context,
-                            )
-                              .dividerColor,
-                      width: isSelected
-                          ? s(3)
-                          : s(1),
-                    ),
-                  ),
-                ),
+              return SizedBox(
+                width: s(8),
               );
             },
-          ).toList(),
+            itemBuilder:
+                (
+              BuildContext context,
+              int index,
+            ) {
+              final String key =
+                  colors.keys.elementAt(
+                index,
+              );
+
+              final Color color =
+                  colors[key]!;
+
+              final bool isSelected =
+                  key == selected;
+
+              return _buildColorDot(
+                context: context,
+                zoom: zoom,
+                color: color,
+                selected: isSelected,
+                onTap: () {
+                  onSelected(
+                    key,
+                  );
+                },
+              );
+            },
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildAssetSelector({
+  Widget _buildColorDot({
+    required BuildContext context,
+    required double zoom,
+    required Color color,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    double s(double value) =>
+        value * zoom;
+
+    return InkWell(
+      borderRadius:
+          BorderRadius.circular(
+        s(22),
+      ),
+      onTap: onTap,
+      child: Padding(
+        padding:
+            EdgeInsets.all(s(2)),
+        child: Container(
+          width: s(36),
+          height: s(36),
+          decoration: BoxDecoration(
+            shape:
+                BoxShape.circle,
+            color: color,
+            border: Border.all(
+              color: selected
+                  ? Theme.of(
+                      context,
+                    )
+                      .colorScheme
+                      .primary
+                  : Theme.of(
+                      context,
+                    ).dividerColor,
+              width: selected
+                  ? s(3)
+                  : s(1),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAssetSelectorFor({
     required BuildContext context,
     required double zoom,
     required String title,
@@ -1145,7 +1563,9 @@ class _CharacterCreationScreenState
               .textTheme
               .titleSmall,
         ),
-        SizedBox(height: s(4)),
+        SizedBox(
+          height: s(5),
+        ),
         SizedBox(
           height: s(88),
           child: ListView.separated(
@@ -1179,12 +1599,13 @@ class _CharacterCreationScreenState
 
               return InkWell(
                 borderRadius:
-                    BorderRadius
-                        .circular(
+                    BorderRadius.circular(
                   s(8),
                 ),
                 onTap: () {
-                  onSelected(value);
+                  onSelected(
+                    value,
+                  );
                 },
                 child: Container(
                   width: s(78),
@@ -1246,7 +1667,8 @@ class _CharacterCreationScreenState
                           fit: BoxFit
                               .contain,
                           colorFilter:
-                              color == null
+                              color ==
+                                      null
                                   ? null
                                   : ColorFilter
                                       .mode(
@@ -1265,7 +1687,8 @@ class _CharacterCreationScreenState
                         ),
                         maxLines: 1,
                         overflow:
-                            TextOverflow.ellipsis,
+                            TextOverflow
+                                .ellipsis,
                         textAlign:
                             TextAlign.center,
                         style:
@@ -1300,11 +1723,15 @@ class _CharacterCreationScreenState
     return withoutPrefix
         .split('_')
         .where(
-          (String word) =>
+          (
+            String word,
+          ) =>
               word.isNotEmpty,
         )
         .map(
-          (String word) {
+          (
+            String word,
+          ) {
             return word.substring(
                   0,
                   1,
