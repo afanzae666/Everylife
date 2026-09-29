@@ -76,9 +76,7 @@ void main() {
         );
 
         expect(
-          find.text(
-            'Last Name / Family Name',
-          ),
+          find.text('Last Name'),
           findsOneWidget,
         );
 
@@ -205,6 +203,64 @@ void main() {
         expect(
           2026 - createdBirthYear!,
           0,
+        );
+      },
+    );
+
+    testWidgets(
+      'automatically capitalizes first letter of names',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home:
+                CharacterCreationScreen(
+              onCharacterCreated: (_) {},
+            ),
+          ),
+        );
+
+        final textFields =
+            find.byType(TextField);
+
+        expect(
+          textFields,
+          findsNWidgets(2),
+        );
+
+        await tester.enterText(
+          textFields.at(0),
+          'marshall',
+        );
+
+        await tester.enterText(
+          textFields.at(1),
+          'royce',
+        );
+
+        await tester.pump();
+
+        final firstNameField =
+            tester.widget<TextField>(
+          textFields.at(0),
+        );
+
+        final lastNameField =
+            tester.widget<TextField>(
+          textFields.at(1),
+        );
+
+        expect(
+          firstNameField
+              .controller!
+              .text,
+          'Marshall',
+        );
+
+        expect(
+          lastNameField
+              .controller!
+              .text,
+          'Royce',
         );
       },
     );
@@ -346,7 +402,7 @@ void main() {
     );
 
     testWidgets(
-      'requires a family name before creating character',
+      'requires a last name before creating character',
       (tester) async {
         var created = false;
 
@@ -383,7 +439,7 @@ void main() {
 
         expect(
           find.text(
-            'Please enter your family name.',
+            'Please enter your last name.',
           ),
           findsOneWidget,
         );
