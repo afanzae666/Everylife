@@ -1,3 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-<path d="M65 117 Q66 58 128 47 Q190 58 191 117 L177 98 L165 83 L151 93 L136 75 L119 93 L101 78 L86 101 Z" fill="#2C211E"/>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="256"
+     height="256"
+     viewBox="0 0 256 256">
+  <path
+    d="M63 121
+       C63 72 88 39 128 39
+       C168 39 193 72 193 121
+       L178 101
+       L165 84
+       L151 94
+       L136 76
+       L119 94
+       L101 79
+       L86 102
+       Z"
+    fill="#2C211E"/>
 </svg>
