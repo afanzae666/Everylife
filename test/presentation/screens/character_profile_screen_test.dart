@@ -48,8 +48,24 @@ void main() {
 
       expect(
         find.text('Personality'),
-        findsOneWidget,
+        findsNothing,
       );
+
+      for (final personality in [
+        'Discipline',
+        'Sociability',
+        'Ambition',
+        'Empathy',
+        'Honesty',
+        'Patience',
+        'Risk Taking',
+        'Aggressiveness',
+      ]) {
+        expect(
+          find.text(personality),
+          findsNothing,
+        );
+      }
 
       expect(
         find.text('Born'),
@@ -98,24 +114,8 @@ void main() {
 
       expect(
         find.text('—'),
-        findsNWidgets(11),
+        findsNWidgets(3),
       );
-
-      for (final personality in [
-        'Discipline',
-        'Sociability',
-        'Ambition',
-        'Empathy',
-        'Honesty',
-        'Patience',
-        'Risk Taking',
-        'Aggressiveness',
-      ]) {
-        expect(
-          find.text(personality),
-          findsOneWidget,
-        );
-      }
 
       expect(
         find.text('WEALTH'),
