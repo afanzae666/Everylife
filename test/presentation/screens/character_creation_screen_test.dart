@@ -6,30 +6,12 @@ import '../../../lib/presentation/screens/character_creation_screen.dart';
 
 void main() {
   group('CharacterCreationScreen', () {
-    Future<void> scrollToBeginLife(
-      WidgetTester tester,
-    ) async {
-      final beginLifeButton = find.text(
-        'BEGIN LIFE',
-      );
-
-      await tester.scrollUntilVisible(
-        beginLifeButton,
-        300,
-        scrollable:
-            find.byType(Scrollable).first,
-      );
-
-      await tester.pumpAndSettle();
-    }
-
     Future<void> enterNames(
       WidgetTester tester, {
       String firstName = 'Test',
       String lastName = 'Character',
     }) async {
-      final textFields =
-          find.byType(TextField);
+      final textFields = find.byType(TextField);
 
       expect(
         textFields,
@@ -47,6 +29,25 @@ void main() {
       );
     }
 
+    Future<void> tapBeginLife(
+      WidgetTester tester,
+    ) async {
+      final beginLifeButton = find.text(
+        'BEGIN LIFE',
+      );
+
+      expect(
+        beginLifeButton,
+        findsOneWidget,
+      );
+
+      await tester.tap(
+        beginLifeButton,
+      );
+
+      await tester.pump();
+    }
+
     testWidgets(
       'shows character creation controls',
       (tester) async {
@@ -54,8 +55,7 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
-            home:
-                CharacterCreationScreen(
+            home: CharacterCreationScreen(
               onCharacterCreated: (_) {
                 created = true;
               },
@@ -64,9 +64,12 @@ void main() {
         );
 
         expect(
-          find.text(
-            'Create Your Character',
-          ),
+          find.text('Create Character'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Create Your Character'),
           findsOneWidget,
         );
 
@@ -91,11 +94,6 @@ void main() {
         );
 
         expect(
-          find.text('Female'),
-          findsOneWidget,
-        );
-
-        expect(
           find.text('Birth Year'),
           findsOneWidget,
         );
@@ -106,15 +104,8 @@ void main() {
         );
 
         expect(
-          find.text(
-            'Tap the year to choose '
-            'your character\'s birth year.',
-          ),
+          find.text('Customize Appearance'),
           findsOneWidget,
-        );
-
-        await scrollToBeginLife(
-          tester,
         );
 
         expect(
@@ -140,12 +131,9 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
-            home:
-                CharacterCreationScreen(
-              onCharacterCreated:
-                  (character) {
-                createdName =
-                    character.name;
+            home: CharacterCreationScreen(
+              onCharacterCreated: (character) {
+                createdName = character.name;
                 createdFirstName =
                     character.firstName;
                 createdLastName =
@@ -165,15 +153,9 @@ void main() {
           lastName: 'Royce',
         );
 
-        await scrollToBeginLife(
+        await tapBeginLife(
           tester,
         );
-
-        await tester.tap(
-          find.text('BEGIN LIFE'),
-        );
-
-        await tester.pump();
 
         expect(
           createdName,
@@ -212,8 +194,7 @@ void main() {
       (tester) async {
         await tester.pumpWidget(
           MaterialApp(
-            home:
-                CharacterCreationScreen(
+            home: CharacterCreationScreen(
               onCharacterCreated: (_) {},
             ),
           ),
@@ -250,16 +231,12 @@ void main() {
         );
 
         expect(
-          firstNameField
-              .controller!
-              .text,
+          firstNameField.controller!.text,
           'Marshall',
         );
 
         expect(
-          lastNameField
-              .controller!
-              .text,
+          lastNameField.controller!.text,
           'Royce',
         );
       },
@@ -272,10 +249,8 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
-            home:
-                CharacterCreationScreen(
-              onCharacterCreated:
-                  (character) {
+            home: CharacterCreationScreen(
+              onCharacterCreated: (character) {
                 createdBirthYear =
                     character.birthYear;
               },
@@ -294,8 +269,13 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(
-          find.text(
-            'Select Birth Year',
+          find.text('Birth Year'),
+          findsWidgets,
+        );
+
+        expect(
+          find.byType(
+            ListWheelScrollView,
           ),
           findsOneWidget,
         );
@@ -323,8 +303,8 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(
-          find.text(
-            'Select Birth Year',
+          find.byType(
+            ListWheelScrollView,
           ),
           findsNothing,
         );
@@ -334,15 +314,9 @@ void main() {
           findsOneWidget,
         );
 
-        await scrollToBeginLife(
+        await tapBeginLife(
           tester,
         );
-
-        await tester.tap(
-          find.text('BEGIN LIFE'),
-        );
-
-        await tester.pump();
 
         expect(
           createdBirthYear,
@@ -363,8 +337,7 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
-            home:
-                CharacterCreationScreen(
+            home: CharacterCreationScreen(
               onCharacterCreated: (_) {
                 created = true;
               },
@@ -377,15 +350,9 @@ void main() {
           'Royce',
         );
 
-        await scrollToBeginLife(
+        await tapBeginLife(
           tester,
         );
-
-        await tester.tap(
-          find.text('BEGIN LIFE'),
-        );
-
-        await tester.pump();
 
         expect(
           created,
@@ -408,8 +375,7 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
-            home:
-                CharacterCreationScreen(
+            home: CharacterCreationScreen(
               onCharacterCreated: (_) {
                 created = true;
               },
@@ -422,15 +388,9 @@ void main() {
           'Marshall',
         );
 
-        await scrollToBeginLife(
+        await tapBeginLife(
           tester,
         );
-
-        await tester.tap(
-          find.text('BEGIN LIFE'),
-        );
-
-        await tester.pump();
 
         expect(
           created,
@@ -453,10 +413,8 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
-            home:
-                CharacterCreationScreen(
-              onCharacterCreated:
-                  (character) {
+            home: CharacterCreationScreen(
+              onCharacterCreated: (character) {
                 createdGender =
                     character.gender;
               },
@@ -465,26 +423,152 @@ void main() {
         );
 
         await tester.tap(
+          find.text('Male'),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Gender'),
+          findsOneWidget,
+        );
+
+        expect(
           find.text('Female'),
+          findsOneWidget,
+        );
+
+        await tester.tap(
+          find.text('Female'),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Female'),
+          findsOneWidget,
         );
 
         await enterNames(
           tester,
         );
 
-        await scrollToBeginLife(
+        await tapBeginLife(
           tester,
         );
-
-        await tester.tap(
-          find.text('BEGIN LIFE'),
-        );
-
-        await tester.pump();
 
         expect(
           createdGender,
           Gender.female,
+        );
+      },
+    );
+
+    testWidgets(
+      'opens appearance customization dialog',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: CharacterCreationScreen(
+              onCharacterCreated: (_) {},
+            ),
+          ),
+        );
+
+        await tester.tap(
+          find.text('Customize Appearance'),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Customize Appearance'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Skin Tone'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Hair'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Hair Color'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Eyes'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Eye Color'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Eyebrows'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('DONE'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'appearance dialog can be closed without changing identity controls',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: CharacterCreationScreen(
+              onCharacterCreated: (_) {},
+            ),
+          ),
+        );
+
+        await tester.tap(
+          find.text('Customize Appearance'),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Skin Tone'),
+          findsOneWidget,
+        );
+
+        await tester.tap(
+          find.byTooltip('Close'),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Skin Tone'),
+          findsNothing,
+        );
+
+        expect(
+          find.text('First Name'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Last Name'),
+          findsOneWidget,
+        );
+
+        expect(
+          find.text('Customize Appearance'),
+          findsOneWidget,
         );
       },
     );
