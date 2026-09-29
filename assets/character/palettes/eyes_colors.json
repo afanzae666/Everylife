@@ -1,0 +1,26 @@
+[
+  {
+    "id": "brown",
+    "hex": "#5B3A2D"
+  },
+  {
+    "id": "dark_brown",
+    "hex": "#2B211E"
+  },
+  {
+    "id": "hazel",
+    "hex": "#7A6A3A"
+  },
+  {
+    "id": "green",
+    "hex": "#4E7048"
+  },
+  {
+    "id": "blue",
+    "hex": "#557FA3"
+  },
+  {
+    "id": "gray",
+    "hex": "#8C9398"
+  }
+]
