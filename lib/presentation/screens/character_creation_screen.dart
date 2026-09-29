@@ -201,14 +201,6 @@ class _CharacterCreationScreenState
     );
   }
 
-  void _updateAppearance(
-    CharacterAppearance next,
-  ) {
-    setState(() {
-      _appearance = next;
-    });
-  }
-
   void _showBirthYearPicker() {
     int temporaryYear = _birthYear;
 
@@ -800,8 +792,7 @@ class _CharacterCreationScreenState
                         onPressed:
                             _showAppearanceDialog,
                         icon: Icon(
-                          Icons
-                              .tune,
+                          Icons.tune,
                           size: s(17),
                         ),
                         label: const Text(
@@ -1141,21 +1132,19 @@ class _CharacterCreationScreenState
             mainAxisSize:
                 MainAxisSize.min,
             children: [
-              RadioListTile<Gender>(
-                value: Gender.male,
-                groupValue: _gender,
+              ListTile(
+                leading: Icon(
+                  _gender == Gender.male
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                ),
                 title: const Text(
                   'Male',
                 ),
-                onChanged: (
-                  Gender? value,
-                ) {
-                  if (value == null) {
-                    return;
-                  }
-
+                onTap: () {
                   setState(() {
-                    _gender = value;
+                    _gender =
+                        Gender.male;
                   });
 
                   Navigator.of(
@@ -1163,21 +1152,19 @@ class _CharacterCreationScreenState
                   ).pop();
                 },
               ),
-              RadioListTile<Gender>(
-                value: Gender.female,
-                groupValue: _gender,
+              ListTile(
+                leading: Icon(
+                  _gender == Gender.female
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                ),
                 title: const Text(
                   'Female',
                 ),
-                onChanged: (
-                  Gender? value,
-                ) {
-                  if (value == null) {
-                    return;
-                  }
-
+                onTap: () {
                   setState(() {
-                    _gender = value;
+                    _gender =
+                        Gender.female;
                   });
 
                   Navigator.of(
@@ -1630,8 +1617,7 @@ class _CharacterCreationScreenState
                             .colorScheme
                             .surface,
                     borderRadius:
-                        BorderRadius
-                            .circular(
+                        BorderRadius.circular(
                       s(8),
                     ),
                     border:
@@ -1667,8 +1653,7 @@ class _CharacterCreationScreenState
                           fit: BoxFit
                               .contain,
                           colorFilter:
-                              color ==
-                                      null
+                              color == null
                                   ? null
                                   : ColorFilter
                                       .mode(
