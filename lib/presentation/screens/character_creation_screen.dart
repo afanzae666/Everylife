@@ -824,7 +824,7 @@ class _CharacterCreationScreenState
         colorFilter:
             ColorFilter.mode(
           color,
-          BlendMode.srcATop,
+          BlendMode.srcIn,
         ),
       );
     }
