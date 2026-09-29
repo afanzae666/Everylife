@@ -6,6 +6,47 @@ import '../../../lib/presentation/screens/character_creation_screen.dart';
 
 void main() {
   group('CharacterCreationScreen', () {
+    Future<void> scrollToBeginLife(
+      WidgetTester tester,
+    ) async {
+      final beginLifeButton = find.text(
+        'BEGIN LIFE',
+      );
+
+      await tester.scrollUntilVisible(
+        beginLifeButton,
+        300,
+        scrollable:
+            find.byType(Scrollable).first,
+      );
+
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> enterNames(
+      WidgetTester tester, {
+      String firstName = 'Test',
+      String lastName = 'Character',
+    }) async {
+      final textFields =
+          find.byType(TextField);
+
+      expect(
+        textFields,
+        findsNWidgets(2),
+      );
+
+      await tester.enterText(
+        textFields.at(0),
+        firstName,
+      );
+
+      await tester.enterText(
+        textFields.at(1),
+        lastName,
+      );
+    }
+
     testWidgets(
       'shows character creation controls',
       (tester) async {
@@ -13,7 +54,8 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
-            home: CharacterCreationScreen(
+            home:
+                CharacterCreationScreen(
               onCharacterCreated: (_) {
                 created = true;
               },
@@ -22,7 +64,9 @@ void main() {
         );
 
         expect(
-          find.text('Create Your Character'),
+          find.text(
+            'Create Your Character',
+          ),
           findsOneWidget,
         );
 
@@ -32,7 +76,9 @@ void main() {
         );
 
         expect(
-          find.text('Last Name / Family Name'),
+          find.text(
+            'Last Name / Family Name',
+          ),
           findsOneWidget,
         );
 
@@ -63,9 +109,14 @@ void main() {
 
         expect(
           find.text(
-            'Your character will begin life as a newborn in 2026.',
+            'Tap the year to choose '
+            'your character\'s birth year.',
           ),
           findsOneWidget,
+        );
+
+        await scrollToBeginLife(
+          tester,
         );
 
         expect(
@@ -73,7 +124,10 @@ void main() {
           findsOneWidget,
         );
 
-        expect(created, isFalse);
+        expect(
+          created,
+          isFalse,
+        );
       },
     );
 
@@ -88,9 +142,12 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
-            home: CharacterCreationScreen(
-              onCharacterCreated: (character) {
-                createdName = character.name;
+            home:
+                CharacterCreationScreen(
+              onCharacterCreated:
+                  (character) {
+                createdName =
+                    character.name;
                 createdFirstName =
                     character.firstName;
                 createdLastName =
@@ -104,22 +161,14 @@ void main() {
           ),
         );
 
-        final textFields =
-            find.byType(TextField);
-
-        expect(
-          textFields,
-          findsNWidgets(2),
+        await enterNames(
+          tester,
+          firstName: 'Marshall',
+          lastName: 'Royce',
         );
 
-        await tester.enterText(
-          textFields.at(0),
-          'Marshall',
-        );
-
-        await tester.enterText(
-          textFields.at(1),
-          'Royce',
+        await scrollToBeginLife(
+          tester,
         );
 
         await tester.tap(
@@ -167,8 +216,10 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
-            home: CharacterCreationScreen(
-              onCharacterCreated: (character) {
+            home:
+                CharacterCreationScreen(
+              onCharacterCreated:
+                  (character) {
                 createdBirthYear =
                     character.birthYear;
               },
@@ -176,37 +227,59 @@ void main() {
           ),
         );
 
-        final textFields =
-            find.byType(TextField);
-
-        await tester.enterText(
-          textFields.at(0),
-          'Test',
+        await enterNames(
+          tester,
         );
 
-        await tester.enterText(
-          textFields.at(1),
-          'Character',
+        await tester.tap(
+          find.text('2026'),
         );
 
-        final slider =
-            find.byType(Slider);
+        await tester.pumpAndSettle();
 
         expect(
-          slider,
+          find.text(
+            'Select Birth Year',
+          ),
           findsOneWidget,
         );
 
-        await tester.drag(
-          slider,
-          const Offset(-1000, 0),
+        final dialogScrollable =
+            find.byType(Scrollable).last;
+
+        await tester.scrollUntilVisible(
+          find.text('1900'),
+          500,
+          scrollable: dialogScrollable,
         );
 
-        await tester.pump();
+        await tester.pumpAndSettle();
 
         expect(
           find.text('1900'),
-          findsWidgets,
+          findsOneWidget,
+        );
+
+        await tester.tap(
+          find.text('1900'),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text(
+            'Select Birth Year',
+          ),
+          findsNothing,
+        );
+
+        expect(
+          find.text('1900'),
+          findsOneWidget,
+        );
+
+        await scrollToBeginLife(
+          tester,
         );
 
         await tester.tap(
@@ -234,7 +307,8 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
-            home: CharacterCreationScreen(
+            home:
+                CharacterCreationScreen(
               onCharacterCreated: (_) {
                 created = true;
               },
@@ -245,6 +319,10 @@ void main() {
         await tester.enterText(
           find.byType(TextField).at(1),
           'Royce',
+        );
+
+        await scrollToBeginLife(
+          tester,
         );
 
         await tester.tap(
@@ -274,7 +352,8 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
-            home: CharacterCreationScreen(
+            home:
+                CharacterCreationScreen(
               onCharacterCreated: (_) {
                 created = true;
               },
@@ -285,6 +364,10 @@ void main() {
         await tester.enterText(
           find.byType(TextField).at(0),
           'Marshall',
+        );
+
+        await scrollToBeginLife(
+          tester,
         );
 
         await tester.tap(
@@ -314,8 +397,10 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
-            home: CharacterCreationScreen(
-              onCharacterCreated: (character) {
+            home:
+                CharacterCreationScreen(
+              onCharacterCreated:
+                  (character) {
                 createdGender =
                     character.gender;
               },
@@ -327,17 +412,12 @@ void main() {
           find.text('Female'),
         );
 
-        final textFields =
-            find.byType(TextField);
-
-        await tester.enterText(
-          textFields.at(0),
-          'Test',
+        await enterNames(
+          tester,
         );
 
-        await tester.enterText(
-          textFields.at(1),
-          'Character',
+        await scrollToBeginLife(
+          tester,
         );
 
         await tester.tap(
