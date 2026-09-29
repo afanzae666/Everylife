@@ -1,3 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-<circle cx="128" cy="38" r="25" fill="#2C211E"/><path d="M65 122 Q65 61 128 48 Q191 61 191 122 L174 102 Q157 81 128 81 Q99 81 82 102 Z" fill="#2C211E"/>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="256"
+     height="256"
+     viewBox="0 0 256 256">
+  <circle
+    cx="128"
+    cy="38"
+    r="25"
+    fill="#2C211E"/>
+
+  <path
+    d="M63 121
+       C63 70 89 40 128 40
+       C167 40 193 70 193 121
+       L175 101
+       C162 83 145 77 128 80
+       C111 77 94 83 81 101
+       Z"
+    fill="#2C211E"/>
 </svg>
