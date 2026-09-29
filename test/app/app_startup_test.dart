@@ -12,20 +12,6 @@ import '../../lib/presentation/screens/game_screen.dart';
 
 void main() {
   group('LifeSimulationApp startup', () {
-    Future<void> scrollToBeginLife(
-      WidgetTester tester,
-    ) async {
-      final beginLifeButton = find.text('BEGIN LIFE');
-
-      await tester.scrollUntilVisible(
-        beginLifeButton,
-        300,
-        scrollable: find.byType(Scrollable).first,
-      );
-
-      await tester.pumpAndSettle();
-    }
-
     testWidgets(
       'starts on character creation when no save exists',
       (tester) async {
@@ -64,8 +50,6 @@ void main() {
           findsOneWidget,
         );
 
-        await scrollToBeginLife(tester);
-
         expect(
           find.text('BEGIN LIFE'),
           findsOneWidget,
@@ -99,23 +83,33 @@ void main() {
 
         expect(
           textFields,
-          findsNWidgets(3),
+          findsNWidgets(2),
         );
 
         await tester.enterText(
           textFields.at(0),
-          'marshall',
+          'Marshall',
         );
 
         await tester.enterText(
           textFields.at(1),
-          'royce',
+          'Royce',
         );
 
-        await scrollToBeginLife(tester);
+        final beginLifeButton =
+            find.text('BEGIN LIFE');
+
+        await tester.scrollUntilVisible(
+          beginLifeButton,
+          200,
+          scrollable:
+              find.byType(Scrollable).first,
+        );
+
+        await tester.pumpAndSettle();
 
         await tester.tap(
-          find.text('BEGIN LIFE'),
+          beginLifeButton,
         );
 
         await tester.pumpAndSettle();
@@ -171,7 +165,8 @@ void main() {
         final repository =
             InMemorySaveRepository();
 
-        final savedState = WorldState(
+        final savedState =
+            WorldState(
           clock: const SimulationClock(
             currentYear: 2050,
           ),
@@ -230,7 +225,8 @@ void main() {
         final repository =
             InMemorySaveRepository();
 
-        final savedState = WorldState(
+        final savedState =
+            WorldState(
           clock: const SimulationClock(
             currentYear: 2075,
           ),
@@ -305,7 +301,8 @@ void main() {
         final repository =
             InMemorySaveRepository();
 
-        final manualState = WorldState(
+        final manualState =
+            WorldState(
           clock: const SimulationClock(
             currentYear: 2060,
           ),
