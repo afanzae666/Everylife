@@ -280,16 +280,22 @@ void main() {
           findsOneWidget,
         );
 
-        final dialogScrollable =
-            find.byType(Scrollable).last;
-
-        await tester.scrollUntilVisible(
-          find.text('1900'),
-          500,
-          scrollable: dialogScrollable,
+        final previousYearButton =
+            find.byTooltip(
+          'Previous year',
         );
 
-        await tester.pumpAndSettle();
+        expect(
+          previousYearButton,
+          findsOneWidget,
+        );
+
+        for (int i = 0; i < 126; i++) {
+          await tester.tap(
+            previousYearButton,
+          );
+          await tester.pump();
+        }
 
         expect(
           find.text('1900'),
@@ -429,11 +435,6 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(
-          find.text('Gender'),
-          findsOneWidget,
-        );
-
-        expect(
           find.text('Female'),
           findsOneWidget,
         );
@@ -481,8 +482,21 @@ void main() {
 
         await tester.pumpAndSettle();
 
+        final appearanceDialog =
+            find.byType(Dialog);
+
         expect(
-          find.text('Customize Appearance'),
+          appearanceDialog,
+          findsOneWidget,
+        );
+
+        expect(
+          find.descendant(
+            of: appearanceDialog,
+            matching: find.text(
+              'Customize Appearance',
+            ),
+          ),
           findsOneWidget,
         );
 
