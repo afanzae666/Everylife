@@ -340,28 +340,7 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  void _openAssetsFromProfile() {
-    if (_isProcessingTurn) {
-      return;
-    }
-
-    Navigator.of(context).pop();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _isProcessingTurn) {
-        return;
-      }
-
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => AssetsScreen(
-            player: engine.state.player,
-            zoom: _uiScaleController.value,
-          ),
-        ),
-      );
-    });
-  }
+  void _openAssetsFromProfile() {  
 
   void _openCareerPage() {
     if (_isProcessingTurn) {
