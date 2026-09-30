@@ -307,10 +307,25 @@ void main() {
         );
 
         await tester.pumpAndSettle();
-        
+
         expect(
           find.text('1900'),
           findsOneWidget,
+        );
+
+        // Confirm the selected birth year
+        // before trying to press BEGIN LIFE.
+        await tester.tap(
+          find.text('DONE'),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byType(
+            ListWheelScrollView,
+          ),
+          findsNothing,
         );
 
         await tapBeginLife(
