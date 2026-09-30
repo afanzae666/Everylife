@@ -230,31 +230,51 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> _openSaveManager() async {
-    if (_isProcessingTurn) {
-      return;
-    }
-
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => SaveLoadScreen(
-          zoom: _uiScaleController.value,
-          autoSaveController: _autoSaveController,
-          onRead: engine.readSaveSlot,
-          onSave: engine.saveToSlot,
-          onLoad: engine.loadFromSlot,
-          onDelete: engine.deleteSave,
-          onGameStateChanged: () {
-            if (!mounted) {
-              return;
-            }
-
-            setState(() {});
-            _scrollLifeEventsToBottom();
-          },
-        ),
-      ),
-    );
+  if (_isProcessingTurn) {
+    return;
   }
+
+  final screenSize = MediaQuery.sizeOf(context);
+
+  await showDialog<void>(
+    context: context,
+    barrierColor: Colors.black.withValues(
+      alpha: 0.32,
+    ),
+    builder: (dialogContext) {
+      final dialogWidth = screenSize.width * 0.92;
+      final dialogHeight = screenSize.height * 0.82;
+
+      return Dialog(
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 24,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: SizedBox(
+          width: dialogWidth,
+          height: dialogHeight,
+          child: SaveLoadScreen(
+            zoom: _uiScaleController.value,
+            autoSaveController: _autoSaveController,
+            onRead: engine.readSaveSlot,
+            onSave: engine.saveToSlot,
+            onLoad: engine.loadFromSlot,
+            onDelete: engine.deleteSave,
+            onGameStateChanged: () {
+              if (!mounted) {
+                return;
+              }
+
+              setState(() {});
+              _scrollLifeEventsToBottom();
+            },
+          ),
+        ),
+      );
+    },
+  );
+}
 
   Future<void> _openCharacterProfile() async {
     if (_isProcessingTurn) {
