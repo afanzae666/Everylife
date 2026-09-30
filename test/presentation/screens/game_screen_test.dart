@@ -207,10 +207,15 @@ void main() {
           findsOneWidget,
         );
 
-        expect(
-          find.text('Test Player'),
-          findsOneWidget,
-        );
+        final profileName = find.descendant(
+  of: find.byType(Dialog),
+  matching: find.text('Test Player'),
+);
+
+expect(
+  profileName,
+  findsOneWidget,
+);
 
         expect(
           find.text('Born'),
