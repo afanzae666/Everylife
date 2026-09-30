@@ -256,20 +256,57 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  void _openCharacterProfile() {
+  Future<void> _openCharacterProfile() async {
     if (_isProcessingTurn) {
       return;
     }
 
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => CharacterProfileScreen(
-          character: engine.state.player,
-          currentYear: engine.state.clock.currentYear,
-          uiScaleController: _uiScaleController,
-          onViewAssets: _openAssetsFromProfile,
-        ),
+    final screenSize = MediaQuery.sizeOf(context);
+
+    await showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(
+        alpha: 0.32,
       ),
+      builder: (dialogContext) {
+        final dialogWidth = screenSize.width * 0.92;
+        final dialogHeight = screenSize.height * 0.82;
+
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 24,
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: SizedBox(
+            width: dialogWidth,
+            height: dialogHeight,
+            child: CharacterProfileScreen(
+              character: engine.state.player,
+              currentYear: engine.state.clock.currentYear,
+              uiScaleController: _uiScaleController,
+              onViewAssets: () {
+                Navigator.of(dialogContext).pop();
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted || _isProcessingTurn) {
+                    return;
+                  }
+
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => AssetsScreen(
+                        player: engine.state.player,
+                        zoom: _uiScaleController.value,
+                      ),
+                    ),
+                  );
+                });
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -564,18 +601,22 @@ class _GameScreenState extends State<GameScreen> {
   ) {
     double s(double value) => value * zoom;
 
-    return _ResponsiveCard(
-      padding: EdgeInsets.all(s(8)),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              key: const Key('character-avatar'),
-              onTap: _openCharacterProfile,
-              borderRadius: BorderRadius.circular(s(40)),
-              child: CircleAvatar(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        key: const Key('character-card'),
+        onTap: _isProcessingTurn
+            ? null
+            : _openCharacterProfile,
+        borderRadius: BorderRadius.circular(s(8)),
+        child: _ResponsiveCard(
+          padding: EdgeInsets.all(s(8)),
+          child: Row(
+            crossAxisAlignment:
+                CrossAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                key: const Key('character-avatar'),
                 radius: s(27),
                 child: Icon(
                   player.gender == Gender.male
@@ -584,65 +625,70 @@ class _GameScreenState extends State<GameScreen> {
                   size: s(29),
                 ),
               ),
-            ),
-          ),
-          SizedBox(width: s(8)),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  player.name,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: s(1)),
-                Text(
-                  'Age $age • ${state.clock.currentYear}',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: s(1)),
-                Text(
-                  lifeStageLabel,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: s(6)),
-          Expanded(
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerRight,
-                child: Text(
-                  _formatMoney(player.money),
-                  textAlign: TextAlign.right,
-                  maxLines: 1,
-                  softWrap: false,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyLarge!
-                      .copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+              SizedBox(width: s(8)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      player.name,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium,
+                      maxLines: 1,
+                      overflow:
+                          TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: s(1)),
+                    Text(
+                      'Age $age • ${state.clock.currentYear}',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall,
+                      maxLines: 1,
+                      overflow:
+                          TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: s(1)),
+                    Text(
+                      lifeStageLabel,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall,
+                      maxLines: 1,
+                      overflow:
+                          TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
-            ),
+              SizedBox(width: s(6)),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      _formatMoney(player.money),
+                      textAlign: TextAlign.right,
+                      maxLines: 1,
+                      softWrap: false,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyLarge!
+                          .copyWith(
+                            fontWeight:
+                                FontWeight.w600,
+                          ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -664,7 +710,8 @@ class _GameScreenState extends State<GameScreen> {
       ).add(event);
     }
 
-    final groupedEvents = eventsByYear.entries.toList();
+    final groupedEvents =
+        eventsByYear.entries.toList();
 
     return _ResponsiveCard(
       padding: EdgeInsets.fromLTRB(
@@ -681,19 +728,24 @@ class _GameScreenState extends State<GameScreen> {
               ),
             )
           : ListView.separated(
-              controller: _lifeEventsScrollController,
+              controller:
+                  _lifeEventsScrollController,
               padding: EdgeInsets.zero,
-              itemCount: groupedEvents.length,
-              separatorBuilder: (_, __) => SizedBox(
+              itemCount:
+                  groupedEvents.length,
+              separatorBuilder: (_, __) =>
+                  SizedBox(
                 height: s(7),
               ),
               itemBuilder: (
                 context,
                 index,
               ) {
-                final yearGroup = groupedEvents[index];
+                final yearGroup =
+                    groupedEvents[index];
                 final year = yearGroup.key;
-                final yearEvents = yearGroup.value;
+                final yearEvents =
+                    yearGroup.value;
                 final eventAge =
                     year - player.birthYear;
 
@@ -712,7 +764,9 @@ class _GameScreenState extends State<GameScreen> {
                           child: Icon(
                             Icons.circle,
                             size: s(6),
-                            color: Theme.of(context)
+                            color: Theme.of(
+                              context,
+                            )
                                 .colorScheme
                                 .primary,
                           ),
@@ -721,7 +775,9 @@ class _GameScreenState extends State<GameScreen> {
                         Expanded(
                           child: Text(
                             'Age $eventAge • $year',
-                            style: Theme.of(context)
+                            style: Theme.of(
+                              context,
+                            )
                                 .textTheme
                                 .bodyMedium!
                                 .copyWith(
@@ -748,10 +804,13 @@ class _GameScreenState extends State<GameScreen> {
                             eventIndex++
                           ) ...[
                             if (eventIndex > 0)
-                              SizedBox(height: s(2)),
+                              SizedBox(
+                                height: s(2),
+                              ),
                             Row(
                               crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                                  CrossAxisAlignment
+                                      .start,
                               children: [
                                 Padding(
                                   padding:
@@ -774,7 +833,8 @@ class _GameScreenState extends State<GameScreen> {
                                 SizedBox(width: s(6)),
                                 Expanded(
                                   child: Text(
-                                    yearEvents[eventIndex]
+                                    yearEvents[
+                                            eventIndex]
                                         .description,
                                     style: Theme.of(
                                       context,
@@ -847,7 +907,8 @@ class _GameScreenState extends State<GameScreen> {
                       'core-stat-health',
                     ),
                     label: 'Health',
-                    value: player.stats.health,
+                    value:
+                        player.stats.health,
                     icon: Icons.favorite,
                     zoom: zoom,
                   );
@@ -858,8 +919,8 @@ class _GameScreenState extends State<GameScreen> {
                       'core-stat-intelligence',
                     ),
                     label: 'Intelligence',
-                    value:
-                        player.stats.intelligence,
+                    value: player
+                        .stats.intelligence,
                     icon: Icons.psychology,
                     zoom: zoom,
                   );
@@ -870,8 +931,10 @@ class _GameScreenState extends State<GameScreen> {
                       'core-stat-fitness',
                     ),
                     label: 'Fitness',
-                    value: player.stats.fitness,
-                    icon: Icons.fitness_center,
+                    value:
+                        player.stats.fitness,
+                    icon:
+                        Icons.fitness_center,
                     zoom: zoom,
                   );
 
@@ -883,7 +946,8 @@ class _GameScreenState extends State<GameScreen> {
                     label: 'Happiness',
                     value:
                         player.stats.happiness,
-                    icon: Icons.sentiment_satisfied,
+                    icon: Icons
+                        .sentiment_satisfied,
                     zoom: zoom,
                   );
 
@@ -895,7 +959,8 @@ class _GameScreenState extends State<GameScreen> {
                     label: 'Willpower',
                     value:
                         player.stats.willpower,
-                    icon: Icons.shield_outlined,
+                    icon:
+                        Icons.shield_outlined,
                     zoom: zoom,
                   );
 
@@ -930,7 +995,8 @@ class _GameScreenState extends State<GameScreen> {
                     ),
                     label: 'Luck',
                     value: player.stats.luck,
-                    icon: Icons.auto_awesome,
+                    icon:
+                        Icons.auto_awesome,
                     zoom: zoom,
                   );
 
@@ -1091,19 +1157,26 @@ class _StatCard extends StatelessWidget {
                     label,
                     maxLines: 1,
                     softWrap: false,
-                    style: theme.textTheme.bodySmall!.copyWith(
-                      fontSize: 11,
-                    ),
+                    style: theme
+                        .textTheme
+                        .bodySmall!
+                        .copyWith(
+                          fontSize: 11,
+                        ),
                   ),
                   SizedBox(width: s(4)),
                   Text(
                     value.toString(),
                     maxLines: 1,
                     softWrap: false,
-                    style: theme.textTheme.bodySmall!.copyWith(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: theme
+                        .textTheme
+                        .bodySmall!
+                        .copyWith(
+                          fontSize: 11,
+                          fontWeight:
+                              FontWeight.w600,
+                        ),
                   ),
                 ],
               ),
@@ -1111,12 +1184,15 @@ class _StatCard extends StatelessWidget {
           ),
           SizedBox(height: s(3)),
           ClipRRect(
-            borderRadius: BorderRadius.circular(s(4)),
+            borderRadius:
+                BorderRadius.circular(s(4)),
             child: LinearProgressIndicator(
               value: progress / 100,
               minHeight: s(3),
               backgroundColor:
-                  primary.withValues(alpha: 0.12),
+                  primary.withValues(
+                alpha: 0.12,
+              ),
               valueColor:
                   AlwaysStoppedAnimation<Color>(
                 primary,
@@ -1129,7 +1205,8 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _BottomNavigation extends StatelessWidget {
+class _BottomNavigation
+    extends StatelessWidget {
   const _BottomNavigation({
     required this.zoom,
     required this.isProcessing,
@@ -1279,16 +1356,16 @@ class _AgeUpButton extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: _everyLifeAgeUpBorder.withValues(
-                    alpha: 0.35,
-                  ),
+                  color: _everyLifeAgeUpBorder
+                      .withValues(alpha: 0.35),
                   width: s(1),
                 ),
               ),
               child: Padding(
                 padding: EdgeInsets.all(s(7)),
                 child: Opacity(
-                  opacity: enabled ? 1.0 : 0.38,
+                  opacity:
+                      enabled ? 1.0 : 0.38,
                   child: Image.asset(
                     'assets/icons/age_up.png',
                     fit: BoxFit.contain,
@@ -1303,7 +1380,8 @@ class _AgeUpButton extends StatelessWidget {
   }
 }
 
-class _NavigationItem extends StatelessWidget {
+class _NavigationItem
+    extends StatelessWidget {
   const _NavigationItem({
     required this.assetPath,
     required this.label,
@@ -1324,7 +1402,8 @@ class _NavigationItem extends StatelessWidget {
 
     return InkWell(
       onTap: enabled ? onTap : null,
-      borderRadius: BorderRadius.circular(s(8)),
+      borderRadius:
+          BorderRadius.circular(s(8)),
       child: Padding(
         padding: EdgeInsets.symmetric(
           horizontal: s(2),
@@ -1335,7 +1414,8 @@ class _NavigationItem extends StatelessWidget {
               MainAxisAlignment.center,
           children: [
             Opacity(
-              opacity: enabled ? 1.0 : 0.38,
+              opacity:
+                  enabled ? 1.0 : 0.38,
               child: SvgPicture.asset(
                 assetPath,
                 width: s(23),
@@ -1347,7 +1427,8 @@ class _NavigationItem extends StatelessWidget {
             Text(
               label,
               maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              overflow:
+                  TextOverflow.ellipsis,
               style: Theme.of(context)
                   .textTheme
                   .labelSmall,
