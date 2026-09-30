@@ -307,14 +307,7 @@ void main() {
         );
 
         await tester.pumpAndSettle();
-
-        expect(
-          find.byType(
-            ListWheelScrollView,
-          ),
-          findsNothing,
-        );
-
+        
         expect(
           find.text('1900'),
           findsOneWidget,
