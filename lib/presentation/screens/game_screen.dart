@@ -340,8 +340,6 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  void _openAssetsFromProfile() {  
-
   void _openCareerPage() {
     if (_isProcessingTurn) {
       return;
