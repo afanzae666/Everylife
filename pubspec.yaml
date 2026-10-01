@@ -34,3 +34,5 @@ flutter:
     - assets/character/eyes/
     - assets/character/hair/
     - assets/character/palettes/
+        - assets/character/head_base/
+    - assets/character/mouth/
