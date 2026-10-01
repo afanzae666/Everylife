@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../domain/character/appearance.dart';
 import '../../domain/character/character.dart';
 import '../../domain/character/gender.dart';
+import '../../domain/character/life_stage.dart';
 
 class CharacterCreationScreen extends StatefulWidget {
   const CharacterCreationScreen({
@@ -87,37 +87,24 @@ class _CharacterCreationScreenState
       const CharacterAppearance(
     base: 'default',
     skinTone: 'skin_04',
-    hair: 'hair_short',
+    hair: 'male_hair_01',
     hairColor: 'black',
-    eyes: 'eyes_normal',
+    eyes: 'adult_eyes',
     eyeColor: 'brown',
-    eyebrows: 'brows_normal',
+    eyebrows: 'adult_eyebrow',
   );
 
-  static const List<String> _hairStyles = [
-    'hair_bald',
-    'hair_short',
-    'hair_crop',
-    'hair_side',
-    'hair_curly',
-    'hair_wave',
-    'hair_long',
-    'hair_bun',
+  static const List<String> _maleHairStyles = [
+    'male_hair_01',
+    'male_hair_02',
+    'male_hair_03',
+    'male_hair_04',
   ];
 
-  static const List<String> _eyeStyles = [
-    'eyes_normal',
-    'eyes_large',
-    'eyes_narrow',
-    'eyes_round',
-    'eyes_soft',
-  ];
-
-  static const List<String> _eyebrowStyles = [
-    'brows_normal',
-    'brows_straight',
-    'brows_thick',
-    'brows_thin',
+  static const List<String> _femaleHairStyles = [
+    'female_hair_01',
+    'female_hair_02',
+    'female_hair_03',
   ];
 
   static const Map<String, Color> _skinToneColors = {
@@ -500,7 +487,7 @@ class _CharacterCreationScreenState
                                 zoom: 1.0,
                                 title: 'Hair',
                                 values:
-                                    _hairStyles,
+                                    _currentHairStyles(),
                                 selected:
                                     temporaryAppearance
                                         .hair,
@@ -550,36 +537,6 @@ class _CharacterCreationScreenState
                               const SizedBox(
                                 height: 14,
                               ),
-                              _buildAssetSelectorFor(
-                                context: context,
-                                zoom: 1.0,
-                                title: 'Eyes',
-                                values:
-                                    _eyeStyles,
-                                selected:
-                                    temporaryAppearance
-                                        .eyes,
-                                assetDirectory:
-                                    'assets/character/eyes',
-                                onSelected:
-                                    (
-                                  String value,
-                                ) {
-                                  updateTemporaryAppearance(
-                                    temporaryAppearance
-                                        .copyWith(
-                                      eyes: value,
-                                    ),
-                                  );
-                                },
-                                color:
-                                    _eyeColors[
-                                        temporaryAppearance
-                                            .eyeColor],
-                              ),
-                              const SizedBox(
-                                height: 14,
-                              ),
                               _buildColorSelectorFor(
                                 context: context,
                                 zoom: 1.0,
@@ -601,37 +558,6 @@ class _CharacterCreationScreenState
                                     ),
                                   );
                                 },
-                              ),
-                              const SizedBox(
-                                height: 14,
-                              ),
-                              _buildAssetSelectorFor(
-                                context: context,
-                                zoom: 1.0,
-                                title: 'Eyebrows',
-                                values:
-                                    _eyebrowStyles,
-                                selected:
-                                    temporaryAppearance
-                                        .eyebrows,
-                                assetDirectory:
-                                    'assets/character/eyebrows',
-                                onSelected:
-                                    (
-                                  String value,
-                                ) {
-                                  updateTemporaryAppearance(
-                                    temporaryAppearance
-                                        .copyWith(
-                                      eyebrows:
-                                          value,
-                                    ),
-                                  );
-                                },
-                                color:
-                                    const Color(
-                                  0xFF2C211E,
-                                ),
                               ),
                             ],
                           ),
@@ -668,6 +594,12 @@ class _CharacterCreationScreenState
         );
       },
     );
+  }
+
+  List<String> _currentHairStyles() {
+    return _gender == Gender.female
+        ? _femaleHairStyles
+        : _maleHairStyles;
   }
 
   @override
@@ -846,122 +778,306 @@ class _CharacterCreationScreenState
     double s(double value) =>
         value * zoom;
 
+    final int age =
+        _previewAge();
+
+    final LifeStage stage =
+        LifeStageAge.fromAge(age);
+
+    return _buildAvatarStack(
+      context: context,
+      zoom: zoom,
+      appearance: _appearance,
+      stage: stage,
+      gender: _gender,
+      size: 190,
+      containerSize: 200,
+    );
+  }
+
+  int _previewAge() {
+    final int age =
+        _maximumBirthYear -
+            _birthYear;
+
+    return age.clamp(0, 126);
+  }
+
+  Widget _buildAppearancePreviewFor(
+    BuildContext context,
+    double zoom,
+    CharacterAppearance appearance,
+  ) {
+    return Container(
+      width: double.infinity,
+      height: 205 * zoom,
+      decoration: BoxDecoration(
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(
+              alpha: 0.35,
+            ),
+        borderRadius:
+            BorderRadius.circular(
+          10 * zoom,
+        ),
+        border: Border.all(
+          color: Theme.of(context)
+              .dividerColor
+              .withValues(
+                alpha: 0.5,
+              ),
+        ),
+      ),
+      child: Center(
+        child: _buildAvatarStack(
+          context: context,
+          zoom: zoom,
+          appearance: appearance,
+          stage: LifeStageAge.fromAge(
+            _previewAge(),
+          ),
+          gender: _gender,
+          size: 180,
+          containerSize: 190,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatarStack({
+    required BuildContext context,
+    required double zoom,
+    required CharacterAppearance appearance,
+    required LifeStage stage,
+    required Gender gender,
+    required double size,
+    required double containerSize,
+  }) {
+    double s(double value) =>
+        value * zoom;
+
     final Color skinColor =
         _skinToneColors[
-                _appearance.skinTone] ??
+                appearance.skinTone] ??
             _skinToneColors.values.first;
 
     final Color hairColor =
         _hairColors[
-                _appearance.hairColor] ??
+                appearance.hairColor] ??
             _hairColors.values.first;
 
     final Color eyeColor =
         _eyeColors[
-                _appearance.eyeColor] ??
+                appearance.eyeColor] ??
             _eyeColors.values.first;
 
-    const Color eyebrowColor =
-        Color(0xFF2C211E);
+    final String headAsset =
+        _headAssetFor(stage);
 
-    Widget tintedSvg({
+    final String eyesAsset =
+        _eyesAssetFor(stage);
+
+    final String eyebrowAsset =
+        _eyebrowAssetFor(stage);
+
+    final String mouthAsset =
+        _mouthAssetFor(stage);
+
+    final String hairAsset =
+        _hairAssetFor(
+      appearance: appearance,
+      gender: gender,
+    );
+
+    Widget tintedImage({
       required String assetPath,
       required Color color,
     }) {
-      return SvgPicture.asset(
+      return Image.asset(
         assetPath,
-        width: s(190),
-        height: s(190),
+        width: s(size),
+        height: s(size),
         fit: BoxFit.contain,
         colorFilter:
             ColorFilter.mode(
           color,
-          BlendMode.srcIn,
+          BlendMode.srcATop,
         ),
       );
     }
 
-    Widget fixedSvg({
+    Widget fixedImage({
       required String assetPath,
     }) {
-      return SvgPicture.asset(
+      return Image.asset(
         assetPath,
-        width: s(190),
-        height: s(190),
+        width: s(size),
+        height: s(size),
         fit: BoxFit.contain,
       );
     }
 
-    return Center(
-      child: SizedBox(
-        width: s(200),
-        height: s(200),
-        child: Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
-            Positioned(
-              left: 5 * zoom,
-              top: 5 * zoom,
-              child: tintedSvg(
-                assetPath:
-                    'assets/character/base/'
-                    'head_base.svg',
-                color: skinColor,
-              ),
+    return SizedBox(
+      width: s(containerSize),
+      height: s(containerSize),
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          fixedImage(
+            assetPath: headAsset,
+          ),
+          tintedImage(
+            assetPath: eyesAsset,
+            color: eyeColor,
+          ),
+          tintedImage(
+            assetPath: eyebrowAsset,
+            color: const Color(
+              0xFF2C211E,
             ),
-            Positioned(
-              left: 5 * zoom,
-              top: 5 * zoom,
-              child: tintedSvg(
-                assetPath:
-                    'assets/character/eyes/'
-                    '${_appearance.eyes}.svg',
-                color: eyeColor,
-              ),
-            ),
-            Positioned(
-              left: 5 * zoom,
-              top: 5 * zoom,
-              child: tintedSvg(
-                assetPath:
-                    'assets/character/eyebrows/'
-                    '${_appearance.eyebrows}.svg',
-                color: eyebrowColor,
-              ),
-            ),
-            Positioned(
-              left: 5 * zoom,
-              top: 5 * zoom,
-              child: fixedSvg(
-                assetPath:
-                    'assets/character/base/'
-                    'nose_fixed.svg',
-              ),
-            ),
-            Positioned(
-              left: 5 * zoom,
-              top: 5 * zoom,
-              child: fixedSvg(
-                assetPath:
-                    'assets/character/base/'
-                    'mouth_fixed.svg',
-              ),
-            ),
-            Positioned(
-              left: 5 * zoom,
-              top: 5 * zoom,
-              child: tintedSvg(
-                assetPath:
-                    'assets/character/hair/'
-                    '${_appearance.hair}.svg',
-                color: hairColor,
-              ),
-            ),
-          ],
-        ),
+          ),
+          fixedImage(
+            assetPath: mouthAsset,
+          ),
+          tintedImage(
+            assetPath: hairAsset,
+            color: hairColor,
+          ),
+        ],
       ),
     );
+  }
+
+  String _headAssetFor(
+    LifeStage stage,
+  ) {
+    switch (stage) {
+      case LifeStage.infant:
+        return 'assets/character/head_base/'
+            'infant_head_base.png';
+
+      case LifeStage.toddler:
+        return 'assets/character/head_base/'
+            'toddler_head_base.png';
+
+      case LifeStage.child:
+        return 'assets/character/head_base/'
+            'child_head_base.png';
+
+      case LifeStage.teen:
+        return 'assets/character/head_base/'
+            'teen_head_base.png';
+
+      case LifeStage.youngAdult:
+        return 'assets/character/head_base/'
+            'young_adult_head_base.png';
+
+      case LifeStage.adult:
+        return 'assets/character/head_base/'
+            'adult_head_base.png';
+
+      case LifeStage.senior:
+        return 'assets/character/head_base/'
+            'senior_head_base.png';
+    }
+  }
+
+  String _eyesAssetFor(
+    LifeStage stage,
+  ) {
+    switch (stage) {
+      case LifeStage.infant:
+        return 'assets/character/eyes/'
+            'infant_eyes.png';
+
+      case LifeStage.toddler:
+        return 'assets/character/eyes/'
+            'toddler_eyes.png';
+
+      case LifeStage.child:
+        return 'assets/character/eyes/'
+            'child_eyes.png';
+
+      case LifeStage.teen:
+      case LifeStage.youngAdult:
+      case LifeStage.adult:
+      case LifeStage.senior:
+        return 'assets/character/eyes/'
+            'adult_eyes.png';
+    }
+  }
+
+  String _eyebrowAssetFor(
+    LifeStage stage,
+  ) {
+    switch (stage) {
+      case LifeStage.infant:
+        return 'assets/character/eyebrows/'
+            'infant_eyebrow_01.png';
+
+      case LifeStage.toddler:
+        return 'assets/character/eyebrows/'
+            'toddler_eyebrow_01.png';
+
+      case LifeStage.child:
+        return 'assets/character/eyebrows/'
+            'child_eyebrow_01.png';
+
+      case LifeStage.teen:
+      case LifeStage.youngAdult:
+      case LifeStage.adult:
+      case LifeStage.senior:
+        return 'assets/character/eyebrows/'
+            'adult_eyebrow.png';
+    }
+  }
+
+  String _mouthAssetFor(
+    LifeStage stage,
+  ) {
+    switch (stage) {
+      case LifeStage.infant:
+        return 'assets/character/mouth/'
+            'infant_mouth.png';
+
+      case LifeStage.toddler:
+        return 'assets/character/mouth/'
+            'toddler_mouth.png';
+
+      case LifeStage.child:
+        return 'assets/character/mouth/'
+            'child_mouth.png';
+
+      case LifeStage.teen:
+      case LifeStage.youngAdult:
+      case LifeStage.adult:
+      case LifeStage.senior:
+        return 'assets/character/mouth/'
+            'adult_mouth.png';
+    }
+  }
+
+  String _hairAssetFor({
+    required CharacterAppearance appearance,
+    required Gender gender,
+  }) {
+    final List<String> available =
+        gender == Gender.female
+            ? _femaleHairStyles
+            : _maleHairStyles;
+
+    if (available.contains(
+      appearance.hair,
+    )) {
+      return 'assets/character/hair/'
+          '${appearance.hair}.png';
+    }
+
+    return 'assets/character/hair/'
+        '${available.first}.png';
   }
 
   Widget _buildCompactIdentityFields(
@@ -1135,8 +1251,10 @@ class _CharacterCreationScreenState
               ListTile(
                 leading: Icon(
                   _gender == Gender.male
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_unchecked,
+                      ? Icons
+                          .radio_button_checked
+                      : Icons
+                          .radio_button_unchecked,
                 ),
                 title: const Text(
                   'Male',
@@ -1145,6 +1263,18 @@ class _CharacterCreationScreenState
                   setState(() {
                     _gender =
                         Gender.male;
+
+                    if (!_maleHairStyles
+                        .contains(
+                      _appearance.hair,
+                    )) {
+                      _appearance =
+                          _appearance.copyWith(
+                        hair:
+                            _maleHairStyles
+                                .first,
+                      );
+                    }
                   });
 
                   Navigator.of(
@@ -1155,8 +1285,10 @@ class _CharacterCreationScreenState
               ListTile(
                 leading: Icon(
                   _gender == Gender.female
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_unchecked,
+                      ? Icons
+                          .radio_button_checked
+                      : Icons
+                          .radio_button_unchecked,
                 ),
                 title: const Text(
                   'Female',
@@ -1165,6 +1297,18 @@ class _CharacterCreationScreenState
                   setState(() {
                     _gender =
                         Gender.female;
+
+                    if (!_femaleHairStyles
+                        .contains(
+                      _appearance.hair,
+                    )) {
+                      _appearance =
+                          _appearance.copyWith(
+                        hair:
+                            _femaleHairStyles
+                                .first,
+                      );
+                    }
                   });
 
                   Navigator.of(
@@ -1176,157 +1320,6 @@ class _CharacterCreationScreenState
           ),
         );
       },
-    );
-  }
-
-  Widget _buildAppearancePreviewFor(
-    BuildContext context,
-    double zoom,
-    CharacterAppearance appearance,
-  ) {
-    double s(double value) =>
-        value * zoom;
-
-    final Color skinColor =
-        _skinToneColors[
-                appearance.skinTone] ??
-            _skinToneColors.values.first;
-
-    final Color hairColor =
-        _hairColors[
-                appearance.hairColor] ??
-            _hairColors.values.first;
-
-    final Color eyeColor =
-        _eyeColors[
-                appearance.eyeColor] ??
-            _eyeColors.values.first;
-
-    const Color eyebrowColor =
-        Color(0xFF2C211E);
-
-    Widget tintedSvg({
-      required String assetPath,
-      required Color color,
-    }) {
-      return SvgPicture.asset(
-        assetPath,
-        width: s(180),
-        height: s(180),
-        fit: BoxFit.contain,
-        colorFilter:
-            ColorFilter.mode(
-          color,
-          BlendMode.srcIn,
-        ),
-      );
-    }
-
-    Widget fixedSvg({
-      required String assetPath,
-    }) {
-      return SvgPicture.asset(
-        assetPath,
-        width: s(180),
-        height: s(180),
-        fit: BoxFit.contain,
-      );
-    }
-
-    return Container(
-      width: double.infinity,
-      height: s(205),
-      decoration: BoxDecoration(
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withValues(
-              alpha: 0.35,
-            ),
-        borderRadius:
-            BorderRadius.circular(
-          s(10),
-        ),
-        border: Border.all(
-          color: Theme.of(context)
-              .dividerColor
-              .withValues(
-                alpha: 0.5,
-              ),
-        ),
-      ),
-      child: Center(
-        child: SizedBox(
-          width: s(180),
-          height: s(190),
-          child: Stack(
-            alignment:
-                Alignment.center,
-            clipBehavior:
-                Clip.none,
-            children: [
-              Positioned(
-                left: 0,
-                top: s(5),
-                child: tintedSvg(
-                  assetPath:
-                      'assets/character/base/'
-                      'head_base.svg',
-                  color: skinColor,
-                ),
-              ),
-              Positioned(
-                left: 0,
-                top: s(5),
-                child: tintedSvg(
-                  assetPath:
-                      'assets/character/eyes/'
-                      '${appearance.eyes}.svg',
-                  color: eyeColor,
-                ),
-              ),
-              Positioned(
-                left: 0,
-                top: s(5),
-                child: tintedSvg(
-                  assetPath:
-                      'assets/character/eyebrows/'
-                      '${appearance.eyebrows}.svg',
-                  color: eyebrowColor,
-                ),
-              ),
-              Positioned(
-                left: 0,
-                top: s(5),
-                child: fixedSvg(
-                  assetPath:
-                      'assets/character/base/'
-                      'nose_fixed.svg',
-                ),
-              ),
-              Positioned(
-                left: 0,
-                top: s(5),
-                child: fixedSvg(
-                  assetPath:
-                      'assets/character/base/'
-                      'mouth_fixed.svg',
-                ),
-              ),
-              Positioned(
-                left: 0,
-                top: s(5),
-                child: tintedSvg(
-                  assetPath:
-                      'assets/character/hair/'
-                      '${appearance.hair}.svg',
-                  color: hairColor,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -1582,7 +1575,7 @@ class _CharacterCreationScreenState
 
               final String assetPath =
                   '$assetDirectory/'
-                  '$value.svg';
+                  '$value.png';
 
               return InkWell(
                 borderRadius:
@@ -1648,7 +1641,7 @@ class _CharacterCreationScreenState
                     children: [
                       Expanded(
                         child:
-                            SvgPicture.asset(
+                            Image.asset(
                           assetPath,
                           fit: BoxFit
                               .contain,
@@ -1700,7 +1693,7 @@ class _CharacterCreationScreenState
     final String withoutPrefix =
         value.replaceFirst(
       RegExp(
-        r'^(hair_|eyes_|brows_)',
+        r'^(hair_|eyes_|brows_|male_hair_|female_hair_)',
       ),
       '',
     );
