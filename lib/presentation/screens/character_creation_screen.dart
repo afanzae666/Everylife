@@ -775,9 +775,6 @@ class _CharacterCreationScreenState
     BuildContext context,
     double zoom,
   ) {
-    double s(double value) =>
-        value * zoom;
-
     final int age =
         _previewAge();
 
@@ -858,11 +855,6 @@ class _CharacterCreationScreenState
     double s(double value) =>
         value * zoom;
 
-    final Color skinColor =
-        _skinToneColors[
-                appearance.skinTone] ??
-            _skinToneColors.values.first;
-
     final Color hairColor =
         _hairColors[
                 appearance.hairColor] ??
@@ -900,11 +892,8 @@ class _CharacterCreationScreenState
         width: s(size),
         height: s(size),
         fit: BoxFit.contain,
-        colorFilter:
-            ColorFilter.mode(
-          color,
-          BlendMode.srcATop,
-        ),
+        color: color,
+        colorBlendMode: BlendMode.srcATop,
       );
     }
 
@@ -1645,15 +1634,10 @@ class _CharacterCreationScreenState
                           assetPath,
                           fit: BoxFit
                               .contain,
-                          colorFilter:
-                              color == null
-                                  ? null
-                                  : ColorFilter
-                                      .mode(
-                                      color,
-                                      BlendMode
-                                          .srcATop,
-                                    ),
+                          color: color,
+                          colorBlendMode:
+                              BlendMode
+                                  .srcATop,
                         ),
                       ),
                       SizedBox(
