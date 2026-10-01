@@ -832,9 +832,7 @@ class _CharacterCreationScreenState
           context: context,
           zoom: zoom,
           appearance: appearance,
-          stage: LifeStageAge.fromAge(
-            _previewAge(),
-          ),
+          stage: LifeStage.youngAdult,
           gender: _gender,
           size: 180,
           containerSize: 190,
@@ -854,6 +852,11 @@ class _CharacterCreationScreenState
   }) {
     double s(double value) =>
         value * zoom;
+
+    final Color skinColor =
+        _skinToneColors[
+                appearance.skinTone] ??
+            _skinToneColors.values.first;
 
     final Color hairColor =
         _hairColors[
@@ -887,13 +890,20 @@ class _CharacterCreationScreenState
       required String assetPath,
       required Color color,
     }) {
-      return Image.asset(
+      final Widget image = Image.asset(
         assetPath,
         width: s(size),
         height: s(size),
         fit: BoxFit.contain,
-        color: color,
-        colorBlendMode: BlendMode.srcATop,
+        filterQuality: FilterQuality.high,
+      );
+
+      return ColorFiltered(
+        colorFilter: ColorFilter.mode(
+          color,
+          BlendMode.modulate,
+        ),
+        child: image,
       );
     }
 
@@ -905,6 +915,7 @@ class _CharacterCreationScreenState
         width: s(size),
         height: s(size),
         fit: BoxFit.contain,
+        filterQuality: FilterQuality.high,
       );
     }
 
@@ -915,8 +926,9 @@ class _CharacterCreationScreenState
         alignment: Alignment.center,
         clipBehavior: Clip.none,
         children: [
-          fixedImage(
+          tintedImage(
             assetPath: headAsset,
+            color: skinColor,
           ),
           tintedImage(
             assetPath: eyesAsset,
@@ -924,9 +936,7 @@ class _CharacterCreationScreenState
           ),
           tintedImage(
             assetPath: eyebrowAsset,
-            color: const Color(
-              0xFF2C211E,
-            ),
+            color: hairColor,
           ),
           fixedImage(
             assetPath: mouthAsset,
@@ -1630,14 +1640,22 @@ class _CharacterCreationScreenState
                     children: [
                       Expanded(
                         child:
-                            Image.asset(
-                          assetPath,
-                          fit: BoxFit
-                              .contain,
-                          color: color,
-                          colorBlendMode:
-                              BlendMode
-                                  .srcATop,
+                            ColorFiltered(
+                          colorFilter:
+                              ColorFilter.mode(
+                            color ??
+                                Colors.white,
+                            BlendMode.modulate,
+                          ),
+                          child:
+                              Image.asset(
+                            assetPath,
+                            fit: BoxFit
+                                .contain,
+                            filterQuality:
+                                FilterQuality
+                                    .high,
+                          ),
                         ),
                       ),
                       SizedBox(
