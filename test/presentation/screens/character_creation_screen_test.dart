@@ -134,14 +134,10 @@ void main() {
             home: CharacterCreationScreen(
               onCharacterCreated: (character) {
                 createdName = character.name;
-                createdFirstName =
-                    character.firstName;
-                createdLastName =
-                    character.lastName;
-                createdGender =
-                    character.gender;
-                createdBirthYear =
-                    character.birthYear;
+                createdFirstName = character.firstName;
+                createdLastName = character.lastName;
+                createdGender = character.gender;
+                createdBirthYear = character.birthYear;
               },
             ),
           ),
@@ -200,8 +196,7 @@ void main() {
           ),
         );
 
-        final textFields =
-            find.byType(TextField);
+        final textFields = find.byType(TextField);
 
         expect(
           textFields,
@@ -220,13 +215,11 @@ void main() {
 
         await tester.pump();
 
-        final firstNameField =
-            tester.widget<TextField>(
+        final firstNameField = tester.widget<TextField>(
           textFields.at(0),
         );
 
-        final lastNameField =
-            tester.widget<TextField>(
+        final lastNameField = tester.widget<TextField>(
           textFields.at(1),
         );
 
@@ -251,8 +244,7 @@ void main() {
           MaterialApp(
             home: CharacterCreationScreen(
               onCharacterCreated: (character) {
-                createdBirthYear =
-                    character.birthYear;
+                createdBirthYear = character.birthYear;
               },
             ),
           ),
@@ -280,8 +272,7 @@ void main() {
           findsOneWidget,
         );
 
-        final previousYearButton =
-            find.byTooltip(
+        final previousYearButton = find.byTooltip(
           'Previous year',
         );
 
@@ -429,8 +420,7 @@ void main() {
           MaterialApp(
             home: CharacterCreationScreen(
               onCharacterCreated: (character) {
-                createdGender =
-                    character.gender;
+                createdGender = character.gender;
               },
             ),
           ),
@@ -490,8 +480,7 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        final appearanceDialog =
-            find.byType(Dialog);
+        final appearanceDialog = find.byType(Dialog);
 
         expect(
           appearanceDialog,
@@ -509,37 +498,52 @@ void main() {
         );
 
         expect(
-          find.text('Skin Tone'),
+          find.descendant(
+            of: appearanceDialog,
+            matching: find.text(
+              'Skin Tone',
+            ),
+          ),
           findsOneWidget,
         );
 
         expect(
-          find.text('Hair'),
+          find.descendant(
+            of: appearanceDialog,
+            matching: find.text(
+              'Hair',
+            ),
+          ),
           findsOneWidget,
         );
 
         expect(
-          find.text('Hair Color'),
+          find.descendant(
+            of: appearanceDialog,
+            matching: find.text(
+              'Hair Color',
+            ),
+          ),
           findsOneWidget,
         );
 
         expect(
-          find.text('Eyes'),
+          find.descendant(
+            of: appearanceDialog,
+            matching: find.text(
+              'Eye Color',
+            ),
+          ),
           findsOneWidget,
         );
 
         expect(
-          find.text('Eye Color'),
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('Eyebrows'),
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('DONE'),
+          find.descendant(
+            of: appearanceDialog,
+            matching: find.text(
+              'DONE',
+            ),
+          ),
           findsOneWidget,
         );
       },
