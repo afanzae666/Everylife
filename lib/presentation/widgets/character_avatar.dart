@@ -39,7 +39,10 @@ class CharacterAvatar extends StatelessWidget {
             useSkinGamma: true,
           ),
           _layer(
-            _eyesAsset(stage),
+            'assets/character/eyes/eyes_base_prototype.png',
+          ),
+          _layer(
+            'assets/character/eyes/eyes_iris_prototype.png',
             color: eyeColor,
           ),
           _layer(
@@ -109,22 +112,6 @@ class CharacterAvatar extends StatelessWidget {
         'assets/character/head_base/adult_head_base.png',
       LifeStage.senior =>
         'assets/character/head_base/senior_head_base.png',
-    };
-  }
-
-  String _eyesAsset(LifeStage stage) {
-    return switch (stage) {
-      LifeStage.infant =>
-        'assets/character/eyes/infant_eyes.png',
-      LifeStage.toddler =>
-        'assets/character/eyes/toddler_eyes.png',
-      LifeStage.child =>
-        'assets/character/eyes/child_eyes.png',
-      LifeStage.teen ||
-      LifeStage.youngAdult ||
-      LifeStage.adult ||
-      LifeStage.senior =>
-        'assets/character/eyes/adult_eyes.png',
     };
   }
 
