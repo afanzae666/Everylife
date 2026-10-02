@@ -1009,9 +1009,22 @@ class _CharacterCreationScreenState
             assetPath: eyesBaseAsset,
           ),
 
-          // TEST A:
-          // Iris sengaja dimatikan.
-          // HEAD + EYES BASE SAJA untuk diagnosis halo.
+          // TEST B:
+// Iris diaktifkan sebagai layer terpisah.
+// Hanya iris yang menerima eyeColor.
+ColorFiltered(
+  colorFilter: ColorFilter.mode(
+    _eyeColors[
+          appearance.eyeColor,
+        ] ??
+        _eyeColors.values.first,
+    BlendMode.modulate,
+  ),
+  child: fixedImage(
+    assetPath:
+        'assets/character/eyes/eyes_iris_prototype.png',
+  ),
+),
 
           tintedImage(
             assetPath: eyebrowAsset,
