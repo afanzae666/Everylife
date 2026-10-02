@@ -95,6 +95,7 @@ class _CharacterCreationScreenState
   );
 
   static const List<String> _maleHairStyles = [
+    'bald',
     'male_hair_01',
     'male_hair_02',
     'male_hair_03',
@@ -102,6 +103,7 @@ class _CharacterCreationScreenState
   ];
 
   static const List<String> _femaleHairStyles = [
+    'bald',
     'female_hair_01',
     'female_hair_02',
     'female_hair_03',
@@ -931,8 +933,11 @@ class _CharacterCreationScreenState
     final String headAsset =
         _headAssetFor(stage);
 
-    final String eyesAsset =
-        _eyesAssetFor(stage);
+    final String eyesBaseAsset =
+        _eyesBaseAssetFor(stage);
+
+    final String eyesIrisAsset =
+        _eyesIrisAssetFor(stage);
 
     final String eyebrowAsset =
         _eyebrowAssetFor(stage);
@@ -940,7 +945,7 @@ class _CharacterCreationScreenState
     final String mouthAsset =
         _mouthAssetFor(stage);
 
-    final String hairAsset =
+    final String? hairAsset =
         _hairAssetFor(
       appearance: appearance,
       gender: gender,
@@ -1002,21 +1007,39 @@ class _CharacterCreationScreenState
             color: skinColor,
             useSkinGamma: true,
           ),
+
+          // The base eye layer contains the sclera,
+          // pupil/outline structure, and other fixed
+          // eye details. It must NOT receive eyeColor.
+          fixedImage(
+            assetPath: eyesBaseAsset,
+          ),
+
+          // Only the iris layer receives eyeColor.
+          // This prevents the sclera and other eye
+          // details from being colorized.
           tintedImage(
-            assetPath: eyesAsset,
+            assetPath: eyesIrisAsset,
             color: eyeColor,
           ),
+
           tintedImage(
             assetPath: eyebrowAsset,
             color: hairColor,
           ),
+
+          // Mouth is already colorization-ready and
+          // therefore remains unfiltered.
           fixedImage(
             assetPath: mouthAsset,
           ),
-          tintedImage(
-            assetPath: hairAsset,
-            color: hairColor,
-          ),
+
+          // Bald has no image layer at all.
+          if (hairAsset != null)
+            tintedImage(
+              assetPath: hairAsset,
+              color: hairColor,
+            ),
         ],
       ),
     );
@@ -1056,28 +1079,53 @@ class _CharacterCreationScreenState
     }
   }
 
-  String _eyesAssetFor(
+  String _eyesBaseAssetFor(
     LifeStage stage,
   ) {
     switch (stage) {
       case LifeStage.infant:
         return 'assets/character/eyes/'
-            'infant_eyes.png';
+            'infant_eyes_base_v1.png';
 
       case LifeStage.toddler:
         return 'assets/character/eyes/'
-            'toddler_eyes.png';
+            'toddler_eyes_base_v1.png';
 
       case LifeStage.child:
         return 'assets/character/eyes/'
-            'child_eyes.png';
+            'child_eyes_base_v1.png';
 
       case LifeStage.teen:
       case LifeStage.youngAdult:
       case LifeStage.adult:
       case LifeStage.senior:
         return 'assets/character/eyes/'
-            'adult_eyes.png';
+            'adult_eyes_base_v1.png';
+    }
+  }
+
+  String _eyesIrisAssetFor(
+    LifeStage stage,
+  ) {
+    switch (stage) {
+      case LifeStage.infant:
+        return 'assets/character/eyes/'
+            'infant_eyes_iris_v1.png';
+
+      case LifeStage.toddler:
+        return 'assets/character/eyes/'
+            'toddler_eyes_iris_v1.png';
+
+      case LifeStage.child:
+        return 'assets/character/eyes/'
+            'child_eyes_iris_v1.png';
+
+      case LifeStage.teen:
+      case LifeStage.youngAdult:
+      case LifeStage.adult:
+      case LifeStage.senior:
+        return 'assets/character/eyes/'
+            'adult_eyes_iris_v1.png';
     }
   }
 
@@ -1112,35 +1160,47 @@ class _CharacterCreationScreenState
     switch (stage) {
       case LifeStage.infant:
         return 'assets/character/mouth/'
-            'infant_mouth.png';
+            'infant_mouth_v1.png';
 
       case LifeStage.toddler:
         return 'assets/character/mouth/'
-            'toddler_mouth.png';
+            'toddler_mouth_v1.png';
 
       case LifeStage.child:
         return 'assets/character/mouth/'
-            'child_mouth.png';
+            'child_mouth_v1.png';
 
       case LifeStage.teen:
       case LifeStage.youngAdult:
       case LifeStage.adult:
       case LifeStage.senior:
         return 'assets/character/mouth/'
-            'adult_mouth.png';
+            'adult_mouth_v1.png';
     }
   }
 
-  String _hairAssetFor({
+  String? _hairAssetFor({
     required CharacterAppearance appearance,
     required Gender gender,
   }) {
+    if (appearance.hair == 'bald') {
+      return null;
+    }
+
     final List<String> available =
         gender == Gender.female
             ? _femaleHairStyles
             : _maleHairStyles;
 
-    if (available.contains(
+    final List<String> nonBaldStyles =
+        available
+            .where(
+              (String value) =>
+                  value != 'bald',
+            )
+            .toList();
+
+    if (nonBaldStyles.contains(
       appearance.hair,
     )) {
       return 'assets/character/hair/'
@@ -1148,7 +1208,7 @@ class _CharacterCreationScreenState
     }
 
     return 'assets/character/hair/'
-        '${available.first}.png';
+        '${nonBaldStyles.first}.png';
   }
 
   Widget _buildCompactIdentityFields(
@@ -1648,6 +1708,9 @@ class _CharacterCreationScreenState
                   '$assetDirectory/'
                   '$value.png';
 
+              final bool isBald =
+                  value == 'bald';
+
               return InkWell(
                 borderRadius:
                     BorderRadius.circular(
@@ -1711,24 +1774,35 @@ class _CharacterCreationScreenState
                             .center,
                     children: [
                       Expanded(
-                        child:
-                            ColorFiltered(
-                          colorFilter:
-                              ColorFilter.mode(
-                            color ??
-                                Colors.white,
-                            BlendMode.modulate,
-                          ),
-                          child:
-                              Image.asset(
-                            assetPath,
-                            fit: BoxFit
-                                .contain,
-                            filterQuality:
-                                FilterQuality
-                                    .high,
-                          ),
-                        ),
+                        child: isBald
+                            ? Image.asset(
+                                assetPath,
+                                fit: BoxFit
+                                    .contain,
+                                filterQuality:
+                                    FilterQuality
+                                        .high,
+                              )
+                            : ColorFiltered(
+                                colorFilter:
+                                    ColorFilter
+                                        .mode(
+                                  color ??
+                                      Colors
+                                          .white,
+                                  BlendMode
+                                      .modulate,
+                                ),
+                                child:
+                                    Image.asset(
+                                  assetPath,
+                                  fit: BoxFit
+                                      .contain,
+                                  filterQuality:
+                                      FilterQuality
+                                          .high,
+                                ),
+                              ),
                       ),
                       SizedBox(
                         height: s(2),
