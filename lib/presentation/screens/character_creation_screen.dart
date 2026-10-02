@@ -924,7 +924,7 @@ class _CharacterCreationScreenState
         _hairColors[
                 appearance.hairColor] ??
             _hairColors.values.first;
-    
+
     final String headAsset =
         _headAssetFor(stage);
 
@@ -1009,12 +1009,8 @@ class _CharacterCreationScreenState
             assetPath: eyesBaseAsset,
           ),
 
-          // The iris is a dedicated alpha-based
-          // colorization mask. srcIn uses the
-          // existing iris alpha as the mask and
-          // applies eyeColor uniformly across the
-          // complete visible iris area.
-          // TEST A: iris sengaja dimatikan.
+          // TEST A:
+          // Iris sengaja dimatikan.
           // HEAD + EYES BASE SAJA untuk diagnosis halo.
 
           tintedImage(
@@ -1095,31 +1091,6 @@ class _CharacterCreationScreenState
       case LifeStage.senior:
         return 'assets/character/eyes/'
             'adult_eyes_base_v1.png';
-    }
-  }
-
-  String _eyesIrisAssetFor(
-    LifeStage stage,
-  ) {
-    switch (stage) {
-      case LifeStage.infant:
-        return 'assets/character/eyes/'
-            'infant_eyes_iris_v1.png';
-
-      case LifeStage.toddler:
-        return 'assets/character/eyes/'
-            'toddler_eyes_iris_v1.png';
-
-      case LifeStage.child:
-        return 'assets/character/eyes/'
-            'child_eyes_iris_v1.png';
-
-      case LifeStage.teen:
-      case LifeStage.youngAdult:
-      case LifeStage.adult:
-      case LifeStage.senior:
-        return 'assets/character/eyes/'
-            'adult_eyes_iris_v1.png';
     }
   }
 
