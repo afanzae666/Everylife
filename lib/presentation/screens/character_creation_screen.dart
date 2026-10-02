@@ -1022,11 +1022,8 @@ class _CharacterCreationScreenState
           // existing iris alpha as the mask and
           // applies eyeColor uniformly across the
           // complete visible iris area.
-          tintedImage(
-            assetPath: eyesIrisAsset,
-            color: eyeColor,
-            blendMode: BlendMode.srcIn,
-          ),
+          // TEST A: iris sengaja dimatikan.
+          // HEAD + EYES BASE SAJA untuk diagnosis halo.
 
           tintedImage(
             assetPath: eyebrowAsset,
