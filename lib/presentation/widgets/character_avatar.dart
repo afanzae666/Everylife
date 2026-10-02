@@ -36,6 +36,7 @@ class CharacterAvatar extends StatelessWidget {
           _layer(
             _headAsset(stage),
             color: skinColor,
+            useSkinGamma: true,
           ),
           _layer(
             _eyesAsset(stage),
@@ -60,6 +61,7 @@ class CharacterAvatar extends StatelessWidget {
   Widget _layer(
     String assetPath, {
     Color? color,
+    bool useSkinGamma = false,
   }) {
     final image = Image.asset(
       assetPath,
@@ -73,12 +75,21 @@ class CharacterAvatar extends StatelessWidget {
       return image;
     }
 
+    Widget colorizedImage = image;
+
+    if (useSkinGamma) {
+      colorizedImage = ColorFiltered(
+        colorFilter: const ColorFilter.linearToSrgbGamma(),
+        child: colorizedImage,
+      );
+    }
+
     return ColorFiltered(
       colorFilter: ColorFilter.mode(
         color,
         BlendMode.modulate,
       ),
-      child: image,
+      child: colorizedImage,
     );
   }
 
