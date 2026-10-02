@@ -40,21 +40,28 @@ class _CharacterCreationScreenState
         return newValue;
       }
 
-      final StringBuffer buffer = StringBuffer();
+      final StringBuffer buffer =
+          StringBuffer();
 
       bool capitalizeNext = true;
 
-      for (final int rune in newValue.text.runes) {
-        final String character = String.fromCharCode(rune);
+      for (final int rune
+          in newValue.text.runes) {
+        final String character =
+            String.fromCharCode(rune);
 
-        if (RegExp(r'\s').hasMatch(character)) {
+        if (RegExp(r'\s').hasMatch(
+          character,
+        )) {
           buffer.write(character);
           capitalizeNext = true;
           continue;
         }
 
         if (capitalizeNext) {
-          buffer.write(character.toUpperCase());
+          buffer.write(
+            character.toUpperCase(),
+          );
           capitalizeNext = false;
         } else {
           buffer.write(character);
@@ -76,7 +83,8 @@ class _CharacterCreationScreenState
 
   int _birthYear = _maximumBirthYear;
 
-  CharacterAppearance _appearance = const CharacterAppearance(
+  CharacterAppearance _appearance =
+      const CharacterAppearance(
     base: 'default',
     skinTone: 'skin_04',
     hair: 'male_hair_01',
@@ -138,9 +146,11 @@ class _CharacterCreationScreenState
   }
 
   void _createCharacter() {
-    final String firstName = _firstNameController.text.trim();
+    final String firstName =
+        _firstNameController.text.trim();
 
-    final String lastName = _lastNameController.text.trim();
+    final String lastName =
+        _lastNameController.text.trim();
 
     if (firstName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -164,8 +174,10 @@ class _CharacterCreationScreenState
       return;
     }
 
-    final Character character = Character.create(
-      id: 'player-${DateTime.now().microsecondsSinceEpoch}',
+    final Character character =
+        Character.create(
+      id:
+          'player-${DateTime.now().microsecondsSinceEpoch}',
       firstName: firstName,
       lastName: lastName,
       gender: _gender,
@@ -173,7 +185,9 @@ class _CharacterCreationScreenState
       appearance: _appearance,
     );
 
-    widget.onCharacterCreated(character);
+    widget.onCharacterCreated(
+      character,
+    );
   }
 
   void _showBirthYearPicker() {
@@ -190,7 +204,8 @@ class _CharacterCreationScreenState
             StateSetter setDialogState,
           ) {
             final int initialItem =
-                _maximumBirthYear - temporaryYear;
+                _maximumBirthYear -
+                    temporaryYear;
 
             return AlertDialog(
               title: const Text(
@@ -202,12 +217,15 @@ class _CharacterCreationScreenState
                 child: Column(
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment:
+                          MainAxisAlignment.center,
                       children: [
                         IconButton(
-                          tooltip: 'Previous year',
+                          tooltip:
+                              'Previous year',
                           onPressed:
-                              temporaryYear > _minimumBirthYear
+                              temporaryYear >
+                                      _minimumBirthYear
                                   ? () {
                                       setDialogState(
                                         () {
@@ -227,14 +245,18 @@ class _CharacterCreationScreenState
                               '$temporaryYear',
                               style: Theme.of(
                                 context,
-                              ).textTheme.headlineMedium,
+                              )
+                                  .textTheme
+                                  .headlineMedium,
                             ),
                           ),
                         ),
                         IconButton(
-                          tooltip: 'Next year',
+                          tooltip:
+                              'Next year',
                           onPressed:
-                              temporaryYear < _maximumBirthYear
+                              temporaryYear <
+                                      _maximumBirthYear
                                   ? () {
                                       setDialogState(
                                         () {
@@ -253,24 +275,30 @@ class _CharacterCreationScreenState
                       height: 8,
                     ),
                     Expanded(
-                      child: ListWheelScrollView.useDelegate(
-                        controller: FixedExtentScrollController(
-                          initialItem: initialItem,
+                      child:
+                          ListWheelScrollView.useDelegate(
+                        controller:
+                            FixedExtentScrollController(
+                          initialItem:
+                              initialItem,
                         ),
                         itemExtent: 44,
                         perspective: 0.003,
                         diameterRatio: 1.4,
                         physics:
                             const FixedExtentScrollPhysics(),
-                        onSelectedItemChanged: (
+                        onSelectedItemChanged:
+                            (
                           int index,
                         ) {
                           final int year =
-                              _maximumBirthYear - index;
+                              _maximumBirthYear -
+                                  index;
 
                           setDialogState(
                             () {
-                              temporaryYear = year;
+                              temporaryYear =
+                                  year;
                             },
                           );
                         },
@@ -285,25 +313,34 @@ class _CharacterCreationScreenState
                             int index,
                           ) {
                             final int year =
-                                _maximumBirthYear - index;
+                                _maximumBirthYear -
+                                    index;
 
                             final bool selected =
-                                year == temporaryYear;
+                                year ==
+                                    temporaryYear;
 
                             return Center(
                               child: Text(
                                 '$year',
-                                style: TextStyle(
+                                style:
+                                    TextStyle(
                                   fontSize:
-                                      selected ? 22 : 17,
+                                      selected
+                                          ? 22
+                                          : 17,
                                   fontWeight:
                                       selected
-                                          ? FontWeight.w600
-                                          : FontWeight.normal,
+                                          ? FontWeight
+                                              .w600
+                                          : FontWeight
+                                              .normal,
                                   color: selected
                                       ? Theme.of(
                                           context,
-                                        ).colorScheme.primary
+                                        )
+                                          .colorScheme
+                                          .primary
                                       : null,
                                 ),
                               ),
@@ -329,7 +366,8 @@ class _CharacterCreationScreenState
                 FilledButton(
                   onPressed: () {
                     setState(() {
-                      _birthYear = temporaryYear;
+                      _birthYear =
+                          temporaryYear;
                     });
 
                     Navigator.of(
@@ -349,7 +387,8 @@ class _CharacterCreationScreenState
   }
 
   void _showAppearanceDialog() {
-    CharacterAppearance temporaryAppearance = _appearance;
+    CharacterAppearance temporaryAppearance =
+        _appearance;
 
     showDialog<void>(
       context: context,
@@ -366,22 +405,26 @@ class _CharacterCreationScreenState
               CharacterAppearance next,
             ) {
               setDialogState(() {
-                temporaryAppearance = next;
+                temporaryAppearance =
+                    next;
               });
             }
 
             return Dialog(
-              insetPadding: const EdgeInsets.symmetric(
+              insetPadding:
+                  const EdgeInsets.symmetric(
                 horizontal: 18,
                 vertical: 24,
               ),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(
+                constraints:
+                    const BoxConstraints(
                   maxWidth: 520,
                   maxHeight: 720,
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding:
+                      const EdgeInsets.all(16),
                   child: Column(
                     children: [
                       Row(
@@ -391,7 +434,9 @@ class _CharacterCreationScreenState
                               'Customize Appearance',
                               style: Theme.of(
                                 context,
-                              ).textTheme.titleLarge,
+                              )
+                                  .textTheme
+                                  .titleLarge,
                             ),
                           ),
                           IconButton(
@@ -411,13 +456,16 @@ class _CharacterCreationScreenState
                         height: 4,
                       ),
                       Expanded(
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.only(
+                        child:
+                            SingleChildScrollView(
+                          padding:
+                              const EdgeInsets.only(
                             bottom: 8,
                           ),
                           child: Column(
                             crossAxisAlignment:
-                                CrossAxisAlignment.start,
+                                CrossAxisAlignment
+                                    .start,
                             children: [
                               _buildAppearancePreviewFor(
                                 context,
@@ -440,23 +488,28 @@ class _CharacterCreationScreenState
                                 context: context,
                                 zoom: 1.0,
                                 title: 'Hair',
-                                values: _currentHairStyles(),
+                                values:
+                                    _currentHairStyles(),
                                 selected:
-                                    temporaryAppearance.hair,
+                                    temporaryAppearance
+                                        .hair,
                                 assetDirectory:
                                     'assets/character/hair',
-                                onSelected: (
+                                onSelected:
+                                    (
                                   String value,
                                 ) {
                                   updateTemporaryAppearance(
-                                    temporaryAppearance.copyWith(
+                                    temporaryAppearance
+                                        .copyWith(
                                       hair: value,
                                     ),
                                   );
                                 },
-                                color: _hairColors[
-                                    temporaryAppearance
-                                        .hairColor],
+                                color:
+                                    _hairColors[
+                                        temporaryAppearance
+                                            .hairColor],
                               ),
                               const SizedBox(
                                 height: 14,
@@ -465,16 +518,20 @@ class _CharacterCreationScreenState
                                 context: context,
                                 zoom: 1.0,
                                 title: 'Hair Color',
-                                colors: _hairColors,
+                                colors:
+                                    _hairColors,
                                 selected:
                                     temporaryAppearance
                                         .hairColor,
-                                onSelected: (
+                                onSelected:
+                                    (
                                   String value,
                                 ) {
                                   updateTemporaryAppearance(
-                                    temporaryAppearance.copyWith(
-                                      hairColor: value,
+                                    temporaryAppearance
+                                        .copyWith(
+                                      hairColor:
+                                          value,
                                     ),
                                   );
                                 },
@@ -486,16 +543,20 @@ class _CharacterCreationScreenState
                                 context: context,
                                 zoom: 1.0,
                                 title: 'Eye Color',
-                                colors: _eyeColors,
+                                colors:
+                                    _eyeColors,
                                 selected:
                                     temporaryAppearance
                                         .eyeColor,
-                                onSelected: (
+                                onSelected:
+                                    (
                                   String value,
                                 ) {
                                   updateTemporaryAppearance(
-                                    temporaryAppearance.copyWith(
-                                      eyeColor: value,
+                                    temporaryAppearance
+                                        .copyWith(
+                                      eyeColor:
+                                          value,
                                     ),
                                   );
                                 },
@@ -547,7 +608,8 @@ class _CharacterCreationScreenState
   Widget build(
     BuildContext context,
   ) {
-    final ValueNotifier<double>? controller =
+    final ValueNotifier<double>?
+        controller =
         widget.uiScaleController;
 
     if (controller == null) {
@@ -579,9 +641,11 @@ class _CharacterCreationScreenState
     final MediaQueryData mediaQuery =
         MediaQuery.of(context);
 
-    final MediaQueryData scaledMediaQuery =
+    final MediaQueryData
+        scaledMediaQuery =
         mediaQuery.copyWith(
-      textScaler: TextScaler.linear(zoom),
+      textScaler:
+          TextScaler.linear(zoom),
     );
 
     return MediaQuery(
@@ -597,7 +661,8 @@ class _CharacterCreationScreenState
     BuildContext context,
     double zoom,
   ) {
-    double s(double value) => value * zoom;
+    double s(double value) =>
+        value * zoom;
 
     return Scaffold(
       appBar: AppBar(
@@ -617,9 +682,9 @@ class _CharacterCreationScreenState
             children: [
               Text(
                 'Create Your Character',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge,
                 textAlign: TextAlign.center,
               ),
               SizedBox(
@@ -627,9 +692,9 @@ class _CharacterCreationScreenState
               ),
               Text(
                 'Your life begins at birth.',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall,
                 textAlign: TextAlign.center,
               ),
               SizedBox(
@@ -637,7 +702,8 @@ class _CharacterCreationScreenState
               ),
               Expanded(
                 child: _ResponsiveCard(
-                  padding: EdgeInsets.fromLTRB(
+                  padding:
+                      EdgeInsets.fromLTRB(
                     s(10),
                     s(8),
                     s(10),
@@ -647,7 +713,8 @@ class _CharacterCreationScreenState
                     children: [
                       Expanded(
                         flex: 5,
-                        child: _buildMainAvatarPreview(
+                        child:
+                            _buildMainAvatarPreview(
                           context,
                           zoom,
                         ),
@@ -688,7 +755,8 @@ class _CharacterCreationScreenState
                 width: double.infinity,
                 height: s(46),
                 child: FilledButton.icon(
-                  onPressed: _createCharacter,
+                  onPressed:
+                      _createCharacter,
                   icon: Icon(
                     Icons.child_friendly,
                     size: s(18),
@@ -709,7 +777,8 @@ class _CharacterCreationScreenState
     BuildContext context,
     double zoom,
   ) {
-    final int age = _previewAge();
+    final int age =
+        _previewAge();
 
     final LifeStage stage =
         LifeStageAge.fromAge(age);
@@ -727,7 +796,8 @@ class _CharacterCreationScreenState
 
   int _previewAge() {
     final int age =
-        _maximumBirthYear - _birthYear;
+        _maximumBirthYear -
+            _birthYear;
 
     return age.clamp(0, 126);
   }
@@ -741,18 +811,20 @@ class _CharacterCreationScreenState
       width: double.infinity,
       height: 205 * zoom,
       decoration: BoxDecoration(
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(
               alpha: 0.35,
             ),
-        borderRadius: BorderRadius.circular(
+        borderRadius:
+            BorderRadius.circular(
           10 * zoom,
         ),
         border: Border.all(
-          color: Theme.of(
-            context,
-          ).dividerColor.withValues(
+          color: Theme.of(context)
+              .dividerColor
+              .withValues(
                 alpha: 0.5,
               ),
         ),
@@ -775,7 +847,8 @@ class _CharacterCreationScreenState
     required Color skinColor,
     required LifeStage stage,
   }) {
-    final double referenceGray = switch (stage) {
+    final double referenceGray =
+        switch (stage) {
       LifeStage.infant => 192.0,
       LifeStage.toddler => 188.0,
       LifeStage.child => 187.0,
@@ -785,11 +858,14 @@ class _CharacterCreationScreenState
       LifeStage.senior => 182.0,
     };
 
-    const double redSlope = 0.861905;
+    const double redSlope =
+        0.861905;
 
-    const double greenSlope = 0.948850;
+    const double greenSlope =
+        0.948850;
 
-    const double blueSlope = 0.886153;
+    const double blueSlope =
+        0.886153;
 
     final double targetRed =
         skinColor.r * 255.0;
@@ -836,7 +912,8 @@ class _CharacterCreationScreenState
     required double size,
     required double containerSize,
   }) {
-    double s(double value) => value * zoom;
+    double s(double value) =>
+        value * zoom;
 
     final Color skinColor =
         _skinToneColors[
@@ -870,7 +947,8 @@ class _CharacterCreationScreenState
       required String assetPath,
       required Color color,
       bool useSkinGamma = false,
-      BlendMode blendMode = BlendMode.modulate,
+      BlendMode blendMode =
+          BlendMode.modulate,
     }) {
       final Widget image = Image.asset(
         assetPath,
@@ -931,12 +1009,13 @@ class _CharacterCreationScreenState
             assetPath: eyesBaseAsset,
           ),
 
-          // Iris is a separate layer.
-          // Only the iris receives eyeColor.
+          // TEST B:
+          // Iris diaktifkan sebagai layer terpisah.
+          // Hanya iris yang menerima eyeColor.
           ColorFiltered(
             colorFilter: ColorFilter.mode(
               _eyeColors[
-                    appearance.eyeColor,
+                    appearance.eyeColor
                   ] ??
                   _eyeColors.values.first,
               BlendMode.modulate,
@@ -952,8 +1031,8 @@ class _CharacterCreationScreenState
             color: hairColor,
           ),
 
-          // Mouth is already colorization-ready
-          // and therefore remains unfiltered.
+          // Mouth is already colorization-ready and
+          // therefore remains unfiltered.
           fixedImage(
             assetPath: mouthAsset,
           ),
@@ -1094,7 +1173,8 @@ class _CharacterCreationScreenState
     final List<String> nonBaldStyles =
         available
             .where(
-              (String value) => value != 'bald',
+              (String value) =>
+                  value != 'bald',
             )
             .toList();
 
@@ -1113,7 +1193,8 @@ class _CharacterCreationScreenState
     BuildContext context,
     double zoom,
   ) {
-    double s(double value) => value * zoom;
+    double s(double value) =>
+        value * zoom;
 
     return Column(
       children: [
@@ -1200,7 +1281,8 @@ class _CharacterCreationScreenState
     BuildContext context,
     double zoom,
   ) {
-    double s(double value) => value * zoom;
+    double s(double value) =>
+        value * zoom;
 
     return InkWell(
       borderRadius:
@@ -1217,7 +1299,8 @@ class _CharacterCreationScreenState
           border:
               OutlineInputBorder(),
           isDense: true,
-          suffixIcon: Icon(
+          suffixIcon:
+              Icon(
             Icons.arrow_drop_down,
           ),
         ),
@@ -1277,23 +1360,28 @@ class _CharacterCreationScreenState
               ListTile(
                 leading: Icon(
                   _gender == Gender.male
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_unchecked,
+                      ? Icons
+                          .radio_button_checked
+                      : Icons
+                          .radio_button_unchecked,
                 ),
                 title: const Text(
                   'Male',
                 ),
                 onTap: () {
                   setState(() {
-                    _gender = Gender.male;
+                    _gender =
+                        Gender.male;
 
-                    if (!_maleHairStyles.contains(
+                    if (!_maleHairStyles
+                        .contains(
                       _appearance.hair,
                     )) {
                       _appearance =
                           _appearance.copyWith(
                         hair:
-                            _maleHairStyles.first,
+                            _maleHairStyles
+                                .first,
                       );
                     }
                   });
@@ -1306,23 +1394,28 @@ class _CharacterCreationScreenState
               ListTile(
                 leading: Icon(
                   _gender == Gender.female
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_unchecked,
+                      ? Icons
+                          .radio_button_checked
+                      : Icons
+                          .radio_button_unchecked,
                 ),
                 title: const Text(
                   'Female',
                 ),
                 onTap: () {
                   setState(() {
-                    _gender = Gender.female;
+                    _gender =
+                        Gender.female;
 
-                    if (!_femaleHairStyles.contains(
+                    if (!_femaleHairStyles
+                        .contains(
                       _appearance.hair,
                     )) {
                       _appearance =
                           _appearance.copyWith(
                         hair:
-                            _femaleHairStyles.first,
+                            _femaleHairStyles
+                                .first,
                       );
                     }
                   });
@@ -1346,7 +1439,8 @@ class _CharacterCreationScreenState
     ValueChanged<CharacterAppearance>
         onChanged,
   ) {
-    double s(double value) => value * zoom;
+    double s(double value) =>
+        value * zoom;
 
     return Column(
       crossAxisAlignment:
@@ -1354,9 +1448,9 @@ class _CharacterCreationScreenState
       children: [
         Text(
           'Skin Tone',
-          style: Theme.of(
-            context,
-          ).textTheme.titleSmall,
+          style: Theme.of(context)
+              .textTheme
+              .titleSmall,
         ),
         SizedBox(
           height: s(5),
@@ -1368,7 +1462,8 @@ class _CharacterCreationScreenState
                 Axis.horizontal,
             itemCount:
                 _skinToneColors.length,
-            separatorBuilder: (
+            separatorBuilder:
+                (
               BuildContext context,
               int index,
             ) {
@@ -1376,7 +1471,8 @@ class _CharacterCreationScreenState
                 width: s(8),
               );
             },
-            itemBuilder: (
+            itemBuilder:
+                (
               BuildContext context,
               int index,
             ) {
@@ -1388,7 +1484,8 @@ class _CharacterCreationScreenState
                   _skinToneColors[key]!;
 
               final bool selected =
-                  appearance.skinTone == key;
+                  appearance.skinTone ==
+                      key;
 
               return _buildColorDot(
                 context: context,
@@ -1419,7 +1516,8 @@ class _CharacterCreationScreenState
     required ValueChanged<String>
         onSelected,
   }) {
-    double s(double value) => value * zoom;
+    double s(double value) =>
+        value * zoom;
 
     return Column(
       crossAxisAlignment:
@@ -1427,9 +1525,9 @@ class _CharacterCreationScreenState
       children: [
         Text(
           title,
-          style: Theme.of(
-            context,
-          ).textTheme.titleSmall,
+          style: Theme.of(context)
+              .textTheme
+              .titleSmall,
         ),
         SizedBox(
           height: s(5),
@@ -1439,8 +1537,10 @@ class _CharacterCreationScreenState
           child: ListView.separated(
             scrollDirection:
                 Axis.horizontal,
-            itemCount: colors.length,
-            separatorBuilder: (
+            itemCount:
+                colors.length,
+            separatorBuilder:
+                (
               BuildContext context,
               int index,
             ) {
@@ -1448,7 +1548,8 @@ class _CharacterCreationScreenState
                 width: s(8),
               );
             },
-            itemBuilder: (
+            itemBuilder:
+                (
               BuildContext context,
               int index,
             ) {
@@ -1469,7 +1570,9 @@ class _CharacterCreationScreenState
                 color: color,
                 selected: isSelected,
                 onTap: () {
-                  onSelected(key);
+                  onSelected(
+                    key,
+                  );
                 },
               );
             },
@@ -1486,7 +1589,8 @@ class _CharacterCreationScreenState
     required bool selected,
     required VoidCallback onTap,
   }) {
-    double s(double value) => value * zoom;
+    double s(double value) =>
+        value * zoom;
 
     return InkWell(
       borderRadius:
@@ -1495,24 +1599,28 @@ class _CharacterCreationScreenState
       ),
       onTap: onTap,
       child: Padding(
-        padding: EdgeInsets.all(
-          s(2),
-        ),
+        padding:
+            EdgeInsets.all(s(2)),
         child: Container(
           width: s(36),
           height: s(36),
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
+            shape:
+                BoxShape.circle,
             color: color,
             border: Border.all(
               color: selected
                   ? Theme.of(
                       context,
-                    ).colorScheme.primary
+                    )
+                      .colorScheme
+                      .primary
                   : Theme.of(
                       context,
                     ).dividerColor,
-              width: selected ? s(3) : s(1),
+              width: selected
+                  ? s(3)
+                  : s(1),
             ),
           ),
         ),
@@ -1531,7 +1639,8 @@ class _CharacterCreationScreenState
         onSelected,
     required Color? color,
   }) {
-    double s(double value) => value * zoom;
+    double s(double value) =>
+        value * zoom;
 
     return Column(
       crossAxisAlignment:
@@ -1539,9 +1648,9 @@ class _CharacterCreationScreenState
       children: [
         Text(
           title,
-          style: Theme.of(
-            context,
-          ).textTheme.titleSmall,
+          style: Theme.of(context)
+              .textTheme
+              .titleSmall,
         ),
         SizedBox(
           height: s(5),
@@ -1551,8 +1660,10 @@ class _CharacterCreationScreenState
           child: ListView.separated(
             scrollDirection:
                 Axis.horizontal,
-            itemCount: values.length,
-            separatorBuilder: (
+            itemCount:
+                values.length,
+            separatorBuilder:
+                (
               BuildContext context,
               int index,
             ) {
@@ -1560,7 +1671,8 @@ class _CharacterCreationScreenState
                 width: s(6),
               );
             },
-            itemBuilder: (
+            itemBuilder:
+                (
               BuildContext context,
               int index,
             ) {
@@ -1583,7 +1695,9 @@ class _CharacterCreationScreenState
                   s(8),
                 ),
                 onTap: () {
-                  onSelected(value);
+                  onSelected(
+                    value,
+                  );
                 },
                 child: Container(
                   width: s(78),
@@ -1604,7 +1718,9 @@ class _CharacterCreationScreenState
                             )
                         : Theme.of(
                             context,
-                          ).colorScheme.surface,
+                          )
+                            .colorScheme
+                            .surface,
                     borderRadius:
                         BorderRadius.circular(
                       s(8),
@@ -1622,7 +1738,8 @@ class _CharacterCreationScreenState
                             )
                               .dividerColor
                               .withValues(
-                                alpha: 0.6,
+                                alpha:
+                                    0.6,
                               ),
                       width: isSelected
                           ? s(2)
@@ -1631,29 +1748,37 @@ class _CharacterCreationScreenState
                   ),
                   child: Column(
                     mainAxisAlignment:
-                        MainAxisAlignment.center,
+                        MainAxisAlignment
+                            .center,
                     children: [
                       Expanded(
                         child: isBald
                             ? Image.asset(
                                 assetPath,
-                                fit: BoxFit.contain,
+                                fit: BoxFit
+                                    .contain,
                                 filterQuality:
-                                    FilterQuality.high,
+                                    FilterQuality
+                                        .high,
                               )
                             : ColorFiltered(
                                 colorFilter:
-                                    ColorFilter.mode(
+                                    ColorFilter
+                                        .mode(
                                   color ??
-                                      Colors.white,
-                                  BlendMode.modulate,
+                                      Colors
+                                          .white,
+                                  BlendMode
+                                      .modulate,
                                 ),
                                 child:
                                     Image.asset(
                                   assetPath,
-                                  fit: BoxFit.contain,
+                                  fit: BoxFit
+                                      .contain,
                                   filterQuality:
-                                      FilterQuality.high,
+                                      FilterQuality
+                                          .high,
                                 ),
                               ),
                       ),
@@ -1661,7 +1786,9 @@ class _CharacterCreationScreenState
                         height: s(2),
                       ),
                       Text(
-                        _prettyLabel(value),
+                        _prettyLabel(
+                          value,
+                        ),
                         maxLines: 1,
                         overflow:
                             TextOverflow.ellipsis,
@@ -1701,7 +1828,8 @@ class _CharacterCreationScreenState
         .where(
           (
             String word,
-          ) => word.isNotEmpty,
+          ) =>
+              word.isNotEmpty,
         )
         .map(
           (
