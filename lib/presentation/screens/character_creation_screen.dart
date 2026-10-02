@@ -925,11 +925,19 @@ class _CharacterCreationScreenState
                 appearance.hairColor] ??
             _hairColors.values.first;
 
+    final Color eyeColor =
+        _eyeColors[
+                appearance.eyeColor] ??
+            _eyeColors.values.first;
+
     final String headAsset =
         _headAssetFor(stage);
 
     final String eyesBaseAsset =
         _eyesBaseAssetFor(stage);
+
+    final String eyesIrisAsset =
+        _eyesIrisAssetFor(stage);
 
     final String eyebrowAsset =
         _eyebrowAssetFor(stage);
@@ -1002,27 +1010,22 @@ class _CharacterCreationScreenState
             useSkinGamma: true,
           ),
 
-          // The base eye layer contains the sclera,
-          // pupil/outline structure, and other fixed
-          // eye details. It must NOT receive eyeColor.
+          // Base eye layer:
+          // sclera, eye outline and fixed eye details.
+          // It must NOT receive eyeColor.
           fixedImage(
             assetPath: eyesBaseAsset,
           ),
 
-          // TEST B:
-          // Iris diaktifkan sebagai layer terpisah.
-          // Hanya iris yang menerima eyeColor.
+          // Iris is a separate layer.
+          // Only the iris receives eyeColor.
           ColorFiltered(
             colorFilter: ColorFilter.mode(
-              _eyeColors[
-                    appearance.eyeColor
-                  ] ??
-                  _eyeColors.values.first,
+              eyeColor,
               BlendMode.modulate,
             ),
             child: fixedImage(
-              assetPath:
-                  'assets/character/eyes/eyes_iris_prototype.png',
+              assetPath: eyesIrisAsset,
             ),
           ),
 
@@ -1031,8 +1034,8 @@ class _CharacterCreationScreenState
             color: hairColor,
           ),
 
-          // Mouth is already colorization-ready and
-          // therefore remains unfiltered.
+          // Mouth is already colorization-ready
+          // and therefore remains unfiltered.
           fixedImage(
             assetPath: mouthAsset,
           ),
@@ -1104,6 +1107,31 @@ class _CharacterCreationScreenState
       case LifeStage.senior:
         return 'assets/character/eyes/'
             'adult_eyes_base_v1.png';
+    }
+  }
+
+  String _eyesIrisAssetFor(
+    LifeStage stage,
+  ) {
+    switch (stage) {
+      case LifeStage.infant:
+        return 'assets/character/eyes/'
+            'infant_eyes_iris_v1.png';
+
+      case LifeStage.toddler:
+        return 'assets/character/eyes/'
+            'toddler_eyes_iris_v1.png';
+
+      case LifeStage.child:
+        return 'assets/character/eyes/'
+            'child_eyes_iris_v1.png';
+
+      case LifeStage.teen:
+      case LifeStage.youngAdult:
+      case LifeStage.adult:
+      case LifeStage.senior:
+        return 'assets/character/eyes/'
+            'adult_eyes_iris_v1.png';
     }
   }
 
