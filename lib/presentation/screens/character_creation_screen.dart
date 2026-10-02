@@ -889,6 +889,7 @@ class _CharacterCreationScreenState
     Widget tintedImage({
       required String assetPath,
       required Color color,
+      bool useSkinGamma = false,
     }) {
       final Widget image = Image.asset(
         assetPath,
@@ -898,12 +899,22 @@ class _CharacterCreationScreenState
         filterQuality: FilterQuality.high,
       );
 
+      Widget colorizedImage = image;
+
+      if (useSkinGamma) {
+        colorizedImage = ColorFiltered(
+          colorFilter:
+              const ColorFilter.linearToSrgbGamma(),
+          child: colorizedImage,
+        );
+      }
+
       return ColorFiltered(
         colorFilter: ColorFilter.mode(
           color,
           BlendMode.modulate,
         ),
-        child: image,
+        child: colorizedImage,
       );
     }
 
@@ -929,6 +940,7 @@ class _CharacterCreationScreenState
           tintedImage(
             assetPath: headAsset,
             color: skinColor,
+            useSkinGamma: true,
           ),
           tintedImage(
             assetPath: eyesAsset,
