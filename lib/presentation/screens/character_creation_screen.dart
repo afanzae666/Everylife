@@ -108,13 +108,13 @@ class _CharacterCreationScreenState
   ];
 
   static const Map<String, Color> _skinToneColors = {
-    'skin_01': Color(0xFFF7D2B4),
-    'skin_02': Color(0xFFF1B58D),
-    'skin_03': Color(0xFFD99A73),
-    'skin_04': Color(0xFFC47E5C),
-    'skin_05': Color(0xFFA96345),
-    'skin_06': Color(0xFF7D4B34),
-    'skin_07': Color(0xFF543126),
+    'skin_01': Color(0xFFDAA787),
+    'skin_02': Color(0xFFD5906A),
+    'skin_03': Color(0xFFC07A56),
+    'skin_04': Color(0xFFAD6445),
+    'skin_05': Color(0xFF954F34),
+    'skin_06': Color(0xFF6E3C27),
+    'skin_07': Color(0xFF4A271C),
   };
 
   static const Map<String, Color> _hairColors = {
@@ -841,6 +841,66 @@ class _CharacterCreationScreenState
     );
   }
 
+  ColorFilter _skinColorFilter({
+    required Color skinColor,
+    required LifeStage stage,
+  }) {
+    final double referenceGray =
+        switch (stage) {
+      LifeStage.infant => 192.0,
+      LifeStage.toddler => 188.0,
+      LifeStage.child => 187.0,
+      LifeStage.teen => 184.0,
+      LifeStage.youngAdult => 180.0,
+      LifeStage.adult => 181.0,
+      LifeStage.senior => 182.0,
+    };
+
+    const double redSlope =
+        0.861905;
+
+    const double greenSlope =
+        0.948850;
+
+    const double blueSlope =
+        0.886153;
+
+    final double targetRed =
+        skinColor.r * 255.0;
+
+    final double targetGreen =
+        skinColor.g * 255.0;
+
+    final double targetBlue =
+        skinColor.b * 255.0;
+
+    return ColorFilter.matrix([
+      redSlope,
+      0,
+      0,
+      0,
+      targetRed -
+          redSlope * referenceGray,
+      0,
+      greenSlope,
+      0,
+      0,
+      targetGreen -
+          greenSlope * referenceGray,
+      0,
+      0,
+      blueSlope,
+      0,
+      targetBlue -
+          blueSlope * referenceGray,
+      0,
+      0,
+      0,
+      1,
+      0,
+    ]);
+  }
+
   Widget _buildAvatarStack({
     required BuildContext context,
     required double zoom,
@@ -899,13 +959,13 @@ class _CharacterCreationScreenState
         filterQuality: FilterQuality.high,
       );
 
-      Widget colorizedImage = image;
-
       if (useSkinGamma) {
-        colorizedImage = ColorFiltered(
-          colorFilter:
-              const ColorFilter.linearToSrgbGamma(),
-          child: colorizedImage,
+        return ColorFiltered(
+          colorFilter: _skinColorFilter(
+            skinColor: color,
+            stage: stage,
+          ),
+          child: image,
         );
       }
 
@@ -914,7 +974,7 @@ class _CharacterCreationScreenState
           color,
           BlendMode.modulate,
         ),
-        child: colorizedImage,
+        child: image,
       );
     }
 
@@ -1679,8 +1739,7 @@ class _CharacterCreationScreenState
                         ),
                         maxLines: 1,
                         overflow:
-                            TextOverflow
-                                .ellipsis,
+                            TextOverflow.ellipsis,
                         textAlign:
                             TextAlign.center,
                         style:
