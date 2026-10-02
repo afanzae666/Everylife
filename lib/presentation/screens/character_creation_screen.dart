@@ -955,6 +955,8 @@ class _CharacterCreationScreenState
       required String assetPath,
       required Color color,
       bool useSkinGamma = false,
+      BlendMode blendMode =
+          BlendMode.modulate,
     }) {
       final Widget image = Image.asset(
         assetPath,
@@ -977,7 +979,7 @@ class _CharacterCreationScreenState
       return ColorFiltered(
         colorFilter: ColorFilter.mode(
           color,
-          BlendMode.modulate,
+          blendMode,
         ),
         child: image,
       );
@@ -1015,12 +1017,15 @@ class _CharacterCreationScreenState
             assetPath: eyesBaseAsset,
           ),
 
-          // Only the iris layer receives eyeColor.
-          // This prevents the sclera and other eye
-          // details from being colorized.
+          // The iris is a dedicated alpha-based
+          // colorization mask. srcIn uses the
+          // existing iris alpha as the mask and
+          // applies eyeColor uniformly across the
+          // complete visible iris area.
           tintedImage(
             assetPath: eyesIrisAsset,
             color: eyeColor,
+            blendMode: BlendMode.srcIn,
           ),
 
           tintedImage(
@@ -1082,15 +1087,51 @@ class _CharacterCreationScreenState
   String _eyesBaseAssetFor(
     LifeStage stage,
   ) {
-    return 'assets/character/eyes/'
-        'eyes_base_prototype.png';
+    switch (stage) {
+      case LifeStage.infant:
+        return 'assets/character/eyes/'
+            'infant_eyes_base_v1.png';
+
+      case LifeStage.toddler:
+        return 'assets/character/eyes/'
+            'toddler_eyes_base_v1.png';
+
+      case LifeStage.child:
+        return 'assets/character/eyes/'
+            'child_eyes_base_v1.png';
+
+      case LifeStage.teen:
+      case LifeStage.youngAdult:
+      case LifeStage.adult:
+      case LifeStage.senior:
+        return 'assets/character/eyes/'
+            'adult_eyes_base_v1.png';
+    }
   }
 
   String _eyesIrisAssetFor(
     LifeStage stage,
   ) {
-    return 'assets/character/eyes/'
-        'eyes_iris_prototype.png';
+    switch (stage) {
+      case LifeStage.infant:
+        return 'assets/character/eyes/'
+            'infant_eyes_iris_v1.png';
+
+      case LifeStage.toddler:
+        return 'assets/character/eyes/'
+            'toddler_eyes_iris_v1.png';
+
+      case LifeStage.child:
+        return 'assets/character/eyes/'
+            'child_eyes_iris_v1.png';
+
+      case LifeStage.teen:
+      case LifeStage.youngAdult:
+      case LifeStage.adult:
+      case LifeStage.senior:
+        return 'assets/character/eyes/'
+            'adult_eyes_iris_v1.png';
+    }
   }
 
   String _eyebrowAssetFor(
