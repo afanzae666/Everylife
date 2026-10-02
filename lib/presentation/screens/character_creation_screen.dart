@@ -924,20 +924,12 @@ class _CharacterCreationScreenState
         _hairColors[
                 appearance.hairColor] ??
             _hairColors.values.first;
-
-    final Color eyeColor =
-        _eyeColors[
-                appearance.eyeColor] ??
-            _eyeColors.values.first;
-
+    
     final String headAsset =
         _headAssetFor(stage);
 
     final String eyesBaseAsset =
         _eyesBaseAssetFor(stage);
-
-    final String eyesIrisAsset =
-        _eyesIrisAssetFor(stage);
 
     final String eyebrowAsset =
         _eyebrowAssetFor(stage);
