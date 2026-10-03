@@ -1091,22 +1091,22 @@ class _CharacterCreationScreenState
     switch (stage) {
       case LifeStage.infant:
         return 'assets/character/eyes/'
-            'infant_eyes_base_V3.png';
+            'infant_eyes_base_v3.png';
 
       case LifeStage.toddler:
         return 'assets/character/eyes/'
-            'toddler_eyes_base_V3.png';
+            'toddler_eyes_base_v3.png';
 
       case LifeStage.child:
         return 'assets/character/eyes/'
-            'child_eyes_base_V3.png';
+            'child_eyes_base_v3.png';
 
       case LifeStage.teen:
       case LifeStage.youngAdult:
       case LifeStage.adult:
       case LifeStage.senior:
         return 'assets/character/eyes/'
-            'adult_eyes_base_V3.png';
+            'adult_eyes_base_v3.png';
     }
   }
 
@@ -1116,22 +1116,22 @@ class _CharacterCreationScreenState
     switch (stage) {
       case LifeStage.infant:
         return 'assets/character/eyes/'
-            'infant_eyes_iris_V3.png';
+            'infant_eyes_iris_v3.png';
 
       case LifeStage.toddler:
         return 'assets/character/eyes/'
-            'toddler_eyes_iris_V3.png';
+            'toddler_eyes_iris_v3.png';
 
       case LifeStage.child:
         return 'assets/character/eyes/'
-            'child_eyes_iris_V3.png';
+            'child_eyes_iris_v3.png';
 
       case LifeStage.teen:
       case LifeStage.youngAdult:
       case LifeStage.adult:
       case LifeStage.senior:
         return 'assets/character/eyes/'
-            'adult_eyes_iris_V3.png';
+            'adult_eyes_iris_v3.png';
     }
   }
 
