@@ -903,6 +903,46 @@ class _CharacterCreationScreenState
     ]);
   }
 
+  ColorFilter _irisColorFilter({
+    required Color eyeColor,
+  }) {
+    const double luminanceRed = 0.2126;
+    const double luminanceGreen = 0.7152;
+    const double luminanceBlue = 0.0722;
+
+    final double targetRed =
+        eyeColor.r;
+
+    final double targetGreen =
+        eyeColor.g;
+
+    final double targetBlue =
+        eyeColor.b;
+
+    return ColorFilter.matrix([
+      luminanceRed * targetRed,
+      luminanceGreen * targetRed,
+      luminanceBlue * targetRed,
+      0,
+      0,
+      luminanceRed * targetGreen,
+      luminanceGreen * targetGreen,
+      luminanceBlue * targetGreen,
+      0,
+      0,
+      luminanceRed * targetBlue,
+      luminanceGreen * targetBlue,
+      luminanceBlue * targetBlue,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+    ]);
+  }
+
   Widget _buildAvatarStack({
     required BuildContext context,
     required double zoom,
@@ -1020,9 +1060,8 @@ class _CharacterCreationScreenState
           // Iris is a separate layer.
           // Only the iris receives eyeColor.
           ColorFiltered(
-            colorFilter: ColorFilter.mode(
-              eyeColor,
-              BlendMode.color,
+            colorFilter: _irisColorFilter(
+              eyeColor: eyeColor,
             ),
             child: fixedImage(
               assetPath: eyesIrisAsset,
