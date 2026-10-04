@@ -906,10 +906,10 @@ class _CharacterCreationScreenState
   ColorFilter _irisColorFilter({
     required Color eyeColor,
   }) {
-    const double luminanceRed = 0.2126;
-    const double luminanceGreen = 0.7152;
-    const double luminanceBlue = 0.0722;
-
+    const double luminanceRed = 0.2126 * 1.60;
+    const double luminanceGreen = 0.7152 * 1.60;
+    const double luminanceBlue = 0.0722 * 1.60;
+    
     final double targetRed =
         eyeColor.r;
 
