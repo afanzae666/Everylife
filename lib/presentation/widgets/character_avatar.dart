@@ -100,7 +100,7 @@ class CharacterAvatar extends StatelessWidget {
     return ColorFiltered(
       colorFilter: ColorFilter.mode(
         color,
-        BlendMode.modulate,
+        BlendMode.color,
       ),
       child: colorizedImage,
     );
