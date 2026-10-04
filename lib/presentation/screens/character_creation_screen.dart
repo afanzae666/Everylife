@@ -991,6 +991,11 @@ class _CharacterCreationScreenState
       gender: gender,
     );
 
+    // Keep the eye layer slightly larger than
+    // the head-base eye area so the original skin
+    // does not remain visible around the eyes.
+    const double eyeScale = 1.10;
+
     Widget tintedImage({
       required String assetPath,
       required Color color,
@@ -1027,13 +1032,24 @@ class _CharacterCreationScreenState
 
     Widget fixedImage({
       required String assetPath,
+      double scale = 1.0,
     }) {
-      return Image.asset(
+      final Widget image = Image.asset(
         assetPath,
         width: s(size),
         height: s(size),
         fit: BoxFit.contain,
         filterQuality: FilterQuality.high,
+      );
+
+      if (scale == 1.0) {
+        return image;
+      }
+
+      return Transform.scale(
+        scale: scale,
+        alignment: Alignment.center,
+        child: image,
       );
     }
 
@@ -1053,18 +1069,26 @@ class _CharacterCreationScreenState
           // Base eye layer:
           // sclera, eye outline and fixed eye details.
           // It must NOT receive eyeColor.
+          //
+          // Slightly enlarged to prevent the head-base
+          // skin from remaining visible around the eyes.
           fixedImage(
             assetPath: eyesBaseAsset,
+            scale: eyeScale,
           ),
 
           // Iris is a separate layer.
           // Only the iris receives eyeColor.
+          //
+          // It uses the exact same scale as the eye base
+          // so both layers remain perfectly aligned.
           ColorFiltered(
             colorFilter: _irisColorFilter(
               eyeColor: eyeColor,
             ),
             child: fixedImage(
               assetPath: eyesIrisAsset,
+              scale: eyeScale,
             ),
           ),
 
