@@ -1022,7 +1022,7 @@ class _CharacterCreationScreenState
           ColorFiltered(
             colorFilter: ColorFilter.mode(
               eyeColor,
-              BlendMode.modulate,
+              BlendMode.color,
             ),
             child: fixedImage(
               assetPath: eyesIrisAsset,
