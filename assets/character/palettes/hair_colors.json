@@ -1,30 +1,21 @@
-[
-  {
-    "id": "black",
-    "hex": "#211A18"
-  },
-  {
-    "id": "dark_brown",
-    "hex": "#3A2720"
-  },
-  {
-    "id": "brown",
-    "hex": "#5B3A2D"
-  },
-  {
-    "id": "warm_brown",
-    "hex": "#7A5039"
-  },
-  {
-    "id": "dark_blonde",
-    "hex": "#A77A4D"
-  },
-  {
-    "id": "gray",
-    "hex": "#9A9A9A"
-  },
-  {
-    "id": "white",
-    "hex": "#D8D8D2"
-  }
-]
+{
+  "black": "#171513",
+  "blue_black": "#20252B",
+  "dark_brown": "#33231E",
+  "chocolate_brown": "#4B3027",
+  "chestnut_brown": "#6A4030",
+  "warm_brown": "#7A4A32",
+  "ash_brown": "#75665D",
+  "auburn": "#7D3F2D",
+  "copper": "#A85B35",
+  "ginger": "#B86B3D",
+  "dark_red": "#6E302B",
+  "burgundy": "#5B2632",
+  "honey_blonde": "#C49A5A",
+  "golden_blonde": "#D2AE69",
+  "ash_blonde": "#B9A98C",
+  "platinum_blonde": "#D9D4C5",
+  "silver": "#A9A9A4",
+  "gray": "#777873",
+  "white": "#E5E3D9"
+}

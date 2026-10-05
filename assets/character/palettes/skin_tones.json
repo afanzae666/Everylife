@@ -1,30 +1,14 @@
-[
-  {
-    "id": "skin_01",
-    "hex": "#F7D2B4"
-  },
-  {
-    "id": "skin_02",
-    "hex": "#F1B58D"
-  },
-  {
-    "id": "skin_03",
-    "hex": "#D99A73"
-  },
-  {
-    "id": "skin_04",
-    "hex": "#C47E5C"
-  },
-  {
-    "id": "skin_05",
-    "hex": "#A96345"
-  },
-  {
-    "id": "skin_06",
-    "hex": "#7D4B34"
-  },
-  {
-    "id": "skin_07",
-    "hex": "#543126"
-  }
-]
+{
+  "pale": "#F6D8C5",
+  "very_light": "#EFC7AE",
+  "light": "#E5B393",
+  "light_medium": "#D79A78",
+  "medium": "#C58161",
+  "medium_tan": "#B46D50",
+  "tan": "#A35D43",
+  "deep_tan": "#8F4D38",
+  "brown": "#783F2F",
+  "deep_brown": "#603126",
+  "dark": "#48251D",
+  "very_dark": "#321A15"
+}
