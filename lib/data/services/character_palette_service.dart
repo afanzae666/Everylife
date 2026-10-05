@@ -12,10 +12,6 @@ class CharacterPaletteService {
         _eyeColors = Map.unmodifiable(eyeColors),
         _hairColors = Map.unmodifiable(hairColors);
 
-  final Map<String, Color> _skinColors;
-  final Map<String, Color> _eyeColors;
-  final Map<String, Color> _hairColors;
-
   static const String _skinAsset =
       'assets/character/palettes/skin_tones.json';
 
@@ -24,6 +20,10 @@ class CharacterPaletteService {
 
   static const String _hairAsset =
       'assets/character/palettes/hair_colors.json';
+
+  final Map<String, Color> _skinColors;
+  final Map<String, Color> _eyeColors;
+  final Map<String, Color> _hairColors;
 
   static Future<CharacterPaletteService> load() async {
     final String skinJson =
@@ -66,49 +66,39 @@ class CharacterPaletteService {
     final dynamic decoded =
         jsonDecode(source);
 
-    if (decoded is! List<dynamic>) {
+    if (decoded is! Map<String, dynamic>) {
       throw const FormatException(
-        'Character palette JSON must contain an array.',
+        'Character palette JSON must contain an object.',
       );
     }
 
     final Map<String, Color> result =
         <String, Color>{};
 
-    for (final dynamic entry in decoded) {
-      if (entry is! Map<String, dynamic>) {
-        throw const FormatException(
-          'Character palette entry must be an object.',
-        );
-      }
+    decoded.forEach(
+      (
+        String id,
+        dynamic hexValue,
+      ) {
+        if (hexValue is! String) {
+          throw FormatException(
+            'Character palette color for "$id" must be a string.',
+          );
+        }
 
-      final dynamic idValue =
-          entry['id'];
+        final String normalizedId =
+            id.trim();
 
-      final dynamic hexValue =
-          entry['hex'];
+        if (normalizedId.isEmpty) {
+          throw const FormatException(
+            'Character palette id cannot be empty.',
+          );
+        }
 
-      if (idValue is! String ||
-          hexValue is! String) {
-        throw const FormatException(
-          'Character palette entries require string id and hex values.',
-        );
-      }
-
-      final String id =
-          idValue.trim();
-
-      final String hex =
-          hexValue.trim();
-
-      if (id.isEmpty) {
-        throw const FormatException(
-          'Character palette id cannot be empty.',
-        );
-      }
-
-      result[id] = _parseHexColor(hex);
-    }
+        result[normalizedId] =
+            _parseHexColor(hexValue);
+      },
+    );
 
     if (result.isEmpty) {
       throw const FormatException(
@@ -122,7 +112,7 @@ class CharacterPaletteService {
   static Color _parseHexColor(
     String value,
   ) {
-    String hex = value;
+    String hex = value.trim();
 
     if (hex.startsWith('#')) {
       hex = hex.substring(1);
@@ -133,8 +123,9 @@ class CharacterPaletteService {
     }
 
     if (hex.length != 8 ||
-        !RegExp(r'^[0-9a-fA-F]{8}$')
-            .hasMatch(hex)) {
+        !RegExp(
+          r'^[0-9a-fA-F]{8}$',
+        ).hasMatch(hex)) {
       throw FormatException(
         'Invalid character palette color: $value',
       );
