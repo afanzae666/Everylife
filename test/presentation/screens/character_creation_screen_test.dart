@@ -6,6 +6,21 @@ import '../../../lib/presentation/screens/character_creation_screen.dart';
 
 void main() {
   group('CharacterCreationScreen', () {
+    Future<void> pumpCharacterCreationScreen(
+      WidgetTester tester, {
+      required void Function(dynamic character) onCharacterCreated,
+    }) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CharacterCreationScreen(
+            onCharacterCreated: onCharacterCreated,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+    }
+
     Future<void> enterNames(
       WidgetTester tester, {
       String firstName = 'Test',
@@ -53,14 +68,11 @@ void main() {
       (tester) async {
         var created = false;
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: CharacterCreationScreen(
-              onCharacterCreated: (_) {
-                created = true;
-              },
-            ),
-          ),
+        await pumpCharacterCreationScreen(
+          tester,
+          onCharacterCreated: (_) {
+            created = true;
+          },
         );
 
         expect(
@@ -129,18 +141,15 @@ void main() {
         Gender? createdGender;
         int? createdBirthYear;
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: CharacterCreationScreen(
-              onCharacterCreated: (character) {
-                createdName = character.name;
-                createdFirstName = character.firstName;
-                createdLastName = character.lastName;
-                createdGender = character.gender;
-                createdBirthYear = character.birthYear;
-              },
-            ),
-          ),
+        await pumpCharacterCreationScreen(
+          tester,
+          onCharacterCreated: (character) {
+            createdName = character.name;
+            createdFirstName = character.firstName;
+            createdLastName = character.lastName;
+            createdGender = character.gender;
+            createdBirthYear = character.birthYear;
+          },
         );
 
         await enterNames(
@@ -188,12 +197,9 @@ void main() {
     testWidgets(
       'automatically capitalizes first letter of names',
       (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: CharacterCreationScreen(
-              onCharacterCreated: (_) {},
-            ),
-          ),
+        await pumpCharacterCreationScreen(
+          tester,
+          onCharacterCreated: (_) {},
         );
 
         final textFields = find.byType(TextField);
@@ -240,14 +246,11 @@ void main() {
       (tester) async {
         int? createdBirthYear;
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: CharacterCreationScreen(
-              onCharacterCreated: (character) {
-                createdBirthYear = character.birthYear;
-              },
-            ),
-          ),
+        await pumpCharacterCreationScreen(
+          tester,
+          onCharacterCreated: (character) {
+            createdBirthYear = character.birthYear;
+          },
         );
 
         await enterNames(
@@ -340,14 +343,11 @@ void main() {
       (tester) async {
         var created = false;
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: CharacterCreationScreen(
-              onCharacterCreated: (_) {
-                created = true;
-              },
-            ),
-          ),
+        await pumpCharacterCreationScreen(
+          tester,
+          onCharacterCreated: (_) {
+            created = true;
+          },
         );
 
         await tester.enterText(
@@ -378,14 +378,11 @@ void main() {
       (tester) async {
         var created = false;
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: CharacterCreationScreen(
-              onCharacterCreated: (_) {
-                created = true;
-              },
-            ),
-          ),
+        await pumpCharacterCreationScreen(
+          tester,
+          onCharacterCreated: (_) {
+            created = true;
+          },
         );
 
         await tester.enterText(
@@ -416,14 +413,11 @@ void main() {
       (tester) async {
         Gender? createdGender;
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: CharacterCreationScreen(
-              onCharacterCreated: (character) {
-                createdGender = character.gender;
-              },
-            ),
-          ),
+        await pumpCharacterCreationScreen(
+          tester,
+          onCharacterCreated: (character) {
+            createdGender = character.gender;
+          },
         );
 
         await tester.tap(
@@ -466,12 +460,9 @@ void main() {
     testWidgets(
       'opens appearance customization dialog',
       (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: CharacterCreationScreen(
-              onCharacterCreated: (_) {},
-            ),
-          ),
+        await pumpCharacterCreationScreen(
+          tester,
+          onCharacterCreated: (_) {},
         );
 
         await tester.tap(
@@ -552,12 +543,9 @@ void main() {
     testWidgets(
       'appearance dialog can be closed without changing identity controls',
       (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: CharacterCreationScreen(
-              onCharacterCreated: (_) {},
-            ),
-          ),
+        await pumpCharacterCreationScreen(
+          tester,
+          onCharacterCreated: (_) {},
         );
 
         await tester.tap(
