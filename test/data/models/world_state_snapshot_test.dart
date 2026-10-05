@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:everylife/core/money/money.dart';
+import 'package:everylife/domain/character/appearance.dart';
 import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/character/character_stats.dart';
 import 'package:everylife/domain/character/gender.dart';
@@ -272,6 +273,97 @@ void main() {
         expect(
           restored.events.single.type,
           SimulationEventType.randomEvent,
+        );
+      },
+    );
+
+    test(
+      'serializes and deserializes all character appearance fields',
+      () {
+        const CharacterAppearance appearance =
+            CharacterAppearance(
+          base: 'default',
+          skinTone: 'medium',
+          hair: 'male_hair_01',
+          hairColor: 'warm_brown',
+          eyes: 'adult_eyes',
+          eyeColor: 'hazel',
+          eyebrows: 'adult_eyebrow',
+        );
+
+        final original = WorldState(
+          clock: const SimulationClock(
+            currentYear: 2050,
+          ),
+          player: Character(
+            id: 'character-appearance',
+            name: 'Appearance Test',
+            gender: Gender.male,
+            birthYear: 2025,
+            stats: const CharacterStats(
+              health: 90,
+              intelligence: 80,
+              fitness: 70,
+              happiness: 60,
+              willpower: 50,
+              charisma: 40,
+              creativity: 30,
+              luck: 20,
+            ),
+            money: const Money.fromMinorUnits(50000),
+            appearance: appearance,
+          ),
+          events: const [],
+        );
+
+        final snapshot =
+            WorldStateSnapshot.fromWorldState(
+          original,
+        );
+
+        final json = snapshot.toJson();
+
+        final restoredSnapshot =
+            WorldStateSnapshot.fromJson(
+          json,
+        );
+
+        final restored =
+            restoredSnapshot.toWorldState();
+
+        expect(
+          restored.player.appearance.base,
+          'default',
+        );
+
+        expect(
+          restored.player.appearance.skinTone,
+          'medium',
+        );
+
+        expect(
+          restored.player.appearance.hair,
+          'male_hair_01',
+        );
+
+        expect(
+          restored.player.appearance.hairColor,
+          'warm_brown',
+        );
+
+        expect(
+          restored.player.appearance.eyes,
+          'adult_eyes',
+        );
+
+        expect(
+          restored.player.appearance.eyeColor,
+          'hazel',
+        );
+
+        expect(
+          restored.player.appearance.eyebrows,
+          'adult_eyebrow',
         );
       },
     );
