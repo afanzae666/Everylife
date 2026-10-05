@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../data/services/character_palette_service.dart';
 import '../../domain/character/appearance.dart';
 import '../../domain/character/character.dart';
 import '../../domain/character/gender.dart';
@@ -86,13 +87,19 @@ class _CharacterCreationScreenState
   CharacterAppearance _appearance =
       const CharacterAppearance(
     base: 'default',
-    skinTone: 'skin_04',
+    skinTone: 'medium',
     hair: 'male_hair_01',
     hairColor: 'black',
     eyes: 'adult_eyes',
     eyeColor: 'brown',
     eyebrows: 'adult_eyebrow',
   );
+
+  CharacterPaletteService? _paletteService;
+
+  bool _paletteLoading = true;
+
+  String? _paletteError;
 
   static const List<String> _maleHairStyles = [
     'bald',
@@ -109,34 +116,37 @@ class _CharacterCreationScreenState
     'female_hair_03',
   ];
 
-  static const Map<String, Color> _skinToneColors = {
-    'skin_01': Color(0xFFDAA787),
-    'skin_02': Color(0xFFD5906A),
-    'skin_03': Color(0xFFC07A56),
-    'skin_04': Color(0xFFAD6445),
-    'skin_05': Color(0xFF954F34),
-    'skin_06': Color(0xFF6E3C27),
-    'skin_07': Color(0xFF4A271C),
-  };
+  @override
+  void initState() {
+    super.initState();
+    _loadPalette();
+  }
 
-  static const Map<String, Color> _hairColors = {
-    'black': Color(0xFF211A18),
-    'dark_brown': Color(0xFF3A2720),
-    'brown': Color(0xFF5B3A2D),
-    'warm_brown': Color(0xFF7A5039),
-    'dark_blonde': Color(0xFFA77A4D),
-    'gray': Color(0xFF9A9A9A),
-    'white': Color(0xFFD8D8D2),
-  };
+  Future<void> _loadPalette() async {
+    try {
+      final CharacterPaletteService palette =
+          await CharacterPaletteService.load();
 
-  static const Map<String, Color> _eyeColors = {
-    'brown': Color(0xFF5B3A2D),
-    'dark_brown': Color(0xFF2B211E),
-    'hazel': Color(0xFF7A6A3A),
-    'green': Color(0xFF4E7048),
-    'blue': Color(0xFF557FA3),
-    'gray': Color(0xFF8C9398),
-  };
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _paletteService = palette;
+        _paletteLoading = false;
+        _paletteError = null;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _paletteLoading = false;
+        _paletteError = error.toString();
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -146,6 +156,10 @@ class _CharacterCreationScreenState
   }
 
   void _createCharacter() {
+    if (_paletteService == null) {
+      return;
+    }
+
     final String firstName =
         _firstNameController.text.trim();
 
@@ -387,6 +401,10 @@ class _CharacterCreationScreenState
   }
 
   void _showAppearanceDialog() {
+    if (_paletteService == null) {
+      return;
+    }
+
     CharacterAppearance temporaryAppearance =
         _appearance;
 
@@ -507,9 +525,11 @@ class _CharacterCreationScreenState
                                   );
                                 },
                                 color:
-                                    _hairColors[
-                                        temporaryAppearance
-                                            .hairColor],
+                                    _paletteService!
+                                        .hairColor(
+                                  temporaryAppearance
+                                      .hairColor,
+                                ),
                               ),
                               const SizedBox(
                                 height: 14,
@@ -519,7 +539,8 @@ class _CharacterCreationScreenState
                                 zoom: 1.0,
                                 title: 'Hair Color',
                                 colors:
-                                    _hairColors,
+                                    _paletteService!
+                                        .hairColors,
                                 selected:
                                     temporaryAppearance
                                         .hairColor,
@@ -544,7 +565,8 @@ class _CharacterCreationScreenState
                                 zoom: 1.0,
                                 title: 'Eye Color',
                                 colors:
-                                    _eyeColors,
+                                    _paletteService!
+                                        .eyeColors,
                                 selected:
                                     temporaryAppearance
                                         .eyeColor,
@@ -638,6 +660,55 @@ class _CharacterCreationScreenState
     BuildContext context,
     double zoom,
   ) {
+    if (_paletteLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_paletteError != null ||
+        _paletteService == null) {
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding:
+                const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize:
+                  MainAxisSize.min,
+              children: [
+                const Text(
+                  'Unable to load character palettes.',
+                  textAlign:
+                      TextAlign.center,
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _paletteLoading =
+                          true;
+                      _paletteError =
+                          null;
+                    });
+
+                    _loadPalette();
+                  },
+                  child: const Text(
+                    'RETRY',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     final MediaQueryData mediaQuery =
         MediaQuery.of(context);
 
@@ -906,10 +977,15 @@ class _CharacterCreationScreenState
   ColorFilter _irisColorFilter({
     required Color eyeColor,
   }) {
-    const double luminanceRed = 0.2126 * 1.80;
-    const double luminanceGreen = 0.7152 * 1.80;
-    const double luminanceBlue = 0.0722 * 1.80;
-    
+    const double luminanceRed =
+        0.2126 * 1.80;
+
+    const double luminanceGreen =
+        0.7152 * 1.80;
+
+    const double luminanceBlue =
+        0.0722 * 1.80;
+
     final double targetRed =
         eyeColor.r;
 
@@ -955,20 +1031,26 @@ class _CharacterCreationScreenState
     double s(double value) =>
         value * zoom;
 
+    final CharacterPaletteService palette =
+        _paletteService!;
+
     final Color skinColor =
-        _skinToneColors[
-                appearance.skinTone] ??
-            _skinToneColors.values.first;
+        palette.skinColor(
+              appearance.skinTone,
+            ) ??
+            palette.skinColors.values.first;
 
     final Color hairColor =
-        _hairColors[
-                appearance.hairColor] ??
-            _hairColors.values.first;
+        palette.hairColor(
+              appearance.hairColor,
+            ) ??
+            palette.hairColors.values.first;
 
     final Color eyeColor =
-        _eyeColors[
-                appearance.eyeColor] ??
-            _eyeColors.values.first;
+        palette.eyeColor(
+              appearance.eyeColor,
+            ) ??
+            palette.eyeColors.values.first;
 
     final String headAsset =
         _headAssetFor(stage);
@@ -1533,6 +1615,9 @@ class _CharacterCreationScreenState
     double s(double value) =>
         value * zoom;
 
+    final Map<String, Color> skinColors =
+        _paletteService!.skinColors;
+
     return Column(
       crossAxisAlignment:
           CrossAxisAlignment.start,
@@ -1552,7 +1637,7 @@ class _CharacterCreationScreenState
             scrollDirection:
                 Axis.horizontal,
             itemCount:
-                _skinToneColors.length,
+                skinColors.length,
             separatorBuilder:
                 (
               BuildContext context,
@@ -1568,11 +1653,11 @@ class _CharacterCreationScreenState
               int index,
             ) {
               final String key =
-                  _skinToneColors.keys
+                  skinColors.keys
                       .elementAt(index);
 
               final Color color =
-                  _skinToneColors[key]!;
+                  skinColors[key]!;
 
               final bool selected =
                   appearance.skinTone ==
