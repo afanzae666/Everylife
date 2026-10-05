@@ -18,7 +18,20 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle();
+      for (int i = 0; i < 100; i++) {
+        if (find.text('Create Your Character').evaluate().isNotEmpty) {
+          return;
+        }
+
+        await tester.pump(
+          const Duration(milliseconds: 100),
+        );
+      }
+
+      fail(
+        'CharacterCreationScreen did not finish palette loading '
+        'within the expected test window.',
+      );
     }
 
     Future<void> enterNames(
@@ -307,8 +320,6 @@ void main() {
           findsOneWidget,
         );
 
-        // Confirm the selected birth year
-        // before trying to press BEGIN LIFE.
         await tester.tap(
           find.text('DONE'),
         );
