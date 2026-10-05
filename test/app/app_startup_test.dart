@@ -12,6 +12,25 @@ import '../../lib/presentation/screens/game_screen.dart';
 
 void main() {
   group('LifeSimulationApp startup', () {
+    Future<void> waitForCharacterCreationScreen(
+      WidgetTester tester,
+    ) async {
+      for (int i = 0; i < 100; i++) {
+        if (find.text('Create Your Character').evaluate().isNotEmpty) {
+          return;
+        }
+
+        await tester.pump(
+          const Duration(milliseconds: 100),
+        );
+      }
+
+      fail(
+        'CharacterCreationScreen did not finish palette loading '
+        'within the expected test window.',
+      );
+    }
+
     Future<void> scrollToBeginLife(
       WidgetTester tester,
     ) async {
@@ -43,7 +62,9 @@ void main() {
           ),
         );
 
-        await tester.pumpAndSettle();
+        await waitForCharacterCreationScreen(
+          tester,
+        );
 
         expect(
           find.text('Create Character'),
@@ -97,7 +118,9 @@ void main() {
           ),
         );
 
-        await tester.pumpAndSettle();
+        await waitForCharacterCreationScreen(
+          tester,
+        );
 
         final textFields =
             find.byType(TextField);
