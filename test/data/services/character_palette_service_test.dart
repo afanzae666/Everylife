@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:everylife/data/services/character_palette_service.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('CharacterPaletteService', () {
     test(
       'loads all character palettes from bundled assets',
