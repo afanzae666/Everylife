@@ -12,6 +12,7 @@ class CharacterAppearance {
     this.eyes = 'default',
     this.eyeColor = 'default',
     this.eyebrows = 'default',
+    this.beard = 'none',
   });
 
   /// Base face/body asset identifier.
@@ -35,6 +36,11 @@ class CharacterAppearance {
   /// Eyebrow style asset identifier.
   final String eyebrows;
 
+  /// Beard style asset identifier.
+  ///
+  /// `'none'` means that the character has no beard.
+  final String beard;
+
   CharacterAppearance copyWith({
     String? base,
     String? skinTone,
@@ -43,6 +49,7 @@ class CharacterAppearance {
     String? eyes,
     String? eyeColor,
     String? eyebrows,
+    String? beard,
   }) {
     return CharacterAppearance(
       base: base ?? this.base,
@@ -52,6 +59,7 @@ class CharacterAppearance {
       eyes: eyes ?? this.eyes,
       eyeColor: eyeColor ?? this.eyeColor,
       eyebrows: eyebrows ?? this.eyebrows,
+      beard: beard ?? this.beard,
     );
   }
 }
