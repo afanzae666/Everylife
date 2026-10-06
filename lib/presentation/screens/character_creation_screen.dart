@@ -609,6 +609,10 @@ class _CharacterCreationScreenState
                                     _eyebrowDirectoryFor(
                                   previewStage,
                                 ),
+                                assetFilePrefix:
+                                    _eyebrowFilePrefixFor(
+                                  previewStage,
+                                ),
                                 onSelected:
                                     (
                                   String value,
@@ -1410,6 +1414,27 @@ class _CharacterCreationScreenState
     }
   }
 
+  String _eyebrowFilePrefixFor(
+    LifeStage stage,
+  ) {
+    switch (stage) {
+      case LifeStage.infant:
+        return 'infant_eyebrow';
+
+      case LifeStage.toddler:
+        return 'toddler_eyebrow';
+
+      case LifeStage.child:
+        return 'child_eyebrow';
+
+      case LifeStage.teen:
+      case LifeStage.youngAdult:
+      case LifeStage.adult:
+      case LifeStage.senior:
+        return 'young_adult_eyebrow';
+    }
+  }
+
   String _eyebrowAssetFor(
     LifeStage stage,
     String eyebrowStyle,
@@ -2000,6 +2025,7 @@ class _CharacterCreationScreenState
     required List<String> values,
     required String selected,
     required String assetDirectory,
+    String? assetFilePrefix,
     required ValueChanged<String>
         onSelected,
     required Color? color,
@@ -2053,9 +2079,14 @@ class _CharacterCreationScreenState
               final bool isBald =
                   value == 'bald';
 
+              final String assetName =
+                  assetFilePrefix == null
+                      ? value
+                      : '${assetFilePrefix}_$value';
+
               final String assetPath =
                   '$assetDirectory/'
-                  '$value.png';
+                  '$assetName.png';
 
               return InkWell(
                 borderRadius:
