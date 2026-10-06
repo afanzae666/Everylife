@@ -289,6 +289,7 @@ void main() {
           eyes: 'adult_eyes',
           eyeColor: 'hazel',
           eyebrows: 'adult_eyebrow',
+          beard: 'beard_03',
         );
 
         final original = WorldState(
@@ -364,6 +365,11 @@ void main() {
         expect(
           restored.player.appearance.eyebrows,
           'adult_eyebrow',
+        );
+
+        expect(
+          restored.player.appearance.beard,
+          'beard_03',
         );
       },
     );
