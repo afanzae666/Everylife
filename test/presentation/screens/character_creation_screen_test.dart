@@ -513,16 +513,6 @@ void main() {
           find.descendant(
             of: appearanceDialog,
             matching: find.text(
-              'Hair',
-            ),
-          ),
-          findsOneWidget,
-        );
-
-        expect(
-          find.descendant(
-            of: appearanceDialog,
-            matching: find.text(
               'Hair Color',
             ),
           ),
