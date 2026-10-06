@@ -140,7 +140,7 @@ class _CharacterCreationScreenState
     'toddler_03',
   ];
 
-  static const List<String> _firstNames = [
+  static const List<String> _maleFirstNames = [
     'Alex',
     'Daniel',
     'Ethan',
@@ -151,6 +151,9 @@ class _CharacterCreationScreenState
     'Ryan',
     'Samuel',
     'William',
+  ];
+
+  static const List<String> _femaleFirstNames = [
     'Anna',
     'Chloe',
     'Emma',
@@ -366,6 +369,11 @@ class _CharacterCreationScreenState
             ? _femaleHairStyles
             : _maleHairStyles;
 
+    final List<String> firstNamePool =
+        randomGender == Gender.female
+            ? _femaleFirstNames
+            : _maleFirstNames;
+
     final String randomHair =
         _randomItem(
       hairStyles,
@@ -380,7 +388,7 @@ class _CharacterCreationScreenState
 
     final String randomFirstName =
         _randomItem(
-      _firstNames,
+      firstNamePool,
     );
 
     final String randomLastName =
@@ -718,178 +726,169 @@ class _CharacterCreationScreenState
                         ],
                       ),
                       const SizedBox(
-                        height: 4,
+                        height: 2,
                       ),
                       Expanded(
-                        child:
-                            SingleChildScrollView(
-                          padding:
-                              const EdgeInsets.only(
-                            bottom: 8,
-                          ),
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment
-                                    .start,
-                            children: [
-                              _buildAppearancePreviewFor(
-                                context,
-                                1.0,
-                                temporaryAppearance,
-                              ),
-                              const SizedBox(
-                                height: 14,
-                              ),
-                              _buildSkinToneSelectorFor(
-                                context,
-                                1.0,
-                                temporaryAppearance,
-                                updateTemporaryAppearance,
-                              ),
-                              const SizedBox(
-                                height: 14,
-                              ),
-                              _buildAssetSelectorFor(
-                                context: context,
-                                zoom: 1.0,
-                                title: 'Hair',
-                                values:
-                                    _currentHairStyles(),
-                                selected:
-                                    temporaryAppearance
-                                        .hair,
-                                assetDirectory:
-                                    'assets/character/hair',
-                                onSelected:
-                                    (
-                                  String value,
-                                ) {
-                                  updateTemporaryAppearance(
-                                    temporaryAppearance
-                                        .copyWith(
-                                      hair: value,
-                                    ),
-                                  );
-                                },
-                                color:
-                                    _paletteService!
-                                        .hairColor(
+                        child: Column(
+                          crossAxisAlignment:
+                              CrossAxisAlignment
+                                  .start,
+                          children: [
+                            _buildAppearancePreviewFor(
+                              context,
+                              1.0,
+                              temporaryAppearance,
+                            ),
+                            const SizedBox(
+                              height: 6,
+                            ),
+                            _buildSkinToneSelectorFor(
+                              context,
+                              1.0,
+                              temporaryAppearance,
+                              updateTemporaryAppearance,
+                            ),
+                            const SizedBox(
+                              height: 6,
+                            ),
+                            _buildColorSelectorFor(
+                              context: context,
+                              zoom: 1.0,
+                              title: 'Eye Color',
+                              colors:
+                                  _paletteService!
+                                      .eyeColors,
+                              selected:
                                   temporaryAppearance
-                                      .hairColor,
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 14,
-                              ),
-                              _buildColorSelectorFor(
-                                context: context,
-                                zoom: 1.0,
-                                title: 'Hair Color',
-                                colors:
-                                    _paletteService!
-                                        .hairColors,
-                                selected:
-                                    temporaryAppearance
-                                        .hairColor,
-                                onSelected:
-                                    (
-                                  String value,
-                                ) {
-                                  updateTemporaryAppearance(
-                                    temporaryAppearance
-                                        .copyWith(
-                                      hairColor:
-                                          value,
-                                    ),
-                                  );
-                                },
-                              ),
-                              const SizedBox(
-                                height: 14,
-                              ),
-                              _buildAssetSelectorFor(
-                                context: context,
-                                zoom: 1.0,
-                                title: 'Eyebrows',
-                                values:
-                                    _eyebrowStyles,
-                                selected:
-                                    temporaryAppearance
-                                        .eyebrows,
-                                assetDirectory:
-                                    _eyebrowDirectoryFor(
-                                  previewStage,
-                                ),
-                                assetFilePrefix:
-                                    _eyebrowFilePrefixFor(
-                                  previewStage,
-                                ),
-                                onSelected:
-                                    (
-                                  String value,
-                                ) {
-                                  updateTemporaryAppearance(
-                                    temporaryAppearance
-                                        .copyWith(
-                                      eyebrows:
-                                          value,
-                                    ),
-                                  );
-                                },
-                                color:
-                                    _paletteService!
-                                        .hairColor(
+                                      .eyeColor,
+                              onSelected:
+                                  (
+                                String value,
+                              ) {
+                                updateTemporaryAppearance(
                                   temporaryAppearance
-                                      .hairColor,
-                                ),
-                              ),
-                              if (showBeardSelector) ...[
-                                const SizedBox(
-                                  height: 14,
-                                ),
-                                _buildAssetSelectorFor(
-                                  context: context,
-                                  zoom: 1.0,
-                                  title: 'Beard',
-                                  values:
-                                      _beardStyles,
-                                  selected:
-                                      temporaryAppearance
-                                          .beard,
-                                  assetDirectory:
-                                      'assets/character/beard',
-                                  onSelected:
-                                      (
-                                    String value,
-                                  ) {
-                                    updateTemporaryAppearance(
-                                      temporaryAppearance
-                                          .copyWith(
-                                        beard: value,
-                                      ),
-                                    );
-                                  },
-                                  color:
-                                      _paletteService!
-                                          .hairColor(
-                                    temporaryAppearance
-                                        .hairColor,
+                                      .copyWith(
+                                    eyeColor:
+                                        value,
                                   ),
-                                ),
-                              ],
-                              const SizedBox(
-                                height: 14,
+                                );
+                              },
+                            ),
+                            const SizedBox(
+                              height: 6,
+                            ),
+                            _buildAssetSelectorFor(
+                              context: context,
+                              zoom: 1.0,
+                              title: 'Hair',
+                              showTitle: false,
+                              values:
+                                  _currentHairStyles(),
+                              selected:
+                                  temporaryAppearance
+                                      .hair,
+                              assetDirectory:
+                                  'assets/character/hair',
+                              onSelected:
+                                  (
+                                String value,
+                              ) {
+                                updateTemporaryAppearance(
+                                  temporaryAppearance
+                                      .copyWith(
+                                    hair: value,
+                                  ),
+                                );
+                              },
+                              color:
+                                  _paletteService!
+                                      .hairColor(
+                                temporaryAppearance
+                                    .hairColor,
                               ),
-                              _buildColorSelectorFor(
+                            ),
+                            const SizedBox(
+                              height: 6,
+                            ),
+                            _buildColorSelectorFor(
+                              context: context,
+                              zoom: 1.0,
+                              title: 'Hair Color',
+                              colors:
+                                  _paletteService!
+                                      .hairColors,
+                              selected:
+                                  temporaryAppearance
+                                      .hairColor,
+                              onSelected:
+                                  (
+                                String value,
+                              ) {
+                                updateTemporaryAppearance(
+                                  temporaryAppearance
+                                      .copyWith(
+                                    hairColor:
+                                        value,
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(
+                              height: 6,
+                            ),
+                            _buildAssetSelectorFor(
+                              context: context,
+                              zoom: 1.0,
+                              title: 'Eyebrows',
+                              showTitle: false,
+                              values:
+                                  _eyebrowStyles,
+                              selected:
+                                  temporaryAppearance
+                                      .eyebrows,
+                              assetDirectory:
+                                  _eyebrowDirectoryFor(
+                                previewStage,
+                              ),
+                              assetFilePrefix:
+                                  _eyebrowFilePrefixFor(
+                                previewStage,
+                              ),
+                              onSelected:
+                                  (
+                                String value,
+                              ) {
+                                updateTemporaryAppearance(
+                                  temporaryAppearance
+                                      .copyWith(
+                                    eyebrows:
+                                        value,
+                                  ),
+                                );
+                              },
+                              color:
+                                  _paletteService!
+                                      .hairColor(
+                                temporaryAppearance
+                                    .hairColor,
+                              ),
+                            ),
+                            if (showBeardSelector) ...[
+                              const SizedBox(
+                                height: 6,
+                              ),
+                              _buildAssetSelectorFor(
                                 context: context,
                                 zoom: 1.0,
-                                title: 'Eye Color',
-                                colors:
-                                    _paletteService!
-                                        .eyeColors,
+                                title: 'Beard',
+                                showTitle: false,
+                                values:
+                                    _beardStyles,
                                 selected:
                                     temporaryAppearance
-                                        .eyeColor,
+                                        .beard,
+                                assetDirectory:
+                                    'assets/character/beard',
                                 onSelected:
                                     (
                                   String value,
@@ -897,18 +896,23 @@ class _CharacterCreationScreenState
                                   updateTemporaryAppearance(
                                     temporaryAppearance
                                         .copyWith(
-                                      eyeColor:
-                                          value,
+                                      beard: value,
                                     ),
                                   );
                                 },
+                                color:
+                                    _paletteService!
+                                        .hairColor(
+                                  temporaryAppearance
+                                      .hairColor,
+                                ),
                               ),
                             ],
-                          ),
+                          ],
                         ),
                       ),
                       const SizedBox(
-                        height: 10,
+                        height: 6,
                       ),
                       SizedBox(
                         width: double.infinity,
@@ -1056,6 +1060,7 @@ class _CharacterCreationScreenState
         value * zoom;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text(
           'Create Character',
@@ -1102,8 +1107,9 @@ class _CharacterCreationScreenState
                   ),
                   child: Column(
                     children: [
-                      Expanded(
+                      Flexible(
                         flex: 5,
+                        fit: FlexFit.loose,
                         child:
                             _buildMainAvatarPreview(
                           context,
@@ -1141,8 +1147,9 @@ class _CharacterCreationScreenState
                       SizedBox(
                         height: s(4),
                       ),
-                      Expanded(
+                      Flexible(
                         flex: 4,
+                        fit: FlexFit.loose,
                         child:
                             _buildCompactIdentityFields(
                           context,
@@ -1206,7 +1213,7 @@ class _CharacterCreationScreenState
 
     return Container(
       width: double.infinity,
-      height: 205 * zoom,
+      height: 170 * zoom,
       decoration: BoxDecoration(
         color: Theme.of(context)
             .colorScheme
@@ -1233,8 +1240,8 @@ class _CharacterCreationScreenState
           appearance: appearance,
           stage: previewStage,
           gender: _gender,
-          size: 180,
-          containerSize: 190,
+          size: 150,
+          containerSize: 160,
         ),
       ),
     );
@@ -1481,12 +1488,10 @@ class _CharacterCreationScreenState
             color: skinColor,
             useSkinGamma: true,
           ),
-
           fixedImage(
             assetPath: eyesBaseAsset,
             scale: eyeScale,
           ),
-
           ColorFiltered(
             colorFilter: _irisColorFilter(
               eyeColor: eyeColor,
@@ -1496,22 +1501,18 @@ class _CharacterCreationScreenState
               scale: eyeScale,
             ),
           ),
-
           tintedImage(
             assetPath: eyebrowAsset,
             color: hairColor,
           ),
-
           fixedImage(
             assetPath: mouthAsset,
           ),
-
           if (beardAsset != null)
             tintedImage(
               assetPath: beardAsset,
               color: hairColor,
             ),
-
           if (hairAsset != null)
             tintedImage(
               assetPath: hairAsset,
@@ -1522,7 +1523,7 @@ class _CharacterCreationScreenState
     );
   }
 
-    String _headAssetFor(
+  String _headAssetFor(
     LifeStage stage,
   ) {
     switch (stage) {
@@ -1803,6 +1804,7 @@ class _CharacterCreationScreenState
         value * zoom;
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Row(
           crossAxisAlignment:
@@ -2253,6 +2255,7 @@ class _CharacterCreationScreenState
     required ValueChanged<String>
         onSelected,
     required Color? color,
+    bool showTitle = true,
   }) {
     double s(double value) =>
         value * zoom;
@@ -2261,17 +2264,19 @@ class _CharacterCreationScreenState
       crossAxisAlignment:
           CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: Theme.of(context)
-              .textTheme
-              .titleSmall,
-        ),
+        if (showTitle) ...[
+          Text(
+            title,
+            style: Theme.of(context)
+                .textTheme
+                .titleSmall,
+          ),
+          SizedBox(
+            height: s(5),
+          ),
+        ],
         SizedBox(
-          height: s(5),
-        ),
-        SizedBox(
-          height: s(88),
+          height: s(64),
           child: ListView.separated(
             scrollDirection:
                 Axis.horizontal,
