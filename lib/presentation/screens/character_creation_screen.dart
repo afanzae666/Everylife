@@ -1424,8 +1424,27 @@ class _CharacterCreationScreenState
             ? eyebrowStyle
             : 'straight';
 
+    String prefix;
+
+    switch (stage) {
+      case LifeStage.infant:
+        prefix = 'infant_eyebrow';
+
+      case LifeStage.toddler:
+        prefix = 'toddler_eyebrow';
+
+      case LifeStage.child:
+        prefix = 'child_eyebrow';
+
+      case LifeStage.teen:
+      case LifeStage.youngAdult:
+      case LifeStage.adult:
+      case LifeStage.senior:
+        prefix = 'young_adult_eyebrow';
+    }
+
     return '$directory/'
-        '$selectedStyle.png';
+        '${prefix}_$selectedStyle.png';
   }
 
   bool _canUseBeardAtStage(
