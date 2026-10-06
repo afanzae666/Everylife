@@ -92,7 +92,8 @@ class _CharacterCreationScreenState
     hairColor: 'black',
     eyes: 'adult_eyes',
     eyeColor: 'brown',
-    eyebrows: 'adult_eyebrow',
+    eyebrows: 'straight',
+    beard: 'none',
   );
 
   CharacterPaletteService? _paletteService;
@@ -114,6 +115,30 @@ class _CharacterCreationScreenState
     'female_hair_01',
     'female_hair_02',
     'female_hair_03',
+  ];
+
+  static const List<String> _eyebrowStyles = [
+    'bold_straight',
+    'comma',
+    'feathered',
+    'high_arch',
+    'rounded',
+    'short_straight',
+    'slight_angle',
+    'soft_arch',
+    'straight',
+    'textured_wild',
+    'thick_natural',
+    'thin_defined',
+  ];
+
+  static const List<String> _beardStyles = [
+    'none',
+    'beard_01',
+    'beard_02',
+    'beard_03',
+    'beard_04',
+    'beard_05',
   ];
 
   @override
@@ -428,6 +453,17 @@ class _CharacterCreationScreenState
               });
             }
 
+            final LifeStage previewStage =
+                LifeStageAge.fromAge(
+              _previewAge(),
+            );
+
+            final bool showBeardSelector =
+                _gender == Gender.male &&
+                    _canUseBeardAtStage(
+                      previewStage,
+                    );
+
             return Dialog(
               insetPadding:
                   const EdgeInsets.symmetric(
@@ -557,6 +593,75 @@ class _CharacterCreationScreenState
                                   );
                                 },
                               ),
+                              const SizedBox(
+                                height: 14,
+                              ),
+                              _buildAssetSelectorFor(
+                                context: context,
+                                zoom: 1.0,
+                                title: 'Eyebrows',
+                                values:
+                                    _eyebrowStyles,
+                                selected:
+                                    temporaryAppearance
+                                        .eyebrows,
+                                assetDirectory:
+                                    _eyebrowDirectoryFor(
+                                  previewStage,
+                                ),
+                                onSelected:
+                                    (
+                                  String value,
+                                ) {
+                                  updateTemporaryAppearance(
+                                    temporaryAppearance
+                                        .copyWith(
+                                      eyebrows:
+                                          value,
+                                    ),
+                                  );
+                                },
+                                color:
+                                    _paletteService!
+                                        .hairColor(
+                                  temporaryAppearance
+                                      .hairColor,
+                                ),
+                              ),
+                              if (showBeardSelector) ...[
+                                const SizedBox(
+                                  height: 14,
+                                ),
+                                _buildAssetSelectorFor(
+                                  context: context,
+                                  zoom: 1.0,
+                                  title: 'Beard',
+                                  values:
+                                      _beardStyles,
+                                  selected:
+                                      temporaryAppearance
+                                          .beard,
+                                  assetDirectory:
+                                      'assets/character/beard',
+                                  onSelected:
+                                      (
+                                    String value,
+                                  ) {
+                                    updateTemporaryAppearance(
+                                      temporaryAppearance
+                                          .copyWith(
+                                        beard: value,
+                                      ),
+                                    );
+                                  },
+                                  color:
+                                      _paletteService!
+                                          .hairColor(
+                                    temporaryAppearance
+                                        .hairColor,
+                                  ),
+                                ),
+                              ],
                               const SizedBox(
                                 height: 14,
                               ),
@@ -878,6 +983,11 @@ class _CharacterCreationScreenState
     double zoom,
     CharacterAppearance appearance,
   ) {
+    final LifeStage previewStage =
+        LifeStageAge.fromAge(
+      _previewAge(),
+    );
+
     return Container(
       width: double.infinity,
       height: 205 * zoom,
@@ -905,7 +1015,7 @@ class _CharacterCreationScreenState
           context: context,
           zoom: zoom,
           appearance: appearance,
-          stage: LifeStage.youngAdult,
+          stage: previewStage,
           gender: _gender,
           size: 180,
           containerSize: 190,
@@ -1062,7 +1172,10 @@ class _CharacterCreationScreenState
         _eyesIrisAssetFor(stage);
 
     final String eyebrowAsset =
-        _eyebrowAssetFor(stage);
+        _eyebrowAssetFor(
+      stage,
+      appearance.eyebrows,
+    );
 
     final String mouthAsset =
         _mouthAssetFor(stage);
@@ -1073,9 +1186,13 @@ class _CharacterCreationScreenState
       gender: gender,
     );
 
-    // Keep the eye layer slightly larger than
-    // the head-base eye area so the original skin
-    // does not remain visible around the eyes.
+    final String? beardAsset =
+        _beardAssetFor(
+      appearance: appearance,
+      stage: stage,
+      gender: gender,
+    );
+
     const double eyeScale = 1.10;
 
     Widget tintedImage({
@@ -1148,22 +1265,11 @@ class _CharacterCreationScreenState
             useSkinGamma: true,
           ),
 
-          // Base eye layer:
-          // sclera, eye outline and fixed eye details.
-          // It must NOT receive eyeColor.
-          //
-          // Slightly enlarged to prevent the head-base
-          // skin from remaining visible around the eyes.
           fixedImage(
             assetPath: eyesBaseAsset,
             scale: eyeScale,
           ),
 
-          // Iris is a separate layer.
-          // Only the iris receives eyeColor.
-          //
-          // It uses the exact same scale as the eye base
-          // so both layers remain perfectly aligned.
           ColorFiltered(
             colorFilter: _irisColorFilter(
               eyeColor: eyeColor,
@@ -1179,13 +1285,16 @@ class _CharacterCreationScreenState
             color: hairColor,
           ),
 
-          // Mouth is already colorization-ready
-          // and therefore remains unfiltered.
           fixedImage(
             assetPath: mouthAsset,
           ),
 
-          // Bald has no image layer at all.
+          if (beardAsset != null)
+            tintedImage(
+              assetPath: beardAsset,
+              color: hairColor,
+            ),
+
           if (hairAsset != null)
             tintedImage(
               assetPath: hairAsset,
@@ -1280,29 +1389,85 @@ class _CharacterCreationScreenState
     }
   }
 
-  String _eyebrowAssetFor(
+  String _eyebrowDirectoryFor(
     LifeStage stage,
   ) {
     switch (stage) {
       case LifeStage.infant:
-        return 'assets/character/eyebrows/'
-            'infant_eyebrow_01.png';
+        return 'assets/character/eyebrows/infant';
 
       case LifeStage.toddler:
-        return 'assets/character/eyebrows/'
-            'toddler_eyebrow_01.png';
+        return 'assets/character/eyebrows/toddler';
 
       case LifeStage.child:
-        return 'assets/character/eyebrows/'
-            'child_eyebrow_01.png';
+        return 'assets/character/eyebrows/child';
 
       case LifeStage.teen:
       case LifeStage.youngAdult:
       case LifeStage.adult:
       case LifeStage.senior:
-        return 'assets/character/eyebrows/'
-            'adult_eyebrow.png';
+        return 'assets/character/eyebrows/young_adult';
     }
+  }
+
+  String _eyebrowAssetFor(
+    LifeStage stage,
+    String eyebrowStyle,
+  ) {
+    final String directory =
+        _eyebrowDirectoryFor(stage);
+
+    final String selectedStyle =
+        _eyebrowStyles.contains(
+      eyebrowStyle,
+    )
+            ? eyebrowStyle
+            : 'straight';
+
+    return '$directory/'
+        '$selectedStyle.png';
+  }
+
+  bool _canUseBeardAtStage(
+    LifeStage stage,
+  ) {
+    if (_gender != Gender.male) {
+      return false;
+    }
+
+    switch (stage) {
+      case LifeStage.youngAdult:
+      case LifeStage.adult:
+      case LifeStage.senior:
+        return true;
+
+      case LifeStage.infant:
+      case LifeStage.toddler:
+      case LifeStage.child:
+      case LifeStage.teen:
+        return false;
+    }
+  }
+
+  String? _beardAssetFor({
+    required CharacterAppearance appearance,
+    required LifeStage stage,
+    required Gender gender,
+  }) {
+    if (gender != Gender.male ||
+        !_canUseBeardAtStage(stage) ||
+        appearance.beard == 'none') {
+      return null;
+    }
+
+    if (!_beardStyles.contains(
+      appearance.beard,
+    )) {
+      return null;
+    }
+
+    return 'assets/character/beard/'
+        '${appearance.beard}.png';
   }
 
   String _mouthAssetFor(
@@ -1591,6 +1756,11 @@ class _CharacterCreationScreenState
                                 .first,
                       );
                     }
+
+                    _appearance =
+                        _appearance.copyWith(
+                      beard: 'none',
+                    );
                   });
 
                   Navigator.of(
@@ -1858,12 +2028,15 @@ class _CharacterCreationScreenState
               final bool isSelected =
                   value == selected;
 
-              final String assetPath =
-                  '$assetDirectory/'
-                  '$value.png';
+              final bool isNone =
+                  value == 'none';
 
               final bool isBald =
                   value == 'bald';
+
+              final String assetPath =
+                  '$assetDirectory/'
+                  '$value.png';
 
               return InkWell(
                 borderRadius:
@@ -1928,35 +2101,40 @@ class _CharacterCreationScreenState
                             .center,
                     children: [
                       Expanded(
-                        child: isBald
-                            ? Image.asset(
-                                assetPath,
-                                fit: BoxFit
-                                    .contain,
-                                filterQuality:
-                                    FilterQuality
-                                        .high,
+                        child: isNone
+                            ? Icon(
+                                Icons.block,
+                                size: s(28),
                               )
-                            : ColorFiltered(
-                                colorFilter:
-                                    ColorFilter
-                                        .mode(
-                                  color ??
-                                      Colors
-                                          .white,
-                                  BlendMode
-                                      .modulate,
-                                ),
-                                child:
-                                    Image.asset(
-                                  assetPath,
-                                  fit: BoxFit
-                                      .contain,
-                                  filterQuality:
-                                      FilterQuality
-                                          .high,
-                                ),
-                              ),
+                            : isBald
+                                ? Image.asset(
+                                    assetPath,
+                                    fit: BoxFit
+                                        .contain,
+                                    filterQuality:
+                                        FilterQuality
+                                            .high,
+                                  )
+                                : ColorFiltered(
+                                    colorFilter:
+                                        ColorFilter
+                                            .mode(
+                                      color ??
+                                          Colors
+                                              .white,
+                                      BlendMode
+                                          .modulate,
+                                    ),
+                                    child:
+                                        Image.asset(
+                                      assetPath,
+                                      fit: BoxFit
+                                          .contain,
+                                      filterQuality:
+                                          FilterQuality
+                                              .high,
+                                    ),
+                                  ),
                       ),
                       SizedBox(
                         height: s(2),
