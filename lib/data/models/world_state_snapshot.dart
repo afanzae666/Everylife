@@ -141,6 +141,7 @@ class WorldStateSnapshot {
           'eyes': playerAppearance.eyes,
           'eyeColor': playerAppearance.eyeColor,
           'eyebrows': playerAppearance.eyebrows,
+          'beard': playerAppearance.beard,
         },
       },
       'events': events
@@ -315,6 +316,13 @@ class WorldStateSnapshot {
           : _optionalString(
               appearance['eyebrows'],
             ),
+      beard: _optionalString(
+  appearance['beard'],
+).isEmpty
+    ? 'none'
+    : _optionalString(
+        appearance['beard'],
+      ),
     );
   }
 
