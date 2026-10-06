@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -30,6 +32,8 @@ class _CharacterCreationScreenState
 
   final TextEditingController _lastNameController =
       TextEditingController();
+
+  final Random _random = Random();
 
   static final TextInputFormatter _nameCapitalizationFormatter =
       TextInputFormatter.withFunction(
@@ -108,6 +112,9 @@ class _CharacterCreationScreenState
     'male_hair_02',
     'male_hair_03',
     'male_hair_04',
+    'male_hair_05',
+    'male_hair_06',
+    'male_hair_07',
   ];
 
   static const List<String> _femaleHairStyles = [
@@ -115,6 +122,68 @@ class _CharacterCreationScreenState
     'female_hair_01',
     'female_hair_02',
     'female_hair_03',
+    'female_hair_04',
+    'female_hair_05',
+    'female_hair_06',
+    'female_hair_07',
+  ];
+
+  static const List<String> _infantHairStyles = [
+    'infant_01',
+    'infant_02',
+    'infant_03',
+  ];
+
+  static const List<String> _toddlerHairStyles = [
+    'toddler_01',
+    'toddler_02',
+    'toddler_03',
+  ];
+
+  static const List<String> _firstNames = [
+    'Alex',
+    'Daniel',
+    'Ethan',
+    'James',
+    'Liam',
+    'Noah',
+    'Oliver',
+    'Ryan',
+    'Samuel',
+    'William',
+    'Anna',
+    'Chloe',
+    'Emma',
+    'Grace',
+    'Hannah',
+    'Isabella',
+    'Mia',
+    'Olivia',
+    'Sophia',
+    'Victoria',
+  ];
+
+  static const List<String> _lastNames = [
+    'Anderson',
+    'Bennett',
+    'Brooks',
+    'Carter',
+    'Collins',
+    'Cooper',
+    'Davis',
+    'Evans',
+    'Foster',
+    'Garcia',
+    'Harris',
+    'Johnson',
+    'Lewis',
+    'Martin',
+    'Morgan',
+    'Parker',
+    'Roberts',
+    'Smith',
+    'Taylor',
+    'Wilson',
   ];
 
   static const List<String> _eyebrowStyles = [
@@ -141,10 +210,37 @@ class _CharacterCreationScreenState
     'beard_05',
   ];
 
+  String _automaticInfantHair =
+      _infantHairStyles.first;
+
+  String _automaticToddlerHair =
+      _toddlerHairStyles.first;
+
   @override
   void initState() {
     super.initState();
+
+    _automaticInfantHair =
+        _randomItem(
+      _infantHairStyles,
+    );
+
+    _automaticToddlerHair =
+        _randomItem(
+      _toddlerHairStyles,
+    );
+
     _loadPalette();
+  }
+
+  String _randomItem(
+    List<String> values,
+  ) {
+    return values[
+      _random.nextInt(
+        values.length,
+      )
+    ];
   }
 
   Future<void> _loadPalette() async {
@@ -213,6 +309,32 @@ class _CharacterCreationScreenState
       return;
     }
 
+    final int age =
+        _maximumBirthYear -
+            _birthYear;
+
+    final LifeStage actualStage =
+        LifeStageAge.fromAge(
+      age.clamp(0, 126),
+    );
+
+    CharacterAppearance finalAppearance =
+        _appearance;
+
+    if (actualStage ==
+        LifeStage.infant) {
+      finalAppearance =
+          finalAppearance.copyWith(
+        hair: _automaticInfantHair,
+      );
+    } else if (actualStage ==
+        LifeStage.toddler) {
+      finalAppearance =
+          finalAppearance.copyWith(
+        hair: _automaticToddlerHair,
+      );
+    }
+
     final Character character =
         Character.create(
       id:
@@ -221,12 +343,103 @@ class _CharacterCreationScreenState
       lastName: lastName,
       gender: _gender,
       birthYear: _birthYear,
-      appearance: _appearance,
+      appearance: finalAppearance,
     );
 
     widget.onCharacterCreated(
       character,
     );
+  }
+
+  void _randomizeAppearance() {
+    if (_paletteService == null) {
+      return;
+    }
+
+    final Gender randomGender =
+        _random.nextBool()
+            ? Gender.male
+            : Gender.female;
+
+    final List<String> hairStyles =
+        randomGender == Gender.female
+            ? _femaleHairStyles
+            : _maleHairStyles;
+
+    final String randomHair =
+        _randomItem(
+      hairStyles,
+    );
+
+    final String randomBeard =
+        randomGender == Gender.male
+            ? _randomItem(
+                _beardStyles,
+              )
+            : 'none';
+
+    final String randomFirstName =
+        _randomItem(
+      _firstNames,
+    );
+
+    final String randomLastName =
+        _randomItem(
+      _lastNames,
+    );
+
+    final String randomSkinTone =
+        _randomItem(
+      _paletteService!.skinColors.keys
+          .toList(),
+    );
+
+    final String randomHairColor =
+        _randomItem(
+      _paletteService!.hairColors.keys
+          .toList(),
+    );
+
+    final String randomEyeColor =
+        _randomItem(
+      _paletteService!.eyeColors.keys
+          .toList(),
+    );
+
+    final String randomEyebrow =
+        _randomItem(
+      _eyebrowStyles,
+    );
+
+    setState(() {
+      _gender = randomGender;
+
+      _automaticInfantHair =
+          _randomItem(
+        _infantHairStyles,
+      );
+
+      _automaticToddlerHair =
+          _randomItem(
+        _toddlerHairStyles,
+      );
+
+      _appearance =
+          _appearance.copyWith(
+        skinTone: randomSkinTone,
+        hair: randomHair,
+        hairColor: randomHairColor,
+        eyeColor: randomEyeColor,
+        eyebrows: randomEyebrow,
+        beard: randomBeard,
+      );
+
+      _firstNameController.text =
+          randomFirstName;
+
+      _lastNameController.text =
+          randomLastName;
+    });
   }
 
   void _showBirthYearPicker() {
@@ -453,10 +666,8 @@ class _CharacterCreationScreenState
               });
             }
 
-            final LifeStage previewStage =
-                LifeStageAge.fromAge(
-              _previewAge(),
-            );
+            const LifeStage previewStage =
+                LifeStage.youngAdult;
 
             final bool showBeardSelector =
                 _gender == Gender.male &&
@@ -914,6 +1125,20 @@ class _CharacterCreationScreenState
                         ),
                       ),
                       SizedBox(
+                        height: s(2),
+                      ),
+                      TextButton.icon(
+                        onPressed:
+                            _randomizeAppearance,
+                        icon: Icon(
+                          Icons.casino_outlined,
+                          size: s(17),
+                        ),
+                        label: const Text(
+                          'Random Appearance',
+                        ),
+                      ),
+                      SizedBox(
                         height: s(4),
                       ),
                       Expanded(
@@ -957,11 +1182,8 @@ class _CharacterCreationScreenState
     BuildContext context,
     double zoom,
   ) {
-    final int age =
-        _previewAge();
-
-    final LifeStage stage =
-        LifeStageAge.fromAge(age);
+    const LifeStage stage =
+        LifeStage.youngAdult;
 
     return _buildAvatarStack(
       context: context,
@@ -974,23 +1196,13 @@ class _CharacterCreationScreenState
     );
   }
 
-  int _previewAge() {
-    final int age =
-        _maximumBirthYear -
-            _birthYear;
-
-    return age.clamp(0, 126);
-  }
-
   Widget _buildAppearancePreviewFor(
     BuildContext context,
     double zoom,
     CharacterAppearance appearance,
   ) {
-    final LifeStage previewStage =
-        LifeStageAge.fromAge(
-      _previewAge(),
-    );
+    const LifeStage previewStage =
+        LifeStage.youngAdult;
 
     return Container(
       width: double.infinity,
@@ -1188,6 +1400,7 @@ class _CharacterCreationScreenState
         _hairAssetFor(
       appearance: appearance,
       gender: gender,
+      stage: stage,
     );
 
     final String? beardAsset =
@@ -1309,7 +1522,7 @@ class _CharacterCreationScreenState
     );
   }
 
-  String _headAssetFor(
+    String _headAssetFor(
     LifeStage stage,
   ) {
     switch (stage) {
@@ -1542,7 +1755,18 @@ class _CharacterCreationScreenState
   String? _hairAssetFor({
     required CharacterAppearance appearance,
     required Gender gender,
+    required LifeStage stage,
   }) {
+    if (stage == LifeStage.infant) {
+      return 'assets/character/hair/'
+          '$_automaticInfantHair.png';
+    }
+
+    if (stage == LifeStage.toddler) {
+      return 'assets/character/hair/'
+          '$_automaticToddlerHair.png';
+    }
+
     if (appearance.hair == 'bald') {
       return null;
     }
