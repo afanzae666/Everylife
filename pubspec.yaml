@@ -23,7 +23,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  assets:
+    assets:
     - assets/icons/
     - assets/images/everylife_logo.png
 
@@ -31,8 +31,13 @@ flutter:
     - assets/character/base/
     - assets/character/expressions/
     - assets/character/eyebrows/
+    - assets/character/eyebrows/infant/
+    - assets/character/eyebrows/toddler/
+    - assets/character/eyebrows/child/
+    - assets/character/eyebrows/young_adult/
     - assets/character/eyes/
     - assets/character/hair/
     - assets/character/palettes/
     - assets/character/head_base/
     - assets/character/mouth/
+    - assets/character/beard/
