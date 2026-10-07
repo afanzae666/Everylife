@@ -542,6 +542,78 @@ void main() {
     );
 
     testWidgets(
+      'random appearance generates a complete valid identity',
+      (tester) async {
+        String? createdName;
+        Gender? createdGender;
+
+        await pumpCharacterCreationScreen(
+          tester,
+          onCharacterCreated: (character) {
+            createdName = character.name;
+            createdGender = character.gender;
+          },
+        );
+
+        await tester.tap(
+          find.text('Random Appearance'),
+        );
+
+        await tester.pump();
+
+        final textFields = find.byType(TextField);
+
+        expect(
+          textFields,
+          findsNWidgets(2),
+        );
+
+        final firstName =
+            tester.widget<TextField>(
+          textFields.at(0),
+        ).controller!.text;
+
+        final lastName =
+            tester.widget<TextField>(
+          textFields.at(1),
+        ).controller!.text;
+
+        expect(
+          firstName,
+          isNotEmpty,
+        );
+
+        expect(
+          lastName,
+          isNotEmpty,
+        );
+
+        expect(
+          find.text('Male').evaluate().isNotEmpty ||
+              find.text('Female').evaluate().isNotEmpty,
+          isTrue,
+        );
+
+        await tapBeginLife(
+          tester,
+        );
+
+        expect(
+          createdName,
+          '$firstName $lastName',
+        );
+
+        expect(
+          createdGender,
+          anyOf(
+            Gender.male,
+            Gender.female,
+          ),
+        );
+      },
+    );
+
+    testWidgets(
       'appearance dialog can be closed without changing identity controls',
       (tester) async {
         await pumpCharacterCreationScreen(
