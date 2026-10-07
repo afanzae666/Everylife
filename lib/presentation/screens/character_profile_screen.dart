@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/services/character_palette_service.dart';
 import '../../domain/character/character.dart';
+import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
 import '../widgets/character_avatar.dart';
 
