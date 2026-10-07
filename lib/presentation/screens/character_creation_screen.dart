@@ -703,14 +703,17 @@ class _CharacterCreationScreenState
                         constraints.maxHeight < 760;
 
                     final double dialogZoom =
-                        (constraints.maxHeight / 650.0)
-                                   .clamp(0.68, 1.0);
+                        compact
+                            ? (constraints.maxHeight /
+                                      650.0)
+                                .clamp(0.68, 1.0)
+                            : 1.0;
 
                     final double contentPadding =
                         compact ? 10.0 : 16.0;
 
                     final double sectionGap =
-                        compact ? 4.0 : 6.0;
+                        compact ? 2.0 : 6.0;
 
                     final double doneHeight =
                         compact ? 40.0 : 46.0;
@@ -733,21 +736,32 @@ class _CharacterCreationScreenState
                                       .titleLarge,
                                 ),
                               ),
-                              IconButton(
-                                tooltip: 'Close',
-                                onPressed: () {
-                                  Navigator.of(
-                                    dialogContext,
-                                  ).pop();
-                                },
-                                icon: const Icon(
-                                  Icons.close,
+                              SizedBox(
+                                width: compact
+                                    ? 40
+                                    : 48,
+                                height: compact
+                                    ? 40
+                                    : 48,
+                                child: IconButton(
+                                  tooltip: 'Close',
+                                  padding:
+                                      EdgeInsets.zero,
+                                  onPressed: () {
+                                    Navigator.of(
+                                      dialogContext,
+                                    ).pop();
+                                  },
+                                  icon: const Icon(
+                                    Icons.close,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                           SizedBox(
-                            height: compact ? 0 : 2,
+                            height:
+                                compact ? 2 : 2,
                           ),
                           Expanded(
                             child: Column(
@@ -759,6 +773,7 @@ class _CharacterCreationScreenState
                                   context,
                                   dialogZoom,
                                   temporaryAppearance,
+                                  compact: compact,
                                 ),
                                 SizedBox(
                                   height: sectionGap,
@@ -768,6 +783,7 @@ class _CharacterCreationScreenState
                                   dialogZoom,
                                   temporaryAppearance,
                                   updateTemporaryAppearance,
+                                  compact: compact,
                                 ),
                                 SizedBox(
                                   height: sectionGap,
@@ -782,6 +798,7 @@ class _CharacterCreationScreenState
                                   selected:
                                       temporaryAppearance
                                           .eyeColor,
+                                  compact: compact,
                                   onSelected: (
                                     String value,
                                   ) {
@@ -802,6 +819,7 @@ class _CharacterCreationScreenState
                                   zoom: dialogZoom,
                                   title: 'Hair',
                                   showTitle: false,
+                                  compact: compact,
                                   values:
                                       _currentHairStyles(),
                                   selected:
@@ -839,6 +857,7 @@ class _CharacterCreationScreenState
                                   selected:
                                       temporaryAppearance
                                           .hairColor,
+                                  compact: compact,
                                   onSelected: (
                                     String value,
                                   ) {
@@ -859,6 +878,7 @@ class _CharacterCreationScreenState
                                   zoom: dialogZoom,
                                   title: 'Eyebrows',
                                   showTitle: false,
+                                  compact: compact,
                                   values:
                                       _eyebrowStyles,
                                   selected:
@@ -899,6 +919,7 @@ class _CharacterCreationScreenState
                                     zoom: dialogZoom,
                                     title: 'Beard',
                                     showTitle: false,
+                                    compact: compact,
                                     values:
                                         _beardStyles,
                                     selected:
@@ -1273,14 +1294,30 @@ class _CharacterCreationScreenState
   Widget _buildAppearancePreviewFor(
     BuildContext context,
     double zoom,
-    CharacterAppearance appearance,
-  ) {
+    CharacterAppearance appearance, {
+    bool compact = false,
+  }) {
     const LifeStage previewStage =
         LifeStage.youngAdult;
 
+    final double previewHeight =
+        compact
+            ? 72
+            : 170;
+
+    final double avatarSize =
+        compact
+            ? 68
+            : 150;
+
+    final double avatarContainerSize =
+        compact
+            ? 72
+            : 160;
+
     return Container(
       width: double.infinity,
-      height: 170 * zoom,
+      height: previewHeight,
       decoration: BoxDecoration(
         color: Theme.of(context)
             .colorScheme
@@ -1290,7 +1327,9 @@ class _CharacterCreationScreenState
             ),
         borderRadius:
             BorderRadius.circular(
-          10 * zoom,
+          compact
+              ? 8
+              : 10 * zoom,
         ),
         border: Border.all(
           color: Theme.of(context)
@@ -1303,12 +1342,13 @@ class _CharacterCreationScreenState
       child: Center(
         child: _buildAvatarStack(
           context: context,
-          zoom: zoom,
+          zoom: compact ? 1.0 : zoom,
           appearance: appearance,
           stage: previewStage,
           gender: _gender,
-          size: 150,
-          containerSize: 160,
+          size: avatarSize,
+          containerSize:
+              avatarContainerSize,
         ),
       ),
     );
@@ -2117,13 +2157,33 @@ class _CharacterCreationScreenState
     double zoom,
     CharacterAppearance appearance,
     ValueChanged<CharacterAppearance>
-        onChanged,
-  ) {
+        onChanged, {
+    bool compact = false,
+  }) {
     double s(double value) =>
         value * zoom;
 
     final Map<String, Color> skinColors =
         _paletteService!.skinColors;
+
+    if (compact) {
+      return _buildCompactColorRow(
+        context: context,
+        zoom: zoom,
+        title: 'Skin Tone',
+        colors: skinColors,
+        selected: appearance.skinTone,
+        onSelected: (
+          String value,
+        ) {
+          onChanged(
+            appearance.copyWith(
+              skinTone: value,
+            ),
+          );
+        },
+      );
+    }
 
     return Column(
       crossAxisAlignment:
@@ -2141,6 +2201,8 @@ class _CharacterCreationScreenState
         SizedBox(
           height: s(44),
           child: ListView.separated(
+            padding:
+                EdgeInsets.zero,
             scrollDirection:
                 Axis.horizontal,
             itemCount:
@@ -2198,7 +2260,19 @@ class _CharacterCreationScreenState
     required String selected,
     required ValueChanged<String>
         onSelected,
+    bool compact = false,
   }) {
+    if (compact) {
+      return _buildCompactColorRow(
+        context: context,
+        zoom: zoom,
+        title: title,
+        colors: colors,
+        selected: selected,
+        onSelected: onSelected,
+      );
+    }
+
     double s(double value) =>
         value * zoom;
 
@@ -2218,6 +2292,8 @@ class _CharacterCreationScreenState
         SizedBox(
           height: s(44),
           child: ListView.separated(
+            padding:
+                EdgeInsets.zero,
             scrollDirection:
                 Axis.horizontal,
             itemCount:
@@ -2262,6 +2338,86 @@ class _CharacterCreationScreenState
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCompactColorRow({
+    required BuildContext context,
+    required double zoom,
+    required String title,
+    required Map<String, Color> colors,
+    required String selected,
+    required ValueChanged<String>
+        onSelected,
+  }) {
+    return SizedBox(
+      height: 36,
+      child: Row(
+        crossAxisAlignment:
+            CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 82,
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow:
+                  TextOverflow.ellipsis,
+              style: Theme.of(context)
+                  .textTheme
+                  .labelLarge,
+            ),
+          ),
+          const SizedBox(
+            width: 6,
+          ),
+          Expanded(
+            child: ListView.separated(
+              padding:
+                  EdgeInsets.zero,
+              scrollDirection:
+                  Axis.horizontal,
+              itemCount:
+                  colors.length,
+              separatorBuilder:
+                  (
+                BuildContext context,
+                int index,
+              ) {
+                return const SizedBox(
+                  width: 4,
+                );
+              },
+              itemBuilder:
+                  (
+                BuildContext context,
+                int index,
+              ) {
+                final String key =
+                    colors.keys.elementAt(
+                  index,
+                );
+
+                final Color color =
+                    colors[key]!;
+
+                return _buildColorDot(
+                  context: context,
+                  zoom: 0.82,
+                  color: color,
+                  selected:
+                      key == selected,
+                  onTap: () {
+                    onSelected(
+                      key,
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -2323,9 +2479,30 @@ class _CharacterCreationScreenState
         onSelected,
     required Color? color,
     bool showTitle = true,
+    bool compact = false,
   }) {
     double s(double value) =>
         value * zoom;
+
+    final double selectorHeight =
+        compact
+            ? 40
+            : s(64);
+
+    final double cardWidth =
+        compact
+            ? 66
+            : s(78);
+
+    final double cardPadding =
+        compact
+            ? 2
+            : s(4);
+
+    final double cardRadius =
+        compact
+            ? 6
+            : s(8);
 
     return Column(
       crossAxisAlignment:
@@ -2343,8 +2520,11 @@ class _CharacterCreationScreenState
           ),
         ],
         SizedBox(
-          height: s(64),
+          width: double.infinity,
+          height: selectorHeight,
           child: ListView.separated(
+            padding:
+                EdgeInsets.zero,
             scrollDirection:
                 Axis.horizontal,
             itemCount:
@@ -2355,7 +2535,9 @@ class _CharacterCreationScreenState
               int index,
             ) {
               return SizedBox(
-                width: s(6),
+                width: compact
+                    ? 4
+                    : s(6),
               );
             },
             itemBuilder:
@@ -2387,7 +2569,7 @@ class _CharacterCreationScreenState
               return InkWell(
                 borderRadius:
                     BorderRadius.circular(
-                  s(8),
+                  cardRadius,
                 ),
                 onTap: () {
                   onSelected(
@@ -2395,10 +2577,10 @@ class _CharacterCreationScreenState
                   );
                 },
                 child: Container(
-                  width: s(78),
+                  width: cardWidth,
                   padding:
                       EdgeInsets.all(
-                    s(4),
+                    cardPadding,
                   ),
                   decoration:
                       BoxDecoration(
@@ -2418,7 +2600,7 @@ class _CharacterCreationScreenState
                             .surface,
                     borderRadius:
                         BorderRadius.circular(
-                      s(8),
+                      cardRadius,
                     ),
                     border:
                         Border.all(
@@ -2437,8 +2619,10 @@ class _CharacterCreationScreenState
                                     0.6,
                               ),
                       width: isSelected
-                          ? s(2)
-                          : s(1),
+                          ? compact
+                              ? 1.5
+                              : s(2)
+                          : 1,
                     ),
                   ),
                   child: Column(
@@ -2450,7 +2634,9 @@ class _CharacterCreationScreenState
                         child: isNone
                             ? Icon(
                                 Icons.block,
-                                size: s(28),
+                                size: compact
+                                    ? 18
+                                    : s(28),
                               )
                             : isBald
                                 ? Image.asset(
@@ -2482,9 +2668,10 @@ class _CharacterCreationScreenState
                                     ),
                                   ),
                       ),
-                      SizedBox(
-                        height: s(2),
-                      ),
+                      if (!compact)
+                        SizedBox(
+                          height: s(2),
+                        ),
                       Text(
                         _prettyLabel(
                           value,
@@ -2499,7 +2686,13 @@ class _CharacterCreationScreenState
                           context,
                         )
                                 .textTheme
-                                .labelSmall,
+                                .labelSmall
+                                ?.copyWith(
+                                  fontSize:
+                                      compact
+                                          ? 8
+                                          : null,
+                                ),
                       ),
                     ],
                   ),
