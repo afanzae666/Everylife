@@ -703,7 +703,8 @@ class _CharacterCreationScreenState
                         constraints.maxHeight < 760;
 
                     final double dialogZoom =
-                        compact ? 0.86 : 1.0;
+                        (constraints.maxHeight / 650.0)
+                                   .clamp(0.68, 1.0);
 
                     final double contentPadding =
                         compact ? 10.0 : 16.0;
