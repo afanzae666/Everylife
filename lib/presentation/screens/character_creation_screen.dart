@@ -699,24 +699,77 @@ class _CharacterCreationScreenState
                     BuildContext context,
                     BoxConstraints constraints,
                   ) {
-                    final bool compact =
-                        constraints.maxHeight < 760;
+                    final double availableHeight =
+                        constraints.maxHeight;
 
-                    final double dialogZoom =
-                        compact
-                            ? (constraints.maxHeight /
-                                      650.0)
-                                .clamp(0.68, 1.0)
-                            : 1.0;
+                    final bool veryShort =
+                        availableHeight < 420;
+
+                    final bool compact =
+                        availableHeight < 560;
 
                     final double contentPadding =
-                        compact ? 10.0 : 16.0;
+                        veryShort
+                            ? 8
+                            : compact
+                                ? 10
+                                : 16;
 
                     final double sectionGap =
-                        compact ? 2.0 : 6.0;
+                        veryShort
+                            ? 2
+                            : compact
+                                ? 4
+                                : 7;
 
                     final double doneHeight =
-                        compact ? 40.0 : 46.0;
+                        veryShort
+                            ? 36
+                            : compact
+                                ? 40
+                                : 46;
+
+                    final double previewHeight =
+                        veryShort
+                            ? 78
+                            : compact
+                                ? 105
+                                : 155;
+
+                    final double previewAvatarSize =
+                        veryShort
+                            ? 70
+                            : compact
+                                ? 92
+                                : 138;
+
+                    final double previewContainerSize =
+                        veryShort
+                            ? 76
+                            : compact
+                                ? 98
+                                : 148;
+
+                    final double colorRowHeight =
+                        veryShort
+                            ? 30
+                            : compact
+                                ? 38
+                                : 46;
+
+                    final double assetRowHeight =
+                        veryShort
+                            ? 36
+                            : compact
+                                ? 46
+                                : 60;
+
+                    final double selectorZoom =
+                        veryShort
+                            ? 0.78
+                            : compact
+                                ? 0.90
+                                : 1.0;
 
                     return Padding(
                       padding: EdgeInsets.all(
@@ -736,32 +789,29 @@ class _CharacterCreationScreenState
                                       .titleLarge,
                                 ),
                               ),
-                              SizedBox(
-                                width: compact
-                                    ? 40
-                                    : 48,
-                                height: compact
-                                    ? 40
-                                    : 48,
-                                child: IconButton(
-                                  tooltip: 'Close',
-                                  padding:
-                                      EdgeInsets.zero,
-                                  onPressed: () {
-                                    Navigator.of(
-                                      dialogContext,
-                                    ).pop();
-                                  },
-                                  icon: const Icon(
-                                    Icons.close,
-                                  ),
+                              IconButton(
+                                tooltip: 'Close',
+                                visualDensity:
+                                    compact
+                                        ? VisualDensity
+                                            .compact
+                                        : null,
+                                onPressed: () {
+                                  Navigator.of(
+                                    dialogContext,
+                                  ).pop();
+                                },
+                                icon: const Icon(
+                                  Icons.close,
                                 ),
                               ),
                             ],
                           ),
                           SizedBox(
                             height:
-                                compact ? 2 : 2,
+                                veryShort
+                                    ? 0
+                                    : 2,
                           ),
                           Expanded(
                             child: Column(
@@ -771,26 +821,34 @@ class _CharacterCreationScreenState
                               children: [
                                 _buildAppearancePreviewFor(
                                   context,
-                                  dialogZoom,
+                                  selectorZoom,
                                   temporaryAppearance,
-                                  compact: compact,
+                                  height:
+                                      previewHeight,
+                                  avatarSize:
+                                      previewAvatarSize,
+                                  avatarContainerSize:
+                                      previewContainerSize,
                                 ),
                                 SizedBox(
                                   height: sectionGap,
                                 ),
                                 _buildSkinToneSelectorFor(
                                   context,
-                                  dialogZoom,
+                                  selectorZoom,
                                   temporaryAppearance,
                                   updateTemporaryAppearance,
-                                  compact: compact,
+                                  rowHeight:
+                                      colorRowHeight,
+                                  compact:
+                                      compact,
                                 ),
                                 SizedBox(
                                   height: sectionGap,
                                 ),
                                 _buildColorSelectorFor(
                                   context: context,
-                                  zoom: dialogZoom,
+                                  zoom: selectorZoom,
                                   title: 'Eye Color',
                                   colors:
                                       _paletteService!
@@ -798,7 +856,6 @@ class _CharacterCreationScreenState
                                   selected:
                                       temporaryAppearance
                                           .eyeColor,
-                                  compact: compact,
                                   onSelected: (
                                     String value,
                                   ) {
@@ -810,16 +867,19 @@ class _CharacterCreationScreenState
                                       ),
                                     );
                                   },
+                                  rowHeight:
+                                      colorRowHeight,
+                                  compact:
+                                      compact,
                                 ),
                                 SizedBox(
                                   height: sectionGap,
                                 ),
                                 _buildAssetSelectorFor(
                                   context: context,
-                                  zoom: dialogZoom,
+                                  zoom: selectorZoom,
                                   title: 'Hair',
                                   showTitle: false,
-                                  compact: compact,
                                   values:
                                       _currentHairStyles(),
                                   selected:
@@ -843,13 +903,15 @@ class _CharacterCreationScreenState
                                     temporaryAppearance
                                         .hairColor,
                                   ),
+                                  rowHeight:
+                                      assetRowHeight,
                                 ),
                                 SizedBox(
                                   height: sectionGap,
                                 ),
                                 _buildColorSelectorFor(
                                   context: context,
-                                  zoom: dialogZoom,
+                                  zoom: selectorZoom,
                                   title: 'Hair Color',
                                   colors:
                                       _paletteService!
@@ -857,7 +919,6 @@ class _CharacterCreationScreenState
                                   selected:
                                       temporaryAppearance
                                           .hairColor,
-                                  compact: compact,
                                   onSelected: (
                                     String value,
                                   ) {
@@ -869,16 +930,19 @@ class _CharacterCreationScreenState
                                       ),
                                     );
                                   },
+                                  rowHeight:
+                                      colorRowHeight,
+                                  compact:
+                                      compact,
                                 ),
                                 SizedBox(
                                   height: sectionGap,
                                 ),
                                 _buildAssetSelectorFor(
                                   context: context,
-                                  zoom: dialogZoom,
+                                  zoom: selectorZoom,
                                   title: 'Eyebrows',
                                   showTitle: false,
-                                  compact: compact,
                                   values:
                                       _eyebrowStyles,
                                   selected:
@@ -909,6 +973,8 @@ class _CharacterCreationScreenState
                                     temporaryAppearance
                                         .hairColor,
                                   ),
+                                  rowHeight:
+                                      assetRowHeight,
                                 ),
                                 if (showBeardSelector) ...[
                                   SizedBox(
@@ -916,10 +982,9 @@ class _CharacterCreationScreenState
                                   ),
                                   _buildAssetSelectorFor(
                                     context: context,
-                                    zoom: dialogZoom,
+                                    zoom: selectorZoom,
                                     title: 'Beard',
                                     showTitle: false,
-                                    compact: compact,
                                     values:
                                         _beardStyles,
                                     selected:
@@ -943,6 +1008,8 @@ class _CharacterCreationScreenState
                                       temporaryAppearance
                                           .hairColor,
                                     ),
+                                    rowHeight:
+                                        assetRowHeight,
                                   ),
                                 ],
                               ],
@@ -1295,29 +1362,16 @@ class _CharacterCreationScreenState
     BuildContext context,
     double zoom,
     CharacterAppearance appearance, {
-    bool compact = false,
+    required double height,
+    required double avatarSize,
+    required double avatarContainerSize,
   }) {
     const LifeStage previewStage =
         LifeStage.youngAdult;
 
-    final double previewHeight =
-        compact
-            ? 72
-            : 170;
-
-    final double avatarSize =
-        compact
-            ? 68
-            : 150;
-
-    final double avatarContainerSize =
-        compact
-            ? 72
-            : 160;
-
     return Container(
       width: double.infinity,
-      height: previewHeight,
+      height: height,
       decoration: BoxDecoration(
         color: Theme.of(context)
             .colorScheme
@@ -1327,9 +1381,7 @@ class _CharacterCreationScreenState
             ),
         borderRadius:
             BorderRadius.circular(
-          compact
-              ? 8
-              : 10 * zoom,
+          10 * zoom,
         ),
         border: Border.all(
           color: Theme.of(context)
@@ -1342,7 +1394,7 @@ class _CharacterCreationScreenState
       child: Center(
         child: _buildAvatarStack(
           context: context,
-          zoom: compact ? 1.0 : zoom,
+          zoom: zoom,
           appearance: appearance,
           stage: previewStage,
           gender: _gender,
@@ -2158,32 +2210,14 @@ class _CharacterCreationScreenState
     CharacterAppearance appearance,
     ValueChanged<CharacterAppearance>
         onChanged, {
-    bool compact = false,
+    required double rowHeight,
+    required bool compact,
   }) {
     double s(double value) =>
         value * zoom;
 
     final Map<String, Color> skinColors =
         _paletteService!.skinColors;
-
-    if (compact) {
-      return _buildCompactColorRow(
-        context: context,
-        zoom: zoom,
-        title: 'Skin Tone',
-        colors: skinColors,
-        selected: appearance.skinTone,
-        onSelected: (
-          String value,
-        ) {
-          onChanged(
-            appearance.copyWith(
-              skinTone: value,
-            ),
-          );
-        },
-      );
-    }
 
     return Column(
       crossAxisAlignment:
@@ -2196,13 +2230,11 @@ class _CharacterCreationScreenState
               .titleSmall,
         ),
         SizedBox(
-          height: s(5),
+          height: compact ? 2 : 4,
         ),
         SizedBox(
-          height: s(44),
+          height: rowHeight,
           child: ListView.separated(
-            padding:
-                EdgeInsets.zero,
             scrollDirection:
                 Axis.horizontal,
             itemCount:
@@ -2213,7 +2245,9 @@ class _CharacterCreationScreenState
               int index,
             ) {
               return SizedBox(
-                width: s(8),
+                width: compact
+                    ? s(5)
+                    : s(8),
               );
             },
             itemBuilder:
@@ -2244,6 +2278,8 @@ class _CharacterCreationScreenState
                     ),
                   );
                 },
+                diameter:
+                    compact ? 30 : 36,
               );
             },
           ),
@@ -2260,19 +2296,9 @@ class _CharacterCreationScreenState
     required String selected,
     required ValueChanged<String>
         onSelected,
-    bool compact = false,
+    required double rowHeight,
+    required bool compact,
   }) {
-    if (compact) {
-      return _buildCompactColorRow(
-        context: context,
-        zoom: zoom,
-        title: title,
-        colors: colors,
-        selected: selected,
-        onSelected: onSelected,
-      );
-    }
-
     double s(double value) =>
         value * zoom;
 
@@ -2287,13 +2313,11 @@ class _CharacterCreationScreenState
               .titleSmall,
         ),
         SizedBox(
-          height: s(5),
+          height: compact ? 2 : 4,
         ),
         SizedBox(
-          height: s(44),
+          height: rowHeight,
           child: ListView.separated(
-            padding:
-                EdgeInsets.zero,
             scrollDirection:
                 Axis.horizontal,
             itemCount:
@@ -2304,7 +2328,9 @@ class _CharacterCreationScreenState
               int index,
             ) {
               return SizedBox(
-                width: s(8),
+                width: compact
+                    ? s(5)
+                    : s(8),
               );
             },
             itemBuilder:
@@ -2333,91 +2359,13 @@ class _CharacterCreationScreenState
                     key,
                   );
                 },
+                diameter:
+                    compact ? 30 : 36,
               );
             },
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildCompactColorRow({
-    required BuildContext context,
-    required double zoom,
-    required String title,
-    required Map<String, Color> colors,
-    required String selected,
-    required ValueChanged<String>
-        onSelected,
-  }) {
-    return SizedBox(
-      height: 36,
-      child: Row(
-        crossAxisAlignment:
-            CrossAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 82,
-            child: Text(
-              title,
-              maxLines: 1,
-              overflow:
-                  TextOverflow.ellipsis,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelLarge,
-            ),
-          ),
-          const SizedBox(
-            width: 6,
-          ),
-          Expanded(
-            child: ListView.separated(
-              padding:
-                  EdgeInsets.zero,
-              scrollDirection:
-                  Axis.horizontal,
-              itemCount:
-                  colors.length,
-              separatorBuilder:
-                  (
-                BuildContext context,
-                int index,
-              ) {
-                return const SizedBox(
-                  width: 4,
-                );
-              },
-              itemBuilder:
-                  (
-                BuildContext context,
-                int index,
-              ) {
-                final String key =
-                    colors.keys.elementAt(
-                  index,
-                );
-
-                final Color color =
-                    colors[key]!;
-
-                return _buildColorDot(
-                  context: context,
-                  zoom: 0.82,
-                  color: color,
-                  selected:
-                      key == selected,
-                  onTap: () {
-                    onSelected(
-                      key,
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -2427,6 +2375,7 @@ class _CharacterCreationScreenState
     required Color color,
     required bool selected,
     required VoidCallback onTap,
+    double diameter = 36,
   }) {
     double s(double value) =>
         value * zoom;
@@ -2434,15 +2383,15 @@ class _CharacterCreationScreenState
     return InkWell(
       borderRadius:
           BorderRadius.circular(
-        s(22),
+        s(diameter / 2 + 2),
       ),
       onTap: onTap,
       child: Padding(
         padding:
             EdgeInsets.all(s(2)),
         child: Container(
-          width: s(36),
-          height: s(36),
+          width: s(diameter),
+          height: s(diameter),
           decoration: BoxDecoration(
             shape:
                 BoxShape.circle,
@@ -2478,31 +2427,11 @@ class _CharacterCreationScreenState
     required ValueChanged<String>
         onSelected,
     required Color? color,
+    required double rowHeight,
     bool showTitle = true,
-    bool compact = false,
   }) {
     double s(double value) =>
         value * zoom;
-
-    final double selectorHeight =
-        compact
-            ? 40
-            : s(64);
-
-    final double cardWidth =
-        compact
-            ? 66
-            : s(78);
-
-    final double cardPadding =
-        compact
-            ? 2
-            : s(4);
-
-    final double cardRadius =
-        compact
-            ? 6
-            : s(8);
 
     return Column(
       crossAxisAlignment:
@@ -2516,17 +2445,15 @@ class _CharacterCreationScreenState
                 .titleSmall,
           ),
           SizedBox(
-            height: s(5),
+            height: s(4),
           ),
         ],
         SizedBox(
-          width: double.infinity,
-          height: selectorHeight,
+          height: rowHeight,
           child: ListView.separated(
-            padding:
-                EdgeInsets.zero,
             scrollDirection:
                 Axis.horizontal,
+            padding: EdgeInsets.zero,
             itemCount:
                 values.length,
             separatorBuilder:
@@ -2535,9 +2462,7 @@ class _CharacterCreationScreenState
               int index,
             ) {
               return SizedBox(
-                width: compact
-                    ? 4
-                    : s(6),
+                width: s(6),
               );
             },
             itemBuilder:
@@ -2569,7 +2494,7 @@ class _CharacterCreationScreenState
               return InkWell(
                 borderRadius:
                     BorderRadius.circular(
-                  cardRadius,
+                  s(8),
                 ),
                 onTap: () {
                   onSelected(
@@ -2577,10 +2502,18 @@ class _CharacterCreationScreenState
                   );
                 },
                 child: Container(
-                  width: cardWidth,
+                  width:
+                      veryCompactAssetWidth(
+                    zoom,
+                    rowHeight,
+                  ),
                   padding:
                       EdgeInsets.all(
-                    cardPadding,
+                    s(
+                      rowHeight <= 40
+                          ? 2
+                          : 4,
+                    ),
                   ),
                   decoration:
                       BoxDecoration(
@@ -2600,7 +2533,7 @@ class _CharacterCreationScreenState
                             .surface,
                     borderRadius:
                         BorderRadius.circular(
-                      cardRadius,
+                      s(8),
                     ),
                     border:
                         Border.all(
@@ -2619,10 +2552,8 @@ class _CharacterCreationScreenState
                                     0.6,
                               ),
                       width: isSelected
-                          ? compact
-                              ? 1.5
-                              : s(2)
-                          : 1,
+                          ? s(2)
+                          : s(1),
                     ),
                   ),
                   child: Column(
@@ -2634,9 +2565,12 @@ class _CharacterCreationScreenState
                         child: isNone
                             ? Icon(
                                 Icons.block,
-                                size: compact
-                                    ? 18
-                                    : s(28),
+                                size:
+                                    s(
+                                  rowHeight <= 40
+                                      ? 18
+                                      : 28,
+                                ),
                               )
                             : isBald
                                 ? Image.asset(
@@ -2668,10 +2602,12 @@ class _CharacterCreationScreenState
                                     ),
                                   ),
                       ),
-                      if (!compact)
-                        SizedBox(
-                          height: s(2),
-                        ),
+                      SizedBox(
+                        height:
+                            rowHeight <= 40
+                                ? 0
+                                : s(2),
+                      ),
                       Text(
                         _prettyLabel(
                           value,
@@ -2689,8 +2625,8 @@ class _CharacterCreationScreenState
                                 .labelSmall
                                 ?.copyWith(
                                   fontSize:
-                                      compact
-                                          ? 8
+                                      rowHeight <= 40
+                                          ? 9
                                           : null,
                                 ),
                       ),
@@ -2703,6 +2639,21 @@ class _CharacterCreationScreenState
         ),
       ],
     );
+  }
+
+  double veryCompactAssetWidth(
+    double zoom,
+    double rowHeight,
+  ) {
+    if (rowHeight <= 40) {
+      return 58 * zoom;
+    }
+
+    if (rowHeight <= 46) {
+      return 66 * zoom;
+    }
+
+    return 78 * zoom;
   }
 
   String _prettyLabel(
