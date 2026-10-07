@@ -700,10 +700,10 @@ class _CharacterCreationScreenState
                     BoxConstraints constraints,
                   ) {
                     final bool compact =
-                        constraints.maxHeight < 650;
+                        constraints.maxHeight < 760;
 
                     final double dialogZoom =
-                        compact ? 0.66 : 1.0;
+                        compact ? 0.86 : 1.0;
 
                     final double contentPadding =
                         compact ? 10.0 : 16.0;
@@ -1122,58 +1122,105 @@ class _CharacterCreationScreenState
                     s(10),
                     s(8),
                   ),
-                  child: Column(
-                    children: [
-                      Flexible(
-                        flex: 5,
-                        fit: FlexFit.loose,
-                        child:
-                            _buildMainAvatarPreview(
-                          context,
-                          zoom,
+                  child: LayoutBuilder(
+                    builder: (
+                      BuildContext context,
+                      BoxConstraints constraints,
+                    ) {
+                      final bool compact =
+                          constraints.maxHeight < 430;
+
+                      final double previewSize =
+                          compact ? 125 : 190;
+
+                      final double previewContainerSize =
+                          compact ? 132 : 200;
+
+                      final double sectionGap =
+                          compact ? s(1) : s(2);
+
+                      final double buttonVerticalPadding =
+                          compact ? s(2) : s(8);
+
+                      final TextButtonStyle buttonStyle =
+                          TextButton.styleFrom(
+                        minimumSize:
+                            const Size(0, 0),
+                        padding:
+                            EdgeInsets.symmetric(
+                          horizontal: s(8),
+                          vertical:
+                              buttonVerticalPadding,
                         ),
-                      ),
-                      SizedBox(
-                        height: s(2),
-                      ),
-                      TextButton.icon(
-                        onPressed:
-                            _showAppearanceDialog,
-                        icon: Icon(
-                          Icons.tune,
-                          size: s(17),
-                        ),
-                        label: const Text(
-                          'Customize Appearance',
-                        ),
-                      ),
-                      SizedBox(
-                        height: s(2),
-                      ),
-                      TextButton.icon(
-                        onPressed:
-                            _randomizeAppearance,
-                        icon: Icon(
-                          Icons.casino_outlined,
-                          size: s(17),
-                        ),
-                        label: const Text(
-                          'Random Appearance',
-                        ),
-                      ),
-                      SizedBox(
-                        height: s(4),
-                      ),
-                      Flexible(
-                        flex: 4,
-                        fit: FlexFit.loose,
-                        child:
-                            _buildCompactIdentityFields(
-                          context,
-                          zoom,
-                        ),
-                      ),
-                    ],
+                        tapTargetSize:
+                            MaterialTapTargetSize
+                                .shrinkWrap,
+                      );
+
+                      return Column(
+                        children: [
+                          Flexible(
+                            flex: 5,
+                            fit: FlexFit.loose,
+                            child: Center(
+                              child:
+                                  _buildMainAvatarPreview(
+                                context,
+                                zoom,
+                                size: previewSize,
+                                containerSize:
+                                    previewContainerSize,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: sectionGap,
+                          ),
+                          TextButton.icon(
+                            style: buttonStyle,
+                            onPressed:
+                                _showAppearanceDialog,
+                            icon: Icon(
+                              Icons.tune,
+                              size: s(17),
+                            ),
+                            label: const Text(
+                              'Customize Appearance',
+                            ),
+                          ),
+                          SizedBox(
+                            height: sectionGap,
+                          ),
+                          TextButton.icon(
+                            style: buttonStyle,
+                            onPressed:
+                                _randomizeAppearance,
+                            icon: Icon(
+                              Icons.casino_outlined,
+                              size: s(17),
+                            ),
+                            label: const Text(
+                              'Random Appearance',
+                            ),
+                          ),
+                          SizedBox(
+                            height:
+                                compact
+                                    ? s(2)
+                                    : s(4),
+                          ),
+                          Flexible(
+                            flex: 4,
+                            fit: FlexFit.loose,
+                            child:
+                                _buildCompactIdentityFields(
+                              context,
+                              zoom,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ),
@@ -1204,8 +1251,10 @@ class _CharacterCreationScreenState
 
   Widget _buildMainAvatarPreview(
     BuildContext context,
-    double zoom,
-  ) {
+    double zoom, {
+    double size = 190,
+    double containerSize = 200,
+  }) {
     const LifeStage stage =
         LifeStage.youngAdult;
 
@@ -1215,8 +1264,8 @@ class _CharacterCreationScreenState
       appearance: _appearance,
       stage: stage,
       gender: _gender,
-      size: 190,
-      containerSize: 200,
+      size: size,
+      containerSize: containerSize,
     );
   }
 
