@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../domain/character/appearance.dart';
 import '../../domain/character/character.dart';
+import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
 
 class CharacterAvatar extends StatelessWidget {
@@ -22,58 +24,112 @@ class CharacterAvatar extends StatelessWidget {
   final Color eyeColor;
   final Color hairColor;
 
+  static const List<String> _eyebrowStyles = [
+    'bold_straight',
+    'comma',
+    'feathered',
+    'high_arch',
+    'rounded',
+    'short_straight',
+    'slight_angle',
+    'soft_arch',
+    'straight',
+    'textured_wild',
+    'thick_natural',
+    'thin_defined',
+  ];
+
+  static const List<String> _beardStyles = [
+    'none',
+    'beard_01',
+    'beard_02',
+    'beard_03',
+    'beard_04',
+    'beard_05',
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final LifeStage stage =
-        character.lifeStageAt(currentYear);
+    final LifeStage stage = character.lifeStageAt(
+      currentYear,
+    );
+
+    final CharacterAppearance appearance =
+        character.appearance;
+
+    final String? hairAsset = _hairAsset(
+      appearance: appearance,
+      gender: character.gender,
+      stage: stage,
+    );
+
+    final String? beardAsset = _beardAsset(
+      appearance: appearance,
+      gender: character.gender,
+      stage: stage,
+    );
 
     return SizedBox(
       width: size,
       height: size,
       child: Stack(
         fit: StackFit.expand,
+        alignment: Alignment.center,
         clipBehavior: Clip.hardEdge,
         children: [
-          _layer(
+          _tintedLayer(
             _headAsset(stage),
             color: skinColor,
             useSkinGamma: true,
+            stage: stage,
           ),
 
-          // Eye base is a fixed layer.
-          // It must NOT receive eyeColor.
-          _layer(
+          _fixedLayer(
             _eyesBaseAsset(stage),
+            scale: 1.10,
           ),
 
-          // Iris is the only eye layer that receives eyeColor.
-          _layer(
-            _eyesIrisAsset(stage),
-            color: eyeColor,
+          ColorFiltered(
+            colorFilter: _irisColorFilter(
+              eyeColor: eyeColor,
+            ),
+            child: _fixedLayer(
+              _eyesIrisAsset(stage),
+              scale: 1.10,
+            ),
           ),
 
-          _layer(
-            _eyebrowAsset(stage),
+          _tintedLayer(
+            _eyebrowAsset(
+              stage,
+              appearance.eyebrows,
+            ),
             color: hairColor,
           ),
 
-          _layer(
+          _fixedLayer(
             _mouthAsset(stage),
           ),
 
-          _layer(
-            _hairAsset(character),
-            color: hairColor,
-          ),
+          if (beardAsset != null)
+            _tintedLayer(
+              beardAsset,
+              color: hairColor,
+            ),
+
+          if (hairAsset != null)
+            _tintedLayer(
+              hairAsset,
+              color: hairColor,
+            ),
         ],
       ),
     );
   }
 
-  Widget _layer(
+  Widget _fixedLayer(
     String assetPath, {
-    Color? color,
-    bool useSkinGamma = false,
+    double scale = 1.0,
   }) {
     final Widget image = Image.asset(
       assetPath,
@@ -83,26 +139,47 @@ class CharacterAvatar extends StatelessWidget {
       filterQuality: FilterQuality.high,
     );
 
-    if (color == null) {
+    if (scale == 1.0) {
       return image;
     }
 
-    Widget colorizedImage = image;
+    return Transform.scale(
+      scale: scale,
+      alignment: Alignment.center,
+      child: image,
+    );
+  }
 
-    if (useSkinGamma) {
-      colorizedImage = ColorFiltered(
-        colorFilter:
-            const ColorFilter.linearToSrgbGamma(),
-        child: colorizedImage,
+  Widget _tintedLayer(
+    String assetPath, {
+    required Color color,
+    bool useSkinGamma = false,
+    LifeStage? stage,
+  }) {
+    final Widget image = Image.asset(
+      assetPath,
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.high,
+    );
+
+    if (useSkinGamma && stage != null) {
+      return ColorFiltered(
+        colorFilter: _skinColorFilter(
+          skinColor: color,
+          stage: stage,
+        ),
+        child: image,
       );
     }
 
     return ColorFiltered(
       colorFilter: ColorFilter.mode(
         color,
-        BlendMode.color,
+        BlendMode.modulate,
       ),
-      child: colorizedImage,
+      child: image,
     );
   }
 
@@ -192,26 +269,34 @@ class CharacterAvatar extends StatelessWidget {
 
   String _eyebrowAsset(
     LifeStage stage,
+    String eyebrowStyle,
   ) {
+    final String selectedStyle =
+        _eyebrowStyles.contains(
+      eyebrowStyle,
+    )
+            ? eyebrowStyle
+            : 'straight';
+
     switch (stage) {
       case LifeStage.infant:
-        return 'assets/character/eyebrows/'
-            'infant_eyebrow_01.png';
+        return 'assets/character/eyebrows/infant/'
+            'infant_eyebrow_$selectedStyle.png';
 
       case LifeStage.toddler:
-        return 'assets/character/eyebrows/'
-            'toddler_eyebrow_01.png';
+        return 'assets/character/eyebrows/toddler/'
+            'toddler_eyebrow_$selectedStyle.png';
 
       case LifeStage.child:
-        return 'assets/character/eyebrows/'
-            'child_eyebrow_01.png';
+        return 'assets/character/eyebrows/child/'
+            'child_eyebrow_$selectedStyle.png';
 
       case LifeStage.teen:
       case LifeStage.youngAdult:
       case LifeStage.adult:
       case LifeStage.senior:
-        return 'assets/character/eyebrows/'
-            'adult_eyebrow.png';
+        return 'assets/character/eyebrows/young_adult/'
+            'young_adult_eyebrow_$selectedStyle.png';
     }
   }
 
@@ -221,51 +306,229 @@ class CharacterAvatar extends StatelessWidget {
     switch (stage) {
       case LifeStage.infant:
         return 'assets/character/mouth/'
-            'infant_mouth.png';
+            'infant_mouth_v1.png';
 
       case LifeStage.toddler:
         return 'assets/character/mouth/'
-            'toddler_mouth.png';
+            'toddler_mouth_v1.png';
 
       case LifeStage.child:
         return 'assets/character/mouth/'
-            'child_mouth.png';
+            'child_mouth_v1.png';
 
       case LifeStage.teen:
       case LifeStage.youngAdult:
       case LifeStage.adult:
       case LifeStage.senior:
         return 'assets/character/mouth/'
-            'adult_mouth.png';
+            'adult_mouth_v1.png';
     }
   }
 
-  String _hairAsset(
-    Character character,
-  ) {
-    final String hair =
-        character.appearance.hair;
+  String? _hairAsset({
+    required CharacterAppearance appearance,
+    required Gender gender,
+    required LifeStage stage,
+  }) {
+    if (stage == LifeStage.infant) {
+      final String hair = appearance.hair;
 
-    if (character.gender.name == 'female' &&
-        RegExp(
-          r'^female_hair_0[1-3]$',
-        ).hasMatch(hair)) {
+      if (RegExp(
+        r'^infant_0[1-2]$',
+      ).hasMatch(hair)) {
+        return 'assets/character/hair/$hair.png';
+      }
+
       return 'assets/character/hair/'
-          '$hair.png';
+          'infant_01.png';
     }
 
-    if (character.gender.name == 'male' &&
-        RegExp(
-          r'^male_hair_0[1-4]$',
-        ).hasMatch(hair)) {
+    if (stage == LifeStage.toddler) {
+      final String hair = appearance.hair;
+
+      if (RegExp(
+        r'^toddler_0[1-3]$',
+      ).hasMatch(hair)) {
+        return 'assets/character/hair/$hair.png';
+      }
+
       return 'assets/character/hair/'
-          '$hair.png';
+          'toddler_01.png';
     }
 
-    return character.gender.name == 'female'
+    if (appearance.hair == 'bald') {
+      return null;
+    }
+
+    final RegExp expectedHair =
+        gender == Gender.female
+            ? RegExp(
+                r'^female_hair_0[1-7]$',
+              )
+            : RegExp(
+                r'^male_hair_0[1-7]$',
+              );
+
+    if (expectedHair.hasMatch(
+      appearance.hair,
+    )) {
+      return 'assets/character/hair/'
+          '${appearance.hair}.png';
+    }
+
+    return gender == Gender.female
         ? 'assets/character/hair/'
             'female_hair_01.png'
         : 'assets/character/hair/'
             'male_hair_01.png';
+  }
+
+  String? _beardAsset({
+    required CharacterAppearance appearance,
+    required Gender gender,
+    required LifeStage stage,
+  }) {
+    if (gender != Gender.male) {
+      return null;
+    }
+
+    if (!_canUseBeardAtStage(stage)) {
+      return null;
+    }
+
+    if (appearance.beard == 'none') {
+      return null;
+    }
+
+    if (!_beardStyles.contains(
+      appearance.beard,
+    )) {
+      return null;
+    }
+
+    return 'assets/character/beard/'
+        '${appearance.beard}.png';
+  }
+
+  bool _canUseBeardAtStage(
+    LifeStage stage,
+  ) {
+    switch (stage) {
+      case LifeStage.infant:
+      case LifeStage.toddler:
+      case LifeStage.child:
+      case LifeStage.teen:
+        return false;
+
+      case LifeStage.youngAdult:
+      case LifeStage.adult:
+      case LifeStage.senior:
+        return true;
+    }
+  }
+
+  ColorFilter _irisColorFilter({
+    required Color eyeColor,
+  }) {
+    const double luminanceRed =
+        0.2126 * 1.80;
+
+    const double luminanceGreen =
+        0.7152 * 1.80;
+
+    const double luminanceBlue =
+        0.0722 * 1.80;
+
+    final double targetRed =
+        eyeColor.r;
+
+    final double targetGreen =
+        eyeColor.g;
+
+    final double targetBlue =
+        eyeColor.b;
+
+    return ColorFilter.matrix([
+      luminanceRed * targetRed,
+      luminanceGreen * targetRed,
+      luminanceBlue * targetRed,
+      0,
+      0,
+      luminanceRed * targetGreen,
+      luminanceGreen * targetGreen,
+      luminanceBlue * targetGreen,
+      0,
+      0,
+      luminanceRed * targetBlue,
+      luminanceGreen * targetBlue,
+      luminanceBlue * targetBlue,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+    ]);
+  }
+
+  ColorFilter _skinColorFilter({
+    required Color skinColor,
+    required LifeStage stage,
+  }) {
+    final double referenceGray =
+        switch (stage) {
+      LifeStage.infant => 192.0,
+      LifeStage.toddler => 188.0,
+      LifeStage.child => 187.0,
+      LifeStage.teen => 184.0,
+      LifeStage.youngAdult => 180.0,
+      LifeStage.adult => 181.0,
+      LifeStage.senior => 182.0,
+    };
+
+    const double redSlope =
+        0.861905;
+
+    const double greenSlope =
+        0.948850;
+
+    const double blueSlope =
+        0.886153;
+
+    final double targetRed =
+        skinColor.r * 255.0;
+
+    final double targetGreen =
+        skinColor.g * 255.0;
+
+    final double targetBlue =
+        skinColor.b * 255.0;
+
+    return ColorFilter.matrix([
+      redSlope,
+      0,
+      0,
+      0,
+      targetRed -
+          redSlope * referenceGray,
+      0,
+      greenSlope,
+      0,
+      0,
+      targetGreen -
+          greenSlope * referenceGray,
+      0,
+      0,
+      blueSlope,
+      0,
+      targetBlue -
+          blueSlope * referenceGray,
+      0,
+      0,
+      0,
+      1,
+      0,
+    ]);
   }
 }
