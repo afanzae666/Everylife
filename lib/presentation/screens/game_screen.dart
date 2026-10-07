@@ -3,10 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/money/money.dart';
+import '../../data/services/character_palette_service.dart';
 import '../../data/settings/auto_save_settings.dart';
-import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
 import '../../simulation/engine/simulation_engine.dart';
+import '../widgets/character_avatar.dart';
 import 'assets_screen.dart';
 import 'career_screen.dart';
 import 'character_profile_screen.dart';
@@ -44,6 +45,8 @@ class _GameScreenState extends State<GameScreen> {
   late final bool _ownsUiScaleController;
   late final ValueNotifier<bool> _autoSaveController;
   late final AutoSaveSettings _autoSaveSettings;
+  late final Future<CharacterPaletteService>
+      _characterPaletteFuture;
 
   bool _autoSaveSettingReady = false;
   bool _isProcessingTurn = false;
@@ -55,6 +58,9 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
+
+    _characterPaletteFuture =
+        CharacterPaletteService.load();
 
     if (widget.uiScaleController != null) {
       _uiScaleController = widget.uiScaleController!;
@@ -230,51 +236,51 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> _openSaveManager() async {
-  if (_isProcessingTurn) {
-    return;
-  }
+    if (_isProcessingTurn) {
+      return;
+    }
 
-  final screenSize = MediaQuery.sizeOf(context);
+    final screenSize = MediaQuery.sizeOf(context);
 
-  await showDialog<void>(
-    context: context,
-    barrierColor: Colors.black.withValues(
-      alpha: 0.32,
-    ),
-    builder: (dialogContext) {
-      final dialogWidth = screenSize.width * 0.92;
-      final dialogHeight = screenSize.height * 0.82;
+    await showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(
+        alpha: 0.32,
+      ),
+      builder: (dialogContext) {
+        final dialogWidth = screenSize.width * 0.92;
+        final dialogHeight = screenSize.height * 0.82;
 
-      return Dialog(
-        insetPadding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 24,
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: SizedBox(
-          width: dialogWidth,
-          height: dialogHeight,
-          child: SaveLoadScreen(
-            zoom: _uiScaleController.value,
-            autoSaveController: _autoSaveController,
-            onRead: engine.readSaveSlot,
-            onSave: engine.saveToSlot,
-            onLoad: engine.loadFromSlot,
-            onDelete: engine.deleteSave,
-            onGameStateChanged: () {
-              if (!mounted) {
-                return;
-              }
-
-              setState(() {});
-              _scrollLifeEventsToBottom();
-            },
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 24,
           ),
-        ),
-      );
-    },
-  );
-}
+          clipBehavior: Clip.antiAlias,
+          child: SizedBox(
+            width: dialogWidth,
+            height: dialogHeight,
+            child: SaveLoadScreen(
+              zoom: _uiScaleController.value,
+              autoSaveController: _autoSaveController,
+              onRead: engine.readSaveSlot,
+              onSave: engine.saveToSlot,
+              onLoad: engine.loadFromSlot,
+              onDelete: engine.deleteSave,
+              onGameStateChanged: () {
+                if (!mounted) {
+                  return;
+                }
+
+                setState(() {});
+                _scrollLifeEventsToBottom();
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   Future<void> _openCharacterProfile() async {
     if (_isProcessingTurn) {
@@ -438,9 +444,8 @@ class _GameScreenState extends State<GameScreen> {
     var unitIndex = -1;
 
     while (
-      scaled >= 1000 &&
-      unitIndex < units.length - 1
-    ) {
+        scaled >= 1000 &&
+        unitIndex < units.length - 1) {
       scaled /= 1000;
       unitIndex++;
     }
@@ -612,15 +617,77 @@ class _GameScreenState extends State<GameScreen> {
             crossAxisAlignment:
                 CrossAxisAlignment.center,
             children: [
-              CircleAvatar(
-                key: const Key('character-avatar'),
-                radius: s(27),
-                child: Icon(
-                  player.gender == Gender.male
-                      ? Icons.person
-                      : Icons.person_outline,
-                  size: s(29),
-                ),
+              FutureBuilder<CharacterPaletteService>(
+                future: _characterPaletteFuture,
+                builder: (
+                  context,
+                  snapshot,
+                ) {
+                  if (snapshot.connectionState !=
+                      ConnectionState.done) {
+                    return SizedBox(
+                      key: const Key('character-avatar'),
+                      width: s(54),
+                      height: s(54),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  if (snapshot.hasError ||
+                      snapshot.data == null) {
+                    return SizedBox(
+                      key: const Key('character-avatar'),
+                      width: s(54),
+                      height: s(54),
+                    );
+                  }
+
+                  final palette = snapshot.data!;
+
+                  final skinColor =
+                      palette.skinColor(
+                    player.appearance.skinTone,
+                  );
+
+                  final eyeColor =
+                      palette.eyeColor(
+                    player.appearance.eyeColor,
+                  );
+
+                  final hairColor =
+                      palette.hairColor(
+                    player.appearance.hairColor,
+                  );
+
+                  if (skinColor == null ||
+                      eyeColor == null ||
+                      hairColor == null) {
+                    return SizedBox(
+                      key: const Key('character-avatar'),
+                      width: s(54),
+                      height: s(54),
+                    );
+                  }
+
+                  return CharacterAvatar(
+                    key: const Key('character-avatar'),
+                    character: player,
+                    currentYear:
+                        state.clock.currentYear,
+                    size: s(54),
+                    skinColor: skinColor,
+                    eyeColor: eyeColor,
+                    hairColor: hairColor,
+                  );
+                },
               ),
               SizedBox(width: s(8)),
               Expanded(
