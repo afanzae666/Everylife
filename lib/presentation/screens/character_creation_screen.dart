@@ -1142,7 +1142,7 @@ class _CharacterCreationScreenState
                       final double buttonVerticalPadding =
                           compact ? s(2) : s(8);
 
-                      final TextButtonStyle buttonStyle =
+                      final ButtonStyle buttonStyle =
                           TextButton.styleFrom(
                         minimumSize:
                             const Size(0, 0),
