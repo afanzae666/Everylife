@@ -45,28 +45,21 @@ class _CharacterCreationScreenState
         return newValue;
       }
 
-      final StringBuffer buffer =
-          StringBuffer();
+      final StringBuffer buffer = StringBuffer();
 
       bool capitalizeNext = true;
 
-      for (final int rune
-          in newValue.text.runes) {
-        final String character =
-            String.fromCharCode(rune);
+      for (final int rune in newValue.text.runes) {
+        final String character = String.fromCharCode(rune);
 
-        if (RegExp(r'\s').hasMatch(
-          character,
-        )) {
+        if (RegExp(r'\s').hasMatch(character)) {
           buffer.write(character);
           capitalizeNext = true;
           continue;
         }
 
         if (capitalizeNext) {
-          buffer.write(
-            character.toUpperCase(),
-          );
+          buffer.write(character.toUpperCase());
           capitalizeNext = false;
         } else {
           buffer.write(character);
@@ -88,8 +81,7 @@ class _CharacterCreationScreenState
 
   int _birthYear = _maximumBirthYear;
 
-  CharacterAppearance _appearance =
-      const CharacterAppearance(
+  CharacterAppearance _appearance = const CharacterAppearance(
     base: 'default',
     skinTone: 'medium',
     hair: 'male_hair_01',
@@ -212,23 +204,19 @@ class _CharacterCreationScreenState
     'beard_05',
   ];
 
-  String _automaticInfantHair =
-      _infantHairStyles.first;
+  String _automaticInfantHair = _infantHairStyles.first;
 
-  String _automaticToddlerHair =
-      _toddlerHairStyles.first;
+  String _automaticToddlerHair = _toddlerHairStyles.first;
 
   @override
   void initState() {
     super.initState();
 
-    _automaticInfantHair =
-        _randomItem(
+    _automaticInfantHair = _randomItem(
       _infantHairStyles,
     );
 
-    _automaticToddlerHair =
-        _randomItem(
+    _automaticToddlerHair = _randomItem(
       _toddlerHairStyles,
     );
 
@@ -312,8 +300,7 @@ class _CharacterCreationScreenState
     }
 
     final int age =
-        _maximumBirthYear -
-            _birthYear;
+        _maximumBirthYear - _birthYear;
 
     final LifeStage actualStage =
         LifeStageAge.fromAge(
@@ -323,22 +310,17 @@ class _CharacterCreationScreenState
     CharacterAppearance finalAppearance =
         _appearance;
 
-    if (actualStage ==
-        LifeStage.infant) {
-      finalAppearance =
-          finalAppearance.copyWith(
+    if (actualStage == LifeStage.infant) {
+      finalAppearance = finalAppearance.copyWith(
         hair: _automaticInfantHair,
       );
-    } else if (actualStage ==
-        LifeStage.toddler) {
-      finalAppearance =
-          finalAppearance.copyWith(
+    } else if (actualStage == LifeStage.toddler) {
+      finalAppearance = finalAppearance.copyWith(
         hair: _automaticToddlerHair,
       );
     }
 
-    final Character character =
-        Character.create(
+    final Character character = Character.create(
       id:
           'player-${DateTime.now().microsecondsSinceEpoch}',
       firstName: firstName,
@@ -374,65 +356,47 @@ class _CharacterCreationScreenState
             : _maleFirstNames;
 
     final String randomHair =
-        _randomItem(
-      hairStyles,
-    );
+        _randomItem(hairStyles);
 
     final String randomBeard =
         randomGender == Gender.male
-            ? _randomItem(
-                _beardStyles,
-              )
+            ? _randomItem(_beardStyles)
             : 'none';
 
     final String randomFirstName =
-        _randomItem(
-      firstNamePool,
-    );
+        _randomItem(firstNamePool);
 
     final String randomLastName =
-        _randomItem(
-      _lastNames,
-    );
+        _randomItem(_lastNames);
 
     final String randomSkinTone =
         _randomItem(
-      _paletteService!.skinColors.keys
-          .toList(),
+      _paletteService!.skinColors.keys.toList(),
     );
 
     final String randomHairColor =
         _randomItem(
-      _paletteService!.hairColors.keys
-          .toList(),
+      _paletteService!.hairColors.keys.toList(),
     );
 
     final String randomEyeColor =
         _randomItem(
-      _paletteService!.eyeColors.keys
-          .toList(),
+      _paletteService!.eyeColors.keys.toList(),
     );
 
     final String randomEyebrow =
-        _randomItem(
-      _eyebrowStyles,
-    );
+        _randomItem(_eyebrowStyles);
 
     setState(() {
       _gender = randomGender;
 
       _automaticInfantHair =
-          _randomItem(
-        _infantHairStyles,
-      );
+          _randomItem(_infantHairStyles);
 
       _automaticToddlerHair =
-          _randomItem(
-        _toddlerHairStyles,
-      );
+          _randomItem(_toddlerHairStyles);
 
-      _appearance =
-          _appearance.copyWith(
+      _appearance = _appearance.copyWith(
         skinTone: randomSkinTone,
         hair: randomHair,
         hairColor: randomHairColor,
@@ -686,7 +650,7 @@ class _CharacterCreationScreenState
               insetPadding:
                   const EdgeInsets.symmetric(
                 horizontal: 18,
-                vertical: 24,
+                vertical: 12,
               ),
               child: ConstrainedBox(
                 constraints:
@@ -702,77 +666,36 @@ class _CharacterCreationScreenState
                     final double availableHeight =
                         constraints.maxHeight;
 
-                    final bool veryShort =
-                        availableHeight < 420;
-
-                    final bool compact =
-                        availableHeight < 560;
-
                     final double contentPadding =
-                        veryShort
+                        availableHeight < 420
                             ? 8
-                            : compact
+                            : availableHeight < 560
                                 ? 10
                                 : 16;
 
-                    final double sectionGap =
-                        veryShort
-                            ? 2
-                            : compact
-                                ? 4
-                                : 7;
+                    final double headerGap =
+                        availableHeight < 420
+                            ? 0
+                            : 2;
 
                     final double doneHeight =
-                        veryShort
+                        availableHeight < 420
                             ? 36
-                            : compact
+                            : availableHeight < 560
                                 ? 40
                                 : 46;
 
-                    final double previewHeight =
-                        veryShort
-                            ? 78
-                            : compact
-                                ? 105
-                                : 155;
-
-                    final double previewAvatarSize =
-                        veryShort
-                            ? 70
-                            : compact
-                                ? 92
-                                : 138;
-
-                    final double previewContainerSize =
-                        veryShort
-                            ? 76
-                            : compact
-                                ? 98
-                                : 148;
-
-                    final double colorRowHeight =
-                        veryShort
-                            ? 30
-                            : compact
-                                ? 38
-                                : 46;
-
-                    final double assetRowHeight =
-                        veryShort
-                            ? 36
-                            : compact
-                                ? 46
-                                : 60;
-
                     final double selectorZoom =
-                        veryShort
-                            ? 0.78
-                            : compact
-                                ? 0.90
-                                : 1.0;
+                        (availableHeight / 520.0)
+                            .clamp(
+                              0.90,
+                              1.0,
+                            )
+                            .toDouble();
 
                     return Padding(
-                      padding: EdgeInsets.all(
+                      padding:
+                          EdgeInsets.all(
                         contentPadding,
                       ),
                       child: Column(
@@ -792,7 +715,8 @@ class _CharacterCreationScreenState
                               IconButton(
                                 tooltip: 'Close',
                                 visualDensity:
-                                    compact
+                                    availableHeight <
+                                            560
                                         ? VisualDensity
                                             .compact
                                         : null,
@@ -801,227 +725,366 @@ class _CharacterCreationScreenState
                                     dialogContext,
                                   ).pop();
                                 },
-                                icon: const Icon(
+                                icon:
+                                    const Icon(
                                   Icons.close,
                                 ),
                               ),
                             ],
                           ),
                           SizedBox(
-                            height:
-                                veryShort
-                                    ? 0
-                                    : 2,
+                            height: headerGap,
                           ),
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment
-                                      .start,
-                              children: [
-                                _buildAppearancePreviewFor(
-                                  context,
-                                  selectorZoom,
-                                  temporaryAppearance,
-                                  height:
-                                      previewHeight,
-                                  avatarSize:
-                                      previewAvatarSize,
-                                  avatarContainerSize:
-                                      previewContainerSize,
-                                ),
-                                SizedBox(
-                                  height: sectionGap,
-                                ),
-                                _buildSkinToneSelectorFor(
-                                  context,
-                                  selectorZoom,
-                                  temporaryAppearance,
-                                  updateTemporaryAppearance,
-                                  rowHeight:
-                                      colorRowHeight,
-                                  compact:
-                                      compact,
-                                ),
-                                SizedBox(
-                                  height: sectionGap,
-                                ),
-                                _buildColorSelectorFor(
-                                  context: context,
-                                  zoom: selectorZoom,
-                                  title: 'Eye Color',
-                                  colors:
-                                      _paletteService!
-                                          .eyeColors,
-                                  selected:
-                                      temporaryAppearance
-                                          .eyeColor,
-                                  onSelected: (
-                                    String value,
-                                  ) {
-                                    updateTemporaryAppearance(
-                                      temporaryAppearance
-                                          .copyWith(
-                                        eyeColor:
-                                            value,
-                                      ),
+                            child:
+                                LayoutBuilder(
+                              builder: (
+                                BuildContext context,
+                                BoxConstraints middleConstraints,
+                              ) {
+                                final double middleHeight =
+                                    middleConstraints
+                                        .maxHeight;
+
+                                final int assetCount =
+                                    showBeardSelector
+                                        ? 3
+                                        : 2;
+
+                                final int elementCount =
+                                    1 +
+                                        3 +
+                                        assetCount;
+
+                                final int gapCount =
+                                    elementCount -
+                                        1;
+
+                                final double desiredPreviewHeight =
+                                    (middleHeight *
+                                            0.31)
+                                        .clamp(
+                                          82.0,
+                                          190.0,
+                                        )
+                                        .toDouble();
+
+                                final double desiredColorRowHeight =
+                                    (middleHeight *
+                                            0.09)
+                                        .clamp(
+                                          30.0,
+                                          52.0,
+                                        )
+                                        .toDouble();
+
+                                final double desiredAssetRowHeight =
+                                    (middleHeight *
+                                            0.115)
+                                        .clamp(
+                                          38.0,
+                                          68.0,
+                                        )
+                                        .toDouble();
+
+                                final double desiredGap =
+                                    (middleHeight *
+                                            0.012)
+                                        .clamp(
+                                          2.0,
+                                          8.0,
+                                        )
+                                        .toDouble();
+
+                                final double desiredTotal =
+                                    desiredPreviewHeight +
+                                        (desiredColorRowHeight *
+                                            3) +
+                                        (desiredAssetRowHeight *
+                                            assetCount) +
+                                        (desiredGap *
+                                            gapCount);
+
+                                final double fitScale =
+                                    min(
+                                      1.0,
+                                      middleHeight /
+                                          desiredTotal,
                                     );
-                                  },
-                                  rowHeight:
-                                      colorRowHeight,
-                                  compact:
-                                      compact,
-                                ),
-                                SizedBox(
-                                  height: sectionGap,
-                                ),
-                                _buildAssetSelectorFor(
-                                  context: context,
-                                  zoom: selectorZoom,
-                                  title: 'Hair',
-                                  showTitle: false,
-                                  values:
-                                      _currentHairStyles(),
-                                  selected:
-                                      temporaryAppearance
-                                          .hair,
-                                  assetDirectory:
-                                      'assets/character/hair',
-                                  onSelected: (
-                                    String value,
-                                  ) {
-                                    updateTemporaryAppearance(
-                                      temporaryAppearance
-                                          .copyWith(
-                                        hair: value,
-                                      ),
-                                    );
-                                  },
-                                  color:
-                                      _paletteService!
-                                          .hairColor(
-                                    temporaryAppearance
-                                        .hairColor,
-                                  ),
-                                  rowHeight:
-                                      assetRowHeight,
-                                ),
-                                SizedBox(
-                                  height: sectionGap,
-                                ),
-                                _buildColorSelectorFor(
-                                  context: context,
-                                  zoom: selectorZoom,
-                                  title: 'Hair Color',
-                                  colors:
-                                      _paletteService!
-                                          .hairColors,
-                                  selected:
-                                      temporaryAppearance
-                                          .hairColor,
-                                  onSelected: (
-                                    String value,
-                                  ) {
-                                    updateTemporaryAppearance(
-                                      temporaryAppearance
-                                          .copyWith(
-                                        hairColor:
-                                            value,
-                                      ),
-                                    );
-                                  },
-                                  rowHeight:
-                                      colorRowHeight,
-                                  compact:
-                                      compact,
-                                ),
-                                SizedBox(
-                                  height: sectionGap,
-                                ),
-                                _buildAssetSelectorFor(
-                                  context: context,
-                                  zoom: selectorZoom,
-                                  title: 'Eyebrows',
-                                  showTitle: false,
-                                  values:
-                                      _eyebrowStyles,
-                                  selected:
-                                      temporaryAppearance
-                                          .eyebrows,
-                                  assetDirectory:
-                                      _eyebrowDirectoryFor(
-                                    previewStage,
-                                  ),
-                                  assetFilePrefix:
-                                      _eyebrowFilePrefixFor(
-                                    previewStage,
-                                  ),
-                                  onSelected: (
-                                    String value,
-                                  ) {
-                                    updateTemporaryAppearance(
-                                      temporaryAppearance
-                                          .copyWith(
-                                        eyebrows:
-                                            value,
-                                      ),
-                                    );
-                                  },
-                                  color:
-                                      _paletteService!
-                                          .hairColor(
-                                    temporaryAppearance
-                                        .hairColor,
-                                  ),
-                                  rowHeight:
-                                      assetRowHeight,
-                                ),
-                                if (showBeardSelector) ...[
-                                  SizedBox(
-                                    height: sectionGap,
-                                  ),
-                                  _buildAssetSelectorFor(
-                                    context: context,
-                                    zoom: selectorZoom,
-                                    title: 'Beard',
-                                    showTitle: false,
-                                    values:
-                                        _beardStyles,
-                                    selected:
-                                        temporaryAppearance
-                                            .beard,
-                                    assetDirectory:
-                                        'assets/character/beard',
-                                    onSelected: (
-                                      String value,
-                                    ) {
-                                      updateTemporaryAppearance(
-                                        temporaryAppearance
-                                            .copyWith(
-                                          beard: value,
-                                        ),
-                                      );
-                                    },
-                                    color:
-                                        _paletteService!
-                                            .hairColor(
-                                      temporaryAppearance
-                                          .hairColor,
+
+                                final double previewHeight =
+                                    desiredPreviewHeight *
+                                        fitScale;
+
+                                final double colorRowHeight =
+                                    desiredColorRowHeight *
+                                        fitScale;
+
+                                final double assetRowHeight =
+                                    desiredAssetRowHeight *
+                                        fitScale;
+
+                                final double sectionGap =
+                                    desiredGap *
+                                        fitScale;
+
+                                final double previewAvatarSize =
+                                    (previewHeight -
+                                            6)
+                                        .clamp(
+                                          64.0,
+                                          180.0,
+                                        )
+                                        .toDouble();
+
+                                final double previewContainerSize =
+                                    (previewAvatarSize +
+                                            8)
+                                        .clamp(
+                                          72.0,
+                                          188.0,
+                                        )
+                                        .toDouble();
+
+                                return Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment
+                                          .start,
+                                  children: [
+                                    _buildAppearancePreviewFor(
+                                      context,
+                                      selectorZoom,
+                                      temporaryAppearance,
+                                      height:
+                                          previewHeight,
+                                      avatarSize:
+                                          previewAvatarSize,
+                                      avatarContainerSize:
+                                          previewContainerSize,
                                     ),
-                                    rowHeight:
-                                        assetRowHeight,
-                                  ),
-                                ],
-                              ],
+                                    SizedBox(
+                                      height:
+                                          sectionGap,
+                                    ),
+                                    _buildSkinToneSelectorFor(
+                                      context,
+                                      selectorZoom,
+                                      temporaryAppearance,
+                                      updateTemporaryAppearance,
+                                      rowHeight:
+                                          colorRowHeight,
+                                    ),
+                                    SizedBox(
+                                      height:
+                                          sectionGap,
+                                    ),
+                                    _buildColorSelectorFor(
+                                      context:
+                                          context,
+                                      zoom:
+                                          selectorZoom,
+                                      title:
+                                          'Eye Color',
+                                      colors:
+                                          _paletteService!
+                                              .eyeColors,
+                                      selected:
+                                          temporaryAppearance
+                                              .eyeColor,
+                                      onSelected:
+                                          (
+                                        String value,
+                                      ) {
+                                        updateTemporaryAppearance(
+                                          temporaryAppearance
+                                              .copyWith(
+                                            eyeColor:
+                                                value,
+                                          ),
+                                        );
+                                      },
+                                      rowHeight:
+                                          colorRowHeight,
+                                    ),
+                                    SizedBox(
+                                      height:
+                                          sectionGap,
+                                    ),
+                                    _buildAssetSelectorFor(
+                                      context:
+                                          context,
+                                      zoom:
+                                          selectorZoom,
+                                      title:
+                                          'Hair',
+                                      showTitle:
+                                          false,
+                                      values:
+                                          _currentHairStyles(),
+                                      selected:
+                                          temporaryAppearance
+                                              .hair,
+                                      assetDirectory:
+                                          'assets/character/hair',
+                                      onSelected:
+                                          (
+                                        String value,
+                                      ) {
+                                        updateTemporaryAppearance(
+                                          temporaryAppearance
+                                              .copyWith(
+                                            hair:
+                                                value,
+                                          ),
+                                        );
+                                      },
+                                      color:
+                                          _paletteService!
+                                              .hairColor(
+                                        temporaryAppearance
+                                            .hairColor,
+                                      ),
+                                      rowHeight:
+                                          assetRowHeight,
+                                    ),
+                                    SizedBox(
+                                      height:
+                                          sectionGap,
+                                    ),
+                                    _buildColorSelectorFor(
+                                      context:
+                                          context,
+                                      zoom:
+                                          selectorZoom,
+                                      title:
+                                          'Hair Color',
+                                      colors:
+                                          _paletteService!
+                                              .hairColors,
+                                      selected:
+                                          temporaryAppearance
+                                              .hairColor,
+                                      onSelected:
+                                          (
+                                        String value,
+                                      ) {
+                                        updateTemporaryAppearance(
+                                          temporaryAppearance
+                                              .copyWith(
+                                            hairColor:
+                                                value,
+                                          ),
+                                        );
+                                      },
+                                      rowHeight:
+                                          colorRowHeight,
+                                    ),
+                                    SizedBox(
+                                      height:
+                                          sectionGap,
+                                    ),
+                                    _buildAssetSelectorFor(
+                                      context:
+                                          context,
+                                      zoom:
+                                          selectorZoom,
+                                      title:
+                                          'Eyebrows',
+                                      showTitle:
+                                          false,
+                                      values:
+                                          _eyebrowStyles,
+                                      selected:
+                                          temporaryAppearance
+                                              .eyebrows,
+                                      assetDirectory:
+                                          _eyebrowDirectoryFor(
+                                        previewStage,
+                                      ),
+                                      assetFilePrefix:
+                                          _eyebrowFilePrefixFor(
+                                        previewStage,
+                                      ),
+                                      onSelected:
+                                          (
+                                        String value,
+                                      ) {
+                                        updateTemporaryAppearance(
+                                          temporaryAppearance
+                                              .copyWith(
+                                            eyebrows:
+                                                value,
+                                          ),
+                                        );
+                                      },
+                                      color:
+                                          _paletteService!
+                                              .hairColor(
+                                        temporaryAppearance
+                                            .hairColor,
+                                      ),
+                                      rowHeight:
+                                          assetRowHeight,
+                                    ),
+                                    if (showBeardSelector) ...[
+                                      SizedBox(
+                                        height:
+                                            sectionGap,
+                                      ),
+                                      _buildAssetSelectorFor(
+                                        context:
+                                            context,
+                                        zoom:
+                                            selectorZoom,
+                                        title:
+                                            'Beard',
+                                        showTitle:
+                                            false,
+                                        values:
+                                            _beardStyles,
+                                        selected:
+                                            temporaryAppearance
+                                                .beard,
+                                        assetDirectory:
+                                            'assets/character/beard',
+                                        onSelected:
+                                            (
+                                          String value,
+                                        ) {
+                                          updateTemporaryAppearance(
+                                            temporaryAppearance
+                                                .copyWith(
+                                              beard:
+                                                  value,
+                                            ),
+                                          );
+                                        },
+                                        color:
+                                            _paletteService!
+                                                .hairColor(
+                                          temporaryAppearance
+                                              .hairColor,
+                                        ),
+                                        rowHeight:
+                                            assetRowHeight,
+                                      ),
+                                    ],
+                                  ],
+                                );
+                              },
                             ),
                           ),
                           SizedBox(
-                            height: sectionGap,
+                            height: sectionGapFallback(
+                              availableHeight,
+                            ),
                           ),
                           SizedBox(
-                            width: double.infinity,
+                            width:
+                                double.infinity,
                             height: doneHeight,
-                            child: FilledButton(
+                            child:
+                                FilledButton(
                               onPressed: () {
                                 setState(() {
                                   _appearance =
@@ -1032,7 +1095,8 @@ class _CharacterCreationScreenState
                                   dialogContext,
                                 ).pop();
                               },
-                              child: const Text(
+                              child:
+                                  const Text(
                                 'DONE',
                               ),
                             ),
@@ -1050,6 +1114,20 @@ class _CharacterCreationScreenState
     );
   }
 
+  double sectionGapFallback(
+    double availableHeight,
+  ) {
+    if (availableHeight < 420) {
+      return 4;
+    }
+
+    if (availableHeight < 560) {
+      return 6;
+    }
+
+    return 8;
+  }
+
   List<String> _currentHairStyles() {
     return _gender == Gender.female
         ? _femaleHairStyles
@@ -1060,8 +1138,7 @@ class _CharacterCreationScreenState
   Widget build(
     BuildContext context,
   ) {
-    final ValueNotifier<double>?
-        controller =
+    final ValueNotifier<double>? controller =
         widget.uiScaleController;
 
     if (controller == null) {
@@ -1142,8 +1219,7 @@ class _CharacterCreationScreenState
     final MediaQueryData mediaQuery =
         MediaQuery.of(context);
 
-    final MediaQueryData
-        scaledMediaQuery =
+    final MediaQueryData scaledMediaQuery =
         mediaQuery.copyWith(
       textScaler:
           TextScaler.linear(zoom),
@@ -2211,80 +2287,96 @@ class _CharacterCreationScreenState
     ValueChanged<CharacterAppearance>
         onChanged, {
     required double rowHeight,
-    required bool compact,
   }) {
-    double s(double value) =>
-        value * zoom;
-
     final Map<String, Color> skinColors =
         _paletteService!.skinColors;
 
-    return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Skin Tone',
-          style: Theme.of(context)
-              .textTheme
-              .titleSmall,
-        ),
-        SizedBox(
-          height: compact ? 2 : 4,
-        ),
-        SizedBox(
-          height: rowHeight,
-          child: ListView.separated(
-            scrollDirection:
-                Axis.horizontal,
-            itemCount:
-                skinColors.length,
-            separatorBuilder:
-                (
-              BuildContext context,
-              int index,
-            ) {
-              return SizedBox(
-                width: compact
-                    ? s(5)
-                    : s(8),
-              );
-            },
-            itemBuilder:
-                (
-              BuildContext context,
-              int index,
-            ) {
-              final String key =
-                  skinColors.keys
-                      .elementAt(index);
+    final double diameter =
+        (rowHeight - 4)
+            .clamp(
+              24.0,
+              38.0,
+            )
+            .toDouble();
 
-              final Color color =
-                  skinColors[key]!;
+    final double labelWidth =
+        rowHeight < 34
+            ? 72
+            : 78;
 
-              final bool selected =
-                  appearance.skinTone ==
-                      key;
-
-              return _buildColorDot(
-                context: context,
-                zoom: zoom,
-                color: color,
-                selected: selected,
-                onTap: () {
-                  onChanged(
-                    appearance.copyWith(
-                      skinTone: key,
-                    ),
-                  );
-                },
-                diameter:
-                    compact ? 30 : 36,
-              );
-            },
+    return SizedBox(
+      height: rowHeight,
+      child: Row(
+        crossAxisAlignment:
+            CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: labelWidth,
+            child: Text(
+              'Skin Tone',
+              maxLines: 1,
+              overflow:
+                  TextOverflow.ellipsis,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(
+            width: 6,
+          ),
+          Expanded(
+            child: ListView.separated(
+              scrollDirection:
+                  Axis.horizontal,
+              padding: EdgeInsets.zero,
+              itemCount:
+                  skinColors.length,
+              separatorBuilder:
+                  (
+                BuildContext context,
+                int index,
+              ) {
+                return const SizedBox(
+                  width: 4,
+                );
+              },
+              itemBuilder:
+                  (
+                BuildContext context,
+                int index,
+              ) {
+                final String key =
+                    skinColors.keys.elementAt(
+                  index,
+                );
+
+                final Color color =
+                    skinColors[key]!;
+
+                final bool selected =
+                    appearance.skinTone ==
+                        key;
+
+                return _buildColorDot(
+                  context: context,
+                  zoom: zoom,
+                  color: color,
+                  selected: selected,
+                  onTap: () {
+                    onChanged(
+                      appearance.copyWith(
+                        skinTone: key,
+                      ),
+                    );
+                  },
+                  diameter: diameter,
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -2297,75 +2389,90 @@ class _CharacterCreationScreenState
     required ValueChanged<String>
         onSelected,
     required double rowHeight,
-    required bool compact,
   }) {
-    double s(double value) =>
-        value * zoom;
+    final double diameter =
+        (rowHeight - 4)
+            .clamp(
+              24.0,
+              38.0,
+            )
+            .toDouble();
 
-    return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: Theme.of(context)
-              .textTheme
-              .titleSmall,
-        ),
-        SizedBox(
-          height: compact ? 2 : 4,
-        ),
-        SizedBox(
-          height: rowHeight,
-          child: ListView.separated(
-            scrollDirection:
-                Axis.horizontal,
-            itemCount:
-                colors.length,
-            separatorBuilder:
-                (
-              BuildContext context,
-              int index,
-            ) {
-              return SizedBox(
-                width: compact
-                    ? s(5)
-                    : s(8),
-              );
-            },
-            itemBuilder:
-                (
-              BuildContext context,
-              int index,
-            ) {
-              final String key =
-                  colors.keys.elementAt(
-                index,
-              );
+    final double labelWidth =
+        rowHeight < 34
+            ? 72
+            : 78;
 
-              final Color color =
-                  colors[key]!;
-
-              final bool isSelected =
-                  key == selected;
-
-              return _buildColorDot(
-                context: context,
-                zoom: zoom,
-                color: color,
-                selected: isSelected,
-                onTap: () {
-                  onSelected(
-                    key,
-                  );
-                },
-                diameter:
-                    compact ? 30 : 36,
-              );
-            },
+    return SizedBox(
+      height: rowHeight,
+      child: Row(
+        crossAxisAlignment:
+            CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: labelWidth,
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow:
+                  TextOverflow.ellipsis,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleSmall,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(
+            width: 6,
+          ),
+          Expanded(
+            child: ListView.separated(
+              scrollDirection:
+                  Axis.horizontal,
+              padding: EdgeInsets.zero,
+              itemCount:
+                  colors.length,
+              separatorBuilder:
+                  (
+                BuildContext context,
+                int index,
+              ) {
+                return const SizedBox(
+                  width: 4,
+                );
+              },
+              itemBuilder:
+                  (
+                BuildContext context,
+                int index,
+              ) {
+                final String key =
+                    colors.keys.elementAt(
+                  index,
+                );
+
+                final Color color =
+                    colors[key]!;
+
+                final bool isSelected =
+                    key == selected;
+
+                return _buildColorDot(
+                  context: context,
+                  zoom: zoom,
+                  color: color,
+                  selected: isSelected,
+                  onTap: () {
+                    onSelected(
+                      key,
+                    );
+                  },
+                  diameter: diameter,
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -2377,21 +2484,23 @@ class _CharacterCreationScreenState
     required VoidCallback onTap,
     double diameter = 36,
   }) {
-    double s(double value) =>
-        value * zoom;
+    final double padding =
+        diameter < 28
+            ? 1
+            : 2;
 
     return InkWell(
       borderRadius:
           BorderRadius.circular(
-        s(diameter / 2 + 2),
+        diameter / 2 + padding,
       ),
       onTap: onTap,
       child: Padding(
         padding:
-            EdgeInsets.all(s(2)),
+            EdgeInsets.all(padding),
         child: Container(
-          width: s(diameter),
-          height: s(diameter),
+          width: diameter,
+          height: diameter,
           decoration: BoxDecoration(
             shape:
                 BoxShape.circle,
@@ -2407,8 +2516,8 @@ class _CharacterCreationScreenState
                       context,
                     ).dividerColor,
               width: selected
-                  ? s(3)
-                  : s(1),
+                  ? 3
+                  : 1,
             ),
           ),
         ),
@@ -2430,230 +2539,196 @@ class _CharacterCreationScreenState
     required double rowHeight,
     bool showTitle = true,
   }) {
-    double s(double value) =>
-        value * zoom;
+    final double cardWidth =
+        (rowHeight * 1.25)
+            .clamp(
+              60.0,
+              82.0,
+            )
+            .toDouble();
 
-    return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
-      children: [
-        if (showTitle) ...[
-          Text(
-            title,
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall,
-          ),
-          SizedBox(
-            height: s(4),
-          ),
-        ],
-        SizedBox(
-          height: rowHeight,
-          child: ListView.separated(
-            scrollDirection:
-                Axis.horizontal,
-            padding: EdgeInsets.zero,
-            itemCount:
-                values.length,
-            separatorBuilder:
-                (
-              BuildContext context,
-              int index,
-            ) {
-              return SizedBox(
-                width: s(6),
+    final double cardRadius =
+        rowHeight < 42
+            ? 7
+            : 8;
+
+    final double cardPadding =
+        rowHeight < 42
+            ? 2
+            : 3;
+
+    return SizedBox(
+      height: rowHeight,
+      child: ListView.separated(
+        scrollDirection:
+            Axis.horizontal,
+        padding: EdgeInsets.zero,
+        itemCount:
+            values.length,
+        separatorBuilder:
+            (
+          BuildContext context,
+          int index,
+        ) {
+          return const SizedBox(
+            width: 5,
+          );
+        },
+        itemBuilder:
+            (
+          BuildContext context,
+          int index,
+        ) {
+          final String value =
+              values[index];
+
+          final bool isSelected =
+              value == selected;
+
+          final bool isNone =
+              value == 'none';
+
+          final bool isBald =
+              value == 'bald';
+
+          final String assetName =
+              assetFilePrefix == null
+                  ? value
+                  : '${assetFilePrefix}_$value';
+
+          final String assetPath =
+              '$assetDirectory/'
+              '$assetName.png';
+
+          return InkWell(
+            borderRadius:
+                BorderRadius.circular(
+              cardRadius,
+            ),
+            onTap: () {
+              onSelected(
+                value,
               );
             },
-            itemBuilder:
-                (
-              BuildContext context,
-              int index,
-            ) {
-              final String value =
-                  values[index];
-
-              final bool isSelected =
-                  value == selected;
-
-              final bool isNone =
-                  value == 'none';
-
-              final bool isBald =
-                  value == 'bald';
-
-              final String assetName =
-                  assetFilePrefix == null
-                      ? value
-                      : '${assetFilePrefix}_$value';
-
-              final String assetPath =
-                  '$assetDirectory/'
-                  '$assetName.png';
-
-              return InkWell(
+            child: Container(
+              width: cardWidth,
+              padding:
+                  EdgeInsets.all(
+                cardPadding,
+              ),
+              decoration:
+                  BoxDecoration(
+                color: isSelected
+                    ? Theme.of(
+                        context,
+                      )
+                        .colorScheme
+                        .primary
+                        .withValues(
+                          alpha: 0.10,
+                        )
+                    : Theme.of(
+                        context,
+                      )
+                        .colorScheme
+                        .surface,
                 borderRadius:
                     BorderRadius.circular(
-                  s(8),
+                  cardRadius,
                 ),
-                onTap: () {
-                  onSelected(
-                    value,
-                  );
-                },
-                child: Container(
-                  width:
-                      veryCompactAssetWidth(
-                    zoom,
-                    rowHeight,
-                  ),
-                  padding:
-                      EdgeInsets.all(
-                    s(
-                      rowHeight <= 40
-                          ? 2
-                          : 4,
-                    ),
-                  ),
-                  decoration:
-                      BoxDecoration(
-                    color: isSelected
-                        ? Theme.of(
-                            context,
-                          )
-                            .colorScheme
-                            .primary
-                            .withValues(
-                              alpha: 0.10,
-                            )
-                        : Theme.of(
-                            context,
-                          )
-                            .colorScheme
-                            .surface,
-                    borderRadius:
-                        BorderRadius.circular(
-                      s(8),
-                    ),
-                    border:
-                        Border.all(
-                      color: isSelected
-                          ? Theme.of(
-                              context,
-                            )
-                              .colorScheme
-                              .primary
-                          : Theme.of(
-                              context,
-                            )
-                              .dividerColor
-                              .withValues(
-                                alpha:
-                                    0.6,
-                              ),
-                      width: isSelected
-                          ? s(2)
-                          : s(1),
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment:
-                        MainAxisAlignment
-                            .center,
-                    children: [
-                      Expanded(
-                        child: isNone
-                            ? Icon(
-                                Icons.block,
-                                size:
-                                    s(
-                                  rowHeight <= 40
-                                      ? 18
-                                      : 28,
-                                ),
-                              )
-                            : isBald
-                                ? Image.asset(
-                                    assetPath,
-                                    fit: BoxFit
-                                        .contain,
-                                    filterQuality:
-                                        FilterQuality
-                                            .high,
-                                  )
-                                : ColorFiltered(
-                                    colorFilter:
-                                        ColorFilter
-                                            .mode(
-                                      color ??
-                                          Colors
-                                              .white,
-                                      BlendMode
-                                          .modulate,
-                                    ),
-                                    child:
-                                        Image.asset(
-                                      assetPath,
-                                      fit: BoxFit
-                                          .contain,
-                                      filterQuality:
-                                          FilterQuality
-                                              .high,
-                                    ),
-                                  ),
-                      ),
-                      SizedBox(
-                        height:
-                            rowHeight <= 40
-                                ? 0
-                                : s(2),
-                      ),
-                      Text(
-                        _prettyLabel(
-                          value,
-                        ),
-                        maxLines: 1,
-                        overflow:
-                            TextOverflow.ellipsis,
-                        textAlign:
-                            TextAlign.center,
-                        style:
-                            Theme.of(
+                border:
+                    Border.all(
+                  color: isSelected
+                      ? Theme.of(
                           context,
                         )
-                                .textTheme
-                                .labelSmall
-                                ?.copyWith(
-                                  fontSize:
-                                      rowHeight <= 40
-                                          ? 9
-                                          : null,
-                                ),
-                      ),
-                    ],
-                  ),
+                          .colorScheme
+                          .primary
+                      : Theme.of(
+                          context,
+                        )
+                          .dividerColor
+                          .withValues(
+                            alpha: 0.6,
+                          ),
+                  width: isSelected
+                      ? 2
+                      : 1,
                 ),
-              );
-            },
-          ),
-        ),
-      ],
+              ),
+              child: Column(
+                mainAxisAlignment:
+                    MainAxisAlignment
+                        .center,
+                children: [
+                  Expanded(
+                    child: isNone
+                        ? Icon(
+                            Icons.block,
+                            size:
+                                rowHeight < 42
+                                    ? 16
+                                    : 22,
+                          )
+                        : isBald
+                            ? Image.asset(
+                                assetPath,
+                                fit:
+                                    BoxFit.contain,
+                                filterQuality:
+                                    FilterQuality.high,
+                              )
+                            : ColorFiltered(
+                                colorFilter:
+                                    ColorFilter.mode(
+                                  color ??
+                                      Colors.white,
+                                  BlendMode
+                                      .modulate,
+                                ),
+                                child:
+                                    Image.asset(
+                                  assetPath,
+                                  fit: BoxFit
+                                      .contain,
+                                  filterQuality:
+                                      FilterQuality
+                                          .high,
+                                ),
+                              ),
+                  ),
+                  if (rowHeight >= 38)
+                    SizedBox(
+                      height:
+                          rowHeight < 44
+                              ? 0
+                              : 1,
+                    ),
+                  Text(
+                    _prettyLabel(value),
+                    maxLines: 1,
+                    overflow:
+                        TextOverflow.ellipsis,
+                    textAlign:
+                        TextAlign.center,
+                    style:
+                        Theme.of(context)
+                            .textTheme
+                            .labelSmall
+                            ?.copyWith(
+                              fontSize:
+                                  rowHeight < 44
+                                      ? 8
+                                      : 9,
+                            ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
-  }
-
-  double veryCompactAssetWidth(
-    double zoom,
-    double rowHeight,
-  ) {
-    if (rowHeight <= 40) {
-      return 58 * zoom;
-    }
-
-    if (rowHeight <= 46) {
-      return 66 * zoom;
-    }
-
-    return 78 * zoom;
   }
 
   String _prettyLabel(
