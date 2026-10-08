@@ -11,7 +11,12 @@ import 'life_stage.dart';
 abstract final class CharacterHair {
   static const String bald = 'bald';
 
+  /// Infant hair is gender-neutral.
+  ///
+  /// Bald is intentionally included because infants can randomly have
+  /// no hair.
   static const List<String> infantStyles = <String>[
+    bald,
     'infant_01',
     'infant_02',
     'infant_03',
@@ -68,7 +73,9 @@ abstract final class CharacterHair {
   ];
 
   /// Hair styles used by the main adult/teen selector.
-  static List<String> masterStylesFor(Gender gender) {
+  static List<String> masterStylesFor(
+    Gender gender,
+  ) {
     return List<String>.unmodifiable(
       gender == Gender.female
           ? femaleAdultStyles
@@ -83,7 +90,9 @@ abstract final class CharacterHair {
   }) {
     switch (stage) {
       case LifeStage.infant:
-        return List<String>.unmodifiable(infantStyles);
+        return List<String>.unmodifiable(
+          infantStyles,
+        );
 
       case LifeStage.toddler:
         return List<String>.unmodifiable(
@@ -109,8 +118,14 @@ abstract final class CharacterHair {
 
   /// Generates one valid automatic hairstyle.
   ///
-  /// Bald is intentionally excluded because this method is used when a
-  /// hairstyle must be generated automatically.
+  /// Infant can randomly be bald or receive one of the three
+  /// gender-neutral infant hairstyles.
+  ///
+  /// Toddler and child receive one of their gender-specific
+  /// hairstyles.
+  ///
+  /// Adult-stage characters receive one of the gender-specific
+  /// master hairstyles.
   static String randomAutomaticHair({
     required Random random,
     required Gender gender,
@@ -144,8 +159,22 @@ abstract final class CharacterHair {
 
   /// Converts a stored hairstyle identifier into its PNG asset path.
   ///
-  /// Invalid or legacy identifiers are normalized to the first valid style
-  /// for the current stage. Bald always wins and produces no hair layer.
+  /// Bald produces no hair layer.
+  ///
+  /// Infant assets live directly under:
+  /// assets/character/hair/
+  ///
+  /// Toddler assets live under:
+  /// assets/character/hair/toddler/
+  ///
+  /// Child assets live under:
+  /// assets/character/hair/child/
+  ///
+  /// Teen, young adult, adult, and senior assets live directly under:
+  /// assets/character/hair/
+  ///
+  /// Invalid identifiers are normalized to the first valid non-bald
+  /// hairstyle for the current stage.
   static String? assetPath({
     required String hair,
     required Gender gender,
@@ -161,8 +190,46 @@ abstract final class CharacterHair {
     );
 
     final String selected =
-        styles.contains(hair) ? hair : styles.first;
+        styles.contains(hair)
+            ? hair
+            : _fallbackStyle(
+                styles,
+              );
 
-    return 'assets/character/hair/$selected.png';
+    switch (stage) {
+      case LifeStage.infant:
+        return 'assets/character/hair/$selected.png';
+
+      case LifeStage.toddler:
+        return 'assets/character/hair/toddler/'
+            '$selected.png';
+
+      case LifeStage.child:
+        return 'assets/character/hair/child/'
+            '$selected.png';
+
+      case LifeStage.teen:
+      case LifeStage.youngAdult:
+      case LifeStage.adult:
+      case LifeStage.senior:
+        return 'assets/character/hair/$selected.png';
+    }
+  }
+
+  /// Returns a safe non-bald fallback from a valid stage pool.
+  ///
+  /// Infant contains bald as a valid random option, but a rendering
+  /// fallback must never resolve to bald because this method is only
+  /// reached when a hair layer is expected.
+  static String _fallbackStyle(
+    List<String> styles,
+  ) {
+    for (final style in styles) {
+      if (style != bald) {
+        return style;
+      }
+    }
+
+    return bald;
   }
 }
