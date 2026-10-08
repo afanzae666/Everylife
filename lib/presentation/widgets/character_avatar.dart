@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../domain/character/appearance.dart';
 import '../../domain/character/character.dart';
+import '../../domain/character/character_hair.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
 
@@ -23,6 +24,11 @@ class CharacterAvatar extends StatelessWidget {
   final Color skinColor;
   final Color eyeColor;
   final Color hairColor;
+
+  /// Senior hair uses the silver palette color so aging is visible
+  /// regardless of the stored hair color.
+  static const Color _seniorHairColor =
+      Color(0xFFA9A9A4);
 
   static const List<String> _eyebrowStyles = [
     'bold_straight',
@@ -69,6 +75,11 @@ class CharacterAvatar extends StatelessWidget {
       stage: stage,
     );
 
+    final Color renderedHairColor =
+        stage == LifeStage.senior
+            ? _seniorHairColor
+            : hairColor;
+
     return SizedBox(
       width: size,
       height: size,
@@ -104,7 +115,7 @@ class CharacterAvatar extends StatelessWidget {
               stage,
               appearance.eyebrows,
             ),
-            color: hairColor,
+            color: renderedHairColor,
           ),
 
           _fixedLayer(
@@ -114,13 +125,13 @@ class CharacterAvatar extends StatelessWidget {
           if (beardAsset != null)
             _tintedLayer(
               beardAsset,
-              color: hairColor,
+              color: renderedHairColor,
             ),
 
           if (hairAsset != null)
             _tintedLayer(
               hairAsset,
-              color: hairColor,
+              color: renderedHairColor,
             ),
         ],
       ),
@@ -330,57 +341,11 @@ class CharacterAvatar extends StatelessWidget {
     required Gender gender,
     required LifeStage stage,
   }) {
-    if (stage == LifeStage.infant) {
-      final String hair = appearance.hair;
-
-      if (RegExp(
-        r'^infant_0[1-2]$',
-      ).hasMatch(hair)) {
-        return 'assets/character/hair/$hair.png';
-      }
-
-      return 'assets/character/hair/'
-          'infant_01.png';
-    }
-
-    if (stage == LifeStage.toddler) {
-      final String hair = appearance.hair;
-
-      if (RegExp(
-        r'^toddler_0[1-3]$',
-      ).hasMatch(hair)) {
-        return 'assets/character/hair/$hair.png';
-      }
-
-      return 'assets/character/hair/'
-          'toddler_01.png';
-    }
-
-    if (appearance.hair == 'bald') {
-      return null;
-    }
-
-    final RegExp expectedHair =
-        gender == Gender.female
-            ? RegExp(
-                r'^female_hair_0[1-7]$',
-              )
-            : RegExp(
-                r'^male_hair_0[1-7]$',
-              );
-
-    if (expectedHair.hasMatch(
-      appearance.hair,
-    )) {
-      return 'assets/character/hair/'
-          '${appearance.hair}.png';
-    }
-
-    return gender == Gender.female
-        ? 'assets/character/hair/'
-            'female_hair_01.png'
-        : 'assets/character/hair/'
-            'male_hair_01.png';
+    return CharacterHair.assetPath(
+      hair: appearance.hair,
+      gender: gender,
+      stage: stage,
+    );
   }
 
   String? _beardAsset({
