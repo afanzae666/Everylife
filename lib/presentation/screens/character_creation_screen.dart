@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../../data/services/character_palette_service.dart';
 import '../../domain/character/appearance.dart';
 import '../../domain/character/character.dart';
+import '../../domain/character/character_hair.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
 
@@ -98,38 +99,6 @@ class _CharacterCreationScreenState
 
   String? _paletteError;
 
-  static const List<String> _maleHairStyles = [
-    'bald',
-    'male_hair_01',
-    'male_hair_02',
-    'male_hair_03',
-    'male_hair_04',
-    'male_hair_05',
-    'male_hair_06',
-    'male_hair_07',
-  ];
-
-  static const List<String> _femaleHairStyles = [
-    'bald',
-    'female_hair_01',
-    'female_hair_02',
-    'female_hair_03',
-    'female_hair_04',
-    'female_hair_05',
-    'female_hair_06',
-    'female_hair_07',
-  ];
-
-  static const List<String> _infantHairStyles = [
-    'infant_01',
-    'infant_02',
-  ];
-
-  static const List<String> _toddlerHairStyles = [
-    'toddler_01',
-    'toddler_02',
-    'toddler_03',
-  ];
 
   static const List<String> _maleFirstNames = [
     'Alex',
@@ -204,21 +173,11 @@ class _CharacterCreationScreenState
     'beard_05',
   ];
 
-  String _automaticInfantHair = _infantHairStyles.first;
-
-  String _automaticToddlerHair = _toddlerHairStyles.first;
 
   @override
   void initState() {
     super.initState();
 
-    _automaticInfantHair = _randomItem(
-      _infantHairStyles,
-    );
-
-    _automaticToddlerHair = _randomItem(
-      _toddlerHairStyles,
-    );
 
     _loadPalette();
   }
@@ -310,13 +269,16 @@ class _CharacterCreationScreenState
     CharacterAppearance finalAppearance =
         _appearance;
 
-    if (actualStage == LifeStage.infant) {
+    if (finalAppearance.hair != CharacterHair.bald &&
+        (actualStage == LifeStage.infant ||
+            actualStage == LifeStage.toddler ||
+            actualStage == LifeStage.child)) {
       finalAppearance = finalAppearance.copyWith(
-        hair: _automaticInfantHair,
-      );
-    } else if (actualStage == LifeStage.toddler) {
-      finalAppearance = finalAppearance.copyWith(
-        hair: _automaticToddlerHair,
+        hair: CharacterHair.randomAutomaticHair(
+          random: _random,
+          gender: _gender,
+          stage: actualStage,
+        ),
       );
     }
 
@@ -346,9 +308,12 @@ class _CharacterCreationScreenState
             : Gender.female;
 
     final List<String> hairStyles =
-        randomGender == Gender.female
-            ? _femaleHairStyles
-            : _maleHairStyles;
+        <String>[
+          CharacterHair.bald,
+          ...CharacterHair.masterStylesFor(
+            randomGender,
+          ),
+        ];
 
     final List<String> firstNamePool =
         randomGender == Gender.female
@@ -390,11 +355,6 @@ class _CharacterCreationScreenState
     setState(() {
       _gender = randomGender;
 
-      _automaticInfantHair =
-          _randomItem(_infantHairStyles);
-
-      _automaticToddlerHair =
-          _randomItem(_toddlerHairStyles);
 
       _appearance = _appearance.copyWith(
         skinTone: randomSkinTone,
@@ -1129,9 +1089,10 @@ class _CharacterCreationScreenState
   }
 
   List<String> _currentHairStyles() {
-    return _gender == Gender.female
-        ? _femaleHairStyles
-        : _maleHairStyles;
+    return <String>[
+      CharacterHair.bald,
+      ...CharacterHair.masterStylesFor(_gender),
+    ];
   }
 
   @override
@@ -1993,42 +1954,11 @@ class _CharacterCreationScreenState
     required Gender gender,
     required LifeStage stage,
   }) {
-    if (stage == LifeStage.infant) {
-      return 'assets/character/hair/'
-          '$_automaticInfantHair.png';
-    }
-
-    if (stage == LifeStage.toddler) {
-      return 'assets/character/hair/'
-          '$_automaticToddlerHair.png';
-    }
-
-    if (appearance.hair == 'bald') {
-      return null;
-    }
-
-    final List<String> available =
-        gender == Gender.female
-            ? _femaleHairStyles
-            : _maleHairStyles;
-
-    final List<String> nonBaldStyles =
-        available
-            .where(
-              (String value) =>
-                  value != 'bald',
-            )
-            .toList();
-
-    if (nonBaldStyles.contains(
-      appearance.hair,
-    )) {
-      return 'assets/character/hair/'
-          '${appearance.hair}.png';
-    }
-
-    return 'assets/character/hair/'
-        '${nonBaldStyles.first}.png';
+    return CharacterHair.assetPath(
+      hair: appearance.hair,
+      gender: gender,
+      stage: stage,
+    );
   }
 
   Widget _buildCompactIdentityFields(
@@ -2216,15 +2146,18 @@ class _CharacterCreationScreenState
                     _gender =
                         Gender.male;
 
-                    if (!_maleHairStyles
-                        .contains(
-                      _appearance.hair,
-                    )) {
+                    final List<String> validStyles =
+                        CharacterHair.masterStylesFor(
+                      Gender.male,
+                    );
+
+                    if (_appearance.hair != CharacterHair.bald &&
+                        !validStyles.contains(
+                          _appearance.hair,
+                        )) {
                       _appearance =
                           _appearance.copyWith(
-                        hair:
-                            _maleHairStyles
-                                .first,
+                        hair: validStyles.first,
                       );
                     }
                   });
@@ -2250,15 +2183,18 @@ class _CharacterCreationScreenState
                     _gender =
                         Gender.female;
 
-                    if (!_femaleHairStyles
-                        .contains(
-                      _appearance.hair,
-                    )) {
+                    final List<String> validStyles =
+                        CharacterHair.masterStylesFor(
+                      Gender.female,
+                    );
+
+                    if (_appearance.hair != CharacterHair.bald &&
+                        !validStyles.contains(
+                          _appearance.hair,
+                        )) {
                       _appearance =
                           _appearance.copyWith(
-                        hair:
-                            _femaleHairStyles
-                                .first,
+                        hair: validStyles.first,
                       );
                     }
 
@@ -2734,10 +2670,14 @@ class _CharacterCreationScreenState
   String _prettyLabel(
     String value,
   ) {
+    if (value == CharacterHair.bald) {
+      return 'Bald';
+    }
+
     final String withoutPrefix =
         value.replaceFirst(
       RegExp(
-        r'^(hair_|eyes_|brows_|male_hair_|female_hair_)',
+        r'^(hair_|eyes_|brows_|male_hair_|female_hair_|male_hair_toddler_|female_hair_toddler_|male_hair_child_|female_hair_child_)',
       ),
       '',
     );
