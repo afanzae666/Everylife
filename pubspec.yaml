@@ -37,6 +37,8 @@ flutter:
     - assets/character/eyebrows/young_adult/
     - assets/character/eyes/
     - assets/character/hair/
+    - assets/character/hair/toddler/
+    - assets/character/hair/child/
     - assets/character/palettes/
     - assets/character/head_base/
     - assets/character/mouth/
