@@ -267,20 +267,19 @@ class _CharacterCreationScreenState
     );
 
     CharacterAppearance finalAppearance =
-        _appearance;
+    _appearance;
 
-    if (finalAppearance.hair != CharacterHair.bald &&
-        (actualStage == LifeStage.infant ||
-            actualStage == LifeStage.toddler ||
-            actualStage == LifeStage.child)) {
-      finalAppearance = finalAppearance.copyWith(
-        hair: CharacterHair.randomAutomaticHair(
-          random: _random,
-          gender: _gender,
-          stage: actualStage,
-        ),
-      );
-    }
+if (actualStage == LifeStage.infant ||
+    actualStage == LifeStage.toddler ||
+    actualStage == LifeStage.child) {
+  finalAppearance = finalAppearance.copyWith(
+    hair: CharacterHair.randomAutomaticHair(
+      random: _random,
+      gender: _gender,
+      stage: actualStage,
+    ),
+  );
+}
 
     final Character character = Character.create(
       id:
