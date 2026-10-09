@@ -139,6 +139,54 @@ abstract final class CharacterHair {
     return styles[random.nextInt(styles.length)];
   }
 
+  
+  /// Resolves the hairstyle that should be displayed at the current stage.
+  ///
+  /// A player-selected bald hairstyle is permanent. Automatic stage
+  /// hairstyles are kept separate so random infant baldness does not
+  /// affect later life stages.
+  static String resolveHairForStage({
+    required String playerHair,
+    required String? infantHair,
+    required String? toddlerHair,
+    required String? childHair,
+    required Gender gender,
+    required LifeStage stage,
+  }) {
+    if (playerHair == bald) {
+      return bald;
+    }
+
+    switch (stage) {
+      case LifeStage.infant:
+        return infantHair ?? randomAutomaticHair(
+          random: Random(),
+          gender: gender,
+          stage: LifeStage.infant,
+        );
+
+      case LifeStage.toddler:
+        return toddlerHair ?? randomAutomaticHair(
+          random: Random(),
+          gender: gender,
+          stage: LifeStage.toddler,
+        );
+
+      case LifeStage.child:
+        return childHair ?? randomAutomaticHair(
+          random: Random(),
+          gender: gender,
+          stage: LifeStage.child,
+        );
+
+      case LifeStage.teen:
+      case LifeStage.youngAdult:
+      case LifeStage.adult:
+      case LifeStage.senior:
+        return playerHair;
+    }
+  }
+
   /// Checks whether a stored hairstyle is valid for the current stage.
   ///
   /// Bald is always valid because it is a global override.
