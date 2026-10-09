@@ -28,7 +28,7 @@ class CharacterAvatar extends StatelessWidget {
   /// Senior hair uses the silver palette color so aging is visible
   /// regardless of the stored hair color.
   static const Color _seniorHairColor =
-      Color(0xFFA9A9A4);
+      Color(0xFFE5E3D9);
 
   static const List<String> _eyebrowStyles = [
     'bold_straight',
