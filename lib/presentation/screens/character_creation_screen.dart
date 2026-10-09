@@ -266,21 +266,34 @@ class _CharacterCreationScreenState
       age.clamp(0, 126),
     );
 
-    CharacterAppearance finalAppearance =
-    _appearance;
+final bool playerSelectedBald =
+    _appearance.hair == CharacterHair.bald;
 
-if (actualStage == LifeStage.infant ||
-    actualStage == LifeStage.toddler ||
-    actualStage == LifeStage.child) {
-  finalAppearance = finalAppearance.copyWith(
-    hair: CharacterHair.randomAutomaticHair(
-      random: _random,
-      gender: _gender,
-      stage: actualStage,
-    ),
-  );
-}
-
+final CharacterAppearance finalAppearance =
+    _appearance.copyWith(
+  infantHair: playerSelectedBald
+      ? CharacterHair.bald
+      : CharacterHair.randomAutomaticHair(
+          random: _random,
+          gender: _gender,
+          stage: LifeStage.infant,
+        ),
+  toddlerHair: playerSelectedBald
+      ? CharacterHair.bald
+      : CharacterHair.randomAutomaticHair(
+          random: _random,
+          gender: _gender,
+          stage: LifeStage.toddler,
+        ),
+  childHair: playerSelectedBald
+      ? CharacterHair.bald
+      : CharacterHair.randomAutomaticHair(
+          random: _random,
+          gender: _gender,
+          stage: LifeStage.child,
+        ),
+);
+    
     final Character character = Character.create(
       id:
           'player-${DateTime.now().microsecondsSinceEpoch}',
