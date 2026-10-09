@@ -793,22 +793,12 @@ final CharacterAppearance finalAppearance =
                                         fitScale;
 
                                 final double previewAvatarSize =
-                                    (previewHeight -
-                                            6)
-                                        .clamp(
-                                          64.0,
-                                          180.0,
-                                        )
-                                        .toDouble();
+    (previewHeight / 1.25 - 8)
+        .clamp(48.0, 144.0)
+        .toDouble();
 
-                                final double previewContainerSize =
-                                    (previewAvatarSize +
-                                            8)
-                                        .clamp(
-                                          72.0,
-                                          188.0,
-                                        )
-                                        .toDouble();
+final double previewContainerSize =
+    previewAvatarSize + 8;
 
                                 return Column(
                                   crossAxisAlignment:
@@ -1627,12 +1617,13 @@ final CharacterAppearance finalAppearance =
           BlendMode.modulate,
     }) {
       final Widget image = Image.asset(
-        assetPath,
-        width: s(size),
-        height: s(size),
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.high,
-      );
+  assetPath,
+  width: s(size),
+  height: s(size * 1.25),
+  fit: BoxFit.contain,
+  alignment: Alignment.bottomCenter,
+  filterQuality: FilterQuality.high,
+);
 
       if (useSkinGamma) {
         return ColorFiltered(
@@ -1658,12 +1649,13 @@ final CharacterAppearance finalAppearance =
       double scale = 1.0,
     }) {
       final Widget image = Image.asset(
-        assetPath,
-        width: s(size),
-        height: s(size),
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.high,
-      );
+  assetPath,
+  width: s(size),
+  height: s(size * 1.25),
+  fit: BoxFit.contain,
+  alignment: Alignment.bottomCenter,
+  filterQuality: FilterQuality.high,
+);
 
       if (scale == 1.0) {
         return image;
@@ -1678,7 +1670,7 @@ final CharacterAppearance finalAppearance =
 
     return SizedBox(
       width: s(containerSize),
-      height: s(containerSize),
+      height: s(containerSize * 1.25),
       child: Stack(
         alignment: Alignment.center,
         clipBehavior: Clip.none,
