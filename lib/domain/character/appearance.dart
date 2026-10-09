@@ -8,6 +8,9 @@ class CharacterAppearance {
     this.base = 'default',
     this.skinTone = 'default',
     this.hair = 'default',
+    this.infantHair,
+    this.toddlerHair,
+    this.childHair,
     this.hairColor = 'default',
     this.eyes = 'default',
     this.eyeColor = 'default',
@@ -21,8 +24,25 @@ class CharacterAppearance {
   /// Skin palette identifier.
   final String skinTone;
 
-  /// Hair style asset identifier.
+  /// Player-selected master hairstyle.
+  ///
+  /// This is the hairstyle preserved from teen through senior.
+  ///
+  /// If this is `bald`, bald becomes a permanent player-selected
+  /// override for every life stage.
   final String hair;
+
+  /// Automatically generated hairstyle for the infant stage.
+  ///
+  /// This is intentionally separate from [hair] so a randomly bald
+  /// infant does not become permanently bald.
+  final String? infantHair;
+
+  /// Automatically generated hairstyle for the toddler stage.
+  final String? toddlerHair;
+
+  /// Automatically generated hairstyle for the child stage.
+  final String? childHair;
 
   /// Hair palette identifier.
   final String hairColor;
@@ -45,6 +65,9 @@ class CharacterAppearance {
     String? base,
     String? skinTone,
     String? hair,
+    String? infantHair,
+    String? toddlerHair,
+    String? childHair,
     String? hairColor,
     String? eyes,
     String? eyeColor,
@@ -55,6 +78,9 @@ class CharacterAppearance {
       base: base ?? this.base,
       skinTone: skinTone ?? this.skinTone,
       hair: hair ?? this.hair,
+      infantHair: infantHair ?? this.infantHair,
+      toddlerHair: toddlerHair ?? this.toddlerHair,
+      childHair: childHair ?? this.childHair,
       hairColor: hairColor ?? this.hairColor,
       eyes: eyes ?? this.eyes,
       eyeColor: eyeColor ?? this.eyeColor,
