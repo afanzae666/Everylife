@@ -341,8 +341,18 @@ class CharacterAvatar extends StatelessWidget {
     required Gender gender,
     required LifeStage stage,
   }) {
+    final String resolvedHair =
+        CharacterHair.resolveHairForStage(
+      playerHair: appearance.hair,
+      infantHair: appearance.infantHair,
+      toddlerHair: appearance.toddlerHair,
+      childHair: appearance.childHair,
+      gender: gender,
+      stage: stage,
+    );
+
     return CharacterHair.assetPath(
-      hair: appearance.hair,
+      hair: resolvedHair,
       gender: gender,
       stage: stage,
     );
