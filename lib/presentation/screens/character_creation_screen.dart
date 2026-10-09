@@ -258,14 +258,6 @@ class _CharacterCreationScreenState
       return;
     }
 
-    final int age =
-        _maximumBirthYear - _birthYear;
-
-    final LifeStage actualStage =
-        LifeStageAge.fromAge(
-      age.clamp(0, 126),
-    );
-
 final bool playerSelectedBald =
     _appearance.hair == CharacterHair.bald;
 
