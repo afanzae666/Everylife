@@ -27,9 +27,6 @@ flutter:
     - assets/icons/
     - assets/images/everylife_logo.png
 
-    - assets/character/age/
-    - assets/character/base/
-    - assets/character/expressions/
     - assets/character/eyebrows/
     - assets/character/eyebrows/infant/
     - assets/character/eyebrows/toddler/
