@@ -1,3 +1,4 @@
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:everylife/core/money/money.dart';
@@ -56,97 +57,78 @@ void main() {
           restored.clock.currentYear,
           original.clock.currentYear,
         );
-
         expect(
           restored.player.id,
           original.player.id,
         );
-
         expect(
           restored.player.name,
           original.player.name,
         );
-
         expect(
           restored.player.gender,
           original.player.gender,
         );
-
         expect(
           restored.player.birthYear,
           original.player.birthYear,
         );
-
         expect(
           restored.player.stats.health,
           original.player.stats.health,
         );
-
         expect(
           restored.player.stats.intelligence,
           original.player.stats.intelligence,
         );
-
         expect(
           restored.player.stats.fitness,
           original.player.stats.fitness,
         );
-
         expect(
           restored.player.stats.happiness,
           original.player.stats.happiness,
         );
-
         expect(
           restored.player.stats.willpower,
           original.player.stats.willpower,
         );
-
         expect(
           restored.player.stats.charisma,
           original.player.stats.charisma,
         );
-
         expect(
           restored.player.stats.creativity,
           original.player.stats.creativity,
         );
-
         expect(
           restored.player.stats.luck,
           original.player.stats.luck,
         );
-
         expect(
           restored.player.money.minorUnits,
           original.player.money.minorUnits,
         );
-
         expect(
           restored.events.length,
           original.events.length,
         );
-
         expect(
           restored.events.first.id,
           original.events.first.id,
         );
-
         expect(
           restored.events.first.type,
           original.events.first.type,
         );
-
         expect(
           restored.events.first.year,
           original.events.first.year,
         );
-
         expect(
           restored.events.first.title,
           original.events.first.title,
         );
-
         expect(
           restored.events.first.description,
           original.events.first.description,
@@ -200,76 +182,20 @@ void main() {
         final restored =
             restoredSnapshot.toWorldState();
 
-        expect(
-          restored.clock.currentYear,
-          2045,
-        );
-
-        expect(
-          restored.player.id,
-          'character-2',
-        );
-
-        expect(
-          restored.player.name,
-          'Test Character',
-        );
-
-        expect(
-          restored.player.gender,
-          Gender.female,
-        );
-
-        expect(
-          restored.player.birthYear,
-          2025,
-        );
-
-        expect(
-          restored.player.stats.health,
-          90,
-        );
-
-        expect(
-          restored.player.stats.intelligence,
-          60,
-        );
-
-        expect(
-          restored.player.stats.fitness,
-          80,
-        );
-
-        expect(
-          restored.player.stats.happiness,
-          70,
-        );
-
-        expect(
-          restored.player.stats.willpower,
-          65,
-        );
-
-        expect(
-          restored.player.stats.charisma,
-          55,
-        );
-
-        expect(
-          restored.player.stats.creativity,
-          45,
-        );
-
-        expect(
-          restored.player.stats.luck,
-          35,
-        );
-
-        expect(
-          restored.player.money.minorUnits,
-          98765,
-        );
-
+        expect(restored.clock.currentYear, 2045);
+        expect(restored.player.id, 'character-2');
+        expect(restored.player.name, 'Test Character');
+        expect(restored.player.gender, Gender.female);
+        expect(restored.player.birthYear, 2025);
+        expect(restored.player.stats.health, 90);
+        expect(restored.player.stats.intelligence, 60);
+        expect(restored.player.stats.fitness, 80);
+        expect(restored.player.stats.happiness, 70);
+        expect(restored.player.stats.willpower, 65);
+        expect(restored.player.stats.charisma, 55);
+        expect(restored.player.stats.creativity, 45);
+        expect(restored.player.stats.luck, 35);
+        expect(restored.player.money.minorUnits, 98765);
         expect(
           restored.events.single.type,
           SimulationEventType.randomEvent,
@@ -285,6 +211,9 @@ void main() {
           base: 'default',
           skinTone: 'medium',
           hair: 'male_hair_01',
+          infantHair: 'infant_03',
+          toddlerHair: 'male_hair_toddler_02',
+          childHair: 'male_hair_child_05',
           hairColor: 'warm_brown',
           eyes: 'adult_eyes',
           eyeColor: 'hazel',
@@ -318,16 +247,12 @@ void main() {
         );
 
         final snapshot =
-            WorldStateSnapshot.fromWorldState(
-          original,
-        );
+            WorldStateSnapshot.fromWorldState(original);
 
         final json = snapshot.toJson();
 
         final restoredSnapshot =
-            WorldStateSnapshot.fromJson(
-          json,
-        );
+            WorldStateSnapshot.fromJson(json);
 
         final restored =
             restoredSnapshot.toWorldState();
@@ -336,37 +261,42 @@ void main() {
           restored.player.appearance.base,
           'default',
         );
-
         expect(
           restored.player.appearance.skinTone,
           'medium',
         );
-
         expect(
           restored.player.appearance.hair,
           'male_hair_01',
         );
-
+        expect(
+          restored.player.appearance.infantHair,
+          'infant_03',
+        );
+        expect(
+          restored.player.appearance.toddlerHair,
+          'male_hair_toddler_02',
+        );
+        expect(
+          restored.player.appearance.childHair,
+          'male_hair_child_05',
+        );
         expect(
           restored.player.appearance.hairColor,
           'warm_brown',
         );
-
         expect(
           restored.player.appearance.eyes,
           'adult_eyes',
         );
-
         expect(
           restored.player.appearance.eyeColor,
           'hazel',
         );
-
         expect(
           restored.player.appearance.eyebrows,
           'adult_eyebrow',
         );
-
         expect(
           restored.player.appearance.beard,
           'beard_03',
