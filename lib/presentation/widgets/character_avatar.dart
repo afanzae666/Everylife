@@ -82,7 +82,7 @@ class CharacterAvatar extends StatelessWidget {
 
     return SizedBox(
       width: size,
-      height: size,
+      height: size * 1.25,
       child: Stack(
         fit: StackFit.expand,
         alignment: Alignment.center,
@@ -143,12 +143,13 @@ class CharacterAvatar extends StatelessWidget {
     double scale = 1.0,
   }) {
     final Widget image = Image.asset(
-      assetPath,
-      width: size,
-      height: size,
-      fit: BoxFit.contain,
-      filterQuality: FilterQuality.high,
-    );
+  assetPath,
+  width: size,
+  height: size * 1.25,
+  fit: BoxFit.contain,
+  alignment: Alignment.bottomCenter,
+  filterQuality: FilterQuality.high,
+);
 
     if (scale == 1.0) {
       return image;
@@ -168,12 +169,13 @@ class CharacterAvatar extends StatelessWidget {
     LifeStage? stage,
   }) {
     final Widget image = Image.asset(
-      assetPath,
-      width: size,
-      height: size,
-      fit: BoxFit.contain,
-      filterQuality: FilterQuality.high,
-    );
+  assetPath,
+  width: size,
+  height: size * 1.25,
+  fit: BoxFit.contain,
+  alignment: Alignment.bottomCenter,
+  filterQuality: FilterQuality.high,
+);
 
     if (useSkinGamma && stage != null) {
       return ColorFiltered(
