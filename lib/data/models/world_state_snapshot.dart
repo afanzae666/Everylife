@@ -1,3 +1,4 @@
+
 import '../../core/money/money.dart';
 import '../../domain/character/appearance.dart';
 import '../../domain/character/character.dart';
@@ -137,6 +138,9 @@ class WorldStateSnapshot {
           'base': playerAppearance.base,
           'skinTone': playerAppearance.skinTone,
           'hair': playerAppearance.hair,
+          'infantHair': playerAppearance.infantHair,
+          'toddlerHair': playerAppearance.toddlerHair,
+          'childHair': playerAppearance.childHair,
           'hairColor': playerAppearance.hairColor,
           'eyes': playerAppearance.eyes,
           'eyeColor': playerAppearance.eyeColor,
@@ -288,6 +292,27 @@ class WorldStateSnapshot {
           : _optionalString(
               appearance['hair'],
             ),
+      infantHair: _optionalString(
+        appearance['infantHair'],
+      ).isEmpty
+          ? null
+          : _optionalString(
+              appearance['infantHair'],
+            ),
+      toddlerHair: _optionalString(
+        appearance['toddlerHair'],
+      ).isEmpty
+          ? null
+          : _optionalString(
+              appearance['toddlerHair'],
+            ),
+      childHair: _optionalString(
+        appearance['childHair'],
+      ).isEmpty
+          ? null
+          : _optionalString(
+              appearance['childHair'],
+            ),
       hairColor: _optionalString(
         appearance['hairColor'],
       ).isEmpty
@@ -317,12 +342,12 @@ class WorldStateSnapshot {
               appearance['eyebrows'],
             ),
       beard: _optionalString(
-  appearance['beard'],
-).isEmpty
-    ? 'none'
-    : _optionalString(
         appearance['beard'],
-      ),
+      ).isEmpty
+          ? 'none'
+          : _optionalString(
+              appearance['beard'],
+            ),
     );
   }
 
