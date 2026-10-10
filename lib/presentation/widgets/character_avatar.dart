@@ -203,15 +203,6 @@ Widget _tintedLayer(
   );
 }
 
-    return ColorFiltered(
-      colorFilter: ColorFilter.mode(
-        color,
-        BlendMode.modulate,
-      ),
-      child: image,
-    );
-  }
-
   String _headAsset(
     LifeStage stage,
   ) {
