@@ -137,6 +137,7 @@ class _SaveLoadScreenState
         Navigator.of(context).pop(
       widget.isNewLifeFlow,
     );
+  }
 
   Future<void> _handleOverwrite(
     SaveSlot slot,
