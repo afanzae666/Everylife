@@ -1702,7 +1702,7 @@ Widget fixedImage({
           fixedImage(
             assetPath: eyesBaseAsset,
             scale: eyeScale,
-            verticalOffsetFactor: -0.40,
+            verticalOffsetFactor: -0.20,
           ),
           ColorFiltered(
             colorFilter: _irisColorFilter(
@@ -1711,23 +1711,23 @@ Widget fixedImage({
             child: fixedImage(
               assetPath: eyesIrisAsset,
               scale: eyeScale,
-              verticalOffsetFactor: -0.40,
+              verticalOffsetFactor: -0.20,
             ),
           ),
           tintedImage(
             assetPath: eyebrowAsset,
             color: hairColor,
-            verticalOffsetFactor: -0.40,
+            verticalOffsetFactor: -0.20,
           ),
           fixedImage(
             assetPath: mouthAsset,
-            verticalOffsetFactor: -0.40,
+            verticalOffsetFactor: -0.20,
           ),
           if (beardAsset != null)
             tintedImage(
               assetPath: beardAsset,
               color: hairColor,
-              verticalOffsetFactor: -0.40,
+              verticalOffsetFactor: -0.20,
             ),
           if (hairAsset != null)
             tintedImage(
