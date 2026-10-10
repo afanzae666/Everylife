@@ -13,6 +13,7 @@ import 'career_screen.dart';
 import 'character_profile_screen.dart';
 import 'life_screen.dart';
 import 'more_screen.dart';
+import 'menu_screen.dart';
 import 'save_load_screen.dart';
 import 'settings_screen.dart';
 
@@ -27,12 +28,14 @@ class GameScreen extends StatefulWidget {
     required this.engine,
     this.onUiScaleChanged = _defaultUiScaleChanged,
     this.uiScaleController,
+    this.onNewLifeRequested,
     super.key,
   });
 
   final SimulationEngine engine;
   final Future<void> Function(double value) onUiScaleChanged;
   final ValueNotifier<double>? uiScaleController;
+  final VoidCallback? onNewLifeRequested;
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -336,6 +339,38 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+    Future<void> _openMenu() async {
+    if (_isProcessingTurn) {
+      return;
+    }
+
+    final action =
+        await Navigator.of(context).push<MenuScreenAction>(
+      MaterialPageRoute<MenuScreenAction>(
+        builder: (_) => MenuScreen(
+          zoom: _uiScaleController.value,
+        ),
+      ),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    switch (action) {
+      case MenuScreenAction.settings:
+        _openSettings();
+        break;
+
+      case MenuScreenAction.newLife:
+        widget.onNewLifeRequested?.call();
+        break;
+
+      case null:
+        break;
+    }
+  }
+
   void _openSettings() {
     if (_isProcessingTurn) {
       return;
@@ -544,13 +579,13 @@ class _GameScreenState extends State<GameScreen> {
               size: s(24),
             ),
           ),
-          IconButton(
-            tooltip: 'Settings',
+                    IconButton(
+            tooltip: 'Menu',
             onPressed: _isProcessingTurn
                 ? null
-                : _openSettings,
+                : _openMenu,
             icon: Icon(
-              Icons.settings_outlined,
+              Icons.menu,
               size: s(24),
             ),
           ),
