@@ -358,9 +358,9 @@ class _GameScreenState extends State<GameScreen> {
       },
     );
   }
-
+    
   Future<void> _openMenu() async {
-  if (_isProcessingTurn) {
+    if (_isProcessingTurn) {
       return;
     }
 
@@ -383,7 +383,36 @@ class _GameScreenState extends State<GameScreen> {
         break;
 
       case MenuScreenAction.newLife:
-        widget.onNewLifeRequested?.call();
+        final requestAction =
+            await widget.onNewLifeRequested?.call();
+
+        if (!mounted) {
+          return;
+        }
+
+        switch (requestAction) {
+          case NewLifeRequestAction.saveCurrentLife:
+            final saved = await _openSaveManager(
+              isNewLifeFlow: true,
+            );
+
+            if (!mounted) {
+              return;
+            }
+
+            if (saved) {
+              widget.onNewLifeCreationRequested?.call();
+            }
+            break;
+
+          case NewLifeRequestAction.startWithoutSaving:
+            widget.onNewLifeCreationRequested?.call();
+            break;
+
+          case NewLifeRequestAction.cancel:
+          case null:
+            break;
+        }
         break;
 
       case null:
