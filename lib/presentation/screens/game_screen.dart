@@ -627,8 +627,8 @@ class _GameScreenState extends State<GameScreen> {
                       ConnectionState.done) {
                     return SizedBox(
                       key: const Key('character-avatar'),
-                      width: s(54),
-                      height: s(54),
+                      width: s(68),
+                      height: s(85),
                       child: const Center(
                         child: SizedBox(
                           width: 18,
@@ -645,8 +645,8 @@ class _GameScreenState extends State<GameScreen> {
                       snapshot.data == null) {
                     return SizedBox(
                       key: const Key('character-avatar'),
-                      width: s(54),
-                      height: s(54),
+                      width: s(68),
+                      height: s(85),
                     );
                   }
 
@@ -682,7 +682,7 @@ class _GameScreenState extends State<GameScreen> {
                     character: player,
                     currentYear:
                         state.clock.currentYear,
-                    size: s(54),
+                    size: s(68),
                     skinColor: skinColor,
                     eyeColor: eyeColor,
                     hairColor: hairColor,
