@@ -324,17 +324,23 @@ class _LifeSimulationAppState
           animation,
           secondaryAnimation,
         ) {
-          return CharacterCreationScreen(
-            uiScaleController: _uiScaleController,
-            onCharacterCreated: (character) {
-              unawaited(
-                _createNewLifeCharacter(
-                  character,
-                  dialogContext,
-                ),
-              );
-            },
-          );
+          
+return CharacterCreationScreen(
+  uiScaleController: _uiScaleController,
+  onCancel: () {
+    if (dialogContext.mounted) {
+      Navigator.of(dialogContext).pop();
+    }
+  },
+  onCharacterCreated: (character) {
+    unawaited(
+      _createNewLifeCharacter(
+        character,
+        dialogContext,
+      ),
+    );
+  },
+);
         },
       ),
     );
