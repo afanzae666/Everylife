@@ -29,13 +29,12 @@ class CharacterAvatar extends StatelessWidget {
   static const Color _seniorHairColor =
       Color(0xFFE5E3D9);
 
-  /// Move facial layers upward to compensate for the
-  /// difference between the 512x512 facial assets and
-  /// the 512x640 avatar canvas.
-  static const double _eyesOffsetFactor = -0.25;
-  static const double _eyebrowOffsetFactor = -0.25;
-  static const double _mouthOffsetFactor = -0.25;
-  static const double _beardOffsetFactor = -0.25;
+  /// Vertical offsets for facial layers.
+  /// Negative values move layers upward.
+  static const double _eyesOffsetFactor = -0.30;
+  static const double _eyebrowOffsetFactor = -0.30;
+  static const double _mouthOffsetFactor = -0.30;
+  static const double _beardOffsetFactor = -0.30;
 
   static const List<String> _eyebrowStyles = [
     'bold_straight',
