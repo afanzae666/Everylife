@@ -251,8 +251,7 @@ class _GameScreenState extends State<GameScreen> {
       _isProcessingTurn = false;
     });
   }
-
-  Future<void> _openSaveManager() async { 
+ 
   Future<bool> _openSaveManager({
     bool isNewLifeFlow = false,
   }) async {
