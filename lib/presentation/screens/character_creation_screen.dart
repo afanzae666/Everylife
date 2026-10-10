@@ -1209,6 +1209,7 @@ final double previewContainerSize =
         value * zoom;
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       resizeToAvoidBottomInset: true,
             appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -2746,8 +2747,7 @@ Widget fixedImage({
   }
 }
 
-class _ResponsiveCard
-    extends StatelessWidget {
+class _ResponsiveCard extends StatelessWidget {
   const _ResponsiveCard({
     required this.padding,
     required this.child,
@@ -2757,12 +2757,15 @@ class _ResponsiveCard
   final Widget child;
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       child: Card(
+        color: Theme.of(context)
+            .colorScheme
+            .surface
+            .withValues(alpha: 0.84),
+        surfaceTintColor: Colors.transparent,
         margin: EdgeInsets.zero,
         child: Padding(
           padding: padding,
@@ -2772,3 +2775,4 @@ class _ResponsiveCard
     );
   }
 }
+
