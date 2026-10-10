@@ -1213,18 +1213,20 @@ final double previewContainerSize =
     return Scaffold(
         backgroundColor:
     widget.isOverlay ? Colors.transparent : null,
-      resizeToAvoidBottomInset: true,
-            appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: widget.onCancel == null
-            ? null
-            : IconButton(
-                tooltip: 'Back',
-                onPressed: widget.onCancel,
-                icon: const Icon(Icons.arrow_back),
-              ),
-        title: const Text('Create Character'),
-      ),
+      resizeToAvoidBottomInset: true,       
+      appBar: widget.isOverlay
+          ? null
+          : AppBar(
+              automaticallyImplyLeading: false,
+              leading: widget.onCancel == null
+                  ? null
+                  : IconButton(
+                      tooltip: 'Back',
+                      onPressed: widget.onCancel,
+                      icon: const Icon(Icons.arrow_back),
+                    ),
+              title: const Text('Create Character'),
+            ),
       
       body: SafeArea(
         child: Padding(
@@ -1235,27 +1237,30 @@ final double previewContainerSize =
             s(10),
           ),
           child: Column(
-            children: [
-              Text(
-                'Create Your Character',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge,
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(
-                height: s(2),
-              ),
-              Text(
-                'Your life begins at birth.',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall,
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(
-                height: s(5),
-              ),
+            children: [     
+              if (!widget.isOverlay) ...[
+                Text(
+                  'Create Your Character',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge,
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(
+                  height: s(2),
+                ),
+                Text(
+                  'Your life begins at birth.',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(
+                  height: s(5),
+                ),
+              ],
+
               Expanded(
                 child: _ResponsiveCard(
                   padding:
@@ -1300,9 +1305,21 @@ final double previewContainerSize =
                             MaterialTapTargetSize
                                 .shrinkWrap,
                       );
-
+                      
                       return Column(
                         children: [
+                          if (widget.isOverlay &&
+                              widget.onCancel != null)
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: TextButton.icon(
+                                onPressed: widget.onCancel,
+                                icon: const Icon(
+                                  Icons.arrow_back,
+                                ),
+                                label: const Text('Back'),
+                              ),
+                            ),
                           Flexible(
                             flex: 5,
                             fit: FlexFit.loose,
