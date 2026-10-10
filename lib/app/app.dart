@@ -33,11 +33,9 @@ class _LifeSimulationAppState
     extends State<LifeSimulationApp> {
   late final SaveRepository _saveRepository;
 
-  late final UiSettingsRepository
-      _uiSettingsRepository;
+  late final UiSettingsRepository _uiSettingsRepository;
 
-  late final ValueNotifier<double>
-      _uiScaleController;
+  late final ValueNotifier<double> _uiScaleController;
 
   final GlobalKey<NavigatorState> _navigatorKey =
       GlobalKey<NavigatorState>();
@@ -262,8 +260,13 @@ class _LifeSimulationAppState
     return showDialog<NewLifeRequestAction>(
       context: navigatorContext,
       barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.30),
       builder: (dialogContext) {
         return AlertDialog(
+          backgroundColor: Theme.of(dialogContext)
+              .colorScheme
+              .surface
+              .withValues(alpha: 0.90),
           title: const Text('Start a New Life?'),
           content: const Text(
             'What would you like to do with your current life?',
@@ -311,26 +314,42 @@ class _LifeSimulationAppState
         context: navigatorContext,
         barrierDismissible: false,
         barrierLabel: 'Create a new life',
+        barrierColor: Colors.black.withValues(alpha: 0.38),
         pageBuilder: (
           dialogContext,
           animation,
           secondaryAnimation,
         ) {
-          return CharacterCreationScreen(
-            uiScaleController: _uiScaleController,
-            onCancel: () {
-              if (dialogContext.mounted) {
-                Navigator.of(dialogContext).pop();
-              }
-            },
-            onCharacterCreated: (character) {
-              unawaited(
-                _createNewLifeCharacter(
-                  character,
-                  dialogContext,
-                ),
-              );
-            },
+          final baseTheme = Theme.of(dialogContext);
+
+          final overlayTheme = baseTheme.copyWith(
+            scaffoldBackgroundColor: Colors.transparent,
+            appBarTheme: baseTheme.appBarTheme.copyWith(
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+            ),
+          );
+
+          return Theme(
+            data: overlayTheme,
+            child: CharacterCreationScreen(
+              uiScaleController: _uiScaleController,
+              onCancel: () {
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+              },
+              onCharacterCreated: (character) {
+                unawaited(
+                  _createNewLifeCharacter(
+                    character,
+                    dialogContext,
+                  ),
+                );
+              },
+            ),
           );
         },
       ),
