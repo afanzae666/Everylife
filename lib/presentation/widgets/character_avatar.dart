@@ -31,10 +31,10 @@ class CharacterAvatar extends StatelessWidget {
 
   /// Vertical offsets for facial layers.
   /// Negative values move layers upward.
-  static const double _eyesOffsetFactor = -0.10;
-  static const double _eyebrowOffsetFactor = -0.10;
-  static const double _mouthOffsetFactor = -0.10;
-  static const double _beardOffsetFactor = -0.10;
+  static const double _eyesOffsetFactor = -0.12;
+  static const double _eyebrowOffsetFactor = -0.13;
+  static const double _mouthOffsetFactor = -0.12;
+  static const double _beardOffsetFactor = -0.12;
 
   static const List<String> _eyebrowStyles = [
     'bold_straight',
