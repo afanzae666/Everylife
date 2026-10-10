@@ -1,3 +1,5 @@
+File: "lib/presentation/widgets/character_avatar.dart"
+
 import 'package:flutter/material.dart';
 
 import '../../domain/character/appearance.dart';
@@ -29,12 +31,13 @@ class CharacterAvatar extends StatelessWidget {
   static const Color _seniorHairColor =
       Color(0xFFE5E3D9);
 
-  /// Initial vertical offsets for facial layers.
-  /// Negative values move layers upward.
-  /// Values are proportional to avatar width.
-  static const double _eyesOffsetFactor = -0.025;
-  static const double _eyebrowOffsetFactor = -0.040;
-  static const double _mouthOffsetFactor = -0.025;
+  /// Move facial layers upward to compensate for the
+  /// difference between the 512x512 facial assets and
+  /// the 512x640 avatar canvas.
+  static const double _eyesOffsetFactor = -0.25;
+  static const double _eyebrowOffsetFactor = -0.25;
+  static const double _mouthOffsetFactor = -0.25;
+  static const double _beardOffsetFactor = -0.25;
 
   static const List<String> _eyebrowStyles = [
     'bold_straight',
@@ -146,6 +149,8 @@ class CharacterAvatar extends StatelessWidget {
             _tintedLayer(
               beardAsset,
               color: renderedHairColor,
+              verticalOffset:
+                  size * _beardOffsetFactor,
             ),
 
           // Hair: preserve the existing tall canvas.
