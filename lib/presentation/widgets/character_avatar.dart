@@ -25,10 +25,16 @@ class CharacterAvatar extends StatelessWidget {
   final Color eyeColor;
   final Color hairColor;
 
-  /// Senior hair uses the warm white color so aging is visible
-  /// regardless of the stored hair color.
+  /// Senior hair uses a warm white color.
   static const Color _seniorHairColor =
       Color(0xFFE5E3D9);
+
+  /// Initial vertical offsets for facial layers.
+  /// Negative values move layers upward.
+  /// Values are proportional to avatar width.
+  static const double _eyesOffsetFactor = -0.025;
+  static const double _eyebrowOffsetFactor = -0.040;
+  static const double _mouthOffsetFactor = -0.025;
 
   static const List<String> _eyebrowStyles = [
     'bold_straight',
@@ -88,17 +94,21 @@ class CharacterAvatar extends StatelessWidget {
         alignment: Alignment.center,
         clipBehavior: Clip.hardEdge,
         children: [
+          // Head base: preserve the 512x640 canvas.
           _tintedLayer(
             _headAsset(stage),
             color: skinColor,
             useSkinGamma: true,
             stage: stage,
-            tallCanvas: true
+            tallCanvas: true,
           ),
 
+          // Eye base and iris move together.
           _fixedLayer(
             _eyesBaseAsset(stage),
             scale: 1.10,
+            verticalOffset:
+                size * _eyesOffsetFactor,
           ),
 
           ColorFiltered(
@@ -108,104 +118,121 @@ class CharacterAvatar extends StatelessWidget {
             child: _fixedLayer(
               _eyesIrisAsset(stage),
               scale: 1.10,
+              verticalOffset:
+                  size * _eyesOffsetFactor,
             ),
           ),
 
+          // Eyebrows.
           _tintedLayer(
             _eyebrowAsset(
               stage,
               appearance.eyebrows,
             ),
             color: renderedHairColor,
+            verticalOffset:
+                size * _eyebrowOffsetFactor,
           ),
 
+          // Mouth.
           _fixedLayer(
             _mouthAsset(stage),
+            verticalOffset:
+                size * _mouthOffsetFactor,
           ),
 
+          // Beard.
           if (beardAsset != null)
             _tintedLayer(
               beardAsset,
               color: renderedHairColor,
             ),
 
+          // Hair: preserve the existing tall canvas.
           if (hairAsset != null)
             _tintedLayer(
               hairAsset,
               color: renderedHairColor,
-              tallCanvas: true
+              tallCanvas: true,
             ),
         ],
       ),
     );
   }
-  
-Widget _fixedLayer(
-  String assetPath, {
-  double scale = 1.0,
-}) {
-  final Widget image = Image.asset(
-    assetPath,
-    width: size,
-    height: size,
-    fit: BoxFit.contain,
-    filterQuality: FilterQuality.high,
-  );
 
-  final Widget scaledImage = scale == 1.0
-      ? image
-      : Transform.scale(
-          scale: scale,
-          alignment: Alignment.center,
-          child: image,
-        );
+  Widget _fixedLayer(
+    String assetPath, {
+    double scale = 1.0,
+    double verticalOffset = 0.0,
+  }) {
+    final Widget image = Image.asset(
+      assetPath,
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.high,
+    );
 
-  return Align(
-    alignment: Alignment.bottomCenter,
-    child: scaledImage,
-  );
-}
-  
-Widget _tintedLayer(
-  String assetPath, {
-  required Color color,
-  bool useSkinGamma = false,
-  LifeStage? stage,
-  bool tallCanvas = false,
-}) {
-  final Widget image = Image.asset(
-    assetPath,
-    width: size,
-    height: size * (tallCanvas ? 1.25 : 1.0),
-    fit: BoxFit.contain,
-    filterQuality: FilterQuality.high,
-  );
+    final Widget scaledImage = scale == 1.0
+        ? image
+        : Transform.scale(
+            scale: scale,
+            alignment: Alignment.center,
+            child: image,
+          );
 
-  final Widget tinted = useSkinGamma && stage != null
-      ? ColorFiltered(
-          colorFilter: _skinColorFilter(
-            skinColor: color,
-            stage: stage,
-          ),
-          child: image,
-        )
-      : ColorFiltered(
-          colorFilter: ColorFilter.mode(
-            color,
-            BlendMode.modulate,
-          ),
-          child: image,
-        );
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Transform.translate(
+        offset: Offset(0, verticalOffset),
+        child: scaledImage,
+      ),
+    );
+  }
 
-  return Align(
-    alignment: Alignment.bottomCenter,
-    child: tinted,
-  );
-}
+  Widget _tintedLayer(
+    String assetPath, {
+    required Color color,
+    bool useSkinGamma = false,
+    LifeStage? stage,
+    bool tallCanvas = false,
+    double verticalOffset = 0.0,
+  }) {
+    final Widget image = Image.asset(
+      assetPath,
+      width: size,
+      height: size * (tallCanvas ? 1.25 : 1.0),
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.high,
+    );
 
-  String _headAsset(
-    LifeStage stage,
-  ) {
+    final Widget tinted =
+        useSkinGamma && stage != null
+            ? ColorFiltered(
+                colorFilter: _skinColorFilter(
+                  skinColor: color,
+                  stage: stage,
+                ),
+                child: image,
+              )
+            : ColorFiltered(
+                colorFilter: ColorFilter.mode(
+                  color,
+                  BlendMode.modulate,
+                ),
+                child: image,
+              );
+
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Transform.translate(
+        offset: Offset(0, verticalOffset),
+        child: tinted,
+      ),
+    );
+  }
+
+  String _headAsset(LifeStage stage) {
     switch (stage) {
       case LifeStage.infant:
         return 'assets/character/head_base/'
@@ -237,9 +264,7 @@ Widget _tintedLayer(
     }
   }
 
-  String _eyesBaseAsset(
-    LifeStage stage,
-  ) {
+  String _eyesBaseAsset(LifeStage stage) {
     switch (stage) {
       case LifeStage.infant:
         return 'assets/character/eyes/'
@@ -262,9 +287,7 @@ Widget _tintedLayer(
     }
   }
 
-  String _eyesIrisAsset(
-    LifeStage stage,
-  ) {
+  String _eyesIrisAsset(LifeStage stage) {
     switch (stage) {
       case LifeStage.infant:
         return 'assets/character/eyes/'
@@ -292,9 +315,7 @@ Widget _tintedLayer(
     String eyebrowStyle,
   ) {
     final String selectedStyle =
-        _eyebrowStyles.contains(
-      eyebrowStyle,
-    )
+        _eyebrowStyles.contains(eyebrowStyle)
             ? eyebrowStyle
             : 'straight';
 
@@ -320,9 +341,7 @@ Widget _tintedLayer(
     }
   }
 
-  String _mouthAsset(
-    LifeStage stage,
-  ) {
+  String _mouthAsset(LifeStage stage) {
     switch (stage) {
       case LifeStage.infant:
         return 'assets/character/mouth/'
@@ -384,9 +403,7 @@ Widget _tintedLayer(
       return null;
     }
 
-    if (!_beardStyles.contains(
-      appearance.beard,
-    )) {
+    if (!_beardStyles.contains(appearance.beard)) {
       return null;
     }
 
@@ -394,9 +411,7 @@ Widget _tintedLayer(
         '${appearance.beard}.png';
   }
 
-  bool _canUseBeardAtStage(
-    LifeStage stage,
-  ) {
+  bool _canUseBeardAtStage(LifeStage stage) {
     switch (stage) {
       case LifeStage.infant:
       case LifeStage.toddler:
@@ -414,23 +429,13 @@ Widget _tintedLayer(
   ColorFilter _irisColorFilter({
     required Color eyeColor,
   }) {
-    const double luminanceRed =
-        0.2126 * 1.80;
+    const double luminanceRed = 0.2126 * 1.80;
+    const double luminanceGreen = 0.7152 * 1.80;
+    const double luminanceBlue = 0.0722 * 1.80;
 
-    const double luminanceGreen =
-        0.7152 * 1.80;
-
-    const double luminanceBlue =
-        0.0722 * 1.80;
-
-    final double targetRed =
-        eyeColor.r;
-
-    final double targetGreen =
-        eyeColor.g;
-
-    final double targetBlue =
-        eyeColor.b;
+    final double targetRed = eyeColor.r;
+    final double targetGreen = eyeColor.g;
+    final double targetBlue = eyeColor.b;
 
     return ColorFilter.matrix([
       luminanceRed * targetRed,
@@ -460,8 +465,7 @@ Widget _tintedLayer(
     required Color skinColor,
     required LifeStage stage,
   }) {
-    final double referenceGray =
-        switch (stage) {
+    final double referenceGray = switch (stage) {
       LifeStage.infant => 192.0,
       LifeStage.toddler => 188.0,
       LifeStage.child => 187.0,
@@ -471,43 +475,30 @@ Widget _tintedLayer(
       LifeStage.senior => 182.0,
     };
 
-    const double redSlope =
-        0.861905;
+    const double redSlope = 0.861905;
+    const double greenSlope = 0.948850;
+    const double blueSlope = 0.886153;
 
-    const double greenSlope =
-        0.948850;
-
-    const double blueSlope =
-        0.886153;
-
-    final double targetRed =
-        skinColor.r * 255.0;
-
-    final double targetGreen =
-        skinColor.g * 255.0;
-
-    final double targetBlue =
-        skinColor.b * 255.0;
+    final double targetRed = skinColor.r * 255.0;
+    final double targetGreen = skinColor.g * 255.0;
+    final double targetBlue = skinColor.b * 255.0;
 
     return ColorFilter.matrix([
       redSlope,
       0,
       0,
       0,
-      targetRed -
-          redSlope * referenceGray,
+      targetRed - redSlope * referenceGray,
       0,
       greenSlope,
       0,
       0,
-      targetGreen -
-          greenSlope * referenceGray,
+      targetGreen - greenSlope * referenceGray,
       0,
       0,
       blueSlope,
       0,
-      targetBlue -
-          blueSlope * referenceGray,
+      targetBlue - blueSlope * referenceGray,
       0,
       0,
       0,
