@@ -17,26 +17,40 @@ import 'menu_screen.dart';
 import 'save_load_screen.dart';
 import 'settings_screen.dart';
 
+
 Future<void> _defaultUiScaleChanged(double value) async {}
+
+enum NewLifeRequestAction {
+  saveCurrentLife,
+  startWithoutSaving,
+  cancel,
+}
 
 const Color _everyLifeCardColor = Color(0xFFF5F2F9);
 const Color _everyLifeSurfaceColor = Color(0xFFFBF8FF);
 const Color _everyLifeAgeUpBorder = Color(0xFF5B5E86);
 
 class GameScreen extends StatefulWidget {
+
+
   const GameScreen({
     required this.engine,
     this.onUiScaleChanged = _defaultUiScaleChanged,
     this.uiScaleController,
     this.onNewLifeRequested,
+    this.onNewLifeCreationRequested,
     super.key,
   });
 
   final SimulationEngine engine;
   final Future<void> Function(double value) onUiScaleChanged;
   final ValueNotifier<double>? uiScaleController;
-  final VoidCallback? onNewLifeRequested;
 
+  final Future<NewLifeRequestAction?> Function()?
+      onNewLifeRequested;
+
+  final VoidCallback? onNewLifeCreationRequested;
+  
   @override
   State<GameScreen> createState() => _GameScreenState();
 }
@@ -238,14 +252,17 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  Future<void> _openSaveManager() async {
+  Future<void> _openSaveManager() async { 
+  Future<bool> _openSaveManager({
+    bool isNewLifeFlow = false,
+  }) async {
     if (_isProcessingTurn) {
-      return;
+      return false;
     }
 
     final screenSize = MediaQuery.sizeOf(context);
 
-    await showDialog<void>(
+    final saved = await showDialog<bool>(
       context: context,
       barrierColor: Colors.black.withValues(
         alpha: 0.32,
@@ -278,11 +295,14 @@ class _GameScreenState extends State<GameScreen> {
                 setState(() {});
                 _scrollLifeEventsToBottom();
               },
+              isNewLifeFlow: isNewLifeFlow,
             ),
           ),
         );
       },
     );
+
+    return saved == true;
   }
 
   Future<void> _openCharacterProfile() async {
@@ -339,8 +359,8 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-    Future<void> _openMenu() async {
-    if (_isProcessingTurn) {
+  Future<void> _openMenu() async {
+  if (_isProcessingTurn) {
       return;
     }
 
@@ -571,9 +591,13 @@ class _GameScreenState extends State<GameScreen> {
         actions: [
           IconButton(
             tooltip: 'Save / Load',
+            
             onPressed: _isProcessingTurn
                 ? null
-                : _openSaveManager,
+                : () {
+                    _openSaveManager();
+                  },
+
             icon: Icon(
               Icons.folder_copy_outlined,
               size: s(24),
