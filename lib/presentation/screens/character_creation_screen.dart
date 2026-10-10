@@ -11,16 +11,18 @@ import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
 
 class CharacterCreationScreen extends StatefulWidget {
-    const CharacterCreationScreen({
+  const CharacterCreationScreen({
     required this.onCharacterCreated,
     this.onCancel,
     this.uiScaleController,
+    this.isOverlay = false,
     super.key,
   });
 
   final void Function(Character character) onCharacterCreated;
   final VoidCallback? onCancel;
   final ValueNotifier<double>? uiScaleController;
+  final bool isOverlay;
 
   @override
   State<CharacterCreationScreen> createState() =>
@@ -1209,7 +1211,8 @@ final double previewContainerSize =
         value * zoom;
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+        backgroundColor:
+    widget.isOverlay ? Colors.transparent : null,
       resizeToAvoidBottomInset: true,
             appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -1262,6 +1265,7 @@ final double previewContainerSize =
                     s(10),
                     s(8),
                   ),
+                  isOverlay: widget.isOverlay,
                   child: LayoutBuilder(
                     builder: (
                       BuildContext context,
@@ -2751,20 +2755,24 @@ class _ResponsiveCard extends StatelessWidget {
   const _ResponsiveCard({
     required this.padding,
     required this.child,
+    this.isOverlay = false,
   });
 
   final EdgeInsets padding;
   final Widget child;
+  final bool isOverlay;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       child: Card(
-        color: Theme.of(context)
-            .colorScheme
-            .surface
-            .withValues(alpha: 0.84),
+        color: isOverlay
+            ? Theme.of(context)
+                .colorScheme
+                .surface
+                .withValues(alpha: 0.92)
+            : null,
         surfaceTintColor: Colors.transparent,
         margin: EdgeInsets.zero,
         child: Padding(
