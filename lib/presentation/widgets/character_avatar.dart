@@ -93,6 +93,7 @@ class CharacterAvatar extends StatelessWidget {
             color: skinColor,
             useSkinGamma: true,
             stage: stage,
+            tallCanvas: true
           ),
 
           _fixedLayer(
@@ -132,60 +133,75 @@ class CharacterAvatar extends StatelessWidget {
             _tintedLayer(
               hairAsset,
               color: renderedHairColor,
+              tallCanvas: true
             ),
         ],
       ),
     );
   }
+  
+Widget _fixedLayer(
+  String assetPath, {
+  double scale = 1.0,
+}) {
+  final Widget image = Image.asset(
+    assetPath,
+    width: size,
+    height: size,
+    fit: BoxFit.contain,
+    filterQuality: FilterQuality.high,
+  );
 
-  Widget _fixedLayer(
-    String assetPath, {
-    double scale = 1.0,
-  }) {
-    final Widget image = Image.asset(
-  assetPath,
-  width: size,
-  height: size * 1.25,
-  fit: BoxFit.contain,
-  alignment: Alignment.bottomCenter,
-  filterQuality: FilterQuality.high,
-);
+  final Widget scaledImage = scale == 1.0
+      ? image
+      : Transform.scale(
+          scale: scale,
+          alignment: Alignment.center,
+          child: image,
+        );
 
-    if (scale == 1.0) {
-      return image;
-    }
+  return Align(
+    alignment: Alignment.bottomCenter,
+    child: scaledImage,
+  );
+}
+  
+Widget _tintedLayer(
+  String assetPath, {
+  required Color color,
+  bool useSkinGamma = false,
+  LifeStage? stage,
+  bool tallCanvas = false,
+}) {
+  final Widget image = Image.asset(
+    assetPath,
+    width: size,
+    height: size * (tallCanvas ? 1.25 : 1.0),
+    fit: BoxFit.contain,
+    filterQuality: FilterQuality.high,
+  );
 
-    return Transform.scale(
-      scale: scale,
-      alignment: Alignment.center,
-      child: image,
-    );
-  }
+  final Widget tinted = useSkinGamma && stage != null
+      ? ColorFiltered(
+          colorFilter: _skinColorFilter(
+            skinColor: color,
+            stage: stage,
+          ),
+          child: image,
+        )
+      : ColorFiltered(
+          colorFilter: ColorFilter.mode(
+            color,
+            BlendMode.modulate,
+          ),
+          child: image,
+        );
 
-  Widget _tintedLayer(
-    String assetPath, {
-    required Color color,
-    bool useSkinGamma = false,
-    LifeStage? stage,
-  }) {
-    final Widget image = Image.asset(
-  assetPath,
-  width: size,
-  height: size * 1.25,
-  fit: BoxFit.contain,
-  alignment: Alignment.bottomCenter,
-  filterQuality: FilterQuality.high,
-);
-
-    if (useSkinGamma && stage != null) {
-      return ColorFiltered(
-        colorFilter: _skinColorFilter(
-          skinColor: color,
-          stage: stage,
-        ),
-        child: image,
-      );
-    }
+  return Align(
+    alignment: Alignment.bottomCenter,
+    child: tinted,
+  );
+}
 
     return ColorFiltered(
       colorFilter: ColorFilter.mode(
