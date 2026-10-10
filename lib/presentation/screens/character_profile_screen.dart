@@ -113,8 +113,8 @@ class CharacterProfileScreen extends StatelessWidget {
               if (snapshot.connectionState !=
                   ConnectionState.done) {
                 return SizedBox(
-                  width: s(112),
-                  height: s(140),
+                  width: s(144),
+                  height: s(180),
                   child: const Center(
                     child: SizedBox(
                       width: 20,
@@ -130,8 +130,8 @@ class CharacterProfileScreen extends StatelessWidget {
               if (snapshot.hasError ||
                   snapshot.data == null) {
                 return SizedBox(
-                  width: s(112),
-                  height: s(140),
+                  width: s(144),
+                  height: s(180),
                 );
               }
 
@@ -164,7 +164,7 @@ class CharacterProfileScreen extends StatelessWidget {
               return CharacterAvatar(
                 character: character,
                 currentYear: currentYear,
-                size: s(112),
+                size: s(144),
                 skinColor: skinColor,
                 eyeColor: eyeColor,
                 hairColor: hairColor,
