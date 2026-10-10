@@ -1607,15 +1607,15 @@ final double previewContainerSize =
       gender: gender,
     );
 
-    const double eyeScale = 1.10;
+    const double eyeScale = 1.10;   
 
-    
 Widget tintedImage({
   required String assetPath,
   required Color color,
   bool useSkinGamma = false,
   bool tallCanvas = false,
   BlendMode blendMode = BlendMode.modulate,
+  double verticalOffsetFactor = 0.0,
 }) {
   final Widget image = Image.asset(
     assetPath,
@@ -1643,13 +1643,20 @@ Widget tintedImage({
 
   return Align(
     alignment: Alignment.bottomCenter,
-    child: tinted,
+    child: Transform.translate(
+      offset: Offset(
+        0,
+        s(size * verticalOffsetFactor),
+      ),
+      child: tinted,
+    ),
   );
-}
-    
+}    
+
 Widget fixedImage({
   required String assetPath,
   double scale = 1.0,
+  double verticalOffsetFactor = 0.0,
 }) {
   final Widget image = Image.asset(
     assetPath,
@@ -1669,7 +1676,13 @@ Widget fixedImage({
 
   return Align(
     alignment: Alignment.bottomCenter,
-    child: scaledImage,
+    child: Transform.translate(
+      offset: Offset(
+        0,
+        s(size * verticalOffsetFactor),
+      ),
+      child: scaledImage,
+    ),
   );
 }
     
@@ -1689,6 +1702,7 @@ Widget fixedImage({
           fixedImage(
             assetPath: eyesBaseAsset,
             scale: eyeScale,
+            verticalOffsetFactor: -0.40,
           ),
           ColorFiltered(
             colorFilter: _irisColorFilter(
@@ -1697,19 +1711,23 @@ Widget fixedImage({
             child: fixedImage(
               assetPath: eyesIrisAsset,
               scale: eyeScale,
+              verticalOffsetFactor: -0.40,
             ),
           ),
           tintedImage(
             assetPath: eyebrowAsset,
             color: hairColor,
+            verticalOffsetFactor: -0.40,
           ),
           fixedImage(
             assetPath: mouthAsset,
+            verticalOffsetFactor: -0.40,
           ),
           if (beardAsset != null)
             tintedImage(
               assetPath: beardAsset,
               color: hairColor,
+              verticalOffsetFactor: -0.40,
             ),
           if (hairAsset != null)
             tintedImage(
