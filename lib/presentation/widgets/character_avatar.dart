@@ -1,5 +1,3 @@
-File: "lib/presentation/widgets/character_avatar.dart"
-
 import 'package:flutter/material.dart';
 
 import '../../domain/character/appearance.dart';
