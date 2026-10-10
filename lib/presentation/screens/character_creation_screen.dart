@@ -1717,7 +1717,7 @@ Widget fixedImage({
           tintedImage(
             assetPath: eyebrowAsset,
             color: hairColor,
-            verticalOffsetFactor: -0.12,
+            verticalOffsetFactor: -0.13,
           ),
           fixedImage(
             assetPath: mouthAsset,
