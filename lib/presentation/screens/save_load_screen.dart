@@ -12,6 +12,7 @@ class SaveLoadScreen extends StatefulWidget {
     required this.onLoad,
     required this.onDelete,
     required this.onGameStateChanged,
+    this.isNewLifeFlow = false,
     super.key,
   });
 
@@ -33,6 +34,7 @@ class SaveLoadScreen extends StatefulWidget {
   ) onDelete;
 
   final VoidCallback onGameStateChanged;
+  final bool isNewLifeFlow;
 
   @override
   State<SaveLoadScreen> createState() =>
@@ -132,8 +134,9 @@ class _SaveLoadScreenState
       return;
     }
 
-    Navigator.of(context).pop();
-  }
+        Navigator.of(context).pop(
+      widget.isNewLifeFlow,
+    );
 
   Future<void> _handleOverwrite(
     SaveSlot slot,
