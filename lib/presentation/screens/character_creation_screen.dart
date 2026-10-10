@@ -11,14 +11,15 @@ import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
 
 class CharacterCreationScreen extends StatefulWidget {
-  const CharacterCreationScreen({
+    const CharacterCreationScreen({
     required this.onCharacterCreated,
+    this.onCancel,
     this.uiScaleController,
     super.key,
   });
 
   final void Function(Character character) onCharacterCreated;
-
+  final VoidCallback? onCancel;
   final ValueNotifier<double>? uiScaleController;
 
   @override
@@ -1096,10 +1097,9 @@ final double previewContainerSize =
     final ValueNotifier<double>? controller =
         widget.uiScaleController;
 
-    if (controller == null) {
-      return _buildScaledPage(
-        context,
-        1.0,
+        if (controller == null) {
+      return _buildWithBackHandling(
+        _buildScaledPage(context, 1.0),
       );
     }
 
@@ -1115,6 +1115,18 @@ final double previewContainerSize =
           zoom,
         );
       },
+    );
+  }
+
+    Widget _buildWithBackHandling(Widget child) {
+    return PopScope<void>(
+      canPop: widget.onCancel == null,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && widget.onCancel != null) {
+          widget.onCancel!.call();
+        }
+      },
+      child: child,
     );
   }
 
@@ -1198,11 +1210,18 @@ final double previewContainerSize =
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        title: const Text(
-          'Create Character',
-        ),
+            appBar: AppBar(
+        automaticallyImplyLeading: false,
+        leading: widget.onCancel == null
+            ? null
+            : IconButton(
+                tooltip: 'Back',
+                onPressed: widget.onCancel,
+                icon: const Icon(Icons.arrow_back),
+              ),
+        title: const Text('Create Character'),
       ),
+      
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.fromLTRB(
