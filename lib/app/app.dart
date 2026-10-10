@@ -330,28 +330,32 @@ class _LifeSimulationAppState
               elevation: 0,
               scrolledUnderElevation: 0,
             ),
+          );    
+
+          return Theme(
+            data: overlayTheme,
+            child: CharacterCreationScreen(
+              isOverlay: true,
+              uiScaleController: _uiScaleController,
+              onCancel: () {
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+              },
+              onCharacterCreated: (character) {
+                unawaited(
+                  _createNewLifeCharacter(
+                    character,
+                    dialogContext,
+                  ),
+                );
+              },
+            ),
           );
-     
-return Theme(
-  data: overlayTheme,
-  child: CharacterCreationScreen(
-    isOverlay: true,
-    uiScaleController: _uiScaleController,
-    onCancel: () {
-      if (dialogContext.mounted) {
-        Navigator.of(dialogContext).pop();
-      }
-    },
-    onCharacterCreated: (character) {
-      unawaited(
-        _createNewLifeCharacter(
-          character,
-          dialogContext,
-        ),
-      );
-    },
-  ),
-);  
+        },
+      ),
+    );
+  }  
 
   Future<void> _createNewLifeCharacter(
     Character character,
