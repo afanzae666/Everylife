@@ -1609,65 +1609,70 @@ final double previewContainerSize =
 
     const double eyeScale = 1.10;
 
-    Widget tintedImage({
-      required String assetPath,
-      required Color color,
-      bool useSkinGamma = false,
-      BlendMode blendMode =
-          BlendMode.modulate,
-    }) {
-      final Widget image = Image.asset(
-  assetPath,
-  width: s(size),
-  height: s(size * 1.25),
-  fit: BoxFit.contain,
-  alignment: Alignment.bottomCenter,
-  filterQuality: FilterQuality.high,
-);
+    
+Widget tintedImage({
+  required String assetPath,
+  required Color color,
+  bool useSkinGamma = false,
+  bool tallCanvas = false,
+  BlendMode blendMode = BlendMode.modulate,
+}) {
+  final Widget image = Image.asset(
+    assetPath,
+    width: s(size),
+    height: s(size * (tallCanvas ? 1.25 : 1.0)),
+    fit: BoxFit.contain,
+    filterQuality: FilterQuality.high,
+  );
 
-      if (useSkinGamma) {
-        return ColorFiltered(
+  final Widget tinted = useSkinGamma
+      ? ColorFiltered(
           colorFilter: _skinColorFilter(
             skinColor: color,
             stage: stage,
           ),
           child: image,
+        )
+      : ColorFiltered(
+          colorFilter: ColorFilter.mode(
+            color,
+            blendMode,
+          ),
+          child: image,
         );
-      }
 
-      return ColorFiltered(
-        colorFilter: ColorFilter.mode(
-          color,
-          blendMode,
-        ),
-        child: image,
-      );
-    }
+  return Align(
+    alignment: Alignment.bottomCenter,
+    child: tinted,
+  );
+}
+    
+Widget fixedImage({
+  required String assetPath,
+  double scale = 1.0,
+}) {
+  final Widget image = Image.asset(
+    assetPath,
+    width: s(size),
+    height: s(size),
+    fit: BoxFit.contain,
+    filterQuality: FilterQuality.high,
+  );
 
-    Widget fixedImage({
-      required String assetPath,
-      double scale = 1.0,
-    }) {
-      final Widget image = Image.asset(
-  assetPath,
-  width: s(size),
-  height: s(size * 1.25),
-  fit: BoxFit.contain,
-  alignment: Alignment.bottomCenter,
-  filterQuality: FilterQuality.high,
-);
+  final Widget scaledImage = scale == 1.0
+      ? image
+      : Transform.scale(
+          scale: scale,
+          alignment: Alignment.center,
+          child: image,
+        );
 
-      if (scale == 1.0) {
-        return image;
-      }
-
-      return Transform.scale(
-        scale: scale,
-        alignment: Alignment.center,
-        child: image,
-      );
-    }
-
+  return Align(
+    alignment: Alignment.bottomCenter,
+    child: scaledImage,
+  );
+}
+    
     return SizedBox(
       width: s(containerSize),
       height: s(containerSize * 1.25),
@@ -1679,6 +1684,7 @@ final double previewContainerSize =
             assetPath: headAsset,
             color: skinColor,
             useSkinGamma: true,
+            tallCanvas: true
           ),
           fixedImage(
             assetPath: eyesBaseAsset,
@@ -1709,6 +1715,7 @@ final double previewContainerSize =
             tintedImage(
               assetPath: hairAsset,
               color: hairColor,
+              tallCanvas: true
             ),
         ],
       ),
