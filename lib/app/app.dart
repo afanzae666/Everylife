@@ -1,3 +1,4 @@
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -38,6 +39,9 @@ class _LifeSimulationAppState
   late final ValueNotifier<double>
       _uiScaleController;
 
+  final GlobalKey<NavigatorState> _navigatorKey =
+      GlobalKey<NavigatorState>();
+
   SimulationEngine? _engine;
 
   bool _isInitializing = true;
@@ -54,17 +58,13 @@ class _LifeSimulationAppState
         widget.dependencies.createSaveRepository();
 
     _uiSettingsRepository =
-        widget.dependencies
-            .createUiSettingsRepository();
+        widget.dependencies.createUiSettingsRepository();
 
-    _uiScaleController =
-        ValueNotifier<double>(1.0);
+    _uiScaleController = ValueNotifier<double>(1.0);
 
     _initialize();
 
-    unawaited(
-      _loadUiScale(),
-    );
+    unawaited(_loadUiScale());
   }
 
   @override
@@ -76,8 +76,7 @@ class _LifeSimulationAppState
   Future<void> _loadUiScale() async {
     try {
       final uiScale =
-          await _uiSettingsRepository
-              .loadUiScale();
+          await _uiSettingsRepository.loadUiScale();
 
       if (!mounted) {
         return;
@@ -85,18 +84,16 @@ class _LifeSimulationAppState
 
       _uiScaleController.value = uiScale;
     } catch (_) {
-      // UI preferences must never
-      // prevent the game from starting.
+      // UI preferences must never prevent the game
+      // from starting.
     }
   }
 
   Future<void> _initialize() async {
-    final initializationStartedAt =
-        DateTime.now();
+    final initializationStartedAt = DateTime.now();
 
     try {
-      final saveData =
-          await _loadStartupSave();
+      final saveData = await _loadStartupSave();
 
       await _ensureMinimumLoadingDuration(
         initializationStartedAt,
@@ -152,32 +149,22 @@ class _LifeSimulationAppState
   Future<void> _ensureMinimumLoadingDuration(
     DateTime startedAt,
   ) async {
-    const minimumLoadingDuration =
-        Duration(seconds: 2);
+    const minimumLoadingDuration = Duration(seconds: 2);
 
-    final elapsed =
-        DateTime.now().difference(startedAt);
-
-    final remaining =
-        minimumLoadingDuration - elapsed;
+    final elapsed = DateTime.now().difference(startedAt);
+    final remaining = minimumLoadingDuration - elapsed;
 
     if (remaining > Duration.zero) {
-      await Future<void>.delayed(
-        remaining,
-      );
+      await Future<void>.delayed(remaining);
     }
   }
 
-  Future<void> _saveUiScale(
-    double value,
-  ) async {
-    await _uiSettingsRepository
-        .saveUiScale(value);
+  Future<void> _saveUiScale(double value) async {
+    await _uiSettingsRepository.saveUiScale(value);
   }
 
   Future<SaveData?> _loadStartupSave() async {
-    final autosave =
-        await _saveRepository.load(
+    final autosave = await _saveRepository.load(
       slot: SaveSlot.autosave,
     );
 
@@ -195,8 +182,7 @@ class _LifeSimulationAppState
     SaveData? latestManualSave;
 
     for (final slot in manualSlots) {
-      final saveData =
-          await _saveRepository.load(
+      final saveData = await _saveRepository.load(
         slot: slot,
       );
 
@@ -209,17 +195,12 @@ class _LifeSimulationAppState
         continue;
       }
 
-      final currentSavedAt =
-          saveData.savedAt;
-
-      final latestSavedAt =
-          latestManualSave.savedAt;
+      final currentSavedAt = saveData.savedAt;
+      final latestSavedAt = latestManualSave.savedAt;
 
       if (currentSavedAt != null &&
           (latestSavedAt == null ||
-              currentSavedAt.isAfter(
-                latestSavedAt,
-              ))) {
+              currentSavedAt.isAfter(latestSavedAt))) {
         latestManualSave = saveData;
       }
     }
@@ -238,11 +219,8 @@ class _LifeSimulationAppState
       _isCreatingCharacter = true;
     });
 
-    final engine =
-        _createEngine(character);
-
-    final saveResult =
-        await engine.save();
+    final engine = _createEngine(character);
+    final saveResult = await engine.save();
 
     if (!mounted) {
       return;
@@ -253,15 +231,17 @@ class _LifeSimulationAppState
         _isCreatingCharacter = false;
       });
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Unable to save your new life. '
-            'Please try again.',
+      final navigatorContext = _navigatorKey.currentContext;
+
+      if (navigatorContext != null) {
+        ScaffoldMessenger.of(navigatorContext).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Unable to save your new life. Please try again.',
+            ),
           ),
-        ),
-      );
+        );
+      }
 
       return;
     }
@@ -272,9 +252,15 @@ class _LifeSimulationAppState
     });
   }
 
-    Future<NewLifeRequestAction?> _requestNewLife() {
+  Future<NewLifeRequestAction?> _requestNewLife() {
+    final navigatorContext = _navigatorKey.currentContext;
+
+    if (navigatorContext == null) {
+      return Future<NewLifeRequestAction?>.value(null);
+    }
+
     return showDialog<NewLifeRequestAction>(
-      context: context,
+      context: navigatorContext,
       barrierDismissible: false,
       builder: (dialogContext) {
         return AlertDialog(
@@ -314,9 +300,15 @@ class _LifeSimulationAppState
   }
 
   void _startNewLifeCreation() {
+    final navigatorContext = _navigatorKey.currentContext;
+
+    if (navigatorContext == null) {
+      return;
+    }
+
     unawaited(
       showGeneralDialog<void>(
-        context: context,
+        context: navigatorContext,
         barrierDismissible: false,
         barrierLabel: 'Create a new life',
         pageBuilder: (
@@ -324,23 +316,22 @@ class _LifeSimulationAppState
           animation,
           secondaryAnimation,
         ) {
-          
-return CharacterCreationScreen(
-  uiScaleController: _uiScaleController,
-  onCancel: () {
-    if (dialogContext.mounted) {
-      Navigator.of(dialogContext).pop();
-    }
-  },
-  onCharacterCreated: (character) {
-    unawaited(
-      _createNewLifeCharacter(
-        character,
-        dialogContext,
-      ),
-    );
-  },
-);
+          return CharacterCreationScreen(
+            uiScaleController: _uiScaleController,
+            onCancel: () {
+              if (dialogContext.mounted) {
+                Navigator.of(dialogContext).pop();
+              }
+            },
+            onCharacterCreated: (character) {
+              unawaited(
+                _createNewLifeCharacter(
+                  character,
+                  dialogContext,
+                ),
+              );
+            },
+          );
         },
       ),
     );
@@ -370,13 +361,17 @@ return CharacterCreationScreen(
         _isCreatingCharacter = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Unable to save your new life. Please try again.',
+      final navigatorContext = _navigatorKey.currentContext;
+
+      if (navigatorContext != null) {
+        ScaffoldMessenger.of(navigatorContext).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Unable to save your new life. Please try again.',
+            ),
           ),
-        ),
-      );
+        );
+      }
 
       return;
     }
@@ -391,15 +386,11 @@ return CharacterCreationScreen(
     }
   }
 
-  SimulationEngine _createEngine(
-    Character character,
-  ) {
-    final engine =
-        SimulationEngine.create(
+  SimulationEngine _createEngine(Character character) {
+    final engine = SimulationEngine.create(
       player: character,
       seed: 20260924,
-      saveRepository:
-          _saveRepository,
+      saveRepository: _saveRepository,
     );
 
     engine.registerSystem(
@@ -427,8 +418,15 @@ return CharacterCreationScreen(
 
     _isExitDialogVisible = true;
 
+    final navigatorContext = _navigatorKey.currentContext;
+
+    if (navigatorContext == null) {
+      _isExitDialogVisible = false;
+      return;
+    }
+
     final shouldExit = await showDialog<bool>(
-      context: context,
+      context: navigatorContext,
       builder: (dialogContext) {
         return AlertDialog(
           content: const Text(
@@ -437,15 +435,13 @@ return CharacterCreationScreen(
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(dialogContext)
-                    .pop(false);
+                Navigator.of(dialogContext).pop(false);
               },
               child: const Text('STAY'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(dialogContext)
-                    .pop(true);
+                Navigator.of(dialogContext).pop(true);
               },
               child: const Text('EXIT'),
             ),
@@ -462,90 +458,62 @@ return CharacterCreationScreen(
   }
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     final baseTheme = ThemeData(
-      colorScheme:
-          ColorScheme.fromSeed(
+      colorScheme: ColorScheme.fromSeed(
         seedColor: Colors.indigo,
       ),
       useMaterial3: true,
     );
 
-    final baseTextTheme =
-        GoogleFonts.nunitoTextTheme(
+    final baseTextTheme = GoogleFonts.nunitoTextTheme(
       baseTheme.textTheme,
     );
 
-    final everyLifeTextTheme =
-        baseTextTheme.copyWith(
-      headlineSmall:
-          baseTextTheme.headlineSmall
-              ?.copyWith(
+    final everyLifeTextTheme = baseTextTheme.copyWith(
+      headlineSmall: baseTextTheme.headlineSmall?.copyWith(
         fontSize: 24.3,
         fontWeight: FontWeight.w700,
       ),
-      titleLarge:
-          baseTextTheme.titleLarge
-              ?.copyWith(
+      titleLarge: baseTextTheme.titleLarge?.copyWith(
         fontSize: 21.6,
         fontWeight: FontWeight.w700,
       ),
-      titleMedium:
-          baseTextTheme.titleMedium
-              ?.copyWith(
+      titleMedium: baseTextTheme.titleMedium?.copyWith(
         fontSize: 18,
         fontWeight: FontWeight.w700,
       ),
-      titleSmall:
-          baseTextTheme.titleSmall
-              ?.copyWith(
+      titleSmall: baseTextTheme.titleSmall?.copyWith(
         fontSize: 16.2,
         fontWeight: FontWeight.w700,
       ),
-      bodyLarge:
-          baseTextTheme.bodyLarge
-              ?.copyWith(
+      bodyLarge: baseTextTheme.bodyLarge?.copyWith(
         fontSize: 15.3,
       ),
-      bodyMedium:
-          baseTextTheme.bodyMedium
-              ?.copyWith(
+      bodyMedium: baseTextTheme.bodyMedium?.copyWith(
         fontSize: 14.4,
       ),
-      bodySmall:
-          baseTextTheme.bodySmall
-              ?.copyWith(
+      bodySmall: baseTextTheme.bodySmall?.copyWith(
         fontSize: 12.6,
       ),
-      labelLarge:
-          baseTextTheme.labelLarge
-              ?.copyWith(
+      labelLarge: baseTextTheme.labelLarge?.copyWith(
         fontSize: 13.5,
         fontWeight: FontWeight.w700,
       ),
-      labelMedium:
-          baseTextTheme.labelMedium
-              ?.copyWith(
+      labelMedium: baseTextTheme.labelMedium?.copyWith(
         fontSize: 12.6,
         fontWeight: FontWeight.w600,
       ),
-      labelSmall:
-          baseTextTheme.labelSmall
-              ?.copyWith(
+      labelSmall: baseTextTheme.labelSmall?.copyWith(
         fontSize: 11.7,
         fontWeight: FontWeight.w600,
       ),
     );
 
-    final everyLifeTheme =
-        baseTheme.copyWith(
+    final everyLifeTheme = baseTheme.copyWith(
       textTheme: everyLifeTextTheme,
       appBarTheme: AppBarTheme(
-        titleTextStyle:
-            everyLifeTextTheme.titleLarge
-                ?.copyWith(
+        titleTextStyle: everyLifeTextTheme.titleLarge?.copyWith(
           fontSize: 19.8,
           fontWeight: FontWeight.w700,
         ),
@@ -553,6 +521,7 @@ return CharacterCreationScreen(
     );
 
     return MaterialApp(
+      navigatorKey: _navigatorKey,
       title: 'EveryLife',
       debugShowCheckedModeBanner: false,
       theme: everyLifeTheme,
@@ -568,14 +537,11 @@ return CharacterCreationScreen(
     if (_startupError != null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text(
-            'Startup Error',
-          ),
+          title: const Text('Startup Error'),
         ),
         body: Center(
           child: Padding(
-            padding:
-                const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -583,34 +549,22 @@ return CharacterCreationScreen(
                   Icons.error_outline,
                   size: 64,
                 ),
-                const SizedBox(
-                  height: 16,
-                ),
+                const SizedBox(height: 16),
                 Text(
                   'Unable to load saved game.',
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineSmall,
+                  style: Theme.of(context).textTheme.headlineSmall,
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(
-                  height: 12,
-                ),
+                const SizedBox(height: 12),
                 Text(
                   _startupError!,
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(
-                  height: 24,
-                ),
+                const SizedBox(height: 24),
                 FilledButton.icon(
                   onPressed: _retryStartup,
-                  icon: const Icon(
-                    Icons.refresh,
-                  ),
-                  label: const Text(
-                    'RETRY',
-                  ),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('RETRY'),
                 ),
               ],
             ),
@@ -623,10 +577,8 @@ return CharacterCreationScreen(
       return Stack(
         children: [
           CharacterCreationScreen(
-            onCharacterCreated:
-                _createCharacter,
-            uiScaleController:
-                _uiScaleController,
+            onCharacterCreated: _createCharacter,
+            uiScaleController: _uiScaleController,
           ),
           if (_isCreatingCharacter)
             const ColoredBox(
@@ -636,16 +588,11 @@ return CharacterCreationScreen(
                   child: Padding(
                     padding: EdgeInsets.all(24),
                     child: Column(
-                      mainAxisSize:
-                          MainAxisSize.min,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         CircularProgressIndicator(),
-                        SizedBox(
-                          height: 16,
-                        ),
-                        Text(
-                          'Saving your new life...',
-                        ),
+                        SizedBox(height: 16),
+                        Text('Saving your new life...'),
                       ],
                     ),
                   ),
@@ -658,17 +605,14 @@ return CharacterCreationScreen(
 
     return PopScope<void>(
       canPop: false,
-      onPopInvokedWithResult:
-          (didPop, result) {
+      onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
           return;
         }
 
-        unawaited(
-          _handleGameScreenBack(),
-        );
+        unawaited(_handleGameScreenBack());
       },
-            child: GameScreen(
+      child: GameScreen(
         engine: _engine!,
         uiScaleController: _uiScaleController,
         onUiScaleChanged: _saveUiScale,
