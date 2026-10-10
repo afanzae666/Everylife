@@ -272,6 +272,119 @@ class _LifeSimulationAppState
     });
   }
 
+    Future<NewLifeRequestAction?> _requestNewLife() {
+    return showDialog<NewLifeRequestAction>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Start a New Life?'),
+          content: const Text(
+            'What would you like to do with your current life?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(
+                  NewLifeRequestAction.cancel,
+                );
+              },
+              child: const Text('CANCEL'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(
+                  NewLifeRequestAction.startWithoutSaving,
+                );
+              },
+              child: const Text('START WITHOUT SAVING'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(
+                  NewLifeRequestAction.saveCurrentLife,
+                );
+              },
+              child: const Text('SAVE MY LIFE'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _startNewLifeCreation() {
+    unawaited(
+      showGeneralDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        barrierLabel: 'Create a new life',
+        pageBuilder: (
+          dialogContext,
+          animation,
+          secondaryAnimation,
+        ) {
+          return CharacterCreationScreen(
+            uiScaleController: _uiScaleController,
+            onCharacterCreated: (character) {
+              unawaited(
+                _createNewLifeCharacter(
+                  character,
+                  dialogContext,
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _createNewLifeCharacter(
+    Character character,
+    BuildContext dialogContext,
+  ) async {
+    if (_isCreatingCharacter) {
+      return;
+    }
+
+    setState(() {
+      _isCreatingCharacter = true;
+    });
+
+    final engine = _createEngine(character);
+    final saveResult = await engine.save();
+
+    if (!mounted) {
+      return;
+    }
+
+    if (!saveResult.isSuccess) {
+      setState(() {
+        _isCreatingCharacter = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Unable to save your new life. Please try again.',
+          ),
+        ),
+      );
+
+      return;
+    }
+
+    setState(() {
+      _engine = engine;
+      _isCreatingCharacter = false;
+    });
+
+    if (dialogContext.mounted) {
+      Navigator.of(dialogContext).pop();
+    }
+  }
+
   SimulationEngine _createEngine(
     Character character,
   ) {
@@ -549,12 +662,12 @@ class _LifeSimulationAppState
           _handleGameScreenBack(),
         );
       },
-      child: GameScreen(
+            child: GameScreen(
         engine: _engine!,
-        uiScaleController:
-            _uiScaleController,
-        onUiScaleChanged:
-            _saveUiScale,
+        uiScaleController: _uiScaleController,
+        onUiScaleChanged: _saveUiScale,
+        onNewLifeRequested: _requestNewLife,
+        onNewLifeCreationRequested: _startNewLifeCreation,
       ),
     );
   }
