@@ -1,4 +1,3 @@
-
 import '../../core/money/money.dart';
 import '../../domain/character/appearance.dart';
 import '../../domain/character/character.dart';
@@ -6,6 +5,7 @@ import '../../domain/character/character_stats.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/time/simulation_clock.dart';
+import '../../domain/world/character_location.dart';
 import '../../domain/world/world_state.dart';
 
 class WorldStateSnapshot {
@@ -27,6 +27,7 @@ class WorldStateSnapshot {
     required this.playerLuck,
     required this.playerMoneyMinorUnits,
     required this.playerAppearance,
+    this.playerLocation,
     required this.events,
   });
 
@@ -51,6 +52,9 @@ class WorldStateSnapshot {
   final int playerMoneyMinorUnits;
 
   final CharacterAppearance playerAppearance;
+
+  /// The player's country and city, or null for an unset location.
+  final CharacterLocation? playerLocation;
 
   final List<SimulationEvent> events;
 
@@ -78,6 +82,7 @@ class WorldStateSnapshot {
       playerLuck: stats.luck,
       playerMoneyMinorUnits: player.money.minorUnits,
       playerAppearance: player.appearance,
+      playerLocation: player.location,
       events: List.unmodifiable(state.events),
     );
   }
@@ -108,6 +113,7 @@ class WorldStateSnapshot {
           playerMoneyMinorUnits,
         ),
         appearance: playerAppearance,
+        location: playerLocation,
       ),
       events: List.unmodifiable(events),
     );
@@ -147,6 +153,12 @@ class WorldStateSnapshot {
           'eyebrows': playerAppearance.eyebrows,
           'beard': playerAppearance.beard,
         },
+        'location': playerLocation == null
+            ? null
+            : {
+                'countryCode': playerLocation!.countryCode,
+                'cityId': playerLocation!.cityId,
+              },
       },
       'events': events
           .map(
@@ -176,7 +188,7 @@ class WorldStateSnapshot {
     );
 
     final appearanceJson = player['appearance'];
-
+    final locationJson = player['location'];
     final eventsJson = json['events'];
 
     if (eventsJson is! List) {
@@ -252,6 +264,11 @@ class WorldStateSnapshot {
           : _parseAppearance(
               appearanceJson,
             ),
+      playerLocation: locationJson == null
+          ? null
+          : _parseLocation(
+              locationJson,
+            ),
       events: List.unmodifiable(
         eventsJson
             .map(
@@ -260,6 +277,34 @@ class WorldStateSnapshot {
             .toList(growable: false),
       ),
     );
+  }
+
+  static CharacterLocation _parseLocation(
+    Object? value,
+  ) {
+    final location = _requireMap(
+      value,
+      'player.location',
+    );
+
+    final parsedLocation = CharacterLocation(
+      countryCode: _requireString(
+        location['countryCode'],
+        'player.location.countryCode',
+      ),
+      cityId: _requireString(
+        location['cityId'],
+        'player.location.cityId',
+      ),
+    );
+
+    if (!parsedLocation.isValid) {
+      throw const FormatException(
+        'Field "player.location" contains an invalid country and city combination.',
+      );
+    }
+
+    return parsedLocation;
   }
 
   static CharacterAppearance _parseAppearance(
