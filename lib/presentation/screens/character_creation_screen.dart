@@ -380,10 +380,35 @@ final CharacterAppearance finalAppearance =
 
     final String randomEyebrow =
         _randomItem(_eyebrowStyles);
+    
+final List<Country> countriesWithCities =
+    CountryCatalog.countries
+        .where(
+          (country) =>
+              CityCatalog.citiesForCountry(
+                country.code,
+              ).isNotEmpty,
+        )
+        .toList();
+
+final Country randomCountry =
+    countriesWithCities[
+      _random.nextInt(countriesWithCities.length)
+    ];
+
+final List<City> randomCities =
+    CityCatalog.citiesForCountry(
+  randomCountry.code,
+);
+
+final City randomCity =
+    randomCities[_random.nextInt(randomCities.length)];
+
 
     setState(() {
       _gender = randomGender;
-
+      _countryCode = randomCountry.code;
+  _cityId = randomCity.id;
 
       _appearance = _appearance.copyWith(
         skinTone: randomSkinTone,
