@@ -1,4 +1,5 @@
 import '../../core/money/money.dart';
+import '../world/character_location.dart';
 import 'appearance.dart';
 import 'character_stats.dart';
 import 'gender.dart';
@@ -15,6 +16,7 @@ class Character {
     required this.stats,
     required this.money,
     this.appearance = const CharacterAppearance(),
+    this.location,
   });
 
   final String id;
@@ -37,6 +39,12 @@ class Character {
   final CharacterStats stats;
   final Money money;
   final CharacterAppearance appearance;
+
+  /// The character's current country and city.
+  ///
+  /// Null for characters whose location has not been selected yet,
+  /// including characters loaded from older saves without location data.
+  final CharacterLocation? location;
 
   String get fullName {
     final first = resolvedFirstName;
@@ -108,6 +116,7 @@ class Character {
     CharacterStats? stats,
     Money? money,
     CharacterAppearance? appearance,
+    CharacterLocation? location,
   }) {
     final nextFirstName = firstName ?? this.firstName;
 
@@ -131,6 +140,7 @@ class Character {
       stats: stats ?? this.stats,
       money: money ?? this.money,
       appearance: appearance ?? this.appearance,
+      location: location ?? this.location,
     );
   }
 
@@ -143,6 +153,7 @@ class Character {
     required int birthYear,
     CharacterStats? stats,
     CharacterAppearance appearance = const CharacterAppearance(),
+    CharacterLocation? location,
   }) {
     var resolvedFirstName = firstName?.trim() ?? '';
 
@@ -182,6 +193,7 @@ class Character {
       stats: stats ?? const CharacterStats(),
       money: const Money.zero(),
       appearance: appearance,
+      location: location,
     );
   }
 
