@@ -9,6 +9,11 @@ import '../../domain/character/character.dart';
 import '../../domain/character/character_hair.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
+import '../../domain/world/character_location.dart';
+import '../../domain/world/city.dart';
+import '../../domain/world/city_catalog.dart';
+import '../../domain/world/country.dart';
+import '../../domain/world/country_catalog.dart';
 
 class CharacterCreationScreen extends StatefulWidget {
   const CharacterCreationScreen({
@@ -79,6 +84,8 @@ class _CharacterCreationScreenState
   );
 
   Gender _gender = Gender.male;
+  String _countryCode = 'ID';
+String _cityId = 'id-jakarta';
 
   static const int _minimumBirthYear = 1900;
   static const int _maximumBirthYear = 2026;
@@ -295,8 +302,12 @@ final CharacterAppearance finalAppearance =
       firstName: firstName,
       lastName: lastName,
       gender: _gender,
-      birthYear: _birthYear,
+            birthYear: _birthYear,
       appearance: finalAppearance,
+      location: CharacterLocation(
+        countryCode: _countryCode,
+        cityId: _cityId,
+      ),
     );
 
     widget.onCharacterCreated(
@@ -2108,6 +2119,29 @@ Widget fixedImage({
             ),
           ],
         ),
+                SizedBox(
+          height: s(8),
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _buildCountryField(
+                context,
+                zoom,
+              ),
+            ),
+            SizedBox(
+              width: s(8),
+            ),
+            Expanded(
+              child: _buildCityField(
+                context,
+                zoom,
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -2175,6 +2209,163 @@ Widget fixedImage({
           '$_birthYear',
         ),
       ),
+    );
+  }
+
+  
+  Widget _buildCountryField(
+    BuildContext context,
+    double zoom,
+  ) {
+    final Country? selectedCountry =
+        CountryCatalog.findByCode(_countryCode);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(8 * zoom),
+      onTap: _showCountryPicker,
+      child: InputDecorator(
+        decoration: const InputDecoration(
+          labelText: 'Country',
+          border: OutlineInputBorder(),
+          isDense: true,
+          suffixIcon: Icon(Icons.arrow_drop_down),
+        ),
+        child: Text(
+          selectedCountry?.name ?? 'Select country',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCityField(
+    BuildContext context,
+    double zoom,
+  ) {
+    final City? selectedCity = CityCatalog.findById(_cityId);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(8 * zoom),
+      onTap: _showCityPicker,
+      child: InputDecorator(
+        decoration: const InputDecoration(
+          labelText: 'City',
+          border: OutlineInputBorder(),
+          isDense: true,
+          suffixIcon: Icon(Icons.arrow_drop_down),
+        ),
+        child: Text(
+          selectedCity?.name ?? 'Select city',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
+  }
+
+  void _showCountryPicker() {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Select Country'),
+          content: SizedBox(
+            width: 320,
+            height: 360,
+            child: ListView(
+              children: CountryCatalog.countries.map((country) {
+                final bool selected =
+                    country.code == _countryCode;
+
+                return ListTile(
+                  title: Text(country.name),
+                  subtitle: Text(country.currencyCode),
+                  trailing: selected
+                      ? const Icon(Icons.check)
+                      : null,
+                  selected: selected,
+                  onTap: () {
+                    final List<City> cities =
+                        CityCatalog.citiesForCountry(
+                      country.code,
+                    );
+
+                    if (cities.isEmpty) {
+                      return;
+                    }
+
+                    final City initialCity = cities.firstWhere(
+                      (city) => city.isCapital,
+                      orElse: () => cities.first,
+                    );
+
+                    setState(() {
+                      _countryCode = country.code;
+                      _cityId = initialCity.id;
+                    });
+
+                    Navigator.of(dialogContext).pop();
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('CLOSE'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showCityPicker() {
+    final List<City> cities =
+        CityCatalog.citiesForCountry(_countryCode);
+
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Select City'),
+          content: SizedBox(
+            width: 320,
+            height: 360,
+            child: ListView(
+              children: cities.map((city) {
+                final bool selected = city.id == _cityId;
+
+                return ListTile(
+                  title: Text(city.name),
+                  subtitle: city.isCapital
+                      ? const Text('Capital')
+                      : null,
+                  trailing: selected
+                      ? const Icon(Icons.check)
+                      : null,
+                  selected: selected,
+                  onTap: () {
+                    setState(() {
+                      _cityId = city.id;
+                    });
+
+                    Navigator.of(dialogContext).pop();
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('CLOSE'),
+            ),
+          ],
+        );
+      },
     );
   }
 
