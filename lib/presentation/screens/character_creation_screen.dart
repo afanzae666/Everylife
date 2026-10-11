@@ -1248,30 +1248,7 @@ final double previewContainerSize =
             s(10),
           ),
           child: Column(
-            children: [     
-              if (!widget.isOverlay) ...[
-                Text(
-                  'Create Your Character',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge,
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(
-                  height: s(2),
-                ),
-                Text(
-                  'Your life begins at birth.',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall,
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(
-                  height: s(5),
-                ),
-              ],
-
+            children: [                   
               Expanded(
                 child: _ResponsiveCard(
                   padding:
