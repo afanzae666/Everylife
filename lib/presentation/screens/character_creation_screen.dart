@@ -84,8 +84,8 @@ class _CharacterCreationScreenState
   );
 
   Gender _gender = Gender.male;
-  String _countryCode = 'ID';
-String _cityId = 'id-jakarta';
+  late String _countryCode;
+late String _cityId;
 
   static const int _minimumBirthYear = 1900;
   static const int _maximumBirthYear = 2026;
@@ -183,14 +183,25 @@ String _cityId = 'id-jakarta';
     'beard_05',
   ];
 
-
   @override
-  void initState() {
-    super.initState();
+void initState() {
+  super.initState();
 
+  final Country initialCountry = CountryCatalog.countries[
+    _random.nextInt(CountryCatalog.countries.length)
+  ];
 
-    _loadPalette();
-  }
+  _countryCode = initialCountry.code;
+
+  final List<City> initialCities =
+      CityCatalog.citiesForCountry(_countryCode);
+
+  _cityId = initialCities[
+    _random.nextInt(initialCities.length)
+  ].id;
+
+  _loadPalette();
+}
 
   String _randomItem(
     List<String> values,
@@ -2272,7 +2283,8 @@ Widget fixedImage({
                       return;
                     }
 
-                    final City initialCity = cities.firstWhere(
+                    final City initialCity =
+    cities[_random.nextInt(cities.length)];
                       (city) => city.isCapital,
                       orElse: () => cities.first,
                     );
