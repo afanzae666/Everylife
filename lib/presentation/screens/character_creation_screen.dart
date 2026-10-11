@@ -1243,7 +1243,7 @@ final double previewContainerSize =
         child: Padding(
           padding: EdgeInsets.fromLTRB(
             s(10),
-            s(6),
+            s(0),
             s(10),
             s(10),
           ),
@@ -1254,7 +1254,7 @@ final double previewContainerSize =
                   padding:
                       EdgeInsets.fromLTRB(
                     s(10),
-                    s(8),
+                    s(2),
                     s(10),
                     s(8),
                   ),
