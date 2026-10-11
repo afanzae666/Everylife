@@ -1224,7 +1224,7 @@ final double previewContainerSize =
     return Scaffold(
         backgroundColor:
     widget.isOverlay ? Colors.transparent : null,
-      resizeToAvoidBottomInset: true,       
+      resizeToAvoidBottomInset: false,       
       appBar: widget.isOverlay
           ? null
           : AppBar(
