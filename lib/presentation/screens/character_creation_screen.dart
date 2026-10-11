@@ -1309,7 +1309,7 @@ final double previewContainerSize =
                               ),
                             ),
                           Flexible(
-                            flex: 2,
+                            flex: 3,
                             fit: FlexFit.loose,
                             child: Center(
                               child:
