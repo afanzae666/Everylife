@@ -2285,9 +2285,6 @@ Widget fixedImage({
 
                     final City initialCity =
     cities[_random.nextInt(cities.length)];
-                      (city) => city.isCapital,
-                      orElse: () => cities.first,
-                    );
 
                     setState(() {
                       _countryCode = country.code;
