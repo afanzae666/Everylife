@@ -1397,7 +1397,7 @@ final double previewContainerSize =
                 ),
               ),
               SizedBox(
-                height: s(4),
+                height: s(3),
               ),
               SizedBox(
                 width: double.infinity,
@@ -2070,7 +2070,7 @@ Widget fixedImage({
               ),
             ),
             SizedBox(
-              width: s(4),
+              width: s(3),
             ),
             Expanded(
               child: TextField(
