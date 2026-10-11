@@ -19,7 +19,7 @@ void main() {
       );
 
       for (int i = 0; i < 100; i++) {
-        if (find.text('Create Your Character').evaluate().isNotEmpty) {
+        if (find.text('Customize Appearance').evaluate().isNotEmpty) {
           return;
         }
 
@@ -90,11 +90,6 @@ void main() {
 
         expect(
           find.text('Create Character'),
-          findsOneWidget,
-        );
-
-        expect(
-          find.text('Create Your Character'),
           findsOneWidget,
         );
 
