@@ -1254,7 +1254,7 @@ final double previewContainerSize =
                   padding:
                       EdgeInsets.fromLTRB(
                     s(10),
-                    s(2),
+                    s(0),
                     s(10),
                     s(8),
                   ),
@@ -1309,7 +1309,7 @@ final double previewContainerSize =
                               ),
                             ),
                           Flexible(
-                            flex: 5,
+                            flex: 4,
                             fit: FlexFit.loose,
                             child: Center(
                               child:
