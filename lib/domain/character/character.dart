@@ -1,7 +1,9 @@
+
 import '../../core/money/money.dart';
 import '../world/character_location.dart';
 import 'appearance.dart';
 import 'character_stats.dart';
+import 'cultural_name_catalog.dart';
 import 'gender.dart';
 import 'life_stage.dart';
 
@@ -50,15 +52,19 @@ class Character {
     final first = resolvedFirstName;
     final last = resolvedLastName;
 
+    // Preserve the original full name for older saves that do not have
+    // separate given-name and family-name fields.
     if (first.isEmpty) {
       return name.trim();
     }
 
-    if (last.isEmpty) {
-      return first;
-    }
-
-    return '$first $last';
+    // Format the name according to the character's country.
+    // When no country is available, the catalog uses its default format.
+    return CulturalNameCatalog.formatFullName(
+      location?.countryCode ?? '',
+      first,
+      last,
+    );
   }
 
   String get resolvedFirstName {
@@ -119,16 +125,18 @@ class Character {
     CharacterLocation? location,
   }) {
     final nextFirstName = firstName ?? this.firstName;
-
     final nextLastName = lastName ?? this.lastName;
+    final nextLocation = location ?? this.location;
 
-    final nextName =
-        name ??
-        _buildFullName(
-          nextFirstName,
-          nextLastName,
-          fallback: this.name,
-        );
+    final nextName = name ??
+        (nextFirstName.trim().isEmpty &&
+                nextLastName.trim().isEmpty
+            ? this.name
+            : CulturalNameCatalog.formatFullName(
+                nextLocation?.countryCode ?? '',
+                nextFirstName,
+                nextLastName,
+              ));
 
     return Character(
       id: id,
@@ -140,7 +148,7 @@ class Character {
       stats: stats ?? this.stats,
       money: money ?? this.money,
       appearance: appearance ?? this.appearance,
-      location: location ?? this.location,
+      location: nextLocation,
     );
   }
 
@@ -156,7 +164,6 @@ class Character {
     CharacterLocation? location,
   }) {
     var resolvedFirstName = firstName?.trim() ?? '';
-
     var resolvedLastName = lastName?.trim() ?? '';
 
     if (resolvedFirstName.isEmpty &&
@@ -177,10 +184,10 @@ class Character {
       );
     }
 
-    final fullName = _buildFullName(
+    final fullName = CulturalNameCatalog.formatFullName(
+      location?.countryCode ?? '',
       resolvedFirstName,
       resolvedLastName,
-      fallback: name?.trim() ?? '',
     );
 
     return Character(
@@ -207,24 +214,5 @@ class Character {
           (part) => part.isNotEmpty,
         )
         .toList(growable: false);
-  }
-
-  static String _buildFullName(
-    String firstName,
-    String lastName, {
-    required String fallback,
-  }) {
-    final first = firstName.trim();
-    final last = lastName.trim();
-
-    if (first.isEmpty && last.isEmpty) {
-      return fallback.trim();
-    }
-
-    if (last.isEmpty) {
-      return first;
-    }
-
-    return '$first $last';
   }
 }
