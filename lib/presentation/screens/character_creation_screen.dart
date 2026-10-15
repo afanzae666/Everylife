@@ -187,8 +187,20 @@ late String _cityId;
 void initState() {
   super.initState();
 
-  final Country initialCountry = CountryCatalog.countries[
-    _random.nextInt(CountryCatalog.countries.length)
+  final List<Country> countriesWithCities = CountryCatalog.countries
+      .where(
+        (country) => CityCatalog.citiesForCountry(country.code).isNotEmpty,
+      )
+      .toList(growable: false);
+
+  if (countriesWithCities.isEmpty) {
+    throw StateError(
+      'Cannot initialize character creation: no countries have cities.',
+    );
+  }
+
+  final Country initialCountry = countriesWithCities[
+    _random.nextInt(countriesWithCities.length)
   ];
 
   _countryCode = initialCountry.code;
@@ -196,9 +208,7 @@ void initState() {
   final List<City> initialCities =
       CityCatalog.citiesForCountry(_countryCode);
 
-  _cityId = initialCities[
-    _random.nextInt(initialCities.length)
-  ].id;
+  _cityId = initialCities[_random.nextInt(initialCities.length)].id;
 
   _loadPalette();
 }
