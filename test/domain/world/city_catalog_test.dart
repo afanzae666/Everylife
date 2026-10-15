@@ -47,8 +47,8 @@ expect(CityCatalog.hasValidData, isTrue);
   expect(ids.length, CityCatalog.cities.length);
 });
 
-test('contains exactly 51 cities initially', () {
-  expect(CityCatalog.cities, hasLength(51));
+test('contains exactly 139 cities initially', () {
+  expect(CityCatalog.cities, hasLength(139));
 });
 
 test('contains exactly seven United States cities', () {
@@ -65,17 +65,41 @@ test('contains exactly seven United States cities', () {
   );
 });
 
-test('contains four cities for every other country', () {
+test('every country has the expected number of cities', () {
+  const legacyFourCityCountries = {
+    'AU',
+    'CA',
+    'CN',
+    'FR',
+    'DE',
+    'IN',
+    'ID',
+    'IT',
+    'JP',
+    'KR',
+    'GB',
+  };
+
   for (final country in CountryCatalog.countries) {
     final cities = CityCatalog.citiesForCountry(country.code);
 
     if (country.code == 'US') {
-      expect(cities, hasLength(7));
-    } else {
+      expect(
+        cities,
+        hasLength(7),
+        reason: '${country.name} should have seven starter cities.',
+      );
+    } else if (legacyFourCityCountries.contains(country.code)) {
       expect(
         cities,
         hasLength(4),
-        reason: '${country.name} should have four starter cities.',
+        reason: '${country.name} should retain its four existing cities.',
+      );
+    } else {
+      expect(
+        cities.length,
+        anyOf(2, 3),
+        reason: '${country.name} should have two or three starter cities.',
       );
     }
   }
