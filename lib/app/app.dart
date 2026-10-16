@@ -479,13 +479,13 @@ class _LifeSimulationAppState
 
   @override
   Widget build(BuildContext context) {
-    final everyLifeTheme = EveryLifeTheme.light;
-
     return MaterialApp(
       navigatorKey: _navigatorKey,
       title: 'EveryLife',
       debugShowCheckedModeBanner: false,
-      theme: everyLifeTheme,
+      theme: EveryLifeTheme.light,
+      darkTheme: EveryLifeTheme.dark,
+      themeMode: ThemeMode.system,
       home: _buildHome(),
     );
   }
