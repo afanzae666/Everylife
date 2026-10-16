@@ -1371,6 +1371,7 @@ class _BottomNavigation
   @override
   Widget build(BuildContext context) {
     double s(double value) => value * zoom;
+    final theme = Theme.of(context);
 
     return SizedBox(
       height: s(68),
@@ -1379,9 +1380,17 @@ class _BottomNavigation
         alignment: Alignment.center,
         children: [
           Container(
-            height: s(56),
-            color: Theme.of(context).colorScheme.surface,
-            child: Padding(
+  height: s(56),
+  decoration: BoxDecoration(
+    color: theme.colorScheme.surface,
+    border: Border(
+      top: BorderSide(
+        color: theme.colorScheme.outlineVariant,
+        width: 1,
+      ),
+    ),
+  ),
+  child: Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: s(4),
                 vertical: s(2),
@@ -1461,6 +1470,8 @@ class _AgeUpButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double s(double value) => value * zoom;
+    final theme = Theme.of(context);
+final isDark = theme.brightness == Brightness.dark;
 
     return Material(
       key: const Key('bottom-nav-age-up'),
@@ -1476,10 +1487,12 @@ class _AgeUpButton extends StatelessWidget {
           width: s(70),
           height: s(70),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
+            color: isDark
+    ? theme.colorScheme.primaryContainer
+    : theme.colorScheme.surface,
             shape: BoxShape.circle,
             border: Border.all(
-              color: Theme.of(context).colorScheme.tertiary,
+              color: theme.colorScheme.tertiary,
               width: s(1.8),
             ),
             boxShadow: [
@@ -1513,8 +1526,12 @@ class _AgeUpButton extends StatelessWidget {
                       enabled ? 1.0 : 0.38,
                   child: Image.asset(
                     'assets/icons/age_up.png',
-                    fit: BoxFit.contain,
-                  ),
+  fit: BoxFit.contain,
+  color: isDark
+      ? theme.colorScheme.onPrimaryContainer
+      : null,
+  colorBlendMode: BlendMode.srcIn,
+),
                 ),
               ),
             ),
@@ -1544,6 +1561,8 @@ class _NavigationItem
   @override
   Widget build(BuildContext context) {
     double s(double value) => value * zoom;
+    final theme = Theme.of(context);
+final isDark = theme.brightness == Brightness.dark;
 
     return InkWell(
       onTap: enabled ? onTap : null,
@@ -1561,12 +1580,18 @@ class _NavigationItem
             Opacity(
               opacity:
                   enabled ? 1.0 : 0.38,
-              child: SvgPicture.asset(
-                assetPath,
-                width: s(23),
-                height: s(23),
-                fit: BoxFit.contain,
-              ),
+              SvgPicture.asset(
+  assetPath,
+  width: s(23),
+  height: s(23),
+  fit: BoxFit.contain,
+  colorFilter: isDark
+      ? ColorFilter.mode(
+          theme.colorScheme.primary,
+          BlendMode.screen,
+        )
+      : null,
+),
             ),
             SizedBox(height: s(2)),
             Text(
