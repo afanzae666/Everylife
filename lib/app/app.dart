@@ -3,7 +3,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../core/random/seeded_random.dart';
 import '../data/repositories/save_repository.dart';
@@ -15,6 +14,7 @@ import '../presentation/screens/loading_screen.dart';
 import '../simulation/engine/simulation_engine.dart';
 import '../simulation/systems/event_system.dart';
 import 'app_dependencies.dart';
+import 'theme/everylife_theme.dart';
 
 class LifeSimulationApp extends StatefulWidget {
   const LifeSimulationApp({
@@ -330,7 +330,7 @@ class _LifeSimulationAppState
               elevation: 0,
               scrolledUnderElevation: 0,
             ),
-          );    
+          );
 
           return Theme(
             data: overlayTheme,
@@ -355,7 +355,7 @@ class _LifeSimulationAppState
         },
       ),
     );
-  }  
+  }
 
   Future<void> _createNewLifeCharacter(
     Character character,
@@ -479,66 +479,7 @@ class _LifeSimulationAppState
 
   @override
   Widget build(BuildContext context) {
-    final baseTheme = ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.indigo,
-      ),
-      useMaterial3: true,
-    );
-
-    final baseTextTheme = GoogleFonts.nunitoTextTheme(
-      baseTheme.textTheme,
-    );
-
-    final everyLifeTextTheme = baseTextTheme.copyWith(
-      headlineSmall: baseTextTheme.headlineSmall?.copyWith(
-        fontSize: 24.3,
-        fontWeight: FontWeight.w700,
-      ),
-      titleLarge: baseTextTheme.titleLarge?.copyWith(
-        fontSize: 21.6,
-        fontWeight: FontWeight.w700,
-      ),
-      titleMedium: baseTextTheme.titleMedium?.copyWith(
-        fontSize: 18,
-        fontWeight: FontWeight.w700,
-      ),
-      titleSmall: baseTextTheme.titleSmall?.copyWith(
-        fontSize: 16.2,
-        fontWeight: FontWeight.w700,
-      ),
-      bodyLarge: baseTextTheme.bodyLarge?.copyWith(
-        fontSize: 15.3,
-      ),
-      bodyMedium: baseTextTheme.bodyMedium?.copyWith(
-        fontSize: 14.4,
-      ),
-      bodySmall: baseTextTheme.bodySmall?.copyWith(
-        fontSize: 12.6,
-      ),
-      labelLarge: baseTextTheme.labelLarge?.copyWith(
-        fontSize: 13.5,
-        fontWeight: FontWeight.w700,
-      ),
-      labelMedium: baseTextTheme.labelMedium?.copyWith(
-        fontSize: 12.6,
-        fontWeight: FontWeight.w600,
-      ),
-      labelSmall: baseTextTheme.labelSmall?.copyWith(
-        fontSize: 11.7,
-        fontWeight: FontWeight.w600,
-      ),
-    );
-
-    final everyLifeTheme = baseTheme.copyWith(
-      textTheme: everyLifeTextTheme,
-      appBarTheme: AppBarTheme(
-        titleTextStyle: everyLifeTextTheme.titleLarge?.copyWith(
-          fontSize: 19.8,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
+    final everyLifeTheme = EveryLifeTheme.light;
 
     return MaterialApp(
       navigatorKey: _navigatorKey,
