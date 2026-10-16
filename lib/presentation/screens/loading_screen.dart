@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../app/theme/everylife_colors.dart';
 
 class LoadingScreen extends StatelessWidget {
   const LoadingScreen({
@@ -8,7 +9,7 @@ class LoadingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: EveryLifeColors.warmIvory,
       body: SafeArea(
         child: Center(
           child: Padding(
