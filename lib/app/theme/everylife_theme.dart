@@ -5,31 +5,75 @@ import 'package:google_fonts/google_fonts.dart';
 import 'everylife_colors.dart';
 import 'everylife_dimensions.dart';
 
-/// The shared Material theme for EveryLife.
-///
-/// The theme centralizes presentation defaults only. It does not alter
-/// navigation, save data, character state, or simulation behavior.
 abstract final class EveryLifeTheme {
   EveryLifeTheme._();
 
-  static ThemeData get light {
+  static ThemeData get light => _build(
+        brightness: Brightness.light,
+      );
+
+  static ThemeData get dark => _build(
+        brightness: Brightness.dark,
+      );
+
+  static ThemeData _build({
+    required Brightness brightness,
+  }) {
+    final isLight = brightness == Brightness.light;
+
+    final background = isLight
+        ? EveryLifeColors.lightBackground
+        : EveryLifeColors.darkBackground;
+    final surface = isLight
+        ? EveryLifeColors.lightSurface
+        : EveryLifeColors.darkSurface;
+    final primary = isLight
+        ? EveryLifeColors.lightPrimary
+        : EveryLifeColors.darkPrimary;
+    final onPrimary = isLight
+        ? Colors.white
+        : const Color(0xFF17251B);
+    final text = isLight
+        ? EveryLifeColors.lightText
+        : EveryLifeColors.darkText;
+    final secondaryText = isLight
+        ? EveryLifeColors.lightSecondaryText
+        : EveryLifeColors.darkSecondaryText;
+    final border = isLight
+        ? EveryLifeColors.lightBorder
+        : EveryLifeColors.darkBorder;
+    final gold = isLight
+        ? EveryLifeColors.lightGold
+        : EveryLifeColors.darkGold;
+    final error = isLight
+        ? EveryLifeColors.lightError
+        : EveryLifeColors.darkError;
+    final success = isLight
+        ? EveryLifeColors.lightSuccess
+        : EveryLifeColors.darkSuccess;
+    final primarySoft = isLight
+        ? EveryLifeColors.lightPrimarySoft
+        : EveryLifeColors.darkPrimarySoft;
+
     final seededScheme = ColorScheme.fromSeed(
-      seedColor: EveryLifeColors.deepNavy,
-      brightness: Brightness.light,
+      seedColor: primary,
+      brightness: brightness,
     );
 
     final colorScheme = seededScheme.copyWith(
-      primary: EveryLifeColors.deepNavy,
-      onPrimary: EveryLifeColors.warmSurface,
-      secondary: EveryLifeColors.sageGreen,
+      primary: primary,
+      onPrimary: onPrimary,
+      secondary: success,
       onSecondary: Colors.white,
-      tertiary: EveryLifeColors.softGold,
-      onTertiary: EveryLifeColors.deepNavy,
-      error: EveryLifeColors.softCoral,
+      tertiary: gold,
+      onTertiary: isLight
+          ? EveryLifeColors.lightText
+          : const Color(0xFF17251B),
+      error: error,
       onError: Colors.white,
-      surface: EveryLifeColors.warmSurface,
-      onSurface: EveryLifeColors.deepNavy,
-      outline: EveryLifeColors.warmBorder,
+      surface: surface,
+      onSurface: text,
+      outline: border,
     );
 
     final baseTextTheme = GoogleFonts.nunitoTextTheme(
@@ -43,69 +87,80 @@ abstract final class EveryLifeTheme {
       headlineSmall: baseTextTheme.headlineSmall?.copyWith(
         fontSize: 24.3,
         fontWeight: FontWeight.w700,
-        color: EveryLifeColors.deepNavy,
+        color: text,
       ),
       titleLarge: baseTextTheme.titleLarge?.copyWith(
         fontSize: 21.6,
         fontWeight: FontWeight.w700,
-        color: EveryLifeColors.deepNavy,
+        color: text,
       ),
       titleMedium: baseTextTheme.titleMedium?.copyWith(
         fontSize: 18,
         fontWeight: FontWeight.w700,
-        color: EveryLifeColors.deepNavy,
+        color: text,
       ),
       titleSmall: baseTextTheme.titleSmall?.copyWith(
         fontSize: 16.2,
         fontWeight: FontWeight.w700,
-        color: EveryLifeColors.deepNavy,
+        color: text,
       ),
       bodyLarge: baseTextTheme.bodyLarge?.copyWith(
         fontSize: 15.3,
-        color: EveryLifeColors.deepNavy,
+        color: text,
       ),
       bodyMedium: baseTextTheme.bodyMedium?.copyWith(
         fontSize: 14.4,
-        color: EveryLifeColors.deepNavy,
+        color: text,
       ),
       bodySmall: baseTextTheme.bodySmall?.copyWith(
         fontSize: 12.6,
-        color: EveryLifeColors.mutedText,
+        color: secondaryText,
       ),
       labelLarge: baseTextTheme.labelLarge?.copyWith(
         fontSize: 13.5,
         fontWeight: FontWeight.w700,
+        color: text,
       ),
       labelMedium: baseTextTheme.labelMedium?.copyWith(
         fontSize: 12.6,
         fontWeight: FontWeight.w600,
+        color: text,
       ),
       labelSmall: baseTextTheme.labelSmall?.copyWith(
         fontSize: 11.7,
         fontWeight: FontWeight.w600,
+        color: secondaryText,
       ),
     );
 
+    final inputBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(
+        EveryLifeDimensions.radiusSmall,
+      ),
+      borderSide: BorderSide(color: border),
+    );
+
     return ThemeData(
+      brightness: brightness,
       colorScheme: colorScheme,
       useMaterial3: true,
-      scaffoldBackgroundColor: EveryLifeColors.warmIvory,
-      canvasColor: EveryLifeColors.warmIvory,
-      dividerColor: EveryLifeColors.warmBorder,
+      scaffoldBackgroundColor: background,
+      canvasColor: background,
+      dividerColor: border,
       textTheme: textTheme,
       appBarTheme: AppBarTheme(
-        backgroundColor: EveryLifeColors.warmIvory,
-        foregroundColor: EveryLifeColors.deepNavy,
+        backgroundColor: background,
+        foregroundColor: text,
         surfaceTintColor: Colors.transparent,
         elevation: EveryLifeDimensions.elevationFlat,
         titleTextStyle: textTheme.titleLarge?.copyWith(
           fontSize: 19.8,
           fontWeight: FontWeight.w700,
-          color: EveryLifeColors.deepNavy,
+          color: text,
         ),
       ),
       cardTheme: CardThemeData(
-        color: EveryLifeColors.warmSurface,
+        color: surface,
         surfaceTintColor: Colors.transparent,
         elevation: EveryLifeDimensions.elevationFlat,
         margin: EdgeInsets.zero,
@@ -113,18 +168,18 @@ abstract final class EveryLifeTheme {
           borderRadius: BorderRadius.circular(
             EveryLifeDimensions.radiusMedium,
           ),
-          side: const BorderSide(
-            color: EveryLifeColors.warmBorder,
+          side: BorderSide(
+            color: border,
             width: EveryLifeDimensions.borderThin,
           ),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: EveryLifeColors.deepNavy,
-          foregroundColor: EveryLifeColors.warmSurface,
-          disabledBackgroundColor: EveryLifeColors.warmBorder,
-          disabledForegroundColor: EveryLifeColors.mutedText,
+          backgroundColor: primary,
+          foregroundColor: onPrimary,
+          disabledBackgroundColor: border,
+          disabledForegroundColor: secondaryText,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
               EveryLifeDimensions.radiusSmall,
@@ -134,8 +189,8 @@ abstract final class EveryLifeTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: EveryLifeColors.deepNavy,
-          foregroundColor: EveryLifeColors.warmSurface,
+          backgroundColor: primary,
+          foregroundColor: onPrimary,
           elevation: EveryLifeDimensions.elevationFlat,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
@@ -146,10 +201,8 @@ abstract final class EveryLifeTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: EveryLifeColors.deepNavy,
-          side: const BorderSide(
-            color: EveryLifeColors.warmBorder,
-          ),
+          foregroundColor: primary,
+          side: BorderSide(color: border),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
               EveryLifeDimensions.radiusSmall,
@@ -159,7 +212,7 @@ abstract final class EveryLifeTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: EveryLifeColors.deepNavy,
+          foregroundColor: primary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
               EveryLifeDimensions.radiusSmall,
@@ -169,53 +222,39 @@ abstract final class EveryLifeTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: EveryLifeColors.warmSurface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(
-            EveryLifeDimensions.radiusSmall,
-          ),
-          borderSide: const BorderSide(
-            color: EveryLifeColors.warmBorder,
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(
-            EveryLifeDimensions.radiusSmall,
-          ),
-          borderSide: const BorderSide(
-            color: EveryLifeColors.warmBorder,
-          ),
-        ),
+        fillColor: surface,
+        border: inputBorder,
+        enabledBorder: inputBorder,
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(
             EveryLifeDimensions.radiusSmall,
           ),
-          borderSide: const BorderSide(
-            color: EveryLifeColors.deepNavy,
+          borderSide: BorderSide(
+            color: primary,
             width: EveryLifeDimensions.borderEmphasis,
           ),
         ),
       ),
-      dividerTheme: const DividerThemeData(
-        color: EveryLifeColors.warmBorder,
+      dividerTheme: DividerThemeData(
+        color: border,
         thickness: 1,
         space: 1,
       ),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: EveryLifeColors.sageGreen,
-        linearTrackColor: Color(0x2763816E),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: success,
+        linearTrackColor: primarySoft,
       ),
       sliderTheme: SliderThemeData(
-        activeTrackColor: EveryLifeColors.sageGreen,
-        thumbColor: EveryLifeColors.deepNavy,
-        overlayColor: EveryLifeColors.sageGreen.withValues(
-          alpha: 0.12,
-        ),
+        activeTrackColor: success,
+        thumbColor: primary,
+        overlayColor: success.withValues(alpha: 0.12),
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: EveryLifeColors.deepNavy,
+        backgroundColor: isLight
+            ? EveryLifeColors.lightText
+            : EveryLifeColors.darkSurface,
         contentTextStyle: textTheme.bodyMedium?.copyWith(
-          color: EveryLifeColors.warmSurface,
+          color: isLight ? Colors.white : text,
         ),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -225,7 +264,7 @@ abstract final class EveryLifeTheme {
         ),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: EveryLifeColors.warmSurface,
+        backgroundColor: surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(
