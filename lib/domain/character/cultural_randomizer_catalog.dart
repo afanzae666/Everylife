@@ -318,7 +318,7 @@ eyes: ['brown', 'dark_brown', 'hazel', 'green', 'blue_green', 'gray', 'light_blu
 'western_europe': _AppearancePool(
 skin: ['pale', 'pale', 'very_light', 'very_light', 'light', 'light_medium', 'medium'],
 hair: ['dark_brown', 'chestnut_brown', 'ash_brown', 'honey_blonde', 'golden_blonde', 'ginger', 'black'],
-eyes: ['blue', 'light_blue', 'gray', 'green', 'hazel', 'brown', 'blue_green'],
+eyes: ['deep_blue', 'light_blue', 'gray', 'green', 'hazel', 'brown', 'blue_green'],
 ),
 'northern_europe': _AppearancePool(
 skin: ['pale', 'pale', 'very_light', 'very_light', 'light', 'light_medium'],
