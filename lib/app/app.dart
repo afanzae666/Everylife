@@ -15,6 +15,7 @@ import '../simulation/engine/simulation_engine.dart';
 import '../simulation/systems/event_system.dart';
 import 'app_dependencies.dart';
 import 'theme/everylife_theme.dart';
+import 'theme/everylife_theme_mode_controller.dart';
 
 class LifeSimulationApp extends StatefulWidget {
   const LifeSimulationApp({
@@ -60,15 +61,47 @@ class _LifeSimulationAppState
 
     _uiScaleController = ValueNotifier<double>(1.0);
 
+    EveryLifeThemeModeController.configure(_saveThemeMode);
+
     _initialize();
 
     unawaited(_loadUiScale());
+    unawaited(_loadThemeMode());
   }
 
   @override
   void dispose() {
     _uiScaleController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadThemeMode() async {
+    try {
+      final savedMode =
+          await _uiSettingsRepository.loadThemeMode();
+
+      if (!mounted) {
+        return;
+      }
+
+      EveryLifeThemeModeController.setLoadedMode(
+        savedMode == 'dark'
+            ? ThemeMode.dark
+            : ThemeMode.light,
+      );
+    } catch (_) {
+      // Theme preferences must never prevent the game
+      // from starting.
+      EveryLifeThemeModeController.setLoadedMode(
+        ThemeMode.light,
+      );
+    }
+  }
+
+  Future<void> _saveThemeMode(ThemeMode mode) async {
+    await _uiSettingsRepository.saveThemeMode(
+      mode == ThemeMode.dark ? 'dark' : 'light',
+    );
   }
 
   Future<void> _loadUiScale() async {
@@ -479,14 +512,19 @@ class _LifeSimulationAppState
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: _navigatorKey,
-      title: 'EveryLife',
-      debugShowCheckedModeBanner: false,
-      theme: EveryLifeTheme.light,
-      darkTheme: EveryLifeTheme.dark,
-      themeMode: ThemeMode.system,
-      home: _buildHome(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: EveryLifeThemeModeController.mode,
+      builder: (context, themeMode, _) {
+        return MaterialApp(
+          navigatorKey: _navigatorKey,
+          title: 'EveryLife',
+          debugShowCheckedModeBanner: false,
+          theme: EveryLifeTheme.light,
+          darkTheme: EveryLifeTheme.dark,
+          themeMode: themeMode,
+          home: _buildHome(),
+        );
+      },
     );
   }
 
