@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -16,8 +17,6 @@ import 'more_screen.dart';
 import 'menu_screen.dart';
 import 'save_load_screen.dart';
 import 'settings_screen.dart';
-import '../../app/theme/everylife_colors.dart';
-
 
 Future<void> _defaultUiScaleChanged(double value) async {}
 
@@ -27,13 +26,7 @@ enum NewLifeRequestAction {
   cancel,
 }
 
-const Color _everyLifeCardColor = EveryLifeColors.warmSurface;
-const Color _everyLifeSurfaceColor = EveryLifeColors.warmSurface;
-const Color _everyLifeAgeUpBorder = EveryLifeColors.softGold;
-
 class GameScreen extends StatefulWidget {
-
-
   const GameScreen({
     required this.engine,
     this.onUiScaleChanged = _defaultUiScaleChanged,
@@ -51,7 +44,7 @@ class GameScreen extends StatefulWidget {
       onNewLifeRequested;
 
   final VoidCallback? onNewLifeCreationRequested;
-  
+
   @override
   State<GameScreen> createState() => _GameScreenState();
 }
@@ -252,7 +245,7 @@ class _GameScreenState extends State<GameScreen> {
       _isProcessingTurn = false;
     });
   }
- 
+
   Future<bool> _openSaveManager({
     bool isNewLifeFlow = false,
   }) async {
@@ -358,7 +351,7 @@ class _GameScreenState extends State<GameScreen> {
       },
     );
   }
-    
+
   Future<void> _openMenu() async {
     if (_isProcessingTurn) {
       return;
@@ -610,7 +603,7 @@ class _GameScreenState extends State<GameScreen> {
     double s(double value) => value * zoom;
 
     return Scaffold(
-      backgroundColor: _everyLifeSurfaceColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Image.asset(
           'assets/images/everylife_logo.png',
@@ -620,19 +613,17 @@ class _GameScreenState extends State<GameScreen> {
         actions: [
           IconButton(
             tooltip: 'Save / Load',
-            
             onPressed: _isProcessingTurn
                 ? null
                 : () {
                     _openSaveManager();
                   },
-
             icon: Icon(
               Icons.folder_copy_outlined,
               size: s(24),
             ),
           ),
-                    IconButton(
+          IconButton(
             tooltip: 'Menu',
             onPressed: _isProcessingTurn
                 ? null
@@ -1235,7 +1226,7 @@ class _ResponsiveCard extends StatelessWidget {
 
     return Card(
       margin: EdgeInsets.zero,
-      color: _everyLifeCardColor,
+      color: theme.colorScheme.surface,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
@@ -1389,7 +1380,7 @@ class _BottomNavigation
         children: [
           Container(
             height: s(56),
-            color: _everyLifeSurfaceColor,
+            color: Theme.of(context).colorScheme.surface,
             child: Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: s(4),
@@ -1485,10 +1476,10 @@ class _AgeUpButton extends StatelessWidget {
           width: s(70),
           height: s(70),
           decoration: BoxDecoration(
-            color: _everyLifeSurfaceColor,
+            color: Theme.of(context).colorScheme.surface,
             shape: BoxShape.circle,
             border: Border.all(
-              color: _everyLifeAgeUpBorder,
+              color: Theme.of(context).colorScheme.tertiary,
               width: s(1.8),
             ),
             boxShadow: [
@@ -1508,7 +1499,9 @@ class _AgeUpButton extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: _everyLifeAgeUpBorder
+                  color: Theme.of(context)
+                      .colorScheme
+                      .tertiary
                       .withValues(alpha: 0.35),
                   width: s(1),
                 ),
