@@ -16,6 +16,7 @@ import 'more_screen.dart';
 import 'menu_screen.dart';
 import 'save_load_screen.dart';
 import 'settings_screen.dart';
+import '../../app/theme/everylife_colors.dart';
 
 
 Future<void> _defaultUiScaleChanged(double value) async {}
@@ -26,9 +27,9 @@ enum NewLifeRequestAction {
   cancel,
 }
 
-const Color _everyLifeCardColor = Color(0xFFF5F2F9);
-const Color _everyLifeSurfaceColor = Color(0xFFFBF8FF);
-const Color _everyLifeAgeUpBorder = Color(0xFF5B5E86);
+const Color _everyLifeCardColor = EveryLifeColors.warmSurface;
+const Color _everyLifeSurfaceColor = EveryLifeColors.warmSurface;
+const Color _everyLifeAgeUpBorder = EveryLifeColors.softGold;
 
 class GameScreen extends StatefulWidget {
 
