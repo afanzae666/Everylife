@@ -32,6 +32,20 @@ class AndroidUiSettingsRepository
       _sanitize(value),
     );
   }
+    
+  @override
+  Future<String?> loadThemeMode() {
+    return _storage.readThemeMode();
+  }
+
+  @override
+  Future<void> saveThemeMode(String value) async {
+    const validModes = {'system', 'light', 'dark'};
+
+    await _storage.writeThemeMode(
+      validModes.contains(value) ? value : 'system',
+    );
+  }
 
   double _sanitize(double value) {
     if (value < 0.8) {
