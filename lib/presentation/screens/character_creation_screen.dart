@@ -110,56 +110,7 @@ late String _cityId;
 
   String? _paletteError;
 
-
-  static const List<String> _maleFirstNames = [
-    'Alex',
-    'Daniel',
-    'Ethan',
-    'James',
-    'Liam',
-    'Noah',
-    'Oliver',
-    'Ryan',
-    'Samuel',
-    'William',
-  ];
-
-  static const List<String> _femaleFirstNames = [
-    'Anna',
-    'Chloe',
-    'Emma',
-    'Grace',
-    'Hannah',
-    'Isabella',
-    'Mia',
-    'Olivia',
-    'Sophia',
-    'Victoria',
-  ];
-
-  static const List<String> _lastNames = [
-    'Anderson',
-    'Bennett',
-    'Brooks',
-    'Carter',
-    'Collins',
-    'Cooper',
-    'Davis',
-    'Evans',
-    'Foster',
-    'Garcia',
-    'Harris',
-    'Johnson',
-    'Lewis',
-    'Martin',
-    'Morgan',
-    'Parker',
-    'Roberts',
-    'Smith',
-    'Taylor',
-    'Wilson',
-  ];
-
+  
   static const List<String> _eyebrowStyles = [
     'bold_straight',
     'comma',
