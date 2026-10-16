@@ -14,6 +14,7 @@ import '../../domain/world/city.dart';
 import '../../domain/world/city_catalog.dart';
 import '../../domain/world/country.dart';
 import '../../domain/world/country_catalog.dart';
+import '../../domain/character/cultural_randomizer_catalog.dart';
 
 class CharacterCreationScreen extends StatefulWidget {
   const CharacterCreationScreen({
@@ -337,104 +338,107 @@ final CharacterAppearance finalAppearance =
   }
 
   void _randomizeAppearance() {
-    if (_paletteService == null) {
-      return;
-    }
+final CharacterPaletteService? palette = _paletteService;
 
-    final Gender randomGender =
-        _random.nextBool()
-            ? Gender.male
-            : Gender.female;
+if (palette == null) {
+return;
+}
 
-    final List<String> hairStyles =
-        <String>[
-          CharacterHair.bald,
-          ...CharacterHair.masterStylesFor(
-            randomGender,
-          ),
-        ];
+// Choose the identity and location first. Name and appearance generation
+// must use the country selected in this same Randomize operation.
+final Gender randomGender = _random.nextBool()
+? Gender.male
+: Gender.female;
 
-    final List<String> firstNamePool =
-        randomGender == Gender.female
-            ? _femaleFirstNames
-            : _maleFirstNames;
+final List<Country> countriesWithCities = CountryCatalog.countries
+.where(
+(country) =>
+CityCatalog.citiesForCountry(country.code).isNotEmpty,
+)
+.toList(growable: false);
 
-    final String randomHair =
-        _randomItem(hairStyles);
+if (countriesWithCities.isEmpty) {
+return;
+}
 
-    final String randomBeard =
-        randomGender == Gender.male
-            ? _randomItem(_beardStyles)
-            : 'none';
-
-    final String randomFirstName =
-        _randomItem(firstNamePool);
-
-    final String randomLastName =
-        _randomItem(_lastNames);
-
-    final String randomSkinTone =
-        _randomItem(
-      _paletteService!.skinColors.keys.toList(),
-    );
-
-    final String randomHairColor =
-        _randomItem(
-      _paletteService!.hairColors.keys.toList(),
-    );
-
-    final String randomEyeColor =
-        _randomItem(
-      _paletteService!.eyeColors.keys.toList(),
-    );
-
-    final String randomEyebrow =
-        _randomItem(_eyebrowStyles);
-    
-final List<Country> countriesWithCities =
-    CountryCatalog.countries
-        .where(
-          (country) =>
-              CityCatalog.citiesForCountry(
-                country.code,
-              ).isNotEmpty,
-        )
-        .toList();
-
-final Country randomCountry =
-    countriesWithCities[
-      _random.nextInt(countriesWithCities.length)
-    ];
+final Country randomCountry = countriesWithCities[
+_random.nextInt(countriesWithCities.length)
+];
 
 final List<City> randomCities =
-    CityCatalog.citiesForCountry(
-  randomCountry.code,
-);
+CityCatalog.citiesForCountry(randomCountry.code);
 
 final City randomCity =
-    randomCities[_random.nextInt(randomCities.length)];
+randomCities[_random.nextInt(randomCities.length)];
 
+final List<String> hairStyles = <String>[
+CharacterHair.bald,
+...CharacterHair.masterStylesFor(randomGender),
+];
 
-    setState(() {
-      _gender = randomGender;
-      _countryCode = randomCountry.code;
-  _cityId = randomCity.id;
+final String randomHair = _randomItem(hairStyles);
 
-      _appearance = _appearance.copyWith(
-        skinTone: randomSkinTone,
-        hair: randomHair,
-        hairColor: randomHairColor,
-        eyeColor: randomEyeColor,
-        eyebrows: randomEyebrow,
-        beard: randomBeard,
-      );
+final String randomBeard = randomGender == Gender.male
+? _randomItem(_beardStyles)
+: 'none';
 
-      _firstNameController.text =
-          randomFirstName;
+final String randomFirstName =
+CulturalRandomizerCatalog.randomFirstName(
+countryCode: randomCountry.code,
+gender: randomGender,
+random: _random,
+);
 
-      _lastNameController.text =
-          randomLastName;
-    });
+final String randomLastName =
+CulturalRandomizerCatalog.randomLastName(
+countryCode: randomCountry.code,
+random: _random,
+);
+
+final String randomSkinTone =
+CulturalRandomizerCatalog.randomAppearanceColor(
+countryCode: randomCountry.code,
+feature: AppearanceFeature.skin,
+availableIds: palette.skinColors.keys,
+random: _random,
+);
+
+final String randomHairColor =
+CulturalRandomizerCatalog.randomAppearanceColor(
+countryCode: randomCountry.code,
+feature: AppearanceFeature.hair,
+availableIds: palette.hairColors.keys,
+random: _random,
+);
+
+final String randomEyeColor =
+CulturalRandomizerCatalog.randomAppearanceColor(
+countryCode: randomCountry.code,
+feature: AppearanceFeature.eyes,
+availableIds: palette.eyeColors.keys,
+random: _random,
+);
+
+final String randomEyebrow = _randomItem(_eyebrowStyles);
+
+setState(() {
+_gender = randomGender;
+_countryCode = randomCountry.code;
+_cityId = randomCity.id;
+
+_appearance = _appearance.copyWith(
+  skinTone: randomSkinTone,
+  hair: randomHair,
+  hairColor: randomHairColor,
+  eyeColor: randomEyeColor,
+  eyebrows: randomEyebrow,
+  beard: randomBeard,
+);
+
+_firstNameController.text = randomFirstName;
+_lastNameController.text = randomLastName;
+
+});
   }
 
   void _showBirthYearPicker() {
