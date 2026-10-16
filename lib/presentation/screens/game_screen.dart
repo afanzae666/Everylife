@@ -1580,7 +1580,7 @@ final isDark = theme.brightness == Brightness.dark;
             Opacity(
               opacity:
                   enabled ? 1.0 : 0.38,
-              SvgPicture.asset(
+              child: SvgPicture.asset(
   assetPath,
   width: s(23),
   height: s(23),
