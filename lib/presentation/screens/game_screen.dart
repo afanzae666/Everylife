@@ -1506,35 +1506,38 @@ class _AgeUpButton extends StatelessWidget {
           ),
           child: Center(
             child: Container(
-              width: s(56),
-              height: s(56),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: theme.colorScheme.tertiary.withValues(
-                    alpha: 0.35,
-                  ),
-                  width: s(1),
-                ),
-              ),
-              padding: EdgeInsets.all(s(2)),
-              child: Opacity(
-                opacity: enabled ? 1.0 : 0.38,
-                child: Image.asset(
-                  'assets/icons/age_up.png',
-                  width: s(52),
-                  height: s(52),
-                  fit: BoxFit.contain,
-                  color: isDark
-                      ? theme.colorScheme.onPrimaryContainer
-                      : null,
-                  colorBlendMode: BlendMode.srcIn,
-                ),
-              ),
-            ),
+    width: s(56),
+    height: s(56),
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      border: Border.all(
+        color: theme.colorScheme.tertiary.withValues(
+          alpha: 0.35,
+        ),
+        width: s(1),
+      ),
+    ),
+    clipBehavior: Clip.antiAlias,
+    child: Opacity(
+      opacity: enabled ? 1.0 : 0.38,
+      child: ClipOval(
+        child: Transform.scale(
+          scale: 1.35,
+          child: Image.asset(
+            'assets/icons/age_up.png',
+            width: s(56),
+            height: s(56),
+            fit: BoxFit.contain,
+            color: isDark
+                ? theme.colorScheme.onPrimaryContainer
+                : null,
+            colorBlendMode: BlendMode.srcIn,
           ),
         ),
       ),
+    ),
+  ),
+),
     );
   }
 }
@@ -1559,7 +1562,6 @@ class _NavigationItem extends StatelessWidget {
     double s(double value) => value * zoom;
 
     final theme = Theme.of(context);
-    final iconColor = theme.colorScheme.primary;
 
     return InkWell(
       onTap: enabled ? onTap : null,
@@ -1579,10 +1581,6 @@ class _NavigationItem extends StatelessWidget {
                 width: s(23),
                 height: s(23),
                 fit: BoxFit.contain,
-                colorFilter: ColorFilter.mode(
-                  iconColor,
-                  BlendMode.srcIn,
-                ),
               ),
             ),
             SizedBox(height: s(2)),
