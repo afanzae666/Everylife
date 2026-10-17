@@ -1470,8 +1470,9 @@ class _AgeUpButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double s(double value) => value * zoom;
+
     final theme = Theme.of(context);
-final isDark = theme.brightness == Brightness.dark;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Material(
       key: const Key('bottom-nav-age-up'),
@@ -1488,8 +1489,8 @@ final isDark = theme.brightness == Brightness.dark;
           height: s(70),
           decoration: BoxDecoration(
             color: isDark
-    ? theme.colorScheme.primaryContainer
-    : theme.colorScheme.surface,
+                ? theme.colorScheme.primaryContainer
+                : theme.colorScheme.surface,
             shape: BoxShape.circle,
             border: Border.all(
               color: theme.colorScheme.tertiary,
@@ -1497,9 +1498,7 @@ final isDark = theme.brightness == Brightness.dark;
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(
-                  alpha: 0.18,
-                ),
+                color: Colors.black.withValues(alpha: 0.18),
                 blurRadius: s(5),
                 offset: Offset(0, s(3)),
               ),
@@ -1507,31 +1506,29 @@ final isDark = theme.brightness == Brightness.dark;
           ),
           child: Center(
             child: Container(
-              width: s(50),
-              height: s(50),
+              width: s(56),
+              height: s(56),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .tertiary
-                      .withValues(alpha: 0.35),
+                  color: theme.colorScheme.tertiary.withValues(
+                    alpha: 0.35,
+                  ),
                   width: s(1),
                 ),
               ),
-              child: Padding(
-                padding: EdgeInsets.all(s(7)),
-                child: Opacity(
-                  opacity:
-                      enabled ? 1.0 : 0.38,
-                  child: Image.asset(
-                    'assets/icons/age_up.png',
-  fit: BoxFit.contain,
-  color: isDark
-      ? theme.colorScheme.onPrimaryContainer
-      : null,
-  colorBlendMode: BlendMode.srcIn,
-),
+              padding: EdgeInsets.all(s(2)),
+              child: Opacity(
+                opacity: enabled ? 1.0 : 0.38,
+                child: Image.asset(
+                  'assets/icons/age_up.png',
+                  width: s(52),
+                  height: s(52),
+                  fit: BoxFit.contain,
+                  color: isDark
+                      ? theme.colorScheme.onPrimaryContainer
+                      : null,
+                  colorBlendMode: BlendMode.srcIn,
                 ),
               ),
             ),
@@ -1542,8 +1539,7 @@ final isDark = theme.brightness == Brightness.dark;
   }
 }
 
-class _NavigationItem
-    extends StatelessWidget {
+class _NavigationItem extends StatelessWidget {
   const _NavigationItem({
     required this.assetPath,
     required this.label,
@@ -1561,47 +1557,42 @@ class _NavigationItem
   @override
   Widget build(BuildContext context) {
     double s(double value) => value * zoom;
+
     final theme = Theme.of(context);
-final isDark = theme.brightness == Brightness.dark;
+    final iconColor = theme.colorScheme.primary;
 
     return InkWell(
       onTap: enabled ? onTap : null,
-      borderRadius:
-          BorderRadius.circular(s(8)),
+      borderRadius: BorderRadius.circular(s(8)),
       child: Padding(
         padding: EdgeInsets.symmetric(
           horizontal: s(2),
           vertical: s(2),
         ),
         child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Opacity(
-              opacity:
-                  enabled ? 1.0 : 0.38,
+              opacity: enabled ? 1.0 : 0.38,
               child: SvgPicture.asset(
-  assetPath,
-  width: s(23),
-  height: s(23),
-  fit: BoxFit.contain,
-  colorFilter: isDark
-      ? ColorFilter.mode(
-          theme.colorScheme.primary,
-          BlendMode.screen,
-        )
-      : null,
-),
+                assetPath,
+                width: s(23),
+                height: s(23),
+                fit: BoxFit.contain,
+                colorFilter: ColorFilter.mode(
+                  iconColor,
+                  BlendMode.srcIn,
+                ),
+              ),
             ),
             SizedBox(height: s(2)),
             Text(
               label,
               maxLines: 1,
-              overflow:
-                  TextOverflow.ellipsis,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelSmall,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurface,
+              ),
             ),
           ],
         ),
