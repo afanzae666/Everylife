@@ -1522,7 +1522,7 @@ class _AgeUpButton extends StatelessWidget {
                 opacity: enabled ? 1.0 : 0.38,
                 child: ClipOval(
                   child: Transform.scale(
-  scale: 1.55,
+  scale: 1.35,
   child: Image.asset(
     'assets/icons/age_up.png',
     width: s(56),
