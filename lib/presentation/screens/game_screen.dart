@@ -1575,16 +1575,29 @@ class _NavigationItem extends StatelessWidget {
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Opacity(
-              opacity: enabled ? 1.0 : 0.38,
-              child: SvgPicture.asset(
-                assetPath,
-                width: s(23),
-                height: s(23),
-                fit: BoxFit.contain,
-              ),
-            ),
+          children: [            
+Opacity(
+  opacity: enabled ? 1.0 : 0.38,
+  child: ColorFiltered(
+    colorFilter: theme.brightness == Brightness.dark
+        ? const ColorFilter.matrix(<double>[
+            -1, 0, 0, 0, 255,
+            0, -1, 0, 0, 255,
+            0, 0, -1, 0, 255,
+            0, 0, 0, 1, 0,
+          ])
+        : const ColorFilter.mode(
+            Colors.transparent,
+            BlendMode.dst,
+          ),
+    child: SvgPicture.asset(
+      assetPath,
+      width: s(23),
+      height: s(23),
+      fit: BoxFit.contain,
+    ),
+  ),
+),
             SizedBox(height: s(2)),
             Text(
               label,
