@@ -1506,38 +1506,40 @@ class _AgeUpButton extends StatelessWidget {
           ),
           child: Center(
             child: Container(
-    width: s(56),
-    height: s(56),
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      border: Border.all(
-        color: theme.colorScheme.tertiary.withValues(
-          alpha: 0.35,
-        ),
-        width: s(1),
-      ),
-    ),
-    clipBehavior: Clip.antiAlias,
-    child: Opacity(
-      opacity: enabled ? 1.0 : 0.38,
-      child: ClipOval(
-        child: Transform.scale(
-          scale: 1.35,
-          child: Image.asset(
-            'assets/icons/age_up.png',
-            width: s(56),
-            height: s(56),
-            fit: BoxFit.contain,
-            color: isDark
-                ? theme.colorScheme.onPrimaryContainer
-                : null,
-            colorBlendMode: BlendMode.srcIn,
+              width: s(56),
+              height: s(56),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: theme.colorScheme.tertiary.withValues(
+                    alpha: 0.35,
+                  ),
+                  width: s(1),
+                ),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Opacity(
+                opacity: enabled ? 1.0 : 0.38,
+                child: ClipOval(
+                  child: Transform.scale(
+                    scale: 1.35,
+                    child: Image.asset(
+                      'assets/icons/age_up.png',
+                      width: s(56),
+                      height: s(56),
+                      fit: BoxFit.contain,
+                      color: isDark
+                          ? theme.colorScheme.onPrimaryContainer
+                          : null,
+                      colorBlendMode: BlendMode.srcIn,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),
-    ),
-  ),
-),
     );
   }
 }
