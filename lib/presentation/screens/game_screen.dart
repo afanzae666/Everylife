@@ -526,7 +526,7 @@ class _GameScreenState extends State<GameScreen> {
           textScaler: TextScaler.linear(zoom),
         );
 
-        return MediaQuery(
+                return MediaQuery(
           data: scaledMediaQuery,
           child: _buildScaffold(
             context,
@@ -536,12 +536,10 @@ class _GameScreenState extends State<GameScreen> {
             age,
             lifeStageLabel,
             state.events,
-            ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
-  }
 
   Widget _buildScaffold(
     BuildContext context,
