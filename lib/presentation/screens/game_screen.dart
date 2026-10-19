@@ -61,7 +61,6 @@ class _GameScreenState extends State<GameScreen> {
 
   bool _autoSaveSettingReady = false;
   bool _isProcessingTurn = false;
-  bool _isExitDialogShowing = false;
 
   final ScrollController _lifeEventsScrollController =
       ScrollController();
@@ -130,48 +129,6 @@ class _GameScreenState extends State<GameScreen> {
     _autoSaveSettings.save(
       _autoSaveController.value,
     );
-  }
-
-  Future<void> _confirmExitGame() async {
-    if (!mounted || _isExitDialogShowing) {
-      return;
-    }
-
-    _isExitDialogShowing = true;
-
-    try {
-      final shouldExit = await showDialog<bool>(
-        context: context,
-        barrierDismissible: false,
-        builder: (dialogContext) {
-          return AlertDialog(
-            title: const Text(
-              'Do you want to leave this world?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop(false);
-                },
-                child: const Text('STAY'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(dialogContext).pop(true);
-                },
-                child: const Text('EXIT'),
-              ),
-            ],
-          );
-        },
-      );
-
-      if (shouldExit == true && mounted) {
-        await SystemNavigator.pop();
-      }
-    } finally {
-      _isExitDialogShowing = false;
-    }
   }
 
   void _scrollLifeEventsToBottom({
@@ -556,34 +513,29 @@ class _GameScreenState extends State<GameScreen> {
       LifeStageAge.fromAge(age),
     );
 
-    return PopScope<void>(
-      canPop: false,
-      onPopInvokedWithResult: (_, __) {
-        _confirmExitGame();
-      },
-      child: ValueListenableBuilder<double>(
-        valueListenable: _uiScaleController,
-        builder: (
-          context,
-          zoom,
-          _,
-        ) {
-          final mediaQuery = MediaQuery.of(context);
+    return ValueListenableBuilder<double>(
+      valueListenable: _uiScaleController,
+      builder: (
+        context,
+        zoom,
+        _,
+      ) {
+        final mediaQuery = MediaQuery.of(context);
 
-          final scaledMediaQuery = mediaQuery.copyWith(
-            textScaler: TextScaler.linear(zoom),
-          );
+        final scaledMediaQuery = mediaQuery.copyWith(
+          textScaler: TextScaler.linear(zoom),
+        );
 
-          return MediaQuery(
-            data: scaledMediaQuery,
-            child: _buildScaffold(
-              context,
-              zoom,
-              state,
-              player,
-              age,
-              lifeStageLabel,
-              state.events,
+        return MediaQuery(
+          data: scaledMediaQuery,
+          child: _buildScaffold(
+            context,
+            zoom,
+            state,
+            player,
+            age,
+            lifeStageLabel,
+            state.events,
             ),
           );
         },
