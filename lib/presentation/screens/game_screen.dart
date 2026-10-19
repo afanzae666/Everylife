@@ -520,13 +520,13 @@ class _GameScreenState extends State<GameScreen> {
         zoom,
         _,
       ) {
-        final mediaQuery = MediaQuery.of(context);
+                final mediaQuery = MediaQuery.of(context);
 
         final scaledMediaQuery = mediaQuery.copyWith(
           textScaler: TextScaler.linear(zoom),
         );
 
-                return MediaQuery(
+        return MediaQuery(
           data: scaledMediaQuery,
           child: _buildScaffold(
             context,
@@ -540,6 +540,7 @@ class _GameScreenState extends State<GameScreen> {
         );
       },
     );
+  }
 
   Widget _buildScaffold(
     BuildContext context,
