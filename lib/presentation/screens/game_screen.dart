@@ -1506,8 +1506,8 @@ class _AgeUpButton extends StatelessWidget {
           ),
           child: Center(
             child: Container(
-              width: s(70),
-              height: s(70),
+              width: s(64),
+              height: s(64),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
@@ -1521,8 +1521,8 @@ class _AgeUpButton extends StatelessWidget {
                 opacity: enabled ? 1.0 : 0.38,
                 child: Image.asset(
                   'assets/icons/age_up.png',
-                  width: s(71),
-                  height: s(71),
+                  width: s(64),
+                  height: s(64),
                   fit: BoxFit.contain,
                 ),
               ),
