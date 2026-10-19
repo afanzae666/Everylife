@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../lib/domain/character/cultural_name_catalog.dart';
 import '../../../lib/domain/character/gender.dart';
 import '../../../lib/presentation/screens/character_creation_screen.dart';
 
@@ -148,6 +149,7 @@ void main() {
         String? createdLastName;
         Gender? createdGender;
         int? createdBirthYear;
+        String? createdCountryCode;
 
         await pumpCharacterCreationScreen(
           tester,
@@ -157,6 +159,7 @@ void main() {
             createdLastName = character.lastName;
             createdGender = character.gender;
             createdBirthYear = character.birthYear;
+            createdCountryCode = character.location?.countryCode;
           },
         );
 
@@ -172,7 +175,11 @@ void main() {
 
         expect(
           createdName,
-          'Marshall Royce',
+          CulturalNameCatalog.formatFullName(
+            createdCountryCode ?? '',
+            'Marshall',
+            'Royce',
+          ),
         );
 
         expect(
@@ -540,12 +547,14 @@ void main() {
       'random appearance generates a complete valid identity',
       (tester) async {
         String? createdName;
+        String? createdCountryCode;
         Gender? createdGender;
 
         await pumpCharacterCreationScreen(
           tester,
           onCharacterCreated: (character) {
             createdName = character.name;
+            createdCountryCode = character.location?.countryCode;
             createdGender = character.gender;
           },
         );
@@ -595,7 +604,11 @@ void main() {
 
         expect(
           createdName,
-          '$firstName $lastName',
+          CulturalNameCatalog.formatFullName(
+            createdCountryCode ?? '',
+            firstName,
+            lastName,
+          ),
         );
 
         expect(
