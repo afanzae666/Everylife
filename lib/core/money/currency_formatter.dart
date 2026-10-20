@@ -6,19 +6,44 @@ import 'package:everylife/core/money/money.dart';
 
 /// Formats internally stored USD amounts into a country's display currency.
 ///
-/// Money remains stored as USD minor units. Conversion only affects the
-/// displayed value and never changes the original Money instance.
-///
-/// Formatting is deliberately deterministic and independent of device locale:
-/// commas group thousands and periods separate fractional digits.
+/// Money remains stored as USD minor units. Conversion only affects display
+/// and never changes the original Money instance.
 class CurrencyFormatter {
   CurrencyFormatter._();
 
+  static const int _billion = 1000000000;
+
+  static const List<String> _compactUnits = [
+    'B',
+    'T',
+    'Qa',
+    'Qi',
+    'Sx',
+    'Sp',
+    'Oc',
+    'No',
+    'Dc',
+    'Ud',
+    'Dd',
+    'Td',
+    'Qad',
+    'Qid',
+    'Sxd',
+    'Spd',
+    'Ocd',
+    'Nod',
+    'Vg',
+  ];
+
   /// Formats [money] using the selected ISO 4217 [currencyCode].
   ///
-  /// Uses the fixed gameplay exchange-rate snapshot unless a snapshot is
-  /// explicitly supplied. Unknown currency codes or missing rates throw
-  /// [ArgumentError] rather than silently displaying the wrong currency.
+  /// Values below one billion are displayed as whole local currency units.
+  /// Values from one billion onward use compact suffixes such as B and T.
+  /// Trailing decimal zeroes are omitted from compact values.
+  ///
+  /// Uses the fixed gameplay exchange-rate snapshot unless [snapshot] is
+  /// supplied. Unknown currencies or missing exchange rates throw an
+  /// [ArgumentError].
   static String format(
     Money money, {
     required String currencyCode,
@@ -40,42 +65,50 @@ class CurrencyFormatter {
       currencyCode: currency.code,
     );
 
-    final number = _formatNumber(
-      localMinorUnits,
-      fractionDigits: currency.fractionDigits,
-    );
+    final divisor = _powerOfTen(currency.fractionDigits);
+    final absoluteMinorUnits = localMinorUnits.abs();
 
-    // Keep common one-character currency symbols compact (e.g. $100.00,
-    // €89.00, ¥158). Multi-character symbols use a separating space.
+    // Round to the nearest whole local currency unit for display.
+    final wholeUnits = (absoluteMinorUnits + divisor ~/ 2) ~/ divisor;
+    final isNegative = localMinorUnits < 0;
+
+    final number = wholeUnits >= _billion
+        ? _formatCompact(wholeUnits)
+        : _groupThousands(wholeUnits);
+
     final separator = currency.symbol.length == 1 ? '' : ' ';
+    final sign = isNegative ? '-' : '';
 
-    return '${
-      localMinorUnits < 0 ? '-' : ''
-    }${currency.symbol}$separator${number.replaceFirst('-', '')}';
+    return '$sign${currency.symbol}$separator$number';
   }
 
-  static String _formatNumber(
-    int minorUnits, {
-    required int fractionDigits,
-  }) {
-    final absoluteValue = minorUnits.abs();
-    final divisor = _powerOfTen(fractionDigits);
-    final wholeUnits = absoluteValue ~/ divisor;
-    final fraction = absoluteValue % divisor;
+  static String _formatCompact(int value) {
+    var scaled = value / _billion;
+    var unitIndex = 0;
 
-    final groupedWhole = _groupThousands(wholeUnits);
-    if (fractionDigits == 0) {
-      return '${minorUnits < 0 ? '-' : ''}$groupedWhole';
+    while (
+      scaled >= 1000 &&
+      unitIndex < _compactUnits.length - 1
+    ) {
+      scaled /= 1000;
+      unitIndex++;
     }
 
-    final fractionalDigits = fraction
-        .toString()
-        .padLeft(fractionDigits, '0');
+    final formatted = scaled >= 100
+        ? scaled.toStringAsFixed(0)
+        : scaled >= 10
+            ? scaled.toStringAsFixed(1)
+            : scaled.toStringAsFixed(2);
 
-    return '${minorUnits < 0 ? '-' : ''}'
-        '$groupedWhole.$fractionalDigits';
+    final trimmed = formatted.contains('.')
+        ? formatted
+            .replaceFirst(RegExp(r'0+$'), '')
+            .replaceFirst(RegExp(r'\.$'), '')
+        : formatted;
+
+    return '$trimmed${_compactUnits[unitIndex]}';
   }
-
+  
   static int _powerOfTen(int exponent) {
     var result = 1;
 
@@ -94,6 +127,7 @@ class CurrencyFormatter {
       if (i > 0 && (digits.length - i) % 3 == 0) {
         result.write(',');
       }
+
       result.write(digits[i]);
     }
 
