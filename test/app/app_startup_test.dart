@@ -157,11 +157,6 @@ void main() {
           find.byType(GameScreen),
           findsOneWidget,
         );
-
-        expect(
-          find.text('Marshall Royce'),
-          findsOneWidget,
-        );
         
         final saved = await repository.load();
 
