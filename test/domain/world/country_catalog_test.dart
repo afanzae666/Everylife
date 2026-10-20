@@ -1,5 +1,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:everylife/core/money/currency_catalog.dart';
 import 'package:everylife/domain/world/country.dart';
 import 'package:everylife/domain/world/country_catalog.dart';
 
@@ -53,6 +55,33 @@ void main() {
       expect(
         CountryCatalog.searchByName(''),
         hasLength(CountryCatalog.countries.length),
+      );
+    });
+
+    test('all country currencies exist in CurrencyCatalog', () {
+      expect(CurrencyCatalog.hasValidData, isTrue);
+
+      for (final country in CountryCatalog.countries) {
+        expect(
+          CurrencyCatalog.findByCode(country.currencyCode),
+          isNotNull,
+          reason:
+              '${country.name} references missing currency '
+              '${country.currencyCode}.',
+        );
+      }
+    });
+
+    test('all country records are valid and country codes are unique', () {
+      expect(CountryCatalog.hasValidData, isTrue);
+
+      final codes = CountryCatalog.countries
+          .map((country) => country.code)
+          .toSet();
+
+      expect(
+        codes.length,
+        CountryCatalog.countries.length,
       );
     });
   });
