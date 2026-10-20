@@ -754,7 +754,6 @@ class _GameScreenState extends State<GameScreen> {
                             fontWeight: FontWeight.w600,
                           ),
                     ),
-                    ),
                   ),
                 ),
               ),
