@@ -138,7 +138,7 @@ void main() {
       );
 
       expect(
-        find.text('\$0.00'),
+        find.text('\$0'),
         findsNWidgets(3),
       );
 
