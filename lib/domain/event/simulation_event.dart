@@ -1,5 +1,7 @@
+
 enum SimulationEventType {
   lifeCreated,
+  startingLifeEvent,
   yearAdvanced,
   characterAged,
   lifeStageChanged,
