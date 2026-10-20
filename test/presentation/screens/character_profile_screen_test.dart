@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../lib/domain/character/character.dart';
+import '../../../lib/domain/world/character_location.dart';
 import '../../../lib/presentation/screens/character_profile_screen.dart';
 
 void main() {
@@ -85,6 +86,16 @@ void main() {
       expect(
         find.text('Male'),
         findsOneWidget,
+      );
+
+      expect(
+        find.text('Location'),
+        findsNothing,
+      );
+
+      expect(
+        find.text('Jakarta, Indonesia'),
+        findsNothing,
       );
 
       expect(
@@ -265,6 +276,43 @@ void main() {
       expect(
         find.text('Deceased'),
         findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
+    'displays character location when location is valid',
+    (tester) async {
+      final character = Character.create(
+        id: 'profile-location-test',
+        firstName: 'Alex',
+        lastName: 'Anderson',
+        birthYear: 2007,
+        location: const CharacterLocation(
+          countryCode: 'ID',
+          cityId: 'id-jakarta',
+        ),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: CharacterProfileScreen(
+            character: character,
+            currentYear: 2026,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Location'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('Jakarta, Indonesia'),
+        findsOneWidget,
       );
     },
   );
