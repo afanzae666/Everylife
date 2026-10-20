@@ -5,6 +5,7 @@ import '../../data/services/character_palette_service.dart';
 import '../../core/money/currency_formatter.dart';
 import '../../core/money/fixed_exchange_rates.dart';
 import '../../domain/world/country_catalog.dart';
+import '../../domain/world/city_catalog.dart';
 import '../../domain/character/character.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
@@ -41,6 +42,25 @@ class CharacterProfileScreen extends StatelessWidget {
       amount,
       currencyCode: _getCurrencyCode(),
     );
+  }
+
+  String? _getLocationLabel() {
+    final location = character.location;
+
+    if (location == null || !location.isValid) {
+      return null;
+    }
+
+    final city = CityCatalog.findById(location.cityId);
+    final country = CountryCatalog.findByCode(
+      location.countryCode,
+    );
+
+    if (city == null || country == null) {
+      return null;
+    }
+
+    return '${city.name}, ${country.name}';
   }
 
   @override
@@ -324,6 +344,8 @@ class CharacterProfileScreen extends StatelessWidget {
   ) {
     double s(double value) => value * zoom;
 
+    final locationLabel = _getLocationLabel();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -352,6 +374,13 @@ class CharacterProfileScreen extends StatelessWidget {
           value: character.gender.label,
           zoom: zoom,
         ),
+
+        if (locationLabel != null)
+          _CompactInfoRow(
+            label: 'Location',
+            value: locationLabel,
+            zoom: zoom,
+          ),
 
         _CompactInfoRow(
           label: 'Life Stage',
