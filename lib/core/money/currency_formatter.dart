@@ -37,9 +37,12 @@ class CurrencyFormatter {
 
   /// Formats [money] using the selected ISO 4217 [currencyCode].
   ///
-  /// Values below one billion are displayed as whole local currency units.
+  /// Values below one billion are displayed in full, with thousands grouped.
+  /// Unnecessary trailing decimal zeroes are omitted, but meaningful
+  /// fractional digits are preserved.
+  ///
   /// Values from one billion onward use compact suffixes such as B and T.
-  /// Trailing decimal zeroes are omitted from compact values.
+  /// Compact values retain up to two decimal places and omit trailing zeroes.
   ///
   /// Uses the fixed gameplay exchange-rate snapshot unless [snapshot] is
   /// supplied. Unknown currencies or missing exchange rates throw an
@@ -67,17 +70,30 @@ class CurrencyFormatter {
 
     final divisor = _powerOfTen(currency.fractionDigits);
     final absoluteMinorUnits = localMinorUnits.abs();
+    final wholeUnits = absoluteMinorUnits ~/ divisor;
+    final remainder = absoluteMinorUnits % divisor;
 
-    // Round to the nearest whole local currency unit for display.
-    final wholeUnits = (absoluteMinorUnits + divisor ~/ 2) ~/ divisor;
-    final isNegative = localMinorUnits < 0;
+    final String number;
 
-    final number = wholeUnits >= _billion
-        ? _formatCompact(wholeUnits)
-        : _groupThousands(wholeUnits);
+    if (wholeUnits >= _billion) {
+      number = _formatCompact(wholeUnits);
+    } else {
+      final wholePart = _groupThousands(wholeUnits);
+
+      if (remainder == 0 || currency.fractionDigits == 0) {
+        number = wholePart;
+      } else {
+        final fraction = remainder
+            .toString()
+            .padLeft(currency.fractionDigits, '0')
+            .replaceFirst(RegExp(r'0+$'), '');
+
+        number = '$wholePart.$fraction';
+      }
+    }
 
     final separator = currency.symbol.length == 1 ? '' : ' ';
-    final sign = isNegative ? '-' : '';
+    final sign = localMinorUnits < 0 ? '-' : '';
 
     return '$sign${currency.symbol}$separator$number';
   }
@@ -94,21 +110,14 @@ class CurrencyFormatter {
       unitIndex++;
     }
 
-    final formatted = scaled >= 100
-        ? scaled.toStringAsFixed(0)
-        : scaled >= 10
-            ? scaled.toStringAsFixed(1)
-            : scaled.toStringAsFixed(2);
-
-    final trimmed = formatted.contains('.')
-        ? formatted
-            .replaceFirst(RegExp(r'0+$'), '')
-            .replaceFirst(RegExp(r'\.$'), '')
-        : formatted;
+    final formatted = scaled.toStringAsFixed(2);
+    final trimmed = formatted
+        .replaceFirst(RegExp(r'0+$'), '')
+        .replaceFirst(RegExp(r'\.$'), '');
 
     return '$trimmed${_compactUnits[unitIndex]}';
   }
-  
+
   static int _powerOfTen(int exponent) {
     var result = 1;
 
