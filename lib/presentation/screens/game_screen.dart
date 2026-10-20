@@ -1308,19 +1308,23 @@ class _BottomNavigation
         alignment: Alignment.center,
         children: [
           // Latar dan garis atas diperluas ke atas.
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                border: Border(
-                  top: BorderSide(
-                    color: theme.colorScheme.outlineVariant,
-                    width: 1,
-                  ),
-                ),
-              ),
-            ),
-          ),
+          Positioned(
+  top: -s(2),
+  left: 0,
+  right: 0,
+  bottom: 0,
+  child: Container(
+    decoration: BoxDecoration(
+      color: theme.colorScheme.surface,
+      border: Border(
+        top: BorderSide(
+          color: theme.colorScheme.outlineVariant,
+          width: 1,
+        ),
+      ),
+    ),
+  ),
+),
 
           // Isi navigasi tetap pada posisi vertikal semula.
           Positioned(
