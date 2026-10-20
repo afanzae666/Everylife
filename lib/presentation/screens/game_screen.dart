@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/money/money.dart';
+import '../../core/money/currency_formatter.dart';
+import '../../core/money/fixed_exchange_rates.dart';
 import '../../data/services/character_palette_service.dart';
 import '../../data/settings/auto_save_settings.dart';
 import '../../domain/character/life_stage.dart';
+import '../../domain/world/country_catalog.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import '../widgets/character_avatar.dart';
 import 'assets_screen.dart';
@@ -441,62 +444,28 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  String _formatMoney(Money amount) {
-    final wholeUnits =
-        amount.minorUnits ~/ Money.minorUnitsPerUnit;
-    final absoluteUnits = wholeUnits.abs();
+    String _getCurrencyCode(dynamic player) {
+    final countryCode = player.location?.countryCode ?? '';
+    final country = CountryCatalog.findByCode(countryCode);
+    final currencyCode = country?.currencyCode ?? 'USD';
 
-    if (absoluteUnits < 1000000) {
-      return '\$$wholeUnits';
+    // Jangan meminta konversi dengan kurs yang belum tersedia.
+    // Gunakan USD sebagai fallback agar layar tidak crash.
+    if (FixedExchangeRates.snapshot.rateFor(currencyCode) == null) {
+      return 'USD';
     }
 
-    const units = <String>[
-      'M',
-      'B',
-      'T',
-      'Qa',
-      'Qi',
-      'Sx',
-      'Sp',
-      'Oc',
-      'No',
-      'Dc',
-      'Ud',
-      'Dd',
-      'Td',
-      'Qad',
-      'Qid',
-      'Sxd',
-      'Spd',
-      'Ocd',
-      'Nod',
-      'Vg',
-    ];
+    return currencyCode;
+  }
 
-    var scaled = absoluteUnits.toDouble();
-    var unitIndex = -1;
-
-    while (
-        scaled >= 1000 &&
-        unitIndex < units.length - 1) {
-      scaled /= 1000;
-      unitIndex++;
-    }
-
-    final formatted = scaled >= 100
-        ? scaled.toStringAsFixed(0)
-        : scaled >= 10
-            ? scaled.toStringAsFixed(1)
-            : scaled.toStringAsFixed(2);
-
-    final trimmed = formatted.replaceFirst(
-      RegExp(r'\.?0+$'),
-      '',
+  String _formatMoney(
+    Money amount, {
+    required String currencyCode,
+  }) {
+    return CurrencyFormatter.format(
+      amount,
+      currencyCode: currencyCode,
     );
-
-    final sign = wholeUnits < 0 ? '-' : '';
-
-    return '\$$sign$trimmed${units[unitIndex]}';
   }
 
   @override
@@ -764,17 +733,22 @@ class _GameScreenState extends State<GameScreen> {
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerRight,
                     child: Text(
-                      _formatMoney(player.money),
+                      _formatMoney(
+  player.money,
+  currencyCode: _getCurrencyCode(player),
+)
                       textAlign: TextAlign.right,
                       maxLines: 1,
                       softWrap: false,
                       style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge!
-                          .copyWith(
-                            fontWeight:
-                                FontWeight.w600,
-                          ),
+    .textTheme
+    .bodyLarge!
+    .copyWith(
+      fontSize:
+          (Theme.of(context).textTheme.bodyLarge!.fontSize ?? 14) *
+              1.25,
+      fontWeight: FontWeight.w600,
+    ),
                     ),
                   ),
                 ),
