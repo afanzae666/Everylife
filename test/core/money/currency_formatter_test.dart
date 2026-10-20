@@ -7,17 +7,17 @@ import 'package:everylife/core/money/money.dart';
 
 void main() {
   group('CurrencyFormatter', () {
-    test('formats USD using the internal baseline', () {
+    test('omits unnecessary decimal zeroes for USD', () {
       expect(
         CurrencyFormatter.format(
           const Money.fromMinorUnits(100),
           currencyCode: 'USD',
         ),
-        r'$1.00',
+        r'$1',
       );
     });
 
-    test('formats EUR using the fixed exchange rate', () {
+    test('preserves meaningful EUR fractional digits', () {
       expect(
         CurrencyFormatter.format(
           const Money.fromMinorUnits(100),
@@ -47,17 +47,45 @@ void main() {
       );
     });
 
-    test('groups thousands and preserves fractional digits', () {
+    test('groups thousands and omits unnecessary decimal zeroes', () {
       expect(
         CurrencyFormatter.format(
           const Money.fromMinorUnits(1234500),
           currencyCode: 'USD',
         ),
-        r'$12,345.00',
+        r'$12,345',
       );
     });
 
-    test('formats negative values correctly', () {
+    test('preserves meaningful fractional cents', () {
+      expect(
+        CurrencyFormatter.format(
+          const Money.fromMinorUnits(1),
+          currencyCode: 'USD',
+        ),
+        r'$0.01',
+      );
+    });
+
+    test('formats compact values from one billion onward', () {
+      expect(
+        CurrencyFormatter.format(
+          const Money.fromMinorUnits(100000000000),
+          currencyCode: 'USD',
+        ),
+        r'$1B',
+      );
+
+      expect(
+        CurrencyFormatter.format(
+          const Money.fromMinorUnits(125000000000),
+          currencyCode: 'USD',
+        ),
+        r'$1.25B',
+      );
+    });
+
+    test('formats negative values and preserves fractional digits', () {
       expect(
         CurrencyFormatter.format(
           const Money.fromMinorUnits(-100),
