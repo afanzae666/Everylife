@@ -55,6 +55,7 @@ abstract final class CharacterHair {
     'male_hair_05',
     'male_hair_06',
     'male_hair_07',
+    'male_hair_08',
   ];
 
   static const List<String> femaleAdultStyles = <String>[
@@ -65,6 +66,8 @@ abstract final class CharacterHair {
     'female_hair_05',
     'female_hair_06',
     'female_hair_07',
+    'female_hair_08',
+    'female_hair_09',
   ];
 
   /// Hair styles used by the main adult/teen selector.
