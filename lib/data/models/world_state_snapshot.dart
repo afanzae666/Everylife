@@ -1,8 +1,11 @@
+
 import 'package:everylife/core/money/money.dart';
+
 import '../../domain/character/appearance.dart';
 import '../../domain/character/character.dart';
 import '../../domain/character/character_stats.dart';
 import '../../domain/character/gender.dart';
+import '../../domain/character/starting_background.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/time/simulation_clock.dart';
 import '../../domain/world/character_location.dart';
@@ -28,6 +31,7 @@ class WorldStateSnapshot {
     required this.playerMoneyMinorUnits,
     required this.playerAppearance,
     this.playerLocation,
+    this.playerStartingBackgroundTier,
     required this.events,
   });
 
@@ -56,6 +60,9 @@ class WorldStateSnapshot {
   /// The player's country and city, or null for an unset location.
   final CharacterLocation? playerLocation;
 
+  /// The player's starting background tier, or null for a legacy save.
+  final StartingBackgroundTier? playerStartingBackgroundTier;
+
   final List<SimulationEvent> events;
 
   factory WorldStateSnapshot.fromWorldState(
@@ -83,6 +90,8 @@ class WorldStateSnapshot {
       playerMoneyMinorUnits: player.money.minorUnits,
       playerAppearance: player.appearance,
       playerLocation: player.location,
+      playerStartingBackgroundTier:
+          state.startingBackground?.tier,
       events: List.unmodifiable(state.events),
     );
   }
@@ -116,6 +125,12 @@ class WorldStateSnapshot {
         location: playerLocation,
       ),
       events: List.unmodifiable(events),
+      startingBackground:
+          playerStartingBackgroundTier == null
+              ? null
+              : StartingBackground(
+                  tier: playerStartingBackgroundTier!,
+                ),
     );
   }
 
@@ -160,6 +175,8 @@ class WorldStateSnapshot {
                 'cityId': playerLocation!.cityId,
               },
       },
+      'startingBackground':
+          playerStartingBackgroundTier?.name,
       'events': events
           .map(
             (event) => {
@@ -189,6 +206,8 @@ class WorldStateSnapshot {
 
     final appearanceJson = player['appearance'];
     final locationJson = player['location'];
+    final startingBackgroundJson =
+        json['startingBackground'];
     final eventsJson = json['events'];
 
     if (eventsJson is! List) {
@@ -269,6 +288,12 @@ class WorldStateSnapshot {
           : _parseLocation(
               locationJson,
             ),
+      playerStartingBackgroundTier:
+          startingBackgroundJson == null
+              ? null
+              : _parseStartingBackgroundTier(
+                  startingBackgroundJson,
+                ),
       events: List.unmodifiable(
         eventsJson
             .map(
@@ -276,6 +301,27 @@ class WorldStateSnapshot {
             )
             .toList(growable: false),
       ),
+    );
+  }
+
+  static StartingBackgroundTier
+      _parseStartingBackgroundTier(
+    Object? value,
+  ) {
+    if (value is! String) {
+      throw const FormatException(
+        'Field "startingBackground" must be a string.',
+      );
+    }
+
+    for (final tier in StartingBackgroundTier.values) {
+      if (tier.name == value) {
+        return tier;
+      }
+    }
+
+    throw FormatException(
+      'Unknown starting background tier: $value',
     );
   }
 
