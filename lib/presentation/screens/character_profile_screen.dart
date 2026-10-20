@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../data/services/character_palette_service.dart';
+import '../../core/money/currency_formatter.dart';
+import '../../core/money/fixed_exchange_rates.dart';
+import '../../core/money/money.dart';
+import '../../domain/world/country_catalog.dart';
 import '../../domain/character/character.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
@@ -20,6 +24,25 @@ class CharacterProfileScreen extends StatelessWidget {
   final ValueNotifier<double>? uiScaleController;
   final VoidCallback? onViewAssets;
 
+  String _getCurrencyCode() {
+    final countryCode = character.location?.countryCode ?? '';
+    final country = CountryCatalog.findByCode(countryCode);
+    final currencyCode = country?.currencyCode ?? 'USD';
+
+    if (FixedExchangeRates.snapshot.rateFor(currencyCode) == null) {
+      return 'USD';
+    }
+
+    return currencyCode;
+  }
+
+  String _formatMoney(Money amount) {
+    return CurrencyFormatter.format(
+      amount,
+      currencyCode: _getCurrencyCode(),
+    );
+  }
+  
   @override
   Widget build(BuildContext context) {
     final controller = uiScaleController;
@@ -259,25 +282,21 @@ class CharacterProfileScreen extends StatelessWidget {
                 height: s(4),
               ),
 
-              _WealthRow(
+                            _WealthRow(
                 label: 'Total Assets',
-                value:
-                    character.money
-                        .toString(),
+                value: _formatMoney(character.money),
                 zoom: zoom,
               ),
 
               _WealthRow(
                 label: 'Debt',
-                value: '\$0.00',
+                value: _formatMoney(const Money.zero()),
                 zoom: zoom,
               ),
 
               _WealthRow(
                 label: 'Net Worth',
-                value:
-                    character.money
-                        .toString(),
+                value: _formatMoney(character.money),
                 zoom: zoom,
               ),
 
