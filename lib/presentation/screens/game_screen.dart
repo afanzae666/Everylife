@@ -732,23 +732,28 @@ class _GameScreenState extends State<GameScreen> {
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerRight,
-                    child: Text(
+                                        child: Text(
                       _formatMoney(
-  player.money,
-  currencyCode: _getCurrencyCode(player),
-)
+                        player.money,
+                        currencyCode: _getCurrencyCode(player),
+                      ),
                       textAlign: TextAlign.right,
                       maxLines: 1,
                       softWrap: false,
                       style: Theme.of(context)
-    .textTheme
-    .bodyLarge!
-    .copyWith(
-      fontSize:
-          (Theme.of(context).textTheme.bodyLarge!.fontSize ?? 14) *
-              1.25,
-      fontWeight: FontWeight.w600,
-    ),
+                          .textTheme
+                          .bodyLarge!
+                          .copyWith(
+                            fontSize:
+                                (Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge!
+                                            .fontSize ??
+                                        14) *
+                                    1.25,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
                     ),
                   ),
                 ),
