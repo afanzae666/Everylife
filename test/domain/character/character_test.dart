@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:everylife/core/money/money.dart';
 
-import '../../../lib/core/money/money.dart';
 import '../../../lib/domain/character/character.dart';
 import '../../../lib/domain/character/character_stats.dart';
 
