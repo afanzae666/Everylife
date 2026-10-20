@@ -10,6 +10,7 @@ import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
 import '../generation/starting_background_generator.dart';
+import '../generation/starting_life_event_generator.dart';
 import '../systems/character_system.dart';
 import '../systems/simulation_system.dart';
 import '../systems/time_system.dart';
@@ -260,6 +261,13 @@ class SimulationEngine {
     final startingBackground =
         StartingBackgroundGenerator.generate(random);
 
+    final startingLifeEvent =
+        StartingLifeEventGenerator.generate(
+      random: random,
+      year: player.birthYear,
+      background: startingBackground,
+    );
+
     final initialState = WorldState(
       clock: SimulationClock(
         currentYear: player.birthYear,
@@ -274,6 +282,7 @@ class SimulationEngine {
           description:
               '${player.name} was born in ${player.birthYear}.',
         ),
+        startingLifeEvent,
       ],
       startingBackground: startingBackground,
     );
