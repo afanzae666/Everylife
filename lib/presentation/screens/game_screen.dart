@@ -1,8 +1,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
 import 'package:everylife/core/money/money.dart';
+
 import '../../core/money/currency_formatter.dart';
 import '../../core/money/fixed_exchange_rates.dart';
 import '../../data/services/character_palette_service.dart';
