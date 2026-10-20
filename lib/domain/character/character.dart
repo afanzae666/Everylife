@@ -1,5 +1,5 @@
 
-import '../../core/money/money.dart';
+import 'package:everylife/core/money/money.dart';
 import '../world/character_location.dart';
 import 'appearance.dart';
 import 'character_stats.dart';
