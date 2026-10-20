@@ -22,7 +22,7 @@ void main() {
 
       expect(engine.state.clock.currentYear, 2026);
       expect(engine.state.player.ageAt(2026), 0);
-      expect(engine.state.events.length, 1);
+      expect(engine.state.events.length, 2);
 
       final result = engine.ageUp();
 
@@ -47,7 +47,7 @@ void main() {
       final result = engine.ageUp();
 
       expect(result.isSuccess, isTrue);
-      expect(engine.state.events.length, 2);
+      expect(engine.state.events.length, 3);
 
       final event = engine.state.events.last;
 
