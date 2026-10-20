@@ -42,7 +42,7 @@ class CharacterProfileScreen extends StatelessWidget {
       currencyCode: _getCurrencyCode(),
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final controller = uiScaleController;
@@ -101,15 +101,13 @@ class CharacterProfileScreen extends StatelessWidget {
     BuildContext context,
     double zoom,
   ) {
-    double s(double value) =>
-        value * zoom;
+    double s(double value) => value * zoom;
 
     final age = character.ageAt(
       currentYear,
     );
 
-    final lifeStage =
-        character.lifeStageAt(
+    final lifeStage = character.lifeStageAt(
       currentYear,
     );
 
@@ -133,8 +131,7 @@ class CharacterProfileScreen extends StatelessWidget {
               context,
               snapshot,
             ) {
-              if (snapshot.connectionState !=
-                  ConnectionState.done) {
+              if (snapshot.connectionState != ConnectionState.done) {
                 return SizedBox(
                   width: s(144),
                   height: s(180),
@@ -150,8 +147,7 @@ class CharacterProfileScreen extends StatelessWidget {
                 );
               }
 
-              if (snapshot.hasError ||
-                  snapshot.data == null) {
+              if (snapshot.hasError || snapshot.data == null) {
                 return SizedBox(
                   width: s(144),
                   height: s(180),
@@ -160,18 +156,15 @@ class CharacterProfileScreen extends StatelessWidget {
 
               final palette = snapshot.data!;
 
-              final skinColor =
-                  palette.skinColor(
+              final skinColor = palette.skinColor(
                 character.appearance.skinTone,
               );
 
-              final eyeColor =
-                  palette.eyeColor(
+              final eyeColor = palette.eyeColor(
                 character.appearance.eyeColor,
               );
 
-              final hairColor =
-                  palette.hairColor(
+              final hairColor = palette.hairColor(
                 character.appearance.hairColor,
               );
 
@@ -206,11 +199,9 @@ class CharacterProfileScreen extends StatelessWidget {
               .textTheme
               .titleLarge!
               .copyWith(
-                fontWeight:
-                    FontWeight.w700,
+                fontWeight: FontWeight.w700,
               ),
-          textAlign:
-              TextAlign.center,
+          textAlign: TextAlign.center,
           softWrap: true,
         ),
 
@@ -220,11 +211,8 @@ class CharacterProfileScreen extends StatelessWidget {
 
         Text(
           'Age $age • $currentYear',
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium,
-          textAlign:
-              TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium,
+          textAlign: TextAlign.center,
         ),
 
         SizedBox(
@@ -263,8 +251,7 @@ class CharacterProfileScreen extends StatelessWidget {
             s(5),
           ),
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'WEALTH',
@@ -272,8 +259,7 @@ class CharacterProfileScreen extends StatelessWidget {
                     .textTheme
                     .titleSmall!
                     .copyWith(
-                      fontWeight:
-                          FontWeight.w700,
+                      fontWeight: FontWeight.w700,
                       letterSpacing: 0.4,
                     ),
               ),
@@ -282,9 +268,13 @@ class CharacterProfileScreen extends StatelessWidget {
                 height: s(4),
               ),
 
-                            _WealthRow(
+              _WealthRow(
                 label: 'Total Assets',
-                value: _formatMoney(character.money),
+                value: _formatMoney(
+                  Money.fromMinorUnits(
+                    character.money.minorUnits,
+                  ),
+                ),
                 zoom: zoom,
               ),
 
@@ -296,7 +286,11 @@ class CharacterProfileScreen extends StatelessWidget {
 
               _WealthRow(
                 label: 'Net Worth',
-                value: _formatMoney(character.money),
+                value: _formatMoney(
+                  Money.fromMinorUnits(
+                    character.money.minorUnits,
+                  ),
+                ),
                 zoom: zoom,
               ),
 
@@ -307,13 +301,10 @@ class CharacterProfileScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: Align(
-                  alignment:
-                      Alignment.centerRight,
+                  alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed:
-                        onViewAssets,
-                    child:
-                        const Text(
+                    onPressed: onViewAssets,
+                    child: const Text(
                       'View Assets →',
                     ),
                   ),
@@ -331,12 +322,10 @@ class CharacterProfileScreen extends StatelessWidget {
     double zoom,
     LifeStage lifeStage,
   ) {
-    double s(double value) =>
-        value * zoom;
+    double s(double value) => value * zoom;
 
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Basic Information',
@@ -344,8 +333,7 @@ class CharacterProfileScreen extends StatelessWidget {
               .textTheme
               .titleSmall!
               .copyWith(
-                fontWeight:
-                    FontWeight.w700,
+                fontWeight: FontWeight.w700,
               ),
         ),
 
@@ -355,22 +343,19 @@ class CharacterProfileScreen extends StatelessWidget {
 
         _CompactInfoRow(
           label: 'Born',
-          value:
-              '${character.birthYear}',
+          value: '${character.birthYear}',
           zoom: zoom,
         ),
 
         _CompactInfoRow(
           label: 'Gender',
-          value:
-              character.gender.label,
+          value: character.gender.label,
           zoom: zoom,
         ),
 
         _CompactInfoRow(
           label: 'Life Stage',
-          value:
-              _formatLifeStage(
+          value: _formatLifeStage(
             lifeStage,
           ),
           zoom: zoom,
@@ -425,8 +410,7 @@ class CharacterProfileScreen extends StatelessWidget {
   }
 }
 
-class _ResponsiveCard
-    extends StatelessWidget {
+class _ResponsiveCard extends StatelessWidget {
   const _ResponsiveCard({
     required this.padding,
     required this.child,
@@ -452,8 +436,7 @@ class _ResponsiveCard
   }
 }
 
-class _CompactInfoRow
-    extends StatelessWidget {
+class _CompactInfoRow extends StatelessWidget {
   const _CompactInfoRow({
     required this.label,
     required this.value,
@@ -468,22 +451,16 @@ class _CompactInfoRow
   Widget build(
     BuildContext context,
   ) {
-    double s(double value) =>
-        value * zoom;
+    double s(double value) => value * zoom;
 
-    final textStyle =
-        Theme.of(context)
-            .textTheme
-            .bodySmall;
+    final textStyle = Theme.of(context).textTheme.bodySmall;
 
     return Padding(
-      padding:
-          EdgeInsets.symmetric(
+      padding: EdgeInsets.symmetric(
         vertical: s(2),
       ),
       child: Row(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             flex: 5,
@@ -502,12 +479,9 @@ class _CompactInfoRow
             flex: 4,
             child: Text(
               value,
-              textAlign:
-                  TextAlign.end,
-              style:
-                  textStyle!.copyWith(
-                fontWeight:
-                    FontWeight.w600,
+              textAlign: TextAlign.end,
+              style: textStyle!.copyWith(
+                fontWeight: FontWeight.w600,
               ),
               softWrap: true,
             ),
@@ -518,8 +492,7 @@ class _CompactInfoRow
   }
 }
 
-class _WealthRow
-    extends StatelessWidget {
+class _WealthRow extends StatelessWidget {
   const _WealthRow({
     required this.label,
     required this.value,
@@ -534,24 +507,19 @@ class _WealthRow
   Widget build(
     BuildContext context,
   ) {
-    double s(double value) =>
-        value * zoom;
+    double s(double value) => value * zoom;
 
     return Padding(
-      padding:
-          EdgeInsets.symmetric(
+      padding: EdgeInsets.symmetric(
         vertical: s(2),
       ),
       child: Row(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: Text(
               label,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall,
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
 
@@ -561,14 +529,12 @@ class _WealthRow
 
           Text(
             value,
-            textAlign:
-                TextAlign.end,
+            textAlign: TextAlign.end,
             style: Theme.of(context)
                 .textTheme
                 .bodySmall!
                 .copyWith(
-                  fontWeight:
-                      FontWeight.w700,
+                  fontWeight: FontWeight.w700,
                 ),
           ),
         ],
