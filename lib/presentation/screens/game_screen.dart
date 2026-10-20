@@ -1309,7 +1309,7 @@ class _BottomNavigation
         children: [
           // Latar dan garis atas diperluas ke atas.
           Positioned(
-  top: -s(2),
+  top: -s(4),
   left: 0,
   right: 0,
   bottom: 0,
