@@ -115,7 +115,6 @@ class StartingLifeEventGenerator {
   static SimulationEvent generate({
     required SeededRandom random,
     required int year,
-    required String playerName,
     required StartingBackground background,
   }) {
     final templates = _templates[background.tier];
