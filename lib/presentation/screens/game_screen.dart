@@ -1296,7 +1296,7 @@ class _BottomNavigation
   final VoidCallback onLifeTap;
   final VoidCallback onMoreTap;
 
-  @override
+    @override
   Widget build(BuildContext context) {
     double s(double value) => value * zoom;
     final theme = Theme.of(context);
@@ -1307,69 +1307,79 @@ class _BottomNavigation
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
-          Container(
-  height: s(56),
-  decoration: BoxDecoration(
-    color: theme.colorScheme.surface,
-    border: Border(
-      top: BorderSide(
-        color: theme.colorScheme.outlineVariant,
-        width: 1,
-      ),
-    ),
-  ),
-  child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: s(4),
-                vertical: s(2),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _NavigationItem(
-                      assetPath:
-                          'assets/icons/career.svg',
-                      label: 'Career',
-                      zoom: zoom,
-                      enabled: !isProcessing,
-                      onTap: onCareerTap,
-                    ),
+          // Latar dan garis atas diperluas ke atas.
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                border: Border(
+                  top: BorderSide(
+                    color: theme.colorScheme.outlineVariant,
+                    width: 1,
                   ),
-                  Expanded(
-                    child: _NavigationItem(
-                      assetPath:
-                          'assets/icons/assets.svg',
-                      label: 'Assets',
-                      zoom: zoom,
-                      enabled: !isProcessing,
-                      onTap: onAssetsTap,
-                    ),
-                  ),
-                  SizedBox(width: s(68)),
-                  Expanded(
-                    child: _NavigationItem(
-                      assetPath:
-                          'assets/icons/life.svg',
-                      label: 'Life',
-                      zoom: zoom,
-                      enabled: !isProcessing,
-                      onTap: onLifeTap,
-                    ),
-                  ),
-                  Expanded(
-                    child: _NavigationItem(
-                      assetPath:
-                          'assets/icons/more.svg',
-                      label: 'More',
-                      zoom: zoom,
-                      enabled: !isProcessing,
-                      onTap: onMoreTap,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
+
+          // Isi navigasi tetap pada posisi vertikal semula.
+          Positioned(
+            top: s(6),
+            left: 0,
+            right: 0,
+            child: SizedBox(
+              height: s(56),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: s(4),
+                  vertical: s(2),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _NavigationItem(
+                        assetPath: 'assets/icons/career.svg',
+                        label: 'Career',
+                        zoom: zoom,
+                        enabled: !isProcessing,
+                        onTap: onCareerTap,
+                      ),
+                    ),
+                    Expanded(
+                      child: _NavigationItem(
+                        assetPath: 'assets/icons/assets.svg',
+                        label: 'Assets',
+                        zoom: zoom,
+                        enabled: !isProcessing,
+                        onTap: onAssetsTap,
+                      ),
+                    ),
+                    SizedBox(width: s(68)),
+                    Expanded(
+                      child: _NavigationItem(
+                        assetPath: 'assets/icons/life.svg',
+                        label: 'Life',
+                        zoom: zoom,
+                        enabled: !isProcessing,
+                        onTap: onLifeTap,
+                      ),
+                    ),
+                    Expanded(
+                      child: _NavigationItem(
+                        assetPath: 'assets/icons/more.svg',
+                        label: 'More',
+                        zoom: zoom,
+                        enabled: !isProcessing,
+                        onTap: onMoreTap,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Posisi Age Up tetap sama.
           Positioned(
             top: -s(20),
             child: _AgeUpButton(
