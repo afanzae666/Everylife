@@ -1,4 +1,8 @@
+
 import 'package:flutter/material.dart';
+
+import '../../core/money/currency_formatter.dart';
+import '../../domain/world/country_catalog.dart';
 
 class AssetsScreen extends StatelessWidget {
   const AssetsScreen({
@@ -10,9 +14,21 @@ class AssetsScreen extends StatelessWidget {
   final dynamic player;
   final double zoom;
 
+  String _getCurrencyCode() {
+    final countryCode = player.location?.countryCode ?? '';
+    final country = CountryCatalog.findByCode(countryCode);
+
+    return country?.currencyCode ?? 'USD';
+  }
+
   @override
   Widget build(BuildContext context) {
     double s(double value) => value * zoom;
+
+    final cashValue = CurrencyFormatter.format(
+      player.money,
+      currencyCode: _getCurrencyCode(),
+    );
 
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(
@@ -33,16 +49,12 @@ class AssetsScreen extends StatelessWidget {
             children: [
               Text(
                 'Assets',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
               SizedBox(height: s(1)),
               Text(
                 'Everything your character owns.',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall,
+                style: Theme.of(context).textTheme.bodySmall,
               ),
               SizedBox(height: s(4)),
               Card(
@@ -50,19 +62,16 @@ class AssetsScreen extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.all(s(8)),
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Current Assets',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleSmall,
+                        style: Theme.of(context).textTheme.titleSmall,
                       ),
                       SizedBox(height: s(3)),
                       _AssetRow(
                         label: 'Cash',
-                        value: player.money.toString(),
+                        value: cashValue,
                         zoom: zoom,
                       ),
                       _AssetRow(
@@ -95,14 +104,11 @@ class AssetsScreen extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.all(s(8)),
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Future Asset Categories',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleSmall,
+                        style: Theme.of(context).textTheme.titleSmall,
                       ),
                       SizedBox(height: s(2)),
                       const _FutureAssetItem(
@@ -161,9 +167,7 @@ class _AssetRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall,
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
           SizedBox(width: s(6)),
@@ -172,10 +176,7 @@ class _AssetRow extends StatelessWidget {
               value,
               textAlign: TextAlign.end,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall!
-                  .copyWith(
+              style: Theme.of(context).textTheme.bodySmall!.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
             ),
