@@ -1,3 +1,4 @@
+
 import '../../core/random/seeded_random.dart';
 import '../../core/result/result.dart';
 import '../../data/repositories/save_repository.dart';
@@ -8,6 +9,7 @@ import '../../domain/time/simulation_clock.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
+import '../generation/starting_background_generator.dart';
 import '../systems/character_system.dart';
 import '../systems/simulation_system.dart';
 import '../systems/time_system.dart';
@@ -63,8 +65,7 @@ class SimulationEngine {
   Result<void> execute(
     SimulationCommand<dynamic> command,
   ) {
-    final validation =
-        _validator.validate(_state);
+    final validation = _validator.validate(_state);
 
     if (validation
         case Failure<void>(
@@ -93,8 +94,7 @@ class SimulationEngine {
   Result<void> _commit(
     WorldState nextState,
   ) {
-    final validation =
-        _validator.validate(nextState);
+    final validation = _validator.validate(nextState);
 
     if (validation
         case Failure<void>(
@@ -112,8 +112,7 @@ class SimulationEngine {
     final tick = SimulationTick(
       id: _nextTickId,
       fromYear: _state.clock.currentYear,
-      toYear:
-          _state.clock.currentYear + 1,
+      toYear: _state.clock.currentYear + 1,
     );
 
     if (!tick.isValid) {
@@ -180,8 +179,7 @@ class SimulationEngine {
     SaveSlot slot,
   ) async {
     try {
-      final data =
-          await _saveManager.loadSlot(
+      final data = await _saveManager.loadSlot(
         slot,
       );
 
@@ -191,8 +189,7 @@ class SimulationEngine {
         );
       }
 
-      final validation =
-          _validator.validate(
+      final validation = _validator.validate(
         data.state,
       );
 
@@ -211,8 +208,7 @@ class SimulationEngine {
         data.randomState,
       );
 
-      _nextTickId =
-          data.nextTickId;
+      _nextTickId = data.nextTickId;
 
       return const Success(null);
     } catch (error) {
@@ -253,12 +249,17 @@ class SimulationEngine {
       slot,
     );
   }
-  
+
   static SimulationEngine create({
     required Character player,
     required int seed,
     required SaveRepository saveRepository,
   }) {
+    final random = SeededRandom(seed);
+
+    final startingBackground =
+        StartingBackgroundGenerator.generate(random);
+
     final initialState = WorldState(
       clock: SimulationClock(
         currentYear: player.birthYear,
@@ -267,19 +268,19 @@ class SimulationEngine {
       events: [
         SimulationEvent(
           id: 'life-created',
-          type:
-              SimulationEventType.lifeCreated,
+          type: SimulationEventType.lifeCreated,
           year: player.birthYear,
           title: 'A new life begins',
           description:
               '${player.name} was born in ${player.birthYear}.',
         ),
       ],
+      startingBackground: startingBackground,
     );
 
     return SimulationEngine(
       initialState: initialState,
-      random: SeededRandom(seed),
+      random: random,
       saveRepository: saveRepository,
     );
   }
