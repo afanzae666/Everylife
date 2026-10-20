@@ -162,37 +162,43 @@ void main() {
           find.text('Marshall Royce'),
           findsOneWidget,
         );
-
-        final saved =
-            await repository.load();
+        
+        final saved = await repository.load();
 
         expect(
           saved,
           isNotNull,
         );
 
+        final savedData = saved!;
+
         expect(
-          saved!.state.player.name,
-          'Marshall Royce',
+          find.text(savedData.state.player.name),
+          findsOneWidget,
         );
 
         expect(
-          saved.state.player.firstName,
+          savedData.state.player.name,
+          savedData.state.player.fullName,
+        );
+
+        expect(
+          savedData.state.player.firstName,
           'Marshall',
         );
 
         expect(
-          saved.state.player.lastName,
+          savedData.state.player.lastName,
           'Royce',
         );
 
         expect(
-          saved.state.clock.currentYear,
-          saved.state.player.birthYear,
+          savedData.state.clock.currentYear,
+          savedData.state.player.birthYear,
         );
 
         expect(
-          saved.nextTickId,
+          savedData.nextTickId,
           1,
         );
       },
