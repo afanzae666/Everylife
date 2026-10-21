@@ -261,19 +261,19 @@ class SimulationEngine {
     final startingBackground =
         StartingBackgroundGenerator.generate(random);
 
-    final startingLifeEvent =
-        StartingLifeEventGenerator.generate(
-      random: random,
-      year: player.birthYear,
-      background: startingBackground,
-    );
-
     final familyHousehold = FamilyHouseholdGenerator.generate(
-      random: random,
-      birthYear: player.birthYear,
-      background: startingBackground,
-      familyName: player.resolvedLastName,
-    );
+  random: random,
+  birthYear: player.birthYear,
+  background: startingBackground,
+  familyName: player.resolvedLastName,
+);
+
+final startingLifeEvent = StartingLifeEventGenerator.generate(
+  random: random,
+  year: player.birthYear,
+  background: startingBackground,
+  household: familyHousehold,
+);
 
     final initialState = WorldState(
       clock: SimulationClock(
