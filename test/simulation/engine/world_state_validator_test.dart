@@ -66,6 +66,7 @@ FamilyHousehold createHousehold({
   List<ParentNpc>? parents,
   Money cashSavings = const Money.fromMinorUnits(500000),
   List<FamilyAsset> assets = const [],
+  HousingStatus housingStatus = HousingStatus.rented,
   Money monthlyLivingCosts = const Money.fromMinorUnits(100000),
   Money totalDebt = const Money.zero(),
 }) {
@@ -74,7 +75,7 @@ FamilyHousehold createHousehold({
     parents: parents ?? [createParent()],
     cashSavings: cashSavings,
     assets: assets,
-    housingStatus: HousingStatus.rented,
+    housingStatus: housingStatus,
     monthlyLivingCosts: monthlyLivingCosts,
     totalDebt: totalDebt,
   );
@@ -188,6 +189,94 @@ void main() {
       );
 
       expect(validator.validate(state).isSuccess, isTrue);
+    });
+
+    test('accepts a family-owned home with one property asset', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          housingStatus: HousingStatus.familyOwned,
+          assets: [
+            const FamilyAsset(
+              id: 'property-1',
+              name: 'Family Home',
+              type: FamilyAssetType.property,
+              value: Money.fromMinorUnits(5000000),
+            ),
+          ],
+        ),
+      );
+
+      expect(validator.validate(state).isSuccess, isTrue);
+    });
+
+    test('accepts a mortgaged home with one property asset', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          housingStatus: HousingStatus.ownedWithMortgage,
+          assets: [
+            const FamilyAsset(
+              id: 'property-1',
+              name: 'Mortgaged Home',
+              type: FamilyAssetType.property,
+              value: Money.fromMinorUnits(5000000),
+            ),
+          ],
+        ),
+      );
+
+      expect(validator.validate(state).isSuccess, isTrue);
+    });
+
+    test('rejects an owned home without a property asset', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          housingStatus: HousingStatus.familyOwned,
+        ),
+      );
+
+      expect(validator.validate(state).isFailure, isTrue);
+    });
+
+    test('rejects multiple property assets for one household home', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          housingStatus: HousingStatus.familyOwned,
+          assets: [
+            const FamilyAsset(
+              id: 'property-1',
+              name: 'Family Home',
+              type: FamilyAssetType.property,
+              value: Money.fromMinorUnits(5000000),
+            ),
+            const FamilyAsset(
+              id: 'property-2',
+              name: 'Second Home',
+              type: FamilyAssetType.property,
+              value: Money.fromMinorUnits(7000000),
+            ),
+          ],
+        ),
+      );
+
+      expect(validator.validate(state).isFailure, isTrue);
+    });
+
+    test('rejects a property asset when the household rents', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          housingStatus: HousingStatus.rented,
+          assets: [
+            const FamilyAsset(
+              id: 'property-1',
+              name: 'Unexpected Property',
+              type: FamilyAssetType.property,
+              value: Money.fromMinorUnits(5000000),
+            ),
+          ],
+        ),
+      );
+
+      expect(validator.validate(state).isFailure, isTrue);
     });
 
     test('accepts a household with two parents', () {
