@@ -1,4 +1,3 @@
-
 import '../../core/random/seeded_random.dart';
 import '../../core/result/result.dart';
 import '../../data/repositories/save_repository.dart';
@@ -9,6 +8,7 @@ import '../../domain/time/simulation_clock.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
+import '../generation/family_household_generator.dart';
 import '../generation/starting_background_generator.dart';
 import '../generation/starting_life_event_generator.dart';
 import '../systems/character_system.dart';
@@ -268,6 +268,13 @@ class SimulationEngine {
       background: startingBackground,
     );
 
+    final familyHousehold = FamilyHouseholdGenerator.generate(
+      random: random,
+      birthYear: player.birthYear,
+      background: startingBackground,
+      familyName: player.resolvedLastName,
+    );
+
     final initialState = WorldState(
       clock: SimulationClock(
         currentYear: player.birthYear,
@@ -285,6 +292,7 @@ class SimulationEngine {
         startingLifeEvent,
       ],
       startingBackground: startingBackground,
+      familyHousehold: familyHousehold,
     );
 
     return SimulationEngine(
