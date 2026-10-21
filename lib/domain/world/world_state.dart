@@ -1,7 +1,7 @@
-
 import '../character/character.dart';
 import '../character/starting_background.dart';
 import '../event/simulation_event.dart';
+import '../family/family_household.dart';
 import '../time/simulation_clock.dart';
 
 class WorldState {
@@ -10,18 +10,21 @@ class WorldState {
     required this.player,
     required this.events,
     this.startingBackground,
+    this.familyHousehold,
   });
 
   final SimulationClock clock;
   final Character player;
   final List<SimulationEvent> events;
   final StartingBackground? startingBackground;
+  final FamilyHousehold? familyHousehold;
 
   WorldState copyWith({
     SimulationClock? clock,
     Character? player,
     List<SimulationEvent>? events,
     StartingBackground? startingBackground,
+    FamilyHousehold? familyHousehold,
   }) {
     return WorldState(
       clock: clock ?? this.clock,
@@ -31,6 +34,8 @@ class WorldState {
       ),
       startingBackground:
           startingBackground ?? this.startingBackground,
+      familyHousehold:
+          familyHousehold ?? this.familyHousehold,
     );
   }
 
