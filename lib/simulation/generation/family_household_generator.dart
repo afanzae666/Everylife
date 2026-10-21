@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:everylife/core/money/money.dart';
 
 import '../../core/random/seeded_random.dart';
+import '../../domain/character/cultural_randomizer_catalog.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/starting_background.dart';
 import '../../domain/family/family_asset.dart';
@@ -15,6 +18,7 @@ class FamilyHouseholdGenerator {
     required int birthYear,
     required StartingBackground background,
     required String familyName,
+    String countryCode = 'ID',
   }) {
     final tier = background.tier;
     final householdId = 'family-household-$birthYear';
@@ -26,6 +30,7 @@ class FamilyHouseholdGenerator {
       random: random,
       birthYear: birthYear,
       familyName: normalizedFamilyName,
+      countryCode: countryCode,
       tier: tier,
     );
 
@@ -75,6 +80,7 @@ class FamilyHouseholdGenerator {
     required SeededRandom random,
     required int birthYear,
     required String familyName,
+    required String countryCode,
     required StartingBackgroundTier tier,
   }) {
     final singleParent = random.nextInt(100) < 15;
@@ -90,6 +96,7 @@ class FamilyHouseholdGenerator {
           random: random,
           birthYear: birthYear,
           familyName: familyName,
+          countryCode: countryCode,
           tier: tier,
           gender: gender,
           role: role,
@@ -103,6 +110,7 @@ class FamilyHouseholdGenerator {
         random: random,
         birthYear: birthYear,
         familyName: familyName,
+        countryCode: countryCode,
         tier: tier,
         gender: Gender.male,
         role: FamilyRole.father,
@@ -112,6 +120,7 @@ class FamilyHouseholdGenerator {
         random: random,
         birthYear: birthYear,
         familyName: familyName,
+        countryCode: countryCode,
         tier: tier,
         gender: Gender.female,
         role: FamilyRole.mother,
@@ -124,6 +133,7 @@ class FamilyHouseholdGenerator {
     required SeededRandom random,
     required int birthYear,
     required String familyName,
+    required String countryCode,
     required StartingBackgroundTier tier,
     required Gender gender,
     required FamilyRole role,
@@ -159,7 +169,11 @@ class FamilyHouseholdGenerator {
 
     return ParentNpc(
       id: id,
-      firstName: _firstName(random, gender),
+      firstName: _firstName(
+        random,
+        gender,
+        countryCode,
+      ),
       lastName: familyName,
       gender: gender,
       birthYear: birthYear - ageAtChildBirth,
@@ -353,40 +367,18 @@ class FamilyHouseholdGenerator {
     };
   }
 
-  static String _firstName(SeededRandom random, Gender gender) {
-    const maleNames = [
-      'Adi',
-      'Andi',
-      'Bima',
-      'Dimas',
-      'Raka',
-      'Arif',
-      'Bayu',
-      'Doni',
-      'Rizal',
-      'Fajar',
-      'Kevin',
-      'Daniel',
-    ];
-
-    const femaleNames = [
-      'Ayu',
-      'Dewi',
-      'Putri',
-      'Sari',
-      'Rina',
-      'Nadia',
-      'Intan',
-      'Maya',
-      'Nisa',
-      'Lina',
-      'Clara',
-      'Sarah',
-    ];
-
-    final names = gender == Gender.male ? maleNames : femaleNames;
-
-    return names[random.nextInt(names.length)];
+  static String _firstName(
+    SeededRandom random,
+    Gender gender,
+    String countryCode,
+  ) {
+    return CulturalRandomizerCatalog.randomFirstName(
+      countryCode: countryCode,
+      gender: gender,
+      random: math.Random(
+        random.nextInt(0x7fffffff),
+      ),
+    );
   }
 
   static String? _occupation(
