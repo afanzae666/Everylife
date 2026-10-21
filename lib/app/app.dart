@@ -442,7 +442,7 @@ class _LifeSimulationAppState
   SimulationEngine _createEngine(Character character) {
     final engine = SimulationEngine.create(
       player: character,
-      seed: 20260924,
+      seed: DateTime.now().microsecondsSinceEpoch,
       saveRepository: _saveRepository,
     );
 
