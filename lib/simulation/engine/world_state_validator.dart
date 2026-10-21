@@ -1,6 +1,6 @@
-
 import '../../core/result/result.dart';
 import '../../domain/family/family_household.dart';
+import '../../domain/family/parent_npc.dart';
 import '../../domain/world/world_state.dart';
 
 class WorldStateValidator {
@@ -56,8 +56,10 @@ class WorldStateValidator {
     }
 
     final household = state.familyHousehold;
+
     if (household != null) {
       final householdError = _validateHousehold(household);
+
       if (householdError != null) {
         return Failure(householdError);
       }
@@ -122,6 +124,12 @@ class WorldStateValidator {
       if (parent.monthlyIncome.minorUnits < 0) {
         return 'World state is invalid: parent income cannot be negative.';
       }
+
+      final employmentError = _validateParentEmployment(parent);
+
+      if (employmentError != null) {
+        return employmentError;
+      }
     }
 
     final assetIds = <String>{};
@@ -144,9 +152,71 @@ class WorldStateValidator {
       }
 
       final ownerNpcId = asset.ownerNpcId;
+
       if (ownerNpcId != null && !parentIds.contains(ownerNpcId)) {
         return 'World state is invalid: family asset owner "$ownerNpcId" does not exist.';
       }
+    }
+
+    return null;
+  }
+
+  String? _validateParentEmployment(ParentNpc parent) {
+    final hasIncome = parent.monthlyIncome.minorUnits > 0;
+    final occupation = parent.occupation?.trim() ?? '';
+    final hasOccupation = occupation.isNotEmpty;
+
+    if (hasIncome && parent.incomeStability == IncomeStability.none) {
+      return 'World state is invalid: parent "${parent.id}" has income '
+          'without income stability.';
+    }
+
+    if (!hasIncome && parent.incomeStability != IncomeStability.none) {
+      return 'World state is invalid: parent "${parent.id}" has income '
+          'stability without income.';
+    }
+
+    switch (parent.employmentStatus) {
+      case EmploymentStatus.employed:
+      case EmploymentStatus.selfEmployed:
+        if (!hasIncome) {
+          return 'World state is invalid: working parent "${parent.id}" '
+              'must have positive monthly income.';
+        }
+
+        if (!hasOccupation) {
+          return 'World state is invalid: working parent "${parent.id}" '
+              'must have an occupation.';
+        }
+
+        break;
+
+      case EmploymentStatus.unemployed:
+      case EmploymentStatus.homemaker:
+      case EmploymentStatus.unableToWork:
+        if (hasIncome) {
+          return 'World state is invalid: parent "${parent.id}" '
+              'cannot have work income for employment status '
+              '"${parent.employmentStatus.name}".';
+        }
+
+        if (hasOccupation) {
+          return 'World state is invalid: parent "${parent.id}" '
+              'cannot have an occupation for employment status '
+              '"${parent.employmentStatus.name}".';
+        }
+
+        break;
+
+      case EmploymentStatus.retired:
+        // Retired parents may receive pension income.
+        // The general income-stability checks above still apply.
+        if (hasOccupation) {
+          return 'World state is invalid: retired parent "${parent.id}" '
+              'cannot have a current occupation.';
+        }
+
+        break;
     }
 
     return null;
