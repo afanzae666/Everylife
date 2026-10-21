@@ -1,3 +1,4 @@
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:everylife/core/money/money.dart';
 
@@ -62,7 +63,7 @@ ParentNpc createParent({
 
 FamilyHousehold createHousehold({
   String id = 'household-1',
-  List<ParentNpc> parents = const [],
+  List<ParentNpc>? parents,
   Money cashSavings = const Money.fromMinorUnits(500000),
   List<FamilyAsset> assets = const [],
   Money monthlyLivingCosts = const Money.fromMinorUnits(100000),
@@ -70,7 +71,7 @@ FamilyHousehold createHousehold({
 }) {
   return FamilyHousehold(
     id: id,
-    parents: parents,
+    parents: parents ?? [createParent()],
     cashSavings: cashSavings,
     assets: assets,
     housingStatus: HousingStatus.rented,
@@ -84,9 +85,7 @@ void main() {
 
   group('WorldStateValidator', () {
     test('accepts a valid world state', () {
-      final result = validator.validate(
-        createState(),
-      );
+      final result = validator.validate(createState());
 
       expect(result.isSuccess, isTrue);
     });
@@ -105,9 +104,7 @@ void main() {
 
       final result = validator.validate(
         createState(
-          player: createPlayer(
-            stats: stats,
-          ),
+          player: createPlayer(stats: stats),
         ),
       );
 
@@ -116,9 +113,7 @@ void main() {
 
     test('rejects an empty player id', () {
       final result = validator.validate(
-        createState(
-          player: createPlayer(id: ''),
-        ),
+        createState(player: createPlayer(id: '')),
       );
 
       expect(result.isFailure, isTrue);
@@ -126,9 +121,7 @@ void main() {
 
     test('rejects an empty player name', () {
       final result = validator.validate(
-        createState(
-          player: createPlayer(name: ''),
-        ),
+        createState(player: createPlayer(name: '')),
       );
 
       expect(result.isFailure, isTrue);
@@ -137,9 +130,7 @@ void main() {
     test('rejects a non-positive birth year', () {
       final result = validator.validate(
         createState(
-          player: createPlayer(
-            birthYear: 0,
-          ),
+          player: createPlayer(birthYear: 0),
         ),
       );
 
@@ -147,15 +138,11 @@ void main() {
     });
 
     test('rejects a stat below zero', () {
-      const stats = CharacterStats(
-        health: -1,
-      );
+      const stats = CharacterStats(health: -1);
 
       final result = validator.validate(
         createState(
-          player: createPlayer(
-            stats: stats,
-          ),
+          player: createPlayer(stats: stats),
         ),
       );
 
@@ -163,15 +150,11 @@ void main() {
     });
 
     test('rejects a stat above one hundred', () {
-      const stats = CharacterStats(
-        health: 101,
-      );
+      const stats = CharacterStats(health: 101);
 
       final result = validator.validate(
         createState(
-          player: createPlayer(
-            stats: stats,
-          ),
+          player: createPlayer(stats: stats),
         ),
       );
 
@@ -181,9 +164,7 @@ void main() {
     test('rejects a world year before player birth year', () {
       final result = validator.validate(
         createState(
-          player: createPlayer(
-            birthYear: 2026,
-          ),
+          player: createPlayer(birthYear: 2026),
           currentYear: 2025,
         ),
       );
@@ -194,9 +175,6 @@ void main() {
     test('accepts a valid family household', () {
       final state = createState().copyWith(
         familyHousehold: createHousehold(
-          parents: [
-            createParent(),
-          ],
           assets: [
             const FamilyAsset(
               id: 'asset-1',
@@ -209,10 +187,47 @@ void main() {
         ),
       );
 
-      expect(
-        validator.validate(state).isSuccess,
-        isTrue,
+      expect(validator.validate(state).isSuccess, isTrue);
+    });
+
+    test('accepts a household with two parents', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          parents: [
+            createParent(id: 'parent-father'),
+            createParent(
+              id: 'parent-mother',
+              firstName: 'Jamie',
+            ),
+          ],
+        ),
       );
+
+      expect(validator.validate(state).isSuccess, isTrue);
+    });
+
+    test('rejects a household without parents', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          parents: [],
+        ),
+      );
+
+      expect(validator.validate(state).isFailure, isTrue);
+    });
+
+    test('rejects a household with more than two parents', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          parents: [
+            createParent(id: 'parent-1'),
+            createParent(id: 'parent-2'),
+            createParent(id: 'parent-3'),
+          ],
+        ),
+      );
+
+      expect(validator.validate(state).isFailure, isTrue);
     });
 
     test('accepts a world state without a household for legacy saves', () {
@@ -227,10 +242,7 @@ void main() {
         familyHousehold: createHousehold(id: ' '),
       );
 
-      expect(
-        validator.validate(state).isFailure,
-        isTrue,
-      );
+      expect(validator.validate(state).isFailure, isTrue);
     });
 
     test('rejects duplicate parent ids', () {
@@ -246,55 +258,37 @@ void main() {
         ),
       );
 
-      expect(
-        validator.validate(state).isFailure,
-        isTrue,
-      );
+      expect(validator.validate(state).isFailure, isTrue);
     });
 
     test('rejects an empty parent id', () {
       final state = createState().copyWith(
         familyHousehold: createHousehold(
-          parents: [
-            createParent(id: ' '),
-          ],
+          parents: [createParent(id: ' ')],
         ),
       );
 
-      expect(
-        validator.validate(state).isFailure,
-        isTrue,
-      );
+      expect(validator.validate(state).isFailure, isTrue);
     });
 
     test('rejects an empty parent name', () {
       final state = createState().copyWith(
         familyHousehold: createHousehold(
-          parents: [
-            createParent(firstName: ' '),
-          ],
+          parents: [createParent(firstName: ' ')],
         ),
       );
 
-      expect(
-        validator.validate(state).isFailure,
-        isTrue,
-      );
+      expect(validator.validate(state).isFailure, isTrue);
     });
 
     test('rejects a non-positive parent birth year', () {
       final state = createState().copyWith(
         familyHousehold: createHousehold(
-          parents: [
-            createParent(birthYear: 0),
-          ],
+          parents: [createParent(birthYear: 0)],
         ),
       );
 
-      expect(
-        validator.validate(state).isFailure,
-        isTrue,
-      );
+      expect(validator.validate(state).isFailure, isTrue);
     });
 
     test('rejects negative parent income', () {
@@ -308,10 +302,7 @@ void main() {
         ),
       );
 
-      expect(
-        validator.validate(state).isFailure,
-        isTrue,
-      );
+      expect(validator.validate(state).isFailure, isTrue);
     });
 
     test('rejects an employed parent without positive income', () {
@@ -449,7 +440,7 @@ void main() {
               firstName: 'Alex',
               lastName: 'Test',
               gender: Gender.male,
-              birthYear: 1980,
+              birthYear: 1950,
               role: FamilyRole.father,
               employmentStatus: EmploymentStatus.retired,
               monthlyIncome: const Money.fromMinorUnits(100000),
@@ -469,10 +460,7 @@ void main() {
         ),
       );
 
-      expect(
-        validator.validate(state).isFailure,
-        isTrue,
-      );
+      expect(validator.validate(state).isFailure, isTrue);
     });
 
     test('rejects negative household living costs', () {
@@ -482,10 +470,7 @@ void main() {
         ),
       );
 
-      expect(
-        validator.validate(state).isFailure,
-        isTrue,
-      );
+      expect(validator.validate(state).isFailure, isTrue);
     });
 
     test('rejects negative household debt', () {
@@ -495,10 +480,7 @@ void main() {
         ),
       );
 
-      expect(
-        validator.validate(state).isFailure,
-        isTrue,
-      );
+      expect(validator.validate(state).isFailure, isTrue);
     });
 
     test('rejects duplicate family asset ids', () {
@@ -521,10 +503,7 @@ void main() {
         ),
       );
 
-      expect(
-        validator.validate(state).isFailure,
-        isTrue,
-      );
+      expect(validator.validate(state).isFailure, isTrue);
     });
 
     test('rejects an empty family asset id', () {
@@ -541,10 +520,7 @@ void main() {
         ),
       );
 
-      expect(
-        validator.validate(state).isFailure,
-        isTrue,
-      );
+      expect(validator.validate(state).isFailure, isTrue);
     });
 
     test('rejects an empty family asset name', () {
@@ -561,10 +537,7 @@ void main() {
         ),
       );
 
-      expect(
-        validator.validate(state).isFailure,
-        isTrue,
-      );
+      expect(validator.validate(state).isFailure, isTrue);
     });
 
     test('rejects negative asset values', () {
@@ -581,18 +554,12 @@ void main() {
         ),
       );
 
-      expect(
-        validator.validate(state).isFailure,
-        isTrue,
-      );
+      expect(validator.validate(state).isFailure, isTrue);
     });
 
     test('rejects an asset owner who is not a household parent', () {
       final state = createState().copyWith(
         familyHousehold: createHousehold(
-          parents: [
-            createParent(),
-          ],
           assets: [
             const FamilyAsset(
               id: 'asset-1',
@@ -605,10 +572,7 @@ void main() {
         ),
       );
 
-      expect(
-        validator.validate(state).isFailure,
-        isTrue,
-      );
+      expect(validator.validate(state).isFailure, isTrue);
     });
   });
 }
