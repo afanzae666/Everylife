@@ -380,6 +380,42 @@ void main() {
       expect(validator.validate(state).isFailure, isTrue);
     });
 
+    test('rejects a parent born in the same year as the player', () {
+      final state = createState(
+        player: createPlayer(birthYear: 2026),
+      ).copyWith(
+        familyHousehold: createHousehold(
+          parents: [createParent(birthYear: 2026)],
+        ),
+      );
+
+      expect(validator.validate(state).isFailure, isTrue);
+    });
+
+    test('rejects a parent born after the player', () {
+      final state = createState(
+        player: createPlayer(birthYear: 2026),
+      ).copyWith(
+        familyHousehold: createHousehold(
+          parents: [createParent(birthYear: 2027)],
+        ),
+      );
+
+      expect(validator.validate(state).isFailure, isTrue);
+    });
+
+    test('accepts a parent born before the player', () {
+      final state = createState(
+        player: createPlayer(birthYear: 2026),
+      ).copyWith(
+        familyHousehold: createHousehold(
+          parents: [createParent(birthYear: 1980)],
+        ),
+      );
+
+      expect(validator.validate(state).isSuccess, isTrue);
+    });
+
     test('rejects negative parent income', () {
       final state = createState().copyWith(
         familyHousehold: createHousehold(
