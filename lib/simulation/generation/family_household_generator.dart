@@ -1,4 +1,5 @@
-import '../../core/money/money.dart';
+import 'package:everylife/core/money/money.dart';
+
 import '../../core/random/seeded_random.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/starting_background.dart';
