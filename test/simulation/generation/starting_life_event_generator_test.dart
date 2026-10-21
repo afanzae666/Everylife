@@ -21,7 +21,7 @@ void main() {
       expect(event.type, SimulationEventType.startingLifeEvent);
       expect(event.year, 2026);
       expect(event.title, isNotEmpty);
-      expect(event.description, isNotEmpty);
+      expect(event.description.length, greaterThan(150));
     });
 
     test('generates the same event for the same seed and background', () {
@@ -47,6 +47,23 @@ void main() {
       expect(second.type, first.type);
     });
 
+    test('provides detailed narratives for every background tier', () {
+      for (final tier in StartingBackgroundTier.values) {
+        final event = StartingLifeEventGenerator.generate(
+          random: SeededRandom(42),
+          year: 2026,
+          background: StartingBackground(tier: tier),
+        );
+
+        expect(event.title, isNotEmpty);
+        expect(
+          event.description.length,
+          greaterThan(150),
+          reason: 'Narrative for ${tier.name} should be detailed.',
+        );
+      }
+    });
+
     test('uses event templates associated with the background tier', () {
       final event = StartingLifeEventGenerator.generate(
         random: SeededRandom(7),
@@ -59,9 +76,9 @@ void main() {
       expect(
         event.title,
         anyOf(
-          'Born into Great Wealth',
-          'Exceptional Opportunities',
-          'A Highly Privileged Start',
+          'Born into a Powerful Family Legacy',
+          'A Name with Influence',
+          'The Next Generation of a Fortune',
         ),
       );
     });
