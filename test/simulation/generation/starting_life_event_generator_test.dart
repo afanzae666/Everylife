@@ -126,6 +126,42 @@ void main() {
       expect(event.description, contains('Middle Class'));
     });
 
+    test('uses household facts over conflicting background narratives', () {
+      final household = createHousehold(
+        monthlyLivingCosts: const Money.fromMinorUnits(7000000),
+        cashSavings: const Money.zero(),
+        housingStatus: HousingStatus.temporary,
+      );
+
+      final event = generate(
+        tier: StartingBackgroundTier.veryWealthy,
+        household: household,
+      );
+
+      expect(event.title, 'An Uncertain Place to Call Home');
+      expect(event.description, contains('Very Wealthy'));
+      expect(
+        event.description,
+        contains('income is lower than its estimated'),
+      );
+      expect(
+        event.description,
+        contains('temporary accommodation'),
+      );
+      expect(
+        event.description,
+        contains('no recorded cash savings'),
+      );
+      expect(
+        event.description,
+        isNot(contains('extraordinary resources')),
+      );
+      expect(
+        event.description,
+        isNot(contains('exceptional wealth')),
+      );
+    });
+
     test('includes parent employment and occupation details', () {
       final household = createHousehold(
         parents: const [parent, unemployedParent],
