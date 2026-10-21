@@ -1,3 +1,4 @@
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:everylife/core/random/seeded_random.dart';
@@ -143,15 +144,24 @@ void main() {
             tier: tier,
           );
 
-          expect(household.cashSavings.minorUnits, greaterThanOrEqualTo(0));
+          expect(
+            household.cashSavings.minorUnits,
+            greaterThanOrEqualTo(0),
+          );
           expect(
             household.monthlyLivingCosts.minorUnits,
             greaterThanOrEqualTo(0),
           );
-          expect(household.totalDebt.minorUnits, greaterThanOrEqualTo(0));
+          expect(
+            household.totalDebt.minorUnits,
+            greaterThanOrEqualTo(0),
+          );
 
           for (final asset in household.assets) {
-            expect(asset.value.minorUnits, greaterThanOrEqualTo(0));
+            expect(
+              asset.value.minorUnits,
+              greaterThanOrEqualTo(0),
+            );
           }
         }
       }
@@ -227,7 +237,71 @@ void main() {
 
         expect(household.id, isNotEmpty);
         expect(household.parents, isNotEmpty);
-        expect(household.monthlyIncome.minorUnits, greaterThanOrEqualTo(0));
+        expect(
+          household.monthlyIncome.minorUnits,
+          greaterThanOrEqualTo(0),
+        );
+      }
+    });
+
+    test('scales household finances with background tier', () {
+      final tiers = StartingBackgroundTier.values;
+      final averageIncome = <StartingBackgroundTier, double>{};
+      final averageSavings = <StartingBackgroundTier, double>{};
+      final averageLivingCosts = <StartingBackgroundTier, double>{};
+
+      const sampleCount = 250;
+
+      for (final tier in tiers) {
+        var totalIncome = 0;
+        var totalSavings = 0;
+        var totalLivingCosts = 0;
+
+        for (var seed = 0; seed < sampleCount; seed++) {
+          final household = generate(
+            seed: seed,
+            tier: tier,
+          );
+
+          totalIncome += household.monthlyIncome.minorUnits;
+          totalSavings += household.cashSavings.minorUnits;
+          totalLivingCosts +=
+              household.monthlyLivingCosts.minorUnits;
+        }
+
+        averageIncome[tier] = totalIncome / sampleCount;
+        averageSavings[tier] = totalSavings / sampleCount;
+        averageLivingCosts[tier] =
+            totalLivingCosts / sampleCount;
+      }
+
+      for (var index = 1; index < tiers.length; index++) {
+        final previousTier = tiers[index - 1];
+        final currentTier = tiers[index];
+
+        expect(
+          averageSavings[currentTier]!,
+          greaterThan(averageSavings[previousTier]!),
+          reason:
+              'Average savings should increase from '
+              '${previousTier.name} to ${currentTier.name}.',
+        );
+
+        expect(
+          averageLivingCosts[currentTier]!,
+          greaterThan(averageLivingCosts[previousTier]!),
+          reason:
+              'Average living costs should increase from '
+              '${previousTier.name} to ${currentTier.name}.',
+        );
+
+        expect(
+          averageIncome[currentTier]!,
+          greaterThan(averageIncome[previousTier]!),
+          reason:
+              'Average household income should increase from '
+              '${previousTier.name} to ${currentTier.name}.',
+        );
       }
     });
 
