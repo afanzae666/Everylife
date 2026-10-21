@@ -1,4 +1,3 @@
-
 import 'package:everylife/core/money/money.dart';
 
 import '../../domain/character/appearance.dart';
@@ -7,6 +6,9 @@ import '../../domain/character/character_stats.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/starting_background.dart';
 import '../../domain/event/simulation_event.dart';
+import '../../domain/family/family_asset.dart';
+import '../../domain/family/family_household.dart';
+import '../../domain/family/parent_npc.dart';
 import '../../domain/time/simulation_clock.dart';
 import '../../domain/world/character_location.dart';
 import '../../domain/world/world_state.dart';
@@ -32,6 +34,7 @@ class WorldStateSnapshot {
     required this.playerAppearance,
     this.playerLocation,
     this.playerStartingBackgroundTier,
+    this.familyHousehold,
     required this.events,
   });
 
@@ -63,6 +66,9 @@ class WorldStateSnapshot {
   /// The player's starting background tier, or null for a legacy save.
   final StartingBackgroundTier? playerStartingBackgroundTier;
 
+  /// Family data, null for legacy saves without a household.
+  final FamilyHousehold? familyHousehold;
+
   final List<SimulationEvent> events;
 
   factory WorldStateSnapshot.fromWorldState(
@@ -92,6 +98,7 @@ class WorldStateSnapshot {
       playerLocation: player.location,
       playerStartingBackgroundTier:
           state.startingBackground?.tier,
+      familyHousehold: state.familyHousehold,
       events: List.unmodifiable(state.events),
     );
   }
@@ -131,6 +138,7 @@ class WorldStateSnapshot {
               : StartingBackground(
                   tier: playerStartingBackgroundTier!,
                 ),
+      familyHousehold: familyHousehold,
     );
   }
 
@@ -177,6 +185,9 @@ class WorldStateSnapshot {
       },
       'startingBackground':
           playerStartingBackgroundTier?.name,
+      'familyHousehold': familyHousehold == null
+          ? null
+          : _familyHouseholdToJson(familyHousehold!),
       'events': events
           .map(
             (event) => {
@@ -208,10 +219,11 @@ class WorldStateSnapshot {
     final locationJson = player['location'];
     final startingBackgroundJson =
         json['startingBackground'];
+    final familyHouseholdJson = json['familyHousehold'];
     final eventsJson = json['events'];
 
     if (eventsJson is! List) {
-      throw FormatException(
+      throw const FormatException(
         'Field "events" must be a list.',
       );
     }
@@ -294,12 +306,207 @@ class WorldStateSnapshot {
               : _parseStartingBackgroundTier(
                   startingBackgroundJson,
                 ),
+      familyHousehold: familyHouseholdJson == null
+          ? null
+          : _parseFamilyHousehold(
+              familyHouseholdJson,
+            ),
       events: List.unmodifiable(
         eventsJson
             .map(
               (event) => _parseEvent(event),
             )
             .toList(growable: false),
+      ),
+    );
+  }
+
+  static Map<String, dynamic> _familyHouseholdToJson(
+    FamilyHousehold household,
+  ) {
+    return {
+      'id': household.id,
+      'cashSavingsMinorUnits':
+          household.cashSavings.minorUnits,
+      'housingStatus': household.housingStatus.name,
+      'monthlyLivingCostsMinorUnits':
+          household.monthlyLivingCosts.minorUnits,
+      'totalDebtMinorUnits': household.totalDebt.minorUnits,
+      'parents': household.parents
+          .map(
+            (parent) => {
+              'id': parent.id,
+              'firstName': parent.firstName,
+              'lastName': parent.lastName,
+              'gender': parent.gender.name,
+              'birthYear': parent.birthYear,
+              'role': parent.role.name,
+              'employmentStatus':
+                  parent.employmentStatus.name,
+              'occupation': parent.occupation,
+              'monthlyIncomeMinorUnits':
+                  parent.monthlyIncome.minorUnits,
+              'incomeStability':
+                  parent.incomeStability.name,
+            },
+          )
+          .toList(growable: false),
+      'assets': household.assets
+          .map(
+            (asset) => {
+              'id': asset.id,
+              'name': asset.name,
+              'type': asset.type.name,
+              'valueMinorUnits': asset.value.minorUnits,
+              'ownerNpcId': asset.ownerNpcId,
+            },
+          )
+          .toList(growable: false),
+    };
+  }
+
+  static FamilyHousehold _parseFamilyHousehold(
+    Object? value,
+  ) {
+    final json = _requireMap(
+      value,
+      'familyHousehold',
+    );
+    final parentsJson = json['parents'];
+    final assetsJson = json['assets'];
+
+    if (parentsJson is! List) {
+      throw const FormatException(
+        'Field "familyHousehold.parents" must be a list.',
+      );
+    }
+
+    if (assetsJson is! List) {
+      throw const FormatException(
+        'Field "familyHousehold.assets" must be a list.',
+      );
+    }
+
+    final parents = parentsJson
+        .map(
+          (value) {
+            final parent = _requireMap(
+              value,
+              'familyHousehold.parents[]',
+            );
+
+            final occupation = _optionalString(
+              parent['occupation'],
+            );
+
+            return ParentNpc(
+              id: _requireString(
+                parent['id'],
+                'parent.id',
+              ),
+              firstName: _requireString(
+                parent['firstName'],
+                'parent.firstName',
+              ),
+              lastName: _requireString(
+                parent['lastName'],
+                'parent.lastName',
+              ),
+              gender: _parseGender(
+                parent['gender'],
+              ),
+              birthYear: _requireInt(
+                parent['birthYear'],
+                'parent.birthYear',
+              ),
+              role: _parseFamilyRole(
+                parent['role'],
+              ),
+              employmentStatus: _parseEmploymentStatus(
+                parent['employmentStatus'],
+              ),
+              occupation: occupation.isEmpty
+                  ? null
+                  : occupation,
+              monthlyIncome: Money.fromMinorUnits(
+                _requireInt(
+                  parent['monthlyIncomeMinorUnits'],
+                  'parent.monthlyIncomeMinorUnits',
+                ),
+              ),
+              incomeStability: _parseIncomeStability(
+                parent['incomeStability'],
+              ),
+            );
+          },
+        )
+        .toList(growable: false);
+
+    final assets = assetsJson
+        .map(
+          (value) {
+            final asset = _requireMap(
+              value,
+              'familyHousehold.assets[]',
+            );
+
+            final ownerNpcId = _optionalString(
+              asset['ownerNpcId'],
+            );
+
+            return FamilyAsset(
+              id: _requireString(
+                asset['id'],
+                'asset.id',
+              ),
+              name: _requireString(
+                asset['name'],
+                'asset.name',
+              ),
+              type: _parseFamilyAssetType(
+                asset['type'],
+              ),
+              value: Money.fromMinorUnits(
+                _requireInt(
+                  asset['valueMinorUnits'],
+                  'asset.valueMinorUnits',
+                ),
+              ),
+              ownerNpcId: ownerNpcId.isEmpty
+                  ? null
+                  : ownerNpcId,
+            );
+          },
+        )
+        .toList(growable: false);
+
+    return FamilyHousehold(
+      id: _requireString(
+        json['id'],
+        'familyHousehold.id',
+      ),
+      parents: parents,
+      cashSavings: Money.fromMinorUnits(
+        _requireInt(
+          json['cashSavingsMinorUnits'],
+          'familyHousehold.cashSavingsMinorUnits',
+        ),
+      ),
+      assets: assets,
+      housingStatus: _parseHousingStatus(
+        json['housingStatus'],
+      ),
+      monthlyLivingCosts: Money.fromMinorUnits(
+        _requireInt(
+          json['monthlyLivingCostsMinorUnits'],
+          'familyHousehold.monthlyLivingCostsMinorUnits',
+        ),
+      ),
+      totalDebt: Money.fromMinorUnits(
+        _requireInt(
+          json['totalDebtMinorUnits'],
+          'familyHousehold.totalDebtMinorUnits',
+        ),
       ),
     );
   }
@@ -322,6 +529,76 @@ class WorldStateSnapshot {
 
     throw FormatException(
       'Unknown starting background tier: $value',
+    );
+  }
+
+  static FamilyRole _parseFamilyRole(
+    Object? value,
+  ) {
+    for (final role in FamilyRole.values) {
+      if (role.name == value) {
+        return role;
+      }
+    }
+
+    throw FormatException(
+      'Unknown family role: $value',
+    );
+  }
+
+  static EmploymentStatus _parseEmploymentStatus(
+    Object? value,
+  ) {
+    for (final status in EmploymentStatus.values) {
+      if (status.name == value) {
+        return status;
+      }
+    }
+
+    throw FormatException(
+      'Unknown employment status: $value',
+    );
+  }
+
+  static IncomeStability _parseIncomeStability(
+    Object? value,
+  ) {
+    for (final stability in IncomeStability.values) {
+      if (stability.name == value) {
+        return stability;
+      }
+    }
+
+    throw FormatException(
+      'Unknown income stability: $value',
+    );
+  }
+
+  static HousingStatus _parseHousingStatus(
+    Object? value,
+  ) {
+    for (final status in HousingStatus.values) {
+      if (status.name == value) {
+        return status;
+      }
+    }
+
+    throw FormatException(
+      'Unknown housing status: $value',
+    );
+  }
+
+  static FamilyAssetType _parseFamilyAssetType(
+    Object? value,
+  ) {
+    for (final type in FamilyAssetType.values) {
+      if (type.name == value) {
+        return type;
+      }
+    }
+
+    throw FormatException(
+      'Unknown family asset type: $value',
     );
   }
 
@@ -361,84 +638,42 @@ class WorldStateSnapshot {
       'player.appearance',
     );
 
+    final base = _optionalString(appearance['base']);
+    final skinTone = _optionalString(appearance['skinTone']);
+    final hair = _optionalString(appearance['hair']);
+    final infantHair = _optionalString(
+      appearance['infantHair'],
+    );
+    final toddlerHair = _optionalString(
+      appearance['toddlerHair'],
+    );
+    final childHair = _optionalString(
+      appearance['childHair'],
+    );
+    final hairColor = _optionalString(
+      appearance['hairColor'],
+    );
+    final eyes = _optionalString(appearance['eyes']);
+    final eyeColor = _optionalString(
+      appearance['eyeColor'],
+    );
+    final eyebrows = _optionalString(
+      appearance['eyebrows'],
+    );
+    final beard = _optionalString(appearance['beard']);
+
     return CharacterAppearance(
-      base: _optionalString(
-        appearance['base'],
-      ).isEmpty
-          ? 'default'
-          : _optionalString(
-              appearance['base'],
-            ),
-      skinTone: _optionalString(
-        appearance['skinTone'],
-      ).isEmpty
-          ? 'default'
-          : _optionalString(
-              appearance['skinTone'],
-            ),
-      hair: _optionalString(
-        appearance['hair'],
-      ).isEmpty
-          ? 'default'
-          : _optionalString(
-              appearance['hair'],
-            ),
-      infantHair: _optionalString(
-        appearance['infantHair'],
-      ).isEmpty
-          ? null
-          : _optionalString(
-              appearance['infantHair'],
-            ),
-      toddlerHair: _optionalString(
-        appearance['toddlerHair'],
-      ).isEmpty
-          ? null
-          : _optionalString(
-              appearance['toddlerHair'],
-            ),
-      childHair: _optionalString(
-        appearance['childHair'],
-      ).isEmpty
-          ? null
-          : _optionalString(
-              appearance['childHair'],
-            ),
-      hairColor: _optionalString(
-        appearance['hairColor'],
-      ).isEmpty
-          ? 'default'
-          : _optionalString(
-              appearance['hairColor'],
-            ),
-      eyes: _optionalString(
-        appearance['eyes'],
-      ).isEmpty
-          ? 'default'
-          : _optionalString(
-              appearance['eyes'],
-            ),
-      eyeColor: _optionalString(
-        appearance['eyeColor'],
-      ).isEmpty
-          ? 'default'
-          : _optionalString(
-              appearance['eyeColor'],
-            ),
-      eyebrows: _optionalString(
-        appearance['eyebrows'],
-      ).isEmpty
-          ? 'default'
-          : _optionalString(
-              appearance['eyebrows'],
-            ),
-      beard: _optionalString(
-        appearance['beard'],
-      ).isEmpty
-          ? 'none'
-          : _optionalString(
-              appearance['beard'],
-            ),
+      base: base.isEmpty ? 'default' : base,
+      skinTone: skinTone.isEmpty ? 'default' : skinTone,
+      hair: hair.isEmpty ? 'default' : hair,
+      infantHair: infantHair.isEmpty ? null : infantHair,
+      toddlerHair: toddlerHair.isEmpty ? null : toddlerHair,
+      childHair: childHair.isEmpty ? null : childHair,
+      hairColor: hairColor.isEmpty ? 'default' : hairColor,
+      eyes: eyes.isEmpty ? 'default' : eyes,
+      eyeColor: eyeColor.isEmpty ? 'default' : eyeColor,
+      eyebrows: eyebrows.isEmpty ? 'default' : eyebrows,
+      beard: beard.isEmpty ? 'none' : beard,
     );
   }
 
@@ -506,7 +741,7 @@ class WorldStateSnapshot {
   ) {
     if (value is! String) {
       throw const FormatException(
-        'Field "player.gender" must be a string.',
+        'Gender fields must be strings.',
       );
     }
 
