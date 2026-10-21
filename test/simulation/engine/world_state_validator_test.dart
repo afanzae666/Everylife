@@ -1,8 +1,13 @@
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:everylife/core/money/money.dart';
 
 import '../../../lib/domain/character/character.dart';
 import '../../../lib/domain/character/character_stats.dart';
+import '../../../lib/domain/character/gender.dart';
+import '../../../lib/domain/family/family_asset.dart';
+import '../../../lib/domain/family/family_household.dart';
+import '../../../lib/domain/family/parent_npc.dart';
 import '../../../lib/domain/time/simulation_clock.dart';
 import '../../../lib/domain/world/world_state.dart';
 import '../../../lib/simulation/engine/world_state_validator.dart';
@@ -32,6 +37,46 @@ WorldState createState({
     ),
     player: player ?? createPlayer(),
     events: const [],
+  );
+}
+
+ParentNpc createParent({
+  String id = 'parent-1',
+  String firstName = 'Alex',
+  String lastName = 'Test',
+  int birthYear = 1980,
+  Money monthlyIncome = const Money.fromMinorUnits(200000),
+}) {
+  return ParentNpc(
+    id: id,
+    firstName: firstName,
+    lastName: lastName,
+    gender: Gender.male,
+    birthYear: birthYear,
+    role: FamilyRole.father,
+    employmentStatus: EmploymentStatus.employed,
+    monthlyIncome: monthlyIncome,
+    incomeStability: IncomeStability.stable,
+    occupation: 'Worker',
+  );
+}
+
+FamilyHousehold createHousehold({
+  String id = 'household-1',
+  List<ParentNpc> parents = const [],
+  Money cashSavings = const Money.fromMinorUnits(500000),
+  List<FamilyAsset> assets = const [],
+  Money monthlyLivingCosts = const Money.fromMinorUnits(100000),
+  Money totalDebt = const Money.zero(),
+}) {
+  return FamilyHousehold(
+    id: id,
+    parents: parents,
+    cashSavings: cashSavings,
+    assets: assets,
+    housingStatus: HousingStatus.rented,
+    monthlyLivingCosts: monthlyLivingCosts,
+    totalDebt: totalDebt,
   );
 }
 
@@ -145,6 +190,278 @@ void main() {
       );
 
       expect(result.isFailure, isTrue);
+    });
+
+    test('accepts a valid family household', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          parents: [
+            createParent(),
+          ],
+          assets: [
+            const FamilyAsset(
+              id: 'asset-1',
+              name: 'Family Car',
+              type: FamilyAssetType.vehicle,
+              value: Money.fromMinorUnits(1000000),
+              ownerNpcId: 'parent-1',
+            ),
+          ],
+        ),
+      );
+
+      expect(
+        validator.validate(state).isSuccess,
+        isTrue,
+      );
+    });
+
+    test('accepts a world state without a household for legacy saves', () {
+      expect(
+        validator.validate(createState()).isSuccess,
+        isTrue,
+      );
+    });
+
+    test('rejects an empty household id', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(id: ' '),
+      );
+
+      expect(
+        validator.validate(state).isFailure,
+        isTrue,
+      );
+    });
+
+    test('rejects duplicate parent ids', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          parents: [
+            createParent(id: 'parent-1'),
+            createParent(
+              id: 'parent-1',
+              firstName: 'Jamie',
+            ),
+          ],
+        ),
+      );
+
+      expect(
+        validator.validate(state).isFailure,
+        isTrue,
+      );
+    });
+
+    test('rejects an empty parent id', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          parents: [
+            createParent(id: ' '),
+          ],
+        ),
+      );
+
+      expect(
+        validator.validate(state).isFailure,
+        isTrue,
+      );
+    });
+
+    test('rejects an empty parent name', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          parents: [
+            createParent(firstName: ' '),
+          ],
+        ),
+      );
+
+      expect(
+        validator.validate(state).isFailure,
+        isTrue,
+      );
+    });
+
+    test('rejects a non-positive parent birth year', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          parents: [
+            createParent(birthYear: 0),
+          ],
+        ),
+      );
+
+      expect(
+        validator.validate(state).isFailure,
+        isTrue,
+      );
+    });
+
+    test('rejects negative parent income', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          parents: [
+            createParent(
+              monthlyIncome: const Money.fromMinorUnits(-1),
+            ),
+          ],
+        ),
+      );
+
+      expect(
+        validator.validate(state).isFailure,
+        isTrue,
+      );
+    });
+
+    test('rejects negative household savings', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          cashSavings: const Money.fromMinorUnits(-1),
+        ),
+      );
+
+      expect(
+        validator.validate(state).isFailure,
+        isTrue,
+      );
+    });
+
+    test('rejects negative household living costs', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          monthlyLivingCosts: const Money.fromMinorUnits(-1),
+        ),
+      );
+
+      expect(
+        validator.validate(state).isFailure,
+        isTrue,
+      );
+    });
+
+    test('rejects negative household debt', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          totalDebt: const Money.fromMinorUnits(-1),
+        ),
+      );
+
+      expect(
+        validator.validate(state).isFailure,
+        isTrue,
+      );
+    });
+
+    test('rejects duplicate family asset ids', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          assets: [
+            const FamilyAsset(
+              id: 'asset-1',
+              name: 'Car',
+              type: FamilyAssetType.vehicle,
+              value: Money.fromMinorUnits(100),
+            ),
+            const FamilyAsset(
+              id: 'asset-1',
+              name: 'House',
+              type: FamilyAssetType.property,
+              value: Money.fromMinorUnits(200),
+            ),
+          ],
+        ),
+      );
+
+      expect(
+        validator.validate(state).isFailure,
+        isTrue,
+      );
+    });
+
+    test('rejects an empty family asset id', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          assets: [
+            const FamilyAsset(
+              id: ' ',
+              name: 'Car',
+              type: FamilyAssetType.vehicle,
+              value: Money.fromMinorUnits(100),
+            ),
+          ],
+        ),
+      );
+
+      expect(
+        validator.validate(state).isFailure,
+        isTrue,
+      );
+    });
+
+    test('rejects an empty family asset name', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          assets: [
+            const FamilyAsset(
+              id: 'asset-1',
+              name: ' ',
+              type: FamilyAssetType.vehicle,
+              value: Money.fromMinorUnits(100),
+            ),
+          ],
+        ),
+      );
+
+      expect(
+        validator.validate(state).isFailure,
+        isTrue,
+      );
+    });
+
+    test('rejects negative asset values', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          assets: [
+            const FamilyAsset(
+              id: 'asset-1',
+              name: 'Car',
+              type: FamilyAssetType.vehicle,
+              value: Money.fromMinorUnits(-1),
+            ),
+          ],
+        ),
+      );
+
+      expect(
+        validator.validate(state).isFailure,
+        isTrue,
+      );
+    });
+
+    test('rejects an asset owner who is not a household parent', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          parents: [
+            createParent(),
+          ],
+          assets: [
+            const FamilyAsset(
+              id: 'asset-1',
+              name: 'Car',
+              type: FamilyAssetType.vehicle,
+              value: Money.fromMinorUnits(100),
+              ownerNpcId: 'missing-parent',
+            ),
+          ],
+        ),
+      );
+
+      expect(
+        validator.validate(state).isFailure,
+        isTrue,
+      );
     });
   });
 }
