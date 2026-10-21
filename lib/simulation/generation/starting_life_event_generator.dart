@@ -261,7 +261,6 @@ class StartingLifeEventGenerator {
       description: _householdEventDescription(
         household,
         background: background,
-        template: template,
       ),
     );
   }
@@ -299,7 +298,6 @@ class StartingLifeEventGenerator {
   static String _householdEventDescription(
     FamilyHousehold household, {
     required StartingBackground background,
-    required _EventTemplate template,
   }) {
     final parentDescriptions = household.parents.map((parent) {
       final occupation = parent.occupation;
@@ -322,7 +320,7 @@ class StartingLifeEventGenerator {
       return '${parent.fullName} $employmentDescription.';
     }).join(' ');
 
-    final parentsDescription = parentDescriptions.isEmpty
+    final parentsDescription = household.parents.isEmpty
         ? 'No parent or guardian employment details are recorded.'
         : parentDescriptions;
 
@@ -372,7 +370,9 @@ class StartingLifeEventGenerator {
         ? 'The household has recorded outstanding debt.'
         : 'No outstanding household debt is recorded.';
 
-    return '${template.description} '
+    return 'Your early circumstances are shaped by the household '
+        'you were born into. The details below reflect the family '
+        'situation recorded at the beginning of your life. '
         'Your starting background is classified as '
         '${background.label}. '
         '$parentsDescription '
