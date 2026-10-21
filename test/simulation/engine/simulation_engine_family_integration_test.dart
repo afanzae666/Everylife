@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:everylife/data/repositories/save_repository.dart';
 import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/event/simulation_event.dart';
-import 'package:everylife/domain/family/family_household.dart';
 import 'package:everylife/simulation/engine/simulation_engine.dart';
 
 void main() {
