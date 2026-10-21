@@ -1,5 +1,6 @@
 
 import '../../core/result/result.dart';
+import '../../domain/family/family_asset.dart';
 import '../../domain/family/family_household.dart';
 import '../../domain/family/parent_npc.dart';
 import '../../domain/world/world_state.dart';
@@ -142,6 +143,7 @@ class WorldStateValidator {
     }
 
     final assetIds = <String>{};
+    var propertyAssetCount = 0;
 
     for (final asset in household.assets) {
       if (asset.id.trim().isEmpty) {
@@ -160,11 +162,31 @@ class WorldStateValidator {
         return 'World state is invalid: family asset value cannot be negative.';
       }
 
+      if (asset.type == FamilyAssetType.property) {
+        propertyAssetCount++;
+      }
+
       final ownerNpcId = asset.ownerNpcId;
 
       if (ownerNpcId != null && !parentIds.contains(ownerNpcId)) {
         return 'World state is invalid: family asset owner "$ownerNpcId" does not exist.';
       }
+    }
+
+    final householdOwnsHome =
+        household.housingStatus == HousingStatus.familyOwned ||
+        household.housingStatus == HousingStatus.ownedWithMortgage;
+
+    if (householdOwnsHome && propertyAssetCount == 0) {
+      return 'World state is invalid: household ownership status requires a property asset.';
+    }
+
+    if (householdOwnsHome && propertyAssetCount > 1) {
+      return 'World state is invalid: household ownership status cannot have multiple property assets.';
+    }
+
+    if (!householdOwnsHome && propertyAssetCount > 0) {
+      return 'World state is invalid: household has a property asset but does not own its home.';
     }
 
     return null;
