@@ -1,7 +1,7 @@
-
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:everylife/core/random/seeded_random.dart';
+import 'package:everylife/domain/character/gender.dart';
 import 'package:everylife/domain/character/starting_background.dart';
 import 'package:everylife/domain/family/family_asset.dart';
 import 'package:everylife/domain/family/family_household.dart';
@@ -13,12 +13,14 @@ void main() {
     required int seed,
     required StartingBackgroundTier tier,
     int birthYear = 2026,
+    String countryCode = 'ID',
   }) {
     return FamilyHouseholdGenerator.generate(
       random: SeededRandom(seed),
       birthYear: birthYear,
       background: StartingBackground(tier: tier),
       familyName: 'Santoso',
+      countryCode: countryCode,
     );
   }
 
@@ -102,6 +104,78 @@ void main() {
           expect(parent.birthYear, inInclusiveRange(1981, 2004));
         }
       }
+    });
+
+    test('generates parent names from the selected country', () {
+      const chineseMaleNames = {
+        'Wei',
+        'Jun',
+        'Hao',
+        'Ming',
+        'Jian',
+        'Lei',
+      };
+
+      const chineseFemaleNames = {
+        'Mei',
+        'Xinyi',
+        'Jing',
+        'Yan',
+        'Lina',
+        'Yuting',
+      };
+
+      for (var seed = 0; seed < 100; seed++) {
+        final household = FamilyHouseholdGenerator.generate(
+          random: SeededRandom(seed),
+          birthYear: 2026,
+          background: const StartingBackground(
+            tier: StartingBackgroundTier.middleClass,
+          ),
+          familyName: 'Wang',
+          countryCode: 'CN',
+        );
+
+        for (final parent in household.parents) {
+          expect(parent.lastName, 'Wang');
+
+          if (parent.gender == Gender.male) {
+            expect(
+              chineseMaleNames,
+              contains(parent.firstName),
+            );
+          } else {
+            expect(
+              chineseFemaleNames,
+              contains(parent.firstName),
+            );
+          }
+        }
+      }
+    });
+
+    test('keeps country-aware parent names deterministic', () {
+      final first = FamilyHouseholdGenerator.generate(
+        random: SeededRandom(12345),
+        birthYear: 2026,
+        background: const StartingBackground(
+          tier: StartingBackgroundTier.middleClass,
+        ),
+        familyName: 'Wang',
+        countryCode: 'CN',
+      );
+
+      final second = FamilyHouseholdGenerator.generate(
+        random: SeededRandom(12345),
+        birthYear: 2026,
+        background: const StartingBackground(
+          tier: StartingBackgroundTier.middleClass,
+        ),
+        familyName: 'Wang',
+        countryCode: 'CN',
+      );
+
+      expect(signature(first), signature(second));
     });
 
     test('keeps income and employment status consistent', () {
@@ -265,14 +339,12 @@ void main() {
 
           totalIncome += household.monthlyIncome.minorUnits;
           totalSavings += household.cashSavings.minorUnits;
-          totalLivingCosts +=
-              household.monthlyLivingCosts.minorUnits;
+          totalLivingCosts += household.monthlyLivingCosts.minorUnits;
         }
 
         averageIncome[tier] = totalIncome / sampleCount;
         averageSavings[tier] = totalSavings / sampleCount;
-        averageLivingCosts[tier] =
-            totalLivingCosts / sampleCount;
+        averageLivingCosts[tier] = totalLivingCosts / sampleCount;
       }
 
       for (var index = 1; index < tiers.length; index++) {
