@@ -1,5 +1,6 @@
 
 import '../../core/result/result.dart';
+import '../../domain/family/family_household.dart';
 import '../../domain/world/world_state.dart';
 
 class WorldStateValidator {
@@ -56,9 +57,9 @@ class WorldStateValidator {
 
     final household = state.familyHousehold;
     if (household != null) {
-      final householdResult = _validateHousehold(household);
-      if (householdResult != null) {
-        return Failure(householdResult);
+      final householdError = _validateHousehold(household);
+      if (householdError != null) {
+        return Failure(householdError);
       }
     }
 
@@ -81,7 +82,7 @@ class WorldStateValidator {
     return const Success(null);
   }
 
-  String? _validateHousehold(dynamic household) {
+  String? _validateHousehold(FamilyHousehold household) {
     if (household.id.trim().isEmpty) {
       return 'World state is invalid: household id cannot be empty.';
     }
