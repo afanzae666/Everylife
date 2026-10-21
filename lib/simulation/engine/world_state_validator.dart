@@ -60,7 +60,10 @@ class WorldStateValidator {
     final household = state.familyHousehold;
 
     if (household != null) {
-      final householdError = _validateHousehold(household);
+      final householdError = _validateHousehold(
+        household,
+        playerBirthYear: player.birthYear,
+      );
 
       if (householdError != null) {
         return Failure(householdError);
@@ -86,7 +89,10 @@ class WorldStateValidator {
     return const Success(null);
   }
 
-  String? _validateHousehold(FamilyHousehold household) {
+  String? _validateHousehold(
+    FamilyHousehold household, {
+    required int playerBirthYear,
+  }) {
     if (household.id.trim().isEmpty) {
       return 'World state is invalid: household id cannot be empty.';
     }
@@ -129,6 +135,10 @@ class WorldStateValidator {
 
       if (parent.birthYear <= 0) {
         return 'World state is invalid: parent birth year must be positive.';
+      }
+
+      if (parent.birthYear >= playerBirthYear) {
+        return 'World state is invalid: parent "${parent.id}" must be born before the player.';
       }
 
       if (parent.monthlyIncome.minorUnits < 0) {
