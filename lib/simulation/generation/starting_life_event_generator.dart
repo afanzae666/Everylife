@@ -1,7 +1,8 @@
-
 import '../../core/random/seeded_random.dart';
 import '../../domain/character/starting_background.dart';
 import '../../domain/event/simulation_event.dart';
+import '../../domain/family/family_household.dart';
+import '../../domain/family/parent_npc.dart';
 
 class StartingLifeEventGenerator {
   const StartingLifeEventGenerator._();
@@ -225,6 +226,7 @@ class StartingLifeEventGenerator {
     required SeededRandom random,
     required int year,
     required StartingBackground background,
+    FamilyHousehold? household,
   }) {
     final templates = _templates[background.tier];
 
@@ -237,13 +239,150 @@ class StartingLifeEventGenerator {
 
     final template = templates[random.nextInt(templates.length)];
 
+    if (household == null) {
+      return SimulationEvent(
+        id: 'starting-life-event-$year',
+        type: SimulationEventType.startingLifeEvent,
+        year: year,
+        title: template.title,
+        description: template.description,
+      );
+    }
+
     return SimulationEvent(
       id: 'starting-life-event-$year',
       type: SimulationEventType.startingLifeEvent,
       year: year,
-      title: template.title,
-      description: template.description,
+      title: _householdEventTitle(
+        household,
+        fallbackTitle: template.title,
+      ),
+      description: _householdEventDescription(
+        household,
+        background: background,
+        template: template,
+      ),
     );
+  }
+
+  static String _householdEventTitle(
+    FamilyHousehold household, {
+    required String fallbackTitle,
+  }) {
+    if (household.housingStatus == HousingStatus.homeless) {
+      return 'A Family Without Stable Housing';
+    }
+
+    if (household.housingStatus == HousingStatus.temporary) {
+      return 'An Uncertain Place to Call Home';
+    }
+
+    if (household.monthlyIncome.minorUnits <
+        household.monthlyLivingCosts.minorUnits) {
+      return 'A Family Facing Financial Pressure';
+    }
+
+    if (household.assets.any(
+      (asset) => asset.type == FamilyAssetType.business,
+    )) {
+      return 'A Family with Business Interests';
+    }
+
+    if (household.cashSavings.minorUnits == 0) {
+      return 'A Family Building Financial Security';
+    }
+
+    return fallbackTitle;
+  }
+
+  static String _householdEventDescription(
+    FamilyHousehold household, {
+    required StartingBackground background,
+    required _EventTemplate template,
+  }) {
+    final parentDescriptions = household.parents.map((parent) {
+      final occupation = parent.occupation;
+
+      final employmentDescription = switch (parent.employmentStatus) {
+        EmploymentStatus.employed =>
+          occupation == null || occupation.trim().isEmpty
+              ? 'works as an employee'
+              : 'works as a $occupation',
+        EmploymentStatus.selfEmployed =>
+          occupation == null || occupation.trim().isEmpty
+              ? 'works independently'
+              : 'is self-employed as a $occupation',
+        EmploymentStatus.unemployed => 'is currently unemployed',
+        EmploymentStatus.retired => 'is retired',
+        EmploymentStatus.homemaker => 'takes care of the household',
+        EmploymentStatus.unableToWork => 'is unable to work',
+      };
+
+      return '${parent.fullName} $employmentDescription.';
+    }).join(' ');
+
+    final parentsDescription = parentDescriptions.isEmpty
+        ? 'No parent or guardian employment details are recorded.'
+        : parentDescriptions;
+
+    final incomeDescription =
+        household.monthlyIncome.minorUnits == 0
+            ? 'The household currently has no recorded monthly income.'
+            : household.monthlyIncome.minorUnits <
+                    household.monthlyLivingCosts.minorUnits
+                ? 'The household income is lower than its estimated '
+                    'monthly living costs, creating financial pressure.'
+                : household.monthlyIncome.minorUnits ==
+                        household.monthlyLivingCosts.minorUnits
+                    ? 'The household income matches its estimated '
+                        'monthly living costs, leaving little room '
+                        'for unexpected expenses.'
+                    : 'The household income covers its estimated '
+                        'monthly living costs, although other '
+                        'obligations may affect its financial flexibility.';
+
+    final housingDescription = switch (household.housingStatus) {
+      HousingStatus.rented =>
+        'The family lives in rented housing.',
+      HousingStatus.familyOwned =>
+        'The family lives in a home owned by the family.',
+      HousingStatus.ownedWithMortgage =>
+        'The family lives in a home financed with a mortgage.',
+      HousingStatus.temporary =>
+        'The family lives in temporary accommodation.',
+      HousingStatus.providedByOthers =>
+        'The family accommodation is provided by others.',
+      HousingStatus.homeless =>
+        'The family currently has no stable housing.',
+    };
+
+    final savingsDescription =
+        household.cashSavings.minorUnits == 0
+            ? 'The household has no recorded cash savings.'
+            : 'The household has recorded cash savings.';
+
+    final assetDescription = household.assets.isEmpty
+        ? 'No additional family assets are recorded.'
+        : 'The household has ${household.assets.length} recorded '
+            'family assets: '
+            '${household.assets.map((asset) => asset.name).join(', ')}.';
+
+    final debtDescription = household.totalDebt.minorUnits > 0
+        ? 'The household has recorded outstanding debt.'
+        : 'No outstanding household debt is recorded.';
+
+    return '${template.description} '
+        'Your starting background is classified as '
+        '${background.label}. '
+        '$parentsDescription '
+        '$housingDescription '
+        '$incomeDescription '
+        '$savingsDescription '
+        '$assetDescription '
+        '$debtDescription '
+        'These circumstances influence the opportunities and '
+        'challenges around your childhood, but they do not determine '
+        'the person you will become.';
   }
 }
 
