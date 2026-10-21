@@ -1,3 +1,4 @@
+
 import '../../core/result/result.dart';
 import '../../domain/family/family_household.dart';
 import '../../domain/family/parent_npc.dart';
@@ -87,6 +88,14 @@ class WorldStateValidator {
   String? _validateHousehold(FamilyHousehold household) {
     if (household.id.trim().isEmpty) {
       return 'World state is invalid: household id cannot be empty.';
+    }
+
+    if (household.parents.isEmpty) {
+      return 'World state is invalid: household must have at least one parent.';
+    }
+
+    if (household.parents.length > 2) {
+      return 'World state is invalid: household cannot have more than two parents.';
     }
 
     if (household.cashSavings.minorUnits < 0) {
