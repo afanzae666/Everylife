@@ -3,6 +3,7 @@ import '../../domain/character/starting_background.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/family/family_household.dart';
 import '../../domain/family/parent_npc.dart';
+import '../../domain/family/family_asset.dart';
 
 class StartingLifeEventGenerator {
   const StartingLifeEventGenerator._();
