@@ -288,7 +288,7 @@ class CharacterProfileScreen extends StatelessWidget {
                 height: s(4),
               ),
 
-                            _WealthRow(
+              _WealthRow(
                 label: 'Total Assets',
                 value: _formatMoney(character.totalAssets),
                 zoom: zoom,
