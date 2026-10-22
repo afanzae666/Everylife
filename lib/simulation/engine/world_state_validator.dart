@@ -29,6 +29,50 @@ class WorldStateValidator {
       );
     }
 
+    if (player.money.minorUnits < 0) {
+      return const Failure(
+        'World state is invalid: player money cannot be negative.',
+      );
+    }
+
+    if (player.debt.minorUnits < 0) {
+      return const Failure(
+        'World state is invalid: player debt cannot be negative.',
+      );
+    }
+
+    final playerAssetIds = <String>{};
+
+    for (final asset in player.assets) {
+      final assetId = asset.id.trim();
+
+      if (assetId.isEmpty) {
+        return const Failure(
+          'World state is invalid: player asset id cannot be empty.',
+        );
+      }
+
+      if (!playerAssetIds.add(assetId)) {
+        return Failure(
+          'World state is invalid: duplicate player asset id "${asset.id}".',
+        );
+      }
+
+      if (asset.name.trim().isEmpty) {
+        return Failure(
+          'World state is invalid: player asset "${asset.id}" '
+          'name cannot be empty.',
+        );
+      }
+
+      if (asset.value.minorUnits < 0) {
+        return Failure(
+          'World state is invalid: player asset "${asset.id}" '
+          'value cannot be negative.',
+        );
+      }
+    }
+
     final stats = player.stats;
 
     final invalidStats = <String, int>{
@@ -73,9 +117,29 @@ class WorldStateValidator {
     final eventIds = <String>{};
 
     for (final event in state.events) {
-      if (!eventIds.add(event.id)) {
+      final eventId = event.id.trim();
+
+      if (eventId.isEmpty) {
+        return const Failure(
+          'World state is invalid: event id cannot be empty.',
+        );
+      }
+
+      if (!eventIds.add(eventId)) {
         return Failure(
           'World state is invalid: duplicate event id "${event.id}".',
+        );
+      }
+
+      if (event.year <= 0) {
+        return Failure(
+          'World state is invalid: event "${event.id}" year must be positive.',
+        );
+      }
+
+      if (event.title.trim().isEmpty) {
+        return Failure(
+          'World state is invalid: event "${event.id}" title cannot be empty.',
         );
       }
 
@@ -124,7 +188,7 @@ class WorldStateValidator {
         return 'World state is invalid: parent id cannot be empty.';
       }
 
-      if (!parentIds.add(parent.id)) {
+      if (!parentIds.add(parent.id.trim())) {
         return 'World state is invalid: duplicate parent id "${parent.id}".';
       }
 
@@ -160,7 +224,7 @@ class WorldStateValidator {
         return 'World state is invalid: family asset id cannot be empty.';
       }
 
-      if (!assetIds.add(asset.id)) {
+      if (!assetIds.add(asset.id.trim())) {
         return 'World state is invalid: duplicate family asset id "${asset.id}".';
       }
 
@@ -178,7 +242,7 @@ class WorldStateValidator {
 
       final ownerNpcId = asset.ownerNpcId;
 
-      if (ownerNpcId != null && !parentIds.contains(ownerNpcId)) {
+      if (ownerNpcId != null && !parentIds.contains(ownerNpcId.trim())) {
         return 'World state is invalid: family asset owner "$ownerNpcId" does not exist.';
       }
     }
