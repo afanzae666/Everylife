@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:everylife/core/money/money.dart';
 import 'package:everylife/data/repositories/json_save_repository.dart';
+import 'package:everylife/data/repositories/save_repository.dart';
 import 'package:everylife/data/storage/json_save_storage.dart';
 import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/character/character_stats.dart';
