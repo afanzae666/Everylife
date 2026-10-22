@@ -434,8 +434,8 @@ return {
 'cashSavingsMinorUnits':
 household.cashSavings.minorUnits,
 'housingStatus': household.housingStatus.name,
-'monthlyLivingCostsMinorUnits':
-household.monthlyLivingCosts.minorUnits,
+'annualLivingCostsMinorUnits':
+household.annualLivingCosts.minorUnits,
 'totalDebtMinorUnits': household.totalDebt.minorUnits,
 'parents': household.parents
 .map(
@@ -449,8 +449,8 @@ household.monthlyLivingCosts.minorUnits,
 'employmentStatus':
 parent.employmentStatus.name,
 'occupation': parent.occupation,
-'monthlyIncomeMinorUnits':
-parent.monthlyIncome.minorUnits,
+'annualIncomeMinorUnits':
+parent.annualIncome.minorUnits,
 'incomeStability':
 parent.incomeStability.name,
 },
@@ -533,11 +533,17 @@ final parents = parentsJson
           occupation: occupation.isEmpty
               ? null
               : occupation,
-          monthlyIncome: Money.fromMinorUnits(
-            _requireInt(
-              parent['monthlyIncomeMinorUnits'],
-              'parent.monthlyIncomeMinorUnits',
-            ),
+          annualIncome: Money.fromMinorUnits(
+            parent.containsKey('annualIncomeMinorUnits')
+                ? _requireInt(
+                    parent['annualIncomeMinorUnits'],
+                    'parent.annualIncomeMinorUnits',
+                  )
+                : _requireInt(
+                      parent['monthlyIncomeMinorUnits'],
+                      'parent.monthlyIncomeMinorUnits',
+                    ) *
+                    12,
           ),
           incomeStability: _parseIncomeStability(
             parent['incomeStability'],
@@ -601,11 +607,17 @@ return FamilyHousehold(
   housingStatus: _parseHousingStatus(
     json['housingStatus'],
   ),
-  monthlyLivingCosts: Money.fromMinorUnits(
-    _requireInt(
-      json['monthlyLivingCostsMinorUnits'],
-      'familyHousehold.monthlyLivingCostsMinorUnits',
-    ),
+  annualLivingCosts: Money.fromMinorUnits(
+    json.containsKey('annualLivingCostsMinorUnits')
+        ? _requireInt(
+            json['annualLivingCostsMinorUnits'],
+            'familyHousehold.annualLivingCostsMinorUnits',
+          )
+        : _requireInt(
+              json['monthlyLivingCostsMinorUnits'],
+              'familyHousehold.monthlyLivingCostsMinorUnits',
+            ) *
+            12,
   ),
   totalDebt: Money.fromMinorUnits(
     _requireInt(
