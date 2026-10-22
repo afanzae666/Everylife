@@ -109,7 +109,7 @@ class WorldStateValidator {
       return 'World state is invalid: household cash savings cannot be negative.';
     }
 
-    if (household.monthlyLivingCosts.minorUnits < 0) {
+    if (household.annualLivingCosts.minorUnits < 0) {
       return 'World state is invalid: household living costs cannot be negative.';
     }
 
@@ -141,7 +141,7 @@ class WorldStateValidator {
         return 'World state is invalid: parent "${parent.id}" must be born before the player.';
       }
 
-      if (parent.monthlyIncome.minorUnits < 0) {
+      if (parent.annualIncome.minorUnits < 0) {
         return 'World state is invalid: parent income cannot be negative.';
       }
 
@@ -203,7 +203,7 @@ class WorldStateValidator {
   }
 
   String? _validateParentEmployment(ParentNpc parent) {
-    final hasIncome = parent.monthlyIncome.minorUnits > 0;
+    final hasIncome = parent.annualIncome.minorUnits > 0;
     final occupation = parent.occupation?.trim() ?? '';
     final hasOccupation = occupation.isNotEmpty;
 
@@ -222,7 +222,7 @@ class WorldStateValidator {
       case EmploymentStatus.selfEmployed:
         if (!hasIncome) {
           return 'World state is invalid: working parent "${parent.id}" '
-              'must have positive monthly income.';
+              'must have positive annual income.';
         }
 
         if (!hasOccupation) {
