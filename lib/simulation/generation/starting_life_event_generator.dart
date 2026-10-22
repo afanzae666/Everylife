@@ -277,8 +277,8 @@ class StartingLifeEventGenerator {
       return 'An Uncertain Place to Call Home';
     }
 
-    if (household.monthlyIncome.minorUnits <
-        household.monthlyLivingCosts.minorUnits) {
+    if (household.annualIncome.minorUnits <
+        household.annualLivingCosts.minorUnits) {
       return 'A Family Facing Financial Pressure';
     }
 
@@ -325,19 +325,19 @@ class StartingLifeEventGenerator {
         : parentDescriptions;
 
     final incomeDescription =
-        household.monthlyIncome.minorUnits == 0
-            ? 'The household currently has no recorded monthly income.'
-            : household.monthlyIncome.minorUnits <
-                    household.monthlyLivingCosts.minorUnits
+        household.annualIncome.minorUnits == 0
+            ? 'The household currently has no recorded annual income.'
+            : household.annualIncome.minorUnits <
+                    household.annualLivingCosts.minorUnits
                 ? 'The household income is lower than its estimated '
-                    'monthly living costs, creating financial pressure.'
-                : household.monthlyIncome.minorUnits ==
-                        household.monthlyLivingCosts.minorUnits
+                    'annual living costs, creating financial pressure.'
+                : household.annualIncome.minorUnits ==
+                        household.annualLivingCosts.minorUnits
                     ? 'The household income matches its estimated '
-                        'monthly living costs, leaving little room '
+                        'annual living costs, leaving little room '
                         'for unexpected expenses.'
                     : 'The household income covers its estimated '
-                        'monthly living costs, although other '
+                        'annual living costs, although other '
                         'obligations may affect its financial flexibility.';
 
     final housingDescription = switch (household.housingStatus) {
