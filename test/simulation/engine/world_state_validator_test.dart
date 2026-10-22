@@ -5,9 +5,11 @@ import 'package:everylife/core/money/money.dart';
 import '../../../lib/domain/character/character.dart';
 import '../../../lib/domain/character/character_stats.dart';
 import '../../../lib/domain/character/gender.dart';
+import '../../../lib/domain/character/player_asset.dart';
 import '../../../lib/domain/family/family_asset.dart';
 import '../../../lib/domain/family/family_household.dart';
 import '../../../lib/domain/family/parent_npc.dart';
+import '../../../lib/domain/event/simulation_event.dart';
 import '../../../lib/domain/time/simulation_clock.dart';
 import '../../../lib/domain/world/world_state.dart';
 import '../../../lib/simulation/engine/world_state_validator.dart';
@@ -17,26 +19,32 @@ Character createPlayer({
   String name = 'Test Player',
   int birthYear = 2026,
   CharacterStats stats = const CharacterStats(),
+  Money money = const Money.zero(),
+  List<PlayerAsset> assets = const [],
+  Money debt = const Money.zero(),
 }) {
   return Character(
     id: id,
     name: name,
     birthYear: birthYear,
     stats: stats,
-    money: const Money.zero(),
+    money: money,
+    assets: assets,
+    debt: debt,
   );
 }
 
 WorldState createState({
   Character? player,
   int currentYear = 2026,
+  List<SimulationEvent> events = const [],
 }) {
   return WorldState(
     clock: SimulationClock(
       currentYear: currentYear,
     ),
     player: player ?? createPlayer(),
-    events: const [],
+    events: events,
   );
 }
 
@@ -162,11 +170,253 @@ void main() {
       expect(result.isFailure, isTrue);
     });
 
+    test('rejects negative player money', () {
+      final result = validator.validate(
+        createState(
+          player: createPlayer(
+            money: const Money.fromMinorUnits(-1),
+          ),
+        ),
+      );
+
+      expect(result.isFailure, isTrue);
+    });
+
+    test('rejects negative player debt', () {
+      final result = validator.validate(
+        createState(
+          player: createPlayer(
+            debt: const Money.fromMinorUnits(-1),
+          ),
+        ),
+      );
+
+      expect(result.isFailure, isTrue);
+    });
+
+    test('rejects a player asset with an empty id', () {
+      final result = validator.validate(
+        createState(
+          player: createPlayer(
+            assets: [
+              const PlayerAsset(
+                id: ' ',
+                name: 'Car',
+                type: PlayerAssetType.vehicle,
+                value: Money.fromMinorUnits(100),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      expect(result.isFailure, isTrue);
+    });
+
+    test('rejects duplicate player asset ids', () {
+      final result = validator.validate(
+        createState(
+          player: createPlayer(
+            assets: [
+              const PlayerAsset(
+                id: 'asset-1',
+                name: 'Car',
+                type: PlayerAssetType.vehicle,
+                value: Money.fromMinorUnits(100),
+              ),
+              const PlayerAsset(
+                id: ' asset-1 ',
+                name: 'Motorcycle',
+                type: PlayerAssetType.vehicle,
+                value: Money.fromMinorUnits(200),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      expect(result.isFailure, isTrue);
+    });
+
+    test('rejects a player asset with an empty name', () {
+      final result = validator.validate(
+        createState(
+          player: createPlayer(
+            assets: [
+              const PlayerAsset(
+                id: 'asset-1',
+                name: ' ',
+                type: PlayerAssetType.vehicle,
+                value: Money.fromMinorUnits(100),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      expect(result.isFailure, isTrue);
+    });
+
+    test('rejects a player asset with a negative value', () {
+      final result = validator.validate(
+        createState(
+          player: createPlayer(
+            assets: [
+              const PlayerAsset(
+                id: 'asset-1',
+                name: 'Car',
+                type: PlayerAssetType.vehicle,
+                value: Money.fromMinorUnits(-1),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      expect(result.isFailure, isTrue);
+    });
+
+    test('accepts a valid player asset and financial balances', () {
+      final result = validator.validate(
+        createState(
+          player: createPlayer(
+            money: const Money.fromMinorUnits(500),
+            debt: const Money.fromMinorUnits(200),
+            assets: [
+              const PlayerAsset(
+                id: 'asset-1',
+                name: 'Car',
+                type: PlayerAssetType.vehicle,
+                value: Money.fromMinorUnits(1000),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      expect(result.isSuccess, isTrue);
+    });
+
     test('rejects a world year before player birth year', () {
       final result = validator.validate(
         createState(
           player: createPlayer(birthYear: 2026),
           currentYear: 2025,
+        ),
+      );
+
+      expect(result.isFailure, isTrue);
+    });
+
+    test('accepts a valid event in the current year', () {
+      final result = validator.validate(
+        createState(
+          events: [
+            const SimulationEvent(
+              id: 'event-1',
+              type: SimulationEventType.lifeCreated,
+              year: 2026,
+              title: 'A new life begins',
+              description: 'The simulation starts.',
+            ),
+          ],
+        ),
+      );
+
+      expect(result.isSuccess, isTrue);
+    });
+
+    test('rejects an event from a future year', () {
+      final result = validator.validate(
+        createState(
+          events: [
+            const SimulationEvent(
+              id: 'event-future',
+              type: SimulationEventType.randomEvent,
+              year: 2027,
+              title: 'A future event',
+              description: 'This event has not happened yet.',
+            ),
+          ],
+        ),
+      );
+
+      expect(result.isFailure, isTrue);
+    });
+
+    test('rejects an event with an empty id', () {
+      final result = validator.validate(
+        createState(
+          events: [
+            const SimulationEvent(
+              id: ' ',
+              type: SimulationEventType.lifeCreated,
+              year: 2026,
+              title: 'A new life begins',
+              description: 'The simulation starts.',
+            ),
+          ],
+        ),
+      );
+
+      expect(result.isFailure, isTrue);
+    });
+
+    test('rejects duplicate event ids after trimming whitespace', () {
+      final result = validator.validate(
+        createState(
+          events: [
+            const SimulationEvent(
+              id: 'event-1',
+              type: SimulationEventType.lifeCreated,
+              year: 2026,
+              title: 'First event',
+              description: 'First description.',
+            ),
+            const SimulationEvent(
+              id: ' event-1 ',
+              type: SimulationEventType.randomEvent,
+              year: 2026,
+              title: 'Second event',
+              description: 'Second description.',
+            ),
+          ],
+        ),
+      );
+
+      expect(result.isFailure, isTrue);
+    });
+
+    test('rejects an event with a non-positive year', () {
+      final result = validator.validate(
+        createState(
+          events: [
+            const SimulationEvent(
+              id: 'event-1',
+              type: SimulationEventType.lifeCreated,
+              year: 0,
+              title: 'A new life begins',
+              description: 'The simulation starts.',
+            ),
+          ],
+        ),
+      );
+
+      expect(result.isFailure, isTrue);
+    });
+
+    test('rejects an event with an empty title', () {
+      final result = validator.validate(
+        createState(
+          events: [
+            const SimulationEvent(
+              id: 'event-1',
+              type: SimulationEventType.lifeCreated,
+              year: 2026,
+              title: ' ',
+              description: 'The simulation starts.',
+            ),
+          ],
         ),
       );
 
@@ -354,6 +604,22 @@ void main() {
       final state = createState().copyWith(
         familyHousehold: createHousehold(
           parents: [createParent(id: ' ')],
+        ),
+      );
+
+      expect(validator.validate(state).isFailure, isTrue);
+    });
+
+    test('rejects duplicate parent ids after trimming whitespace', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          parents: [
+            createParent(id: 'parent-1'),
+            createParent(
+              id: ' parent-1 ',
+              firstName: 'Jamie',
+            ),
+          ],
         ),
       );
 
@@ -622,6 +888,29 @@ void main() {
               id: 'asset-1',
               name: 'House',
               type: FamilyAssetType.property,
+              value: Money.fromMinorUnits(200),
+            ),
+          ],
+        ),
+      );
+
+      expect(validator.validate(state).isFailure, isTrue);
+    });
+
+    test('rejects duplicate family asset ids after trimming whitespace', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          assets: [
+            const FamilyAsset(
+              id: 'asset-1',
+              name: 'Car',
+              type: FamilyAssetType.vehicle,
+              value: Money.fromMinorUnits(100),
+            ),
+            const FamilyAsset(
+              id: ' asset-1 ',
+              name: 'Motorcycle',
+              type: FamilyAssetType.vehicle,
               value: Money.fromMinorUnits(200),
             ),
           ],
