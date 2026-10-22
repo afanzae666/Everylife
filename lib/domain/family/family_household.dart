@@ -20,7 +20,7 @@ class FamilyHousehold {
     required this.cashSavings,
     required List<FamilyAsset> assets,
     required this.housingStatus,
-    required this.monthlyLivingCosts,
+    required this.annualLivingCosts,
     required this.totalDebt,
   })  : parents = List.unmodifiable(parents),
         assets = List.unmodifiable(assets);
@@ -34,16 +34,16 @@ class FamilyHousehold {
   final List<FamilyAsset> assets;
   final HousingStatus housingStatus;
 
-  /// Estimated household living costs per month.
-  final Money monthlyLivingCosts;
+  /// Estimated household living costs per year.
+  final Money annualLivingCosts;
 
   /// Combined household debt at the starting point.
   final Money totalDebt;
 
-  Money get monthlyIncome {
+  Money get annualIncome {
     return parents.fold(
       const Money.zero(),
-      (total, parent) => total + parent.monthlyIncome,
+      (total, parent) => total + parent.annualIncome,
     );
   }
 
@@ -58,7 +58,7 @@ class FamilyHousehold {
     return totalAssetValue - totalDebt;
   }
 
-  Money get monthlySurplus {
-    return monthlyIncome - monthlyLivingCosts;
+  Money get annualSurplus {
+    return annualIncome - annualLivingCosts;
   }
 }
