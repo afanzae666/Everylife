@@ -18,7 +18,7 @@ void main() {
         role: FamilyRole.father,
         employmentStatus: EmploymentStatus.employed,
         occupation: 'Teacher',
-        monthlyIncome: Money.fromMinorUnits(5000000),
+        annualIncome: Money.fromMinorUnits(5000000),
         incomeStability: IncomeStability.stable,
       );
 
@@ -34,7 +34,7 @@ void main() {
         birthYear: 1978,
         role: FamilyRole.mother,
         employmentStatus: EmploymentStatus.homemaker,
-        monthlyIncome: Money.zero(),
+        annualIncome: Money.zero(),
         incomeStability: IncomeStability.none,
       );
 
@@ -52,7 +52,7 @@ void main() {
         role: FamilyRole.mother,
         employmentStatus: EmploymentStatus.selfEmployed,
         occupation: 'Shop owner',
-        monthlyIncome: Money.fromMinorUnits(2500000),
+        annualIncome: Money.fromMinorUnits(2500000),
         incomeStability: IncomeStability.variable,
       );
 
@@ -102,7 +102,7 @@ void main() {
       role: FamilyRole.father,
       employmentStatus: EmploymentStatus.employed,
       occupation: 'Teacher',
-      monthlyIncome: Money.fromMinorUnits(5000000),
+      annualIncome: Money.fromMinorUnits(5000000),
       incomeStability: IncomeStability.stable,
     );
 
@@ -115,7 +115,7 @@ void main() {
       role: FamilyRole.mother,
       employmentStatus: EmploymentStatus.selfEmployed,
       occupation: 'Food seller',
-      monthlyIncome: Money.fromMinorUnits(2000000),
+      annualIncome: Money.fromMinorUnits(2000000),
       incomeStability: IncomeStability.variable,
     );
 
@@ -134,12 +134,12 @@ void main() {
         cashSavings: const Money.fromMinorUnits(3000000),
         assets: const [car],
         housingStatus: HousingStatus.ownedWithMortgage,
-        monthlyLivingCosts: const Money.fromMinorUnits(4000000),
+        annualLivingCosts: const Money.fromMinorUnits(4000000),
         totalDebt: const Money.fromMinorUnits(5000000),
       );
 
       expect(
-        household.monthlyIncome,
+        household.annualIncome,
         const Money.fromMinorUnits(7000000),
       );
     });
@@ -151,7 +151,7 @@ void main() {
         cashSavings: const Money.fromMinorUnits(3000000),
         assets: const [car],
         housingStatus: HousingStatus.rented,
-        monthlyLivingCosts: const Money.fromMinorUnits(4000000),
+        annualLivingCosts: const Money.fromMinorUnits(4000000),
         totalDebt: const Money.fromMinorUnits(5000000),
       );
 
@@ -168,7 +168,7 @@ void main() {
         cashSavings: const Money.fromMinorUnits(3000000),
         assets: const [car],
         housingStatus: HousingStatus.ownedWithMortgage,
-        monthlyLivingCosts: const Money.fromMinorUnits(4000000),
+        annualLivingCosts: const Money.fromMinorUnits(4000000),
         totalDebt: const Money.fromMinorUnits(5000000),
       );
 
@@ -178,19 +178,19 @@ void main() {
       );
     });
 
-    test('calculates monthly surplus or deficit', () {
+    test('calculates annual surplus or deficit', () {
       final household = FamilyHousehold(
         id: 'household-4',
         parents: const [father, mother],
         cashSavings: const Money.fromMinorUnits(3000000),
         assets: const [car],
         housingStatus: HousingStatus.rented,
-        monthlyLivingCosts: const Money.fromMinorUnits(4000000),
+        annualLivingCosts: const Money.fromMinorUnits(4000000),
         totalDebt: const Money.fromMinorUnits(5000000),
       );
 
       expect(
-        household.monthlySurplus,
+        household.annualSurplus,
         const Money.fromMinorUnits(3000000),
       );
 
@@ -200,12 +200,12 @@ void main() {
         cashSavings: const Money.zero(),
         assets: const [],
         housingStatus: HousingStatus.temporary,
-        monthlyLivingCosts: const Money.fromMinorUnits(6000000),
+        annualLivingCosts: const Money.fromMinorUnits(6000000),
         totalDebt: const Money.fromMinorUnits(1000000),
       );
 
       expect(
-        strugglingHousehold.monthlySurplus,
+        strugglingHousehold.annualSurplus,
         const Money.fromMinorUnits(-1000000),
       );
     });
@@ -217,12 +217,12 @@ void main() {
         cashSavings: const Money.zero(),
         assets: const [],
         housingStatus: HousingStatus.providedByOthers,
-        monthlyLivingCosts: const Money.zero(),
+        annualLivingCosts: const Money.zero(),
         totalDebt: const Money.zero(),
       );
 
       expect(
-        household.monthlyIncome,
+        household.annualIncome,
         const Money.zero(),
       );
       expect(
@@ -234,7 +234,7 @@ void main() {
         const Money.zero(),
       );
       expect(
-        household.monthlySurplus,
+        household.annualSurplus,
         const Money.zero(),
       );
     });
@@ -246,7 +246,7 @@ void main() {
         cashSavings: const Money.zero(),
         assets: const [car],
         housingStatus: HousingStatus.familyOwned,
-        monthlyLivingCosts: const Money.fromMinorUnits(1000000),
+        annualLivingCosts: const Money.fromMinorUnits(1000000),
         totalDebt: const Money.zero(),
       );
 
