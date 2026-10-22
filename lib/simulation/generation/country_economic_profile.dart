@@ -111,7 +111,7 @@ class CountryEconomicProfile {
         'Must not be negative.',
       );
     }
-
+  }
     if (range.$2 < 0) {
       throw ArgumentError.value(
         range.$2,
