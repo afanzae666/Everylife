@@ -45,7 +45,7 @@ ParentNpc createParent({
   String firstName = 'Alex',
   String lastName = 'Test',
   int birthYear = 1980,
-  Money monthlyIncome = const Money.fromMinorUnits(200000),
+  Money annualIncome = const Money.fromMinorUnits(200000),
 }) {
   return ParentNpc(
     id: id,
@@ -55,7 +55,7 @@ ParentNpc createParent({
     birthYear: birthYear,
     role: FamilyRole.father,
     employmentStatus: EmploymentStatus.employed,
-    monthlyIncome: monthlyIncome,
+    annualIncome: annualIncome,
     incomeStability: IncomeStability.stable,
     occupation: 'Worker',
   );
@@ -67,7 +67,7 @@ FamilyHousehold createHousehold({
   Money cashSavings = const Money.fromMinorUnits(500000),
   List<FamilyAsset> assets = const [],
   HousingStatus housingStatus = HousingStatus.rented,
-  Money monthlyLivingCosts = const Money.fromMinorUnits(100000),
+  Money annualLivingCosts = const Money.fromMinorUnits(100000),
   Money totalDebt = const Money.zero(),
 }) {
   return FamilyHousehold(
@@ -76,7 +76,7 @@ FamilyHousehold createHousehold({
     cashSavings: cashSavings,
     assets: assets,
     housingStatus: housingStatus,
-    monthlyLivingCosts: monthlyLivingCosts,
+    annualLivingCosts: annualLivingCosts,
     totalDebt: totalDebt,
   );
 }
@@ -421,7 +421,7 @@ void main() {
         familyHousehold: createHousehold(
           parents: [
             createParent(
-              monthlyIncome: const Money.fromMinorUnits(-1),
+              annualIncome: const Money.fromMinorUnits(-1),
             ),
           ],
         ),
@@ -435,7 +435,7 @@ void main() {
         familyHousehold: createHousehold(
           parents: [
             createParent(
-              monthlyIncome: const Money.zero(),
+              annualIncome: const Money.zero(),
             ),
           ],
         ),
@@ -456,7 +456,7 @@ void main() {
               birthYear: 1980,
               role: FamilyRole.father,
               employmentStatus: EmploymentStatus.employed,
-              monthlyIncome: const Money.fromMinorUnits(200000),
+              annualIncome: const Money.fromMinorUnits(200000),
               incomeStability: IncomeStability.stable,
             ),
           ],
@@ -478,7 +478,7 @@ void main() {
               birthYear: 1980,
               role: FamilyRole.father,
               employmentStatus: EmploymentStatus.employed,
-              monthlyIncome: const Money.fromMinorUnits(200000),
+              annualIncome: const Money.fromMinorUnits(200000),
               incomeStability: IncomeStability.none,
               occupation: 'Worker',
             ),
@@ -501,7 +501,7 @@ void main() {
               birthYear: 1980,
               role: FamilyRole.father,
               employmentStatus: EmploymentStatus.unemployed,
-              monthlyIncome: const Money.fromMinorUnits(200000),
+              annualIncome: const Money.fromMinorUnits(200000),
               incomeStability: IncomeStability.stable,
             ),
           ],
@@ -523,7 +523,7 @@ void main() {
               birthYear: 1980,
               role: FamilyRole.father,
               employmentStatus: EmploymentStatus.homemaker,
-              monthlyIncome: const Money.zero(),
+              annualIncome: const Money.zero(),
               incomeStability: IncomeStability.none,
               occupation: 'Worker',
             ),
@@ -546,7 +546,7 @@ void main() {
               birthYear: 1950,
               role: FamilyRole.father,
               employmentStatus: EmploymentStatus.retired,
-              monthlyIncome: const Money.fromMinorUnits(100000),
+              annualIncome: const Money.fromMinorUnits(100000),
               incomeStability: IncomeStability.stable,
             ),
           ],
@@ -568,7 +568,7 @@ void main() {
               birthYear: 1950,
               role: FamilyRole.father,
               employmentStatus: EmploymentStatus.retired,
-              monthlyIncome: const Money.fromMinorUnits(100000),
+              annualIncome: const Money.fromMinorUnits(100000),
               incomeStability: IncomeStability.none,
             ),
           ],
@@ -591,7 +591,7 @@ void main() {
     test('rejects negative household living costs', () {
       final state = createState().copyWith(
         familyHousehold: createHousehold(
-          monthlyLivingCosts: const Money.fromMinorUnits(-1),
+          annualLivingCosts: const Money.fromMinorUnits(-1),
         ),
       );
 
