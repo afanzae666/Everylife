@@ -133,4 +133,4 @@ class CountryEconomicProfile {
       scaleAmount(range.$2),
     );
   }
-  
+}
