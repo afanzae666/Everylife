@@ -150,25 +150,25 @@ String _housingDescription(HousingStatus status) {
 }
 
 String _incomeDescription(FamilyHousehold household) {
-  final income = household.monthlyIncome.minorUnits;
-  final costs = household.monthlyLivingCosts.minorUnits;
+  final income = household.annualIncome.minorUnits;
+  final costs = household.annualLivingCosts.minorUnits;
 
   if (income == 0) {
-    return 'The household currently has no recorded monthly income.';
+    return 'The household currently has no recorded annual income.';
   }
 
   if (income < costs) {
     return 'The household income is lower than its estimated '
-        'monthly living costs, creating financial pressure.';
+        'annual living costs, creating financial pressure.';
   }
 
   if (income == costs) {
     return 'The household income matches its estimated '
-        'monthly living costs, leaving little room '
+        'annual living costs, leaving little room '
         'for unexpected expenses.';
   }
 
   return 'The household income covers its estimated '
-      'monthly living costs, although other '
+      'annual living costs, although other '
       'obligations may affect its financial flexibility.';
 }
