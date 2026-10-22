@@ -99,11 +99,37 @@ class CountryEconomicProfile {
         neutralBasisPoints;
   }
 
-  /// Scales both ends of a range while preserving its order.
+    /// Scales both ends of a valid non-negative range.
+  ///
+  /// Throws [ArgumentError] when either bound is negative or
+  /// the minimum is greater than the maximum.
   (int, int) scaleRange((int, int) range) {
+    if (range.$1 < 0) {
+      throw ArgumentError.value(
+        range.$1,
+        'range minimum',
+        'Must not be negative.',
+      );
+    }
+
+    if (range.$2 < 0) {
+      throw ArgumentError.value(
+        range.$2,
+        'range maximum',
+        'Must not be negative.',
+      );
+    }
+
+    if (range.$1 > range.$2) {
+      throw ArgumentError.value(
+        range,
+        'range',
+        'Minimum must not exceed maximum.',
+      );
+    }
+
     return (
       scaleAmount(range.$1),
       scaleAmount(range.$2),
     );
   }
-}
