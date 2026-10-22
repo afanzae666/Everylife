@@ -40,7 +40,7 @@ void main() {
               role: FamilyRole.father,
               employmentStatus: EmploymentStatus.employed,
               occupation: 'Teacher',
-              monthlyIncome: Money.fromMinorUnits(450000),
+              annualIncome: Money.fromMinorUnits(450000),
               incomeStability: IncomeStability.stable,
             ),
             ParentNpc(
@@ -52,7 +52,7 @@ void main() {
               role: FamilyRole.mother,
               employmentStatus: EmploymentStatus.unemployed,
               occupation: null,
-              monthlyIncome: Money.zero(),
+              annualIncome: Money.zero(),
               incomeStability: IncomeStability.none,
             ),
           ],
@@ -80,7 +80,7 @@ void main() {
             ),
           ],
           housingStatus: HousingStatus.ownedWithMortgage,
-          monthlyLivingCosts: const Money.fromMinorUnits(390000),
+          annualLivingCosts: const Money.fromMinorUnits(390000),
           totalDebt: const Money.fromMinorUnits(5200000),
         );
 
@@ -121,15 +121,15 @@ void main() {
         expect(restored.housingStatus, household.housingStatus);
         expect(restored.cashSavings, household.cashSavings);
         expect(
-          restored.monthlyLivingCosts,
-          household.monthlyLivingCosts,
+          restored.annualLivingCosts,
+          household.annualLivingCosts,
         );
         expect(restored.totalDebt, household.totalDebt);
 
-        expect(restored.monthlyIncome, household.monthlyIncome);
+        expect(restored.annualIncome, household.annualIncome);
         expect(restored.totalAssetValue, household.totalAssetValue);
         expect(restored.netWorth, household.netWorth);
-        expect(restored.monthlySurplus, household.monthlySurplus);
+        expect(restored.annualSurplus, household.annualSurplus);
 
         expect(restored.parents, hasLength(2));
 
@@ -144,7 +144,7 @@ void main() {
         expect(father.employmentStatus, EmploymentStatus.employed);
         expect(father.occupation, 'Teacher');
         expect(
-          father.monthlyIncome,
+          father.annualIncome,
           const Money.fromMinorUnits(450000),
         );
         expect(father.incomeStability, IncomeStability.stable);
@@ -160,7 +160,7 @@ void main() {
         expect(mother.role, FamilyRole.mother);
         expect(mother.employmentStatus, EmploymentStatus.unemployed);
         expect(mother.occupation, isNull);
-        expect(mother.monthlyIncome, const Money.zero());
+        expect(mother.annualIncome, const Money.zero());
         expect(mother.incomeStability, IncomeStability.none);
         expect(mother.hasIncome, isFalse);
 
@@ -218,7 +218,7 @@ void main() {
             cashSavings: const Money.fromMinorUnits(100000),
             assets: const [],
             housingStatus: HousingStatus.rented,
-            monthlyLivingCosts: const Money.fromMinorUnits(20000),
+            annualLivingCosts: const Money.fromMinorUnits(20000),
             totalDebt: const Money.zero(),
           ),
         );
