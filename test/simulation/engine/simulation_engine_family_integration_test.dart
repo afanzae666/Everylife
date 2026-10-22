@@ -135,8 +135,8 @@ void main() {
         originalHousehold.cashSavings,
       );
       expect(
-        restoredHousehold.monthlyLivingCosts,
-        originalHousehold.monthlyLivingCosts,
+        restoredHousehold.annualLivingCosts,
+        originalHousehold.annualLivingCosts,
       );
       expect(
         restoredHousehold.totalDebt,
@@ -180,8 +180,8 @@ void main() {
         firstHousehold.cashSavings,
       );
       expect(
-        secondHousehold.monthlyLivingCosts,
-        firstHousehold.monthlyLivingCosts,
+        secondHousehold.annualLivingCosts,
+        firstHousehold.annualLivingCosts,
       );
       expect(
         secondHousehold.totalDebt,
@@ -209,8 +209,8 @@ void main() {
           firstParent.employmentStatus,
         );
         expect(
-          secondParent.monthlyIncome,
-          firstParent.monthlyIncome,
+          secondParent.annualIncome,
+          firstParent.annualIncome,
         );
       }
     });
