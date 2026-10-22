@@ -34,7 +34,7 @@ class ParentNpc {
     required this.birthYear,
     required this.role,
     required this.employmentStatus,
-    required this.monthlyIncome,
+    required this.annualIncome,
     required this.incomeStability,
     this.occupation,
   });
@@ -48,7 +48,10 @@ class ParentNpc {
 
   final EmploymentStatus employmentStatus;
   final String? occupation;
-  final Money monthlyIncome;
+
+  /// Total income earned in one full year.
+  final Money annualIncome;
+
   final IncomeStability incomeStability;
 
   String get fullName {
@@ -59,6 +62,6 @@ class ParentNpc {
   }
 
   bool get hasIncome {
-    return monthlyIncome.minorUnits > 0;
+    return annualIncome.minorUnits > 0;
   }
 }
