@@ -29,7 +29,7 @@ void main() {
             role: FamilyRole.father,
             employmentStatus: EmploymentStatus.employed,
             occupation: 'Teacher',
-            monthlyIncome: Money.fromMinorUnits(450000),
+            annualIncome: Money.fromMinorUnits(450000),
             incomeStability: IncomeStability.stable,
           ),
           ParentNpc(
@@ -41,7 +41,7 @@ void main() {
             role: FamilyRole.mother,
             employmentStatus: EmploymentStatus.unemployed,
             occupation: null,
-            monthlyIncome: Money.zero(),
+            annualIncome: Money.zero(),
             incomeStability: IncomeStability.none,
           ),
         ],
@@ -69,7 +69,7 @@ void main() {
           ),
         ],
         housingStatus: HousingStatus.ownedWithMortgage,
-        monthlyLivingCosts: Money.fromMinorUnits(390000),
+        annualLivingCosts: Money.fromMinorUnits(390000),
         totalDebt: Money.fromMinorUnits(5200000),
       );
 
@@ -93,6 +93,29 @@ void main() {
       final decodedJson =
           jsonDecode(encodedJson) as Map<String, dynamic>;
 
+      final serializedHousehold =
+          decodedJson['familyHousehold'] as Map<String, dynamic>;
+      expect(
+        serializedHousehold.containsKey('annualLivingCostsMinorUnits'),
+        isTrue,
+      );
+      expect(
+        serializedHousehold.containsKey('monthlyLivingCostsMinorUnits'),
+        isFalse,
+      );
+      final serializedParents =
+          serializedHousehold['parents'] as List<dynamic>;
+      final serializedFather =
+          serializedParents.first as Map<String, dynamic>;
+      expect(
+        serializedFather.containsKey('annualIncomeMinorUnits'),
+        isTrue,
+      );
+      expect(
+        serializedFather.containsKey('monthlyIncomeMinorUnits'),
+        isFalse,
+      );
+
       final restoredState =
           WorldStateSnapshot.fromJson(decodedJson).toWorldState();
 
@@ -103,14 +126,14 @@ void main() {
       expect(restored.housingStatus, originalHousehold.housingStatus);
       expect(restored.cashSavings, originalHousehold.cashSavings);
       expect(
-        restored.monthlyLivingCosts,
-        originalHousehold.monthlyLivingCosts,
+        restored.annualLivingCosts,
+        originalHousehold.annualLivingCosts,
       );
       expect(restored.totalDebt, originalHousehold.totalDebt);
-      expect(restored.monthlyIncome, originalHousehold.monthlyIncome);
+      expect(restored.annualIncome, originalHousehold.annualIncome);
       expect(restored.totalAssetValue, originalHousehold.totalAssetValue);
       expect(restored.netWorth, originalHousehold.netWorth);
-      expect(restored.monthlySurplus, originalHousehold.monthlySurplus);
+      expect(restored.annualSurplus, originalHousehold.annualSurplus);
 
       expect(restored.parents, hasLength(originalHousehold.parents.length));
 
@@ -129,7 +152,7 @@ void main() {
         expect(actual.role, expected.role);
         expect(actual.employmentStatus, expected.employmentStatus);
         expect(actual.occupation, expected.occupation);
-        expect(actual.monthlyIncome, expected.monthlyIncome);
+        expect(actual.annualIncome, expected.annualIncome);
         expect(actual.incomeStability, expected.incomeStability);
         expect(actual.hasIncome, expected.hasIncome);
       }
@@ -148,6 +171,67 @@ void main() {
         expect(actual.value, expected.value);
         expect(actual.ownerNpcId, expected.ownerNpcId);
       }
+    });
+
+    test('migrates legacy monthly household values to annual values', () {
+      final household = FamilyHousehold(
+        id: 'legacy-family-household',
+        parents: const [
+          ParentNpc(
+            id: 'legacy-parent',
+            firstName: 'Alex',
+            lastName: 'Morgan',
+            gender: Gender.male,
+            birthYear: 1980,
+            role: FamilyRole.father,
+            employmentStatus: EmploymentStatus.employed,
+            occupation: 'Teacher',
+            annualIncome: Money.fromMinorUnits(120000),
+            incomeStability: IncomeStability.stable,
+          ),
+        ],
+        cashSavings: Money.fromMinorUnits(50000),
+        assets: const [],
+        housingStatus: HousingStatus.rented,
+        annualLivingCosts: Money.fromMinorUnits(240000),
+        totalDebt: Money.fromMinorUnits(10000),
+      );
+      final state = WorldState(
+        clock: const SimulationClock(currentYear: 2026),
+        player: Character(
+          id: 'legacy-player-with-family',
+          name: 'Legacy Player',
+          birthYear: 2000,
+          stats: const CharacterStats(),
+          money: Money.zero(),
+        ),
+        events: const [],
+        familyHousehold: household,
+      );
+      final snapshot = WorldStateSnapshot.fromWorldState(state);
+      final json = jsonDecode(jsonEncode(snapshot.toJson()))
+          as Map<String, dynamic>;
+      final householdJson =
+          json['familyHousehold'] as Map<String, dynamic>;
+      householdJson.remove('annualLivingCostsMinorUnits');
+      householdJson['monthlyLivingCostsMinorUnits'] = 20000;
+      final parents = householdJson['parents'] as List<dynamic>;
+      final parent = parents.single as Map<String, dynamic>;
+      parent.remove('annualIncomeMinorUnits');
+      parent['monthlyIncomeMinorUnits'] = 10000;
+
+      final restored =
+          WorldStateSnapshot.fromJson(json).toWorldState();
+      expect(
+        restored.familyHousehold!.annualLivingCosts,
+        Money.fromMinorUnits(240000),
+      );
+      expect(
+        restored.familyHousehold!.parents.single.annualIncome,
+        Money.fromMinorUnits(120000),
+      );
+      expect(restored.familyHousehold!.cashSavings, Money.fromMinorUnits(50000));
+      expect(restored.familyHousehold!.totalDebt, Money.fromMinorUnits(10000));
     });
 
     test('preserves a legacy world state without a household', () {
