@@ -46,16 +46,16 @@ class FamilyHouseholdGenerator {
       _savingsRange(tier).$2,
     );
 
-    final countryEconomicProfile =
-    CountryEconomicProfile.forCountryCode(countryCode);
-final countryLivingCostRange =
-    countryEconomicProfile.scaleRange(_annualLivingCostRange(tier));
+        final countryEconomicProfile =
+        CountryEconomicProfile.forCountryCode(countryCode);
+    final countryLivingCostRange =
+        countryEconomicProfile.scaleRange(_annualLivingCostRange(tier));
 
-final annualLivingCosts = _moneyBetween(
-  random,
-  countryLivingCostRange.$1,
-  countryLivingCostRange.$2,
-);
+    final annualLivingCosts = _moneyBetween(
+      random,
+      countryLivingCostRange.$1,
+      countryLivingCostRange.$2,
+    );
 
     final totalDebt = _moneyBetween(
       random,
