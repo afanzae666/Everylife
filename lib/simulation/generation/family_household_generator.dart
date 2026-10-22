@@ -49,9 +49,9 @@ class FamilyHouseholdGenerator {
     final countryEconomicProfile =
     CountryEconomicProfile.forCountryCode(countryCode);
 final countryLivingCostRange =
-    countryEconomicProfile.scaleRange(_livingCostRange(tier));
+    countryEconomicProfile.scaleRange(_annualLivingCostRange(tier));
 
-final monthlyLivingCosts = _moneyBetween(
+final annualLivingCosts = _moneyBetween(
   random,
   countryLivingCostRange.$1,
   countryLivingCostRange.$2,
@@ -77,7 +77,7 @@ final monthlyLivingCosts = _moneyBetween(
       cashSavings: cashSavings,
       assets: assets,
       housingStatus: housingStatus,
-      monthlyLivingCosts: monthlyLivingCosts,
+      annualLivingCosts: annualLivingCosts,
       totalDebt: totalDebt,
     );
   }
@@ -154,8 +154,8 @@ final monthlyLivingCosts = _moneyBetween(
     final hasIncome = employmentStatus == EmploymentStatus.employed ||
         employmentStatus == EmploymentStatus.selfEmployed;
 
-    final incomeRange = _incomeRange(tier);
-    final monthlyIncome = hasIncome
+    final incomeRange = _annualIncomeRange(tier);
+    final annualIncome = hasIncome
         ? _moneyBetween(
             random,
             incomeRange.$1,
@@ -189,7 +189,7 @@ final monthlyLivingCosts = _moneyBetween(
         random,
         employmentStatus,
       ),
-      monthlyIncome: monthlyIncome,
+      annualIncome: annualIncome,
       incomeStability: incomeStability,
     );
   }
@@ -420,14 +420,14 @@ final monthlyLivingCosts = _moneyBetween(
     };
   }
 
-  static (int, int) _incomeRange(StartingBackgroundTier tier) {
+  static (int, int) _annualIncomeRange(StartingBackgroundTier tier) {
     return switch (tier) {
-      StartingBackgroundTier.struggling => (60000, 180000),
-      StartingBackgroundTier.workingClass => (100000, 300000),
-      StartingBackgroundTier.middleClass => (180000, 500000),
-      StartingBackgroundTier.upperMiddleClass => (300000, 800000),
-      StartingBackgroundTier.wealthy => (500000, 1500000),
-      StartingBackgroundTier.veryWealthy => (800000, 3000000),
+      StartingBackgroundTier.struggling => (720000, 2160000),
+      StartingBackgroundTier.workingClass => (1200000, 3600000),
+      StartingBackgroundTier.middleClass => (2160000, 6000000),
+      StartingBackgroundTier.upperMiddleClass => (3600000, 9600000),
+      StartingBackgroundTier.wealthy => (6000000, 18000000),
+      StartingBackgroundTier.veryWealthy => (9600000, 36000000),
     };
   }
 
@@ -442,14 +442,14 @@ final monthlyLivingCosts = _moneyBetween(
     };
   }
 
-  static (int, int) _livingCostRange(StartingBackgroundTier tier) {
+  static (int, int) _annualLivingCostRange(StartingBackgroundTier tier) {
     return switch (tier) {
-      StartingBackgroundTier.struggling => (80000, 250000),
-      StartingBackgroundTier.workingClass => (150000, 350000),
-      StartingBackgroundTier.middleClass => (250000, 600000),
-      StartingBackgroundTier.upperMiddleClass => (400000, 900000),
-      StartingBackgroundTier.wealthy => (700000, 1800000),
-      StartingBackgroundTier.veryWealthy => (1200000, 4000000),
+      StartingBackgroundTier.struggling => (960000, 3000000),
+      StartingBackgroundTier.workingClass => (1800000, 4200000),
+      StartingBackgroundTier.middleClass => (3000000, 7200000),
+      StartingBackgroundTier.upperMiddleClass => (4800000, 10800000),
+      StartingBackgroundTier.wealthy => (8400000, 21600000),
+      StartingBackgroundTier.veryWealthy => (14400000, 48000000),
     };
   }
 
