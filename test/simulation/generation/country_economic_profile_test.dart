@@ -98,8 +98,8 @@ void main() {
       );
 
       expect(
-        first.monthlyLivingCosts.minorUnits,
-        second.monthlyLivingCosts.minorUnits,
+        first.annualLivingCosts.minorUnits,
+        second.annualLivingCosts.minorUnits,
       );
     });
 
@@ -129,8 +129,8 @@ void main() {
           countryCode: 'MC',
         );
 
-        indonesiaTotal += indonesia.monthlyLivingCosts.minorUnits;
-        monacoTotal += monaco.monthlyLivingCosts.minorUnits;
+        indonesiaTotal += indonesia.annualLivingCosts.minorUnits;
+        monacoTotal += monaco.annualLivingCosts.minorUnits;
       }
 
       final indonesiaAverage = indonesiaTotal / sampleCount;
@@ -156,7 +156,7 @@ void main() {
       );
 
       expect(
-        household.monthlyLivingCosts.minorUnits,
+        household.annualLivingCosts.minorUnits,
         greaterThanOrEqualTo(0),
       );
       expect(household.parents, isNotEmpty);
