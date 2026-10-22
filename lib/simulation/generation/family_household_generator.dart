@@ -9,6 +9,7 @@ import '../../domain/character/starting_background.dart';
 import '../../domain/family/family_asset.dart';
 import '../../domain/family/family_household.dart';
 import '../../domain/family/parent_npc.dart';
+import 'country_economic_profile.dart';
 
 class FamilyHouseholdGenerator {
   const FamilyHouseholdGenerator._();
@@ -45,11 +46,16 @@ class FamilyHouseholdGenerator {
       _savingsRange(tier).$2,
     );
 
-    final monthlyLivingCosts = _moneyBetween(
-      random,
-      _livingCostRange(tier).$1,
-      _livingCostRange(tier).$2,
-    );
+    final countryEconomicProfile =
+    CountryEconomicProfile.forCountryCode(countryCode);
+final countryLivingCostRange =
+    countryEconomicProfile.scaleRange(_livingCostRange(tier));
+
+final monthlyLivingCosts = _moneyBetween(
+  random,
+  countryLivingCostRange.$1,
+  countryLivingCostRange.$2,
+);
 
     final totalDebt = _moneyBetween(
       random,
