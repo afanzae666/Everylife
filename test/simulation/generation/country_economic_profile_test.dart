@@ -55,7 +55,16 @@ void main() {
     });
 
     test('rejects negative amounts', () {
-          test('rejects negative range minimum', () {
+      final profile =
+          CountryEconomicProfile.forCountryCode('ID');
+
+      expect(
+        () => profile.scaleAmount(-1),
+        throwsArgumentError,
+      );
+    });
+
+    test('rejects negative range minimum', () {
       final profile =
           CountryEconomicProfile.forCountryCode('ID');
 
@@ -84,28 +93,10 @@ void main() {
         throwsArgumentError,
       );
     });
-      final profile =
-          CountryEconomicProfile.forCountryCode('ID');
-
-      expect(
-        () => profile.scaleAmount(-1),
-        throwsArgumentError,
-      );
-    });
   });
 
   group('Country-aware household generation', () {
     test('same seed and country produce the same living costs', () {
-      FamilyHouseholdGenerator.generate(
-        random: SeededRandom(42),
-        birthYear: 2026,
-        background: const StartingBackground(
-          tier: StartingBackgroundTier.middleClass,
-        ),
-        familyName: 'Santoso',
-        countryCode: 'ID',
-      );
-
       final first = FamilyHouseholdGenerator.generate(
         random: SeededRandom(42),
         birthYear: 2026,
