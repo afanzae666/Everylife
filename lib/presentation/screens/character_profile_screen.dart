@@ -288,29 +288,21 @@ class CharacterProfileScreen extends StatelessWidget {
                 height: s(4),
               ),
 
-              _WealthRow(
+                            _WealthRow(
                 label: 'Total Assets',
-                value: _formatMoney(
-                  Money.fromMinorUnits(
-                    character.money.minorUnits,
-                  ),
-                ),
+                value: _formatMoney(character.totalAssets),
                 zoom: zoom,
               ),
 
               _WealthRow(
                 label: 'Debt',
-                value: _formatMoney(const Money.zero()),
+                value: _formatMoney(character.debt),
                 zoom: zoom,
               ),
 
               _WealthRow(
                 label: 'Net Worth',
-                value: _formatMoney(
-                  Money.fromMinorUnits(
-                    character.money.minorUnits,
-                  ),
-                ),
+                value: _formatMoney(character.netWorth),
                 zoom: zoom,
               ),
 
