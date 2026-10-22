@@ -28,7 +28,7 @@ void main() {
             role: FamilyRole.father,
             employmentStatus: EmploymentStatus.employed,
             occupation: 'Teacher',
-            monthlyIncome: Money.fromMinorUnits(250000),
+            annualIncome: Money.fromMinorUnits(250000),
             incomeStability: IncomeStability.stable,
           ),
           ParentNpc(
@@ -40,7 +40,7 @@ void main() {
             role: FamilyRole.mother,
             employmentStatus: EmploymentStatus.selfEmployed,
             occupation: 'Food seller',
-            monthlyIncome: Money.fromMinorUnits(150000),
+            annualIncome: Money.fromMinorUnits(150000),
             incomeStability: IncomeStability.variable,
           ),
         ],
@@ -61,7 +61,7 @@ void main() {
           ),
         ],
         housingStatus: HousingStatus.ownedWithMortgage,
-        monthlyLivingCosts: Money.fromMinorUnits(200000),
+        annualLivingCosts: Money.fromMinorUnits(200000),
         totalDebt: Money.fromMinorUnits(1000000),
       );
 
@@ -114,7 +114,7 @@ void main() {
         500000,
       );
       expect(
-        restoredHousehold.monthlyLivingCosts.minorUnits,
+        restoredHousehold.annualLivingCosts.minorUnits,
         200000,
       );
       expect(
@@ -132,7 +132,7 @@ void main() {
         EmploymentStatus.employed,
       );
       expect(father.occupation, 'Teacher');
-      expect(father.monthlyIncome.minorUnits, 250000);
+      expect(father.annualIncome.minorUnits, 250000);
       expect(
         father.incomeStability,
         IncomeStability.stable,
