@@ -55,6 +55,35 @@ void main() {
     });
 
     test('rejects negative amounts', () {
+          test('rejects negative range minimum', () {
+      final profile =
+          CountryEconomicProfile.forCountryCode('ID');
+
+      expect(
+        () => profile.scaleRange((-1, 100)),
+        throwsArgumentError,
+      );
+    });
+
+    test('rejects negative range maximum', () {
+      final profile =
+          CountryEconomicProfile.forCountryCode('ID');
+
+      expect(
+        () => profile.scaleRange((0, -1)),
+        throwsArgumentError,
+      );
+    });
+
+    test('rejects inverted ranges', () {
+      final profile =
+          CountryEconomicProfile.forCountryCode('ID');
+
+      expect(
+        () => profile.scaleRange((200, 100)),
+        throwsArgumentError,
+      );
+    });
       final profile =
           CountryEconomicProfile.forCountryCode('ID');
 
