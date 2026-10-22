@@ -20,7 +20,7 @@ void main() {
     role: FamilyRole.father,
     employmentStatus: EmploymentStatus.employed,
     occupation: 'Teacher',
-    monthlyIncome: Money.fromMinorUnits(5000000),
+    annualIncome: Money.fromMinorUnits(5000000),
     incomeStability: IncomeStability.stable,
   );
 
@@ -32,7 +32,7 @@ void main() {
     birthYear: 1982,
     role: FamilyRole.mother,
     employmentStatus: EmploymentStatus.unemployed,
-    monthlyIncome: Money.zero(),
+    annualIncome: Money.zero(),
     incomeStability: IncomeStability.none,
   );
 
@@ -48,7 +48,7 @@ void main() {
     Money? cashSavings,
     List<FamilyAsset> assets = const [],
     HousingStatus housingStatus = HousingStatus.rented,
-    Money? monthlyLivingCosts,
+    Money? annualLivingCosts,
     Money? totalDebt,
   }) {
     return FamilyHousehold(
@@ -57,8 +57,8 @@ void main() {
       cashSavings: cashSavings ?? const Money.fromMinorUnits(1000000),
       assets: assets,
       housingStatus: housingStatus,
-      monthlyLivingCosts:
-          monthlyLivingCosts ?? const Money.fromMinorUnits(3000000),
+      annualLivingCosts:
+          annualLivingCosts ?? const Money.fromMinorUnits(3000000),
       totalDebt: totalDebt ?? const Money.zero(),
     );
   }
@@ -128,7 +128,7 @@ void main() {
 
     test('uses household facts over conflicting background narratives', () {
       final household = createHousehold(
-        monthlyLivingCosts: const Money.fromMinorUnits(7000000),
+        annualLivingCosts: const Money.fromMinorUnits(7000000),
         cashSavings: const Money.zero(),
         housingStatus: HousingStatus.temporary,
       );
@@ -177,7 +177,7 @@ void main() {
 
     test('describes financial pressure when income is below expenses', () {
       final household = createHousehold(
-        monthlyLivingCosts: const Money.fromMinorUnits(7000000),
+        annualLivingCosts: const Money.fromMinorUnits(7000000),
       );
 
       final event = generate(household: household);
@@ -220,7 +220,7 @@ void main() {
     test('recognizes a family business asset', () {
       final household = createHousehold(
         assets: const [businessAsset],
-        monthlyLivingCosts: const Money.fromMinorUnits(3000000),
+        annualLivingCosts: const Money.fromMinorUnits(3000000),
       );
 
       final event = generate(household: household);
@@ -248,7 +248,7 @@ void main() {
 
     test('describes a household whose income matches living costs', () {
       final household = createHousehold(
-        monthlyLivingCosts: const Money.fromMinorUnits(5000000),
+        annualLivingCosts: const Money.fromMinorUnits(5000000),
       );
 
       final event = generate(household: household);
@@ -264,7 +264,7 @@ void main() {
         cashSavings: const Money.fromMinorUnits(2000000),
         assets: const [businessAsset],
         housingStatus: HousingStatus.ownedWithMortgage,
-        monthlyLivingCosts: const Money.fromMinorUnits(3000000),
+        annualLivingCosts: const Money.fromMinorUnits(3000000),
         totalDebt: const Money.fromMinorUnits(4000000),
       );
 
@@ -282,7 +282,7 @@ void main() {
         cashSavings: const Money.zero(),
         assets: const [],
         housingStatus: HousingStatus.providedByOthers,
-        monthlyLivingCosts: const Money.zero(),
+        annualLivingCosts: const Money.zero(),
       );
 
       final event = generate(household: household);
