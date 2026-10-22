@@ -28,7 +28,7 @@ void main() {
     return [
       household.id,
       household.cashSavings.minorUnits,
-      household.monthlyLivingCosts.minorUnits,
+      household.annualLivingCosts.minorUnits,
       household.totalDebt.minorUnits,
       household.housingStatus.name,
       household.parents.map((parent) {
@@ -41,7 +41,7 @@ void main() {
           parent.role.name,
           parent.employmentStatus.name,
           parent.occupation,
-          parent.monthlyIncome.minorUnits,
+          parent.annualIncome.minorUnits,
           parent.incomeStability.name,
         ].join('|');
       }).join(';'),
@@ -201,7 +201,7 @@ void main() {
               expect(parent.occupation, isNotNull);
             } else {
               expect(parent.hasIncome, isFalse);
-              expect(parent.monthlyIncome.minorUnits, 0);
+              expect(parent.annualIncome.minorUnits, 0);
               expect(parent.incomeStability, IncomeStability.none);
               expect(parent.occupation, isNull);
             }
@@ -223,7 +223,7 @@ void main() {
             greaterThanOrEqualTo(0),
           );
           expect(
-            household.monthlyLivingCosts.minorUnits,
+            household.annualLivingCosts.minorUnits,
             greaterThanOrEqualTo(0),
           );
           expect(
@@ -236,6 +236,56 @@ void main() {
               asset.value.minorUnits,
               greaterThanOrEqualTo(0),
             );
+          }
+        }
+      }
+    });
+
+    test('generates income and living costs in annual ranges', () {
+      const annualIncomeRanges = {
+        StartingBackgroundTier.struggling: (720000, 2160000),
+        StartingBackgroundTier.workingClass: (1200000, 3600000),
+        StartingBackgroundTier.middleClass: (2160000, 6000000),
+        StartingBackgroundTier.upperMiddleClass: (3600000, 9600000),
+        StartingBackgroundTier.wealthy: (6000000, 18000000),
+        StartingBackgroundTier.veryWealthy: (9600000, 36000000),
+      };
+      const annualLivingCostRanges = {
+        StartingBackgroundTier.struggling: (960000, 3000000),
+        StartingBackgroundTier.workingClass: (1800000, 4200000),
+        StartingBackgroundTier.middleClass: (3000000, 7200000),
+        StartingBackgroundTier.upperMiddleClass: (4800000, 10800000),
+        StartingBackgroundTier.wealthy: (8400000, 21600000),
+        StartingBackgroundTier.veryWealthy: (14400000, 48000000),
+      };
+
+      for (final tier in StartingBackgroundTier.values) {
+        for (var seed = 0; seed < 50; seed++) {
+          final household = generate(
+            seed: seed,
+            tier: tier,
+            countryCode: 'XX',
+          );
+          final livingCostRange = annualLivingCostRanges[tier]!;
+          expect(
+            household.annualLivingCosts.minorUnits,
+            inInclusiveRange(
+              livingCostRange.$1,
+              livingCostRange.$2,
+            ),
+          );
+
+          final incomeRange = annualIncomeRanges[tier]!;
+          for (final parent in household.parents) {
+            if (parent.hasIncome) {
+              expect(
+                parent.annualIncome.minorUnits,
+                inInclusiveRange(
+                  incomeRange.$1,
+                  incomeRange.$2,
+                ),
+              );
+            }
           }
         }
       }
@@ -312,7 +362,7 @@ void main() {
         expect(household.id, isNotEmpty);
         expect(household.parents, isNotEmpty);
         expect(
-          household.monthlyIncome.minorUnits,
+          household.annualIncome.minorUnits,
           greaterThanOrEqualTo(0),
         );
       }
@@ -337,9 +387,9 @@ void main() {
             tier: tier,
           );
 
-          totalIncome += household.monthlyIncome.minorUnits;
+          totalIncome += household.annualIncome.minorUnits;
           totalSavings += household.cashSavings.minorUnits;
-          totalLivingCosts += household.monthlyLivingCosts.minorUnits;
+          totalLivingCosts += household.annualLivingCosts.minorUnits;
         }
 
         averageIncome[tier] = totalIncome / sampleCount;
