@@ -90,15 +90,122 @@ void main() {
 
       expect(result.isSuccess, isTrue);
       expect(engine.state.clock.currentYear, 2027);
-      expect(engine.state.familyHousehold, same(originalHousehold));
+      final updatedHousehold = engine.state.familyHousehold!;
+      if (originalHousehold.annualSurplus.minorUnits == 0) {
+        expect(updatedHousehold, same(originalHousehold));
+      } else {
+        expect(updatedHousehold, isNot(same(originalHousehold)));
+      }
+      expect(updatedHousehold.id, originalHousehold.id);
       expect(
-        engine.state.familyHousehold!.parents,
-        hasLength(originalHousehold.parents.length),
+        updatedHousehold.parents,
+        equals(originalHousehold.parents),
       );
       expect(
-        engine.state.familyHousehold!.assets,
-        hasLength(originalHousehold.assets.length),
+        updatedHousehold.assets,
+        equals(originalHousehold.assets),
       );
+      expect(
+        updatedHousehold.annualLivingCosts,
+        originalHousehold.annualLivingCosts,
+      );
+      expect(
+        updatedHousehold.housingStatus,
+        originalHousehold.housingStatus,
+      );
+    });
+
+    test('applies one annual household cash flow on ageUp', () {
+      final engine = createEngine(
+        repository: InMemorySaveRepository(),
+      );
+      final original = engine.state.familyHousehold!;
+      final expectedCashFlow = original.annualSurplus.minorUnits;
+      final result = engine.ageUp();
+
+      expect(result.isSuccess, isTrue);
+      final updated = engine.state.familyHousehold!;
+      if (expectedCashFlow == 0) {
+        expect(updated, same(original));
+      } else {
+        expect(updated, isNot(same(original)));
+      }
+
+      if (expectedCashFlow > 0) {
+        final debtPayment = expectedCashFlow < original.totalDebt.minorUnits
+            ? expectedCashFlow
+            : original.totalDebt.minorUnits;
+        expect(
+          updated.totalDebt.minorUnits,
+          original.totalDebt.minorUnits - debtPayment,
+        );
+        expect(
+          updated.cashSavings.minorUnits,
+          original.cashSavings.minorUnits + expectedCashFlow - debtPayment,
+        );
+      } else if (expectedCashFlow < 0) {
+        final deficit = -expectedCashFlow;
+        final savingsUsed = deficit < original.cashSavings.minorUnits
+            ? deficit
+            : original.cashSavings.minorUnits;
+        expect(
+          updated.cashSavings.minorUnits,
+          original.cashSavings.minorUnits - savingsUsed,
+        );
+        expect(
+          updated.totalDebt.minorUnits,
+          original.totalDebt.minorUnits + deficit - savingsUsed,
+        );
+      } else {
+        expect(updated.cashSavings, original.cashSavings);
+        expect(updated.totalDebt, original.totalDebt);
+      }
+    });
+
+    test('runs household economy once per age-up year', () {
+      final engine = createEngine(
+        repository: InMemorySaveRepository(),
+      );
+      final initial = engine.state.familyHousehold!;
+
+      expect(engine.ageUp().isSuccess, isTrue);
+      final afterFirstYear = engine.state.familyHousehold!;
+      expect(engine.state.clock.currentYear, 2027);
+
+      expect(engine.ageUp().isSuccess, isTrue);
+      final afterSecondYear = engine.state.familyHousehold!;
+      expect(engine.state.clock.currentYear, 2028);
+      if (initial.annualSurplus.minorUnits == 0) {
+        expect(afterFirstYear, same(initial));
+        expect(afterSecondYear, same(afterFirstYear));
+      } else {
+        expect(afterSecondYear, isNot(same(afterFirstYear)));
+        expect(afterFirstYear, isNot(same(initial)));
+      }
+    });
+
+    test('persists annual household economy changes through save and load', () async {
+      final repository = InMemorySaveRepository();
+      final firstEngine = createEngine(
+        repository: repository,
+        seed: 7654,
+      );
+
+      expect(firstEngine.ageUp().isSuccess, isTrue);
+      final householdAfterAgeUp = firstEngine.state.familyHousehold!;
+      expect((await firstEngine.save()).isSuccess, isTrue);
+
+      final secondEngine = createEngine(
+        repository: repository,
+        seed: 98765,
+      );
+      expect((await secondEngine.load()).isSuccess, isTrue);
+
+      final restored = secondEngine.state.familyHousehold!;
+      expect(restored.cashSavings, householdAfterAgeUp.cashSavings);
+      expect(restored.totalDebt, householdAfterAgeUp.totalDebt);
+      expect(restored.annualLivingCosts, householdAfterAgeUp.annualLivingCosts);
+      expect(secondEngine.state.clock.currentYear, 2027);
     });
 
     test('preserves household data through engine save and load', () async {
