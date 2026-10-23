@@ -12,6 +12,7 @@ import '../generation/family_household_generator.dart';
 import '../generation/starting_background_generator.dart';
 import '../generation/starting_life_event_generator.dart';
 import '../systems/character_system.dart';
+import '../systems/household_economy_system.dart';
 import '../systems/simulation_system.dart';
 import '../systems/time_system.dart';
 import 'simulation_scheduler.dart';
@@ -34,6 +35,7 @@ class SimulationEngine {
         _scheduler = SimulationScheduler(
           systems: [
             TimeSystem(),
+            HouseholdEconomySystem(),
             CharacterSystem(),
           ],
         ),
