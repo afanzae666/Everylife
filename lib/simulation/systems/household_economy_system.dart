@@ -1,4 +1,5 @@
-import '../../core/money/money.dart';
+import 'package:everylife/core/money/money.dart';
+
 import '../../domain/family/family_household.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
@@ -46,9 +47,7 @@ class HouseholdEconomySystem implements SimulationSystem {
     late final Money updatedDebt;
 
     if (annualCashFlow > 0) {
-      final debtPayment = annualCashFlow < debt
-          ? annualCashFlow
-          : debt;
+      final debtPayment = annualCashFlow < debt ? annualCashFlow : debt;
       final remainingSurplus = annualCashFlow - debtPayment;
 
       updatedDebt = Money.fromMinorUnits(debt - debtPayment);
