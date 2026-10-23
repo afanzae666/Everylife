@@ -1,5 +1,6 @@
 enum SystemPriority {
   time(100),
+  householdEconomy(150),
   character(200),
   event(900);
 
