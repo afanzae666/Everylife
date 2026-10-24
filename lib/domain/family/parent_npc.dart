@@ -1,6 +1,7 @@
 
 import 'package:everylife/core/money/money.dart';
 
+import '../character/appearance.dart';
 import '../character/gender.dart';
 
 enum FamilyRole {
@@ -37,6 +38,7 @@ class ParentNpc {
     required this.annualIncome,
     required this.incomeStability,
     this.occupation,
+    this.appearance = const CharacterAppearance(),
   });
 
   final String id;
@@ -53,6 +55,9 @@ class ParentNpc {
   final Money annualIncome;
 
   final IncomeStability incomeStability;
+
+  /// Stable modular appearance used to render this NPC consistently.
+  final CharacterAppearance appearance;
 
   String get fullName {
     return [
