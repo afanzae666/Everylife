@@ -1268,11 +1268,13 @@ final double previewContainerSize =
                       final bool compact =
                           constraints.maxHeight < 430;
 
-                      final double previewSize =
-                          compact ? 125 : 190;
+                      // Keep the avatar's logical size stable while the UI zoom changes.
+// _buildAvatarStack applies zoom to its internal layers and offsets.
+final double previewSize =
+    (compact ? 125.0 : 190.0) / zoom;
 
-                      final double previewContainerSize =
-                          compact ? 132 : 200;
+final double previewContainerSize =
+    (compact ? 132.0 : 200.0) / zoom;
 
                       final double sectionGap =
                           compact ? s(1) : s(2);
