@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:everylife/core/money/money.dart';
 
 import '../../core/random/seeded_random.dart';
+import '../../domain/character/appearance.dart';
+import '../../domain/character/character_hair.dart';
 import '../../domain/character/cultural_randomizer_catalog.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/starting_background.dart';
@@ -20,6 +22,7 @@ class FamilyHouseholdGenerator {
     required StartingBackground background,
     required String familyName,
     String countryCode = 'ID',
+    CharacterAppearance? childAppearance,
   }) {
     final tier = background.tier;
     final householdId = 'family-household-$birthYear';
@@ -33,6 +36,7 @@ class FamilyHouseholdGenerator {
       familyName: normalizedFamilyName,
       countryCode: countryCode,
       tier: tier,
+      childAppearance: childAppearance,
     );
 
     final housingStatus = _generateHousingStatus(
@@ -84,6 +88,7 @@ class FamilyHouseholdGenerator {
     required String familyName,
     required String countryCode,
     required StartingBackgroundTier tier,
+    CharacterAppearance? childAppearance,
   }) {
     final singleParent = random.nextInt(100) < 15;
 
@@ -100,6 +105,7 @@ class FamilyHouseholdGenerator {
           familyName: familyName,
           countryCode: countryCode,
           tier: tier,
+          childAppearance: childAppearance,
           gender: gender,
           role: role,
           id: 'parent-${role.name}-$birthYear',
@@ -114,6 +120,7 @@ class FamilyHouseholdGenerator {
         familyName: familyName,
         countryCode: countryCode,
         tier: tier,
+        childAppearance: childAppearance,
         gender: Gender.male,
         role: FamilyRole.father,
         id: 'parent-father-$birthYear',
@@ -124,6 +131,7 @@ class FamilyHouseholdGenerator {
         familyName: familyName,
         countryCode: countryCode,
         tier: tier,
+        childAppearance: childAppearance,
         gender: Gender.female,
         role: FamilyRole.mother,
         id: 'parent-mother-$birthYear',
@@ -140,6 +148,7 @@ class FamilyHouseholdGenerator {
     required Gender gender,
     required FamilyRole role,
     required String id,
+    CharacterAppearance? childAppearance,
   }) {
     final ageAtChildBirth = 22 + random.nextInt(24);
     final employmentStatus = _generateEmploymentStatus(
@@ -187,6 +196,85 @@ class FamilyHouseholdGenerator {
       ),
       annualIncome: annualIncome,
       incomeStability: incomeStability,
+      appearance: _generateAppearance(
+        random: random,
+        gender: gender,
+        childAppearance: childAppearance,
+      ),
+    );
+  }
+
+  static CharacterAppearance _generateAppearance({
+    required SeededRandom random,
+    required Gender gender,
+    CharacterAppearance? childAppearance,
+  }) {
+    const skinTones = <String>[
+      'pale', 'very_light', 'light', 'light_medium', 'medium',
+      'medium_tan', 'tan', 'deep_tan', 'brown', 'deep_brown',
+      'dark', 'very_dark',
+    ];
+    const eyeColors = <String>[
+      'light_blue', 'deep_blue', 'gray', 'blue_green', 'green',
+      'hazel', 'amber', 'brown', 'dark_brown', 'black',
+    ];
+    const hairColors = <String>[
+      'black', 'blue_black', 'dark_brown', 'chocolate_brown',
+      'chestnut_brown', 'warm_brown', 'ash_brown', 'auburn',
+      'copper', 'ginger', 'dark_red', 'burgundy', 'honey_blonde',
+      'golden_blonde', 'ash_blonde', 'platinum_blonde', 'silver',
+      'gray', 'white',
+    ];
+    const eyebrowStyles = <String>[
+      'bold_straight', 'comma', 'feathered', 'high_arch', 'rounded',
+      'short_straight', 'slight_angle', 'soft_arch', 'straight',
+      'textured_wild', 'thick_natural', 'thin_defined',
+    ];
+    final hairStyles = CharacterHair.masterStylesFor(gender);
+    final adultHair = hairStyles[random.nextInt(hairStyles.length)];
+    final infantHair = CharacterHair.infantStyles[
+      random.nextInt(CharacterHair.infantStyles.length)
+    ];
+    final toddlerHairStyles = gender == Gender.female
+        ? CharacterHair.femaleToddlerStyles
+        : CharacterHair.maleToddlerStyles;
+    final childHairStyles = gender == Gender.female
+        ? CharacterHair.femaleChildStyles
+        : CharacterHair.maleChildStyles;
+    final childSkinIndex = childAppearance == null
+        ? -1
+        : skinTones.indexOf(childAppearance.skinTone);
+    final skinTone = childSkinIndex < 0
+        ? skinTones[random.nextInt(skinTones.length)]
+        : skinTones[(childSkinIndex + random.nextInt(5) - 2)
+            .clamp(0, skinTones.length - 1).toInt()];
+    final inheritsEyeColor = childAppearance != null && random.nextBool();
+    final inheritsHairColor = childAppearance != null && random.nextBool();
+
+    return CharacterAppearance(
+      base: 'default',
+      skinTone: skinTone,
+      hair: adultHair,
+      infantHair: infantHair,
+      toddlerHair: toddlerHairStyles[
+        random.nextInt(toddlerHairStyles.length)
+      ],
+      childHair: childHairStyles[
+        random.nextInt(childHairStyles.length)
+      ],
+      hairColor: inheritsHairColor &&
+              hairColors.contains(childAppearance!.hairColor)
+          ? childAppearance!.hairColor
+          : hairColors[random.nextInt(hairColors.length)],
+      eyes: 'default',
+      eyeColor: inheritsEyeColor &&
+              eyeColors.contains(childAppearance!.eyeColor)
+          ? childAppearance!.eyeColor
+          : eyeColors[random.nextInt(eyeColors.length)],
+      eyebrows: eyebrowStyles[random.nextInt(eyebrowStyles.length)],
+      beard: gender == Gender.male && random.nextInt(100) < 35
+          ? 'beard_0${1 + random.nextInt(5)}'
+          : 'none',
     );
   }
 
