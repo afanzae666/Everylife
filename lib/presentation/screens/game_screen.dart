@@ -424,9 +424,10 @@ class _GameScreenState extends State<GameScreen> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => LifeScreen(
-          zoom: _uiScaleController.value,
-          parents: engine.state.familyHousehold?.parents ?? const [],
-        ),
+  zoom: _uiScaleController.value,
+  parents: engine.state.familyHousehold?.parents ?? const [],
+  currentYear: engine.state.clock.currentYear,
+),
       ),
     );
   }
