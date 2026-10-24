@@ -26,11 +26,26 @@ class AndroidJsonSaveStorage
     final file = await _getSaveFile(
       slotKey,
     );
-
-    await file.writeAsString(
-      json,
-      flush: true,
+    final temporaryFile = File(
+      '${file.path}.tmp-$pid-${DateTime.now().microsecondsSinceEpoch}',
     );
+
+    try {
+      await temporaryFile.writeAsString(
+        json,
+        flush: true,
+      );
+
+      // The temporary file is in the same directory so the final rename
+      // can replace the destination atomically on Android/Linux filesystems.
+      await temporaryFile.rename(file.path);
+    } catch (_) {
+      // Never delete the previous save when the new write/rename fails.
+      if (await temporaryFile.exists()) {
+        await temporaryFile.delete();
+      }
+      rethrow;
+    }
   }
 
   @override
@@ -76,15 +91,13 @@ class AndroidJsonSaveStorage
     final json =
         await legacyFile.readAsString();
 
-    final autosaveFile =
-        await _getSaveFile('autosave');
-
-    await autosaveFile.writeAsString(
+    // Use the same atomic write path as normal saves. Keep the legacy file
+    // as a recovery backup instead of deleting the only known-good copy
+    // before the repository has successfully parsed the migrated data.
+    await write(
       json,
-      flush: true,
+      slotKey: 'autosave',
     );
-
-    await legacyFile.delete();
 
     return json;
   }
