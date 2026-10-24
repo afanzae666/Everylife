@@ -320,6 +320,7 @@ class SimulationEngine {
       background: startingBackground,
       familyName: player.resolvedLastName,
       countryCode: player.location?.countryCode ?? 'ID',
+      childAppearance: player.appearance,
     );
 
     final startingLifeEvent = StartingLifeEventGenerator.generate(
