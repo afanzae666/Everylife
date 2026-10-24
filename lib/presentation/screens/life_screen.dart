@@ -20,8 +20,6 @@ class LifeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double s(double value) => value * zoom;
-
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(
         textScaler: TextScaler.linear(zoom),
