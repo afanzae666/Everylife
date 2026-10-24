@@ -217,7 +217,7 @@ void main() {
       );
     });
 
-    test('recognizes a family business asset', () {
+    test('does not include family asset details in the event', () {
       final household = createHousehold(
         assets: const [businessAsset],
         annualLivingCosts: const Money.fromMinorUnits(3000000),
@@ -225,11 +225,10 @@ void main() {
 
       final event = generate(household: household);
 
-      expect(event.title, 'A Family with Business Interests');
-      expect(
-        event.description,
-        contains('Family Grocery Store'),
-      );
+      expect(event.title, isNot('A Family with Business Interests'));
+      expect(event.description, isNot(contains('Family Grocery Store')));
+      expect(event.description, isNot(contains('family assets')));
+      expect(event.description, isNot(contains('outstanding debt')));
     });
 
     test('describes a household with no cash savings', () {
@@ -259,7 +258,7 @@ void main() {
       );
     });
 
-    test('describes savings, assets, housing, and outstanding debt', () {
+    test('describes savings and housing without asset or debt notices', () {
       final household = createHousehold(
         cashSavings: const Money.fromMinorUnits(2000000),
         assets: const [businessAsset],
@@ -272,8 +271,9 @@ void main() {
 
       expect(event.description, contains('home financed with a mortgage'));
       expect(event.description, contains('recorded cash savings'));
-      expect(event.description, contains('Family Grocery Store'));
-      expect(event.description, contains('outstanding debt'));
+      expect(event.description, isNot(contains('Family Grocery Store')));
+      expect(event.description, isNot(contains('outstanding debt')));
+      expect(event.description, isNot(contains('family assets')));
     });
 
     test('handles a household with no parents or assets', () {
@@ -291,10 +291,8 @@ void main() {
         event.description,
         contains('No parent or guardian employment details are recorded'),
       );
-      expect(
-        event.description,
-        contains('No additional family assets are recorded'),
-      );
+      expect(event.description, isNot(contains('family assets')));
+      expect(event.description, isNot(contains('outstanding debt')));
       expect(
         event.description,
         contains('accommodation is provided by others'),
