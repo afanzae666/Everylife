@@ -453,6 +453,19 @@ parent.employmentStatus.name,
 parent.annualIncome.minorUnits,
 'incomeStability':
 parent.incomeStability.name,
+'appearance': {
+'base': parent.appearance.base,
+'skinTone': parent.appearance.skinTone,
+'hair': parent.appearance.hair,
+'infantHair': parent.appearance.infantHair,
+'toddlerHair': parent.appearance.toddlerHair,
+'childHair': parent.appearance.childHair,
+'hairColor': parent.appearance.hairColor,
+'eyes': parent.appearance.eyes,
+'eyeColor': parent.appearance.eyeColor,
+'eyebrows': parent.appearance.eyebrows,
+'beard': parent.appearance.beard,
+},
 },
 )
 .toList(growable: false),
@@ -548,6 +561,9 @@ final parents = parentsJson
           incomeStability: _parseIncomeStability(
             parent['incomeStability'],
           ),
+          appearance: parent['appearance'] == null
+              ? const CharacterAppearance()
+              : _parseAppearance(parent['appearance']),
         );
       },
     )
