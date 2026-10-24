@@ -209,6 +209,23 @@ class WorldStateValidator {
         return 'World state is invalid: parent income cannot be negative.';
       }
 
+      if (parent.cashBalance.minorUnits < 0 ||
+          parent.annualExpenses.minorUnits < 0) {
+        return 'World state is invalid: parent personal finances cannot be negative.';
+      }
+
+      if (parent.siblingCount < 0) {
+        return 'World state is invalid: parent sibling count cannot be negative.';
+      }
+
+      if (parent.isAlive && parent.deathYear != null) {
+        return 'World state is invalid: living parent cannot have a death year.';
+      }
+
+      if (!parent.isAlive && parent.deathYear == null) {
+        return 'World state is invalid: deceased parent must have a death year.';
+      }
+
       final employmentError = _validateParentEmployment(parent);
 
       if (employmentError != null) {
