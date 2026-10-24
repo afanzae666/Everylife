@@ -1,3 +1,4 @@
+
 import '../../core/random/seeded_random.dart';
 import '../../core/result/result.dart';
 import '../../data/repositories/save_repository.dart';
@@ -205,12 +206,29 @@ class SimulationEngine {
         );
       }
 
-      _state = data.state;
+      if (data.randomState < 0 ||
+          data.randomState > 0x7fffffff) {
+        return const Failure(
+          'Loaded save is invalid: random state is outside '
+          'the valid range.',
+        );
+      }
 
+      if (data.nextTickId < 1) {
+        return const Failure(
+          'Loaded save is invalid: next tick ID must be '
+          'greater than zero.',
+        );
+      }
+
+      // Restore the random generator only after all loaded data
+      // has passed validation. The remaining assignments cannot
+      // fail under normal Dart execution.
       _random.restoreState(
         data.randomState,
       );
 
+      _state = data.state;
       _nextTickId = data.nextTickId;
 
       return const Success(null);
