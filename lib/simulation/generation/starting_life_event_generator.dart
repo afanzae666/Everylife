@@ -276,12 +276,21 @@ class StartingLifeEventGenerator {
       return 'An Uncertain Place to Call Home';
     }
 
-    if (household.annualIncome.minorUnits <
-        household.annualLivingCosts.minorUnits) {
+    final income = household.parents.fold<int>(
+      0, (sum, parent) => sum + parent.annualIncome.minorUnits,
+    );
+    final expenses = household.parents.fold<int>(
+      0, (sum, parent) => sum + parent.annualExpenses.minorUnits,
+    );
+    final savings = household.parents.fold<int>(
+      0, (sum, parent) => sum + parent.cashBalance.minorUnits,
+    );
+
+    if (income < expenses) {
       return 'A Family Facing Financial Pressure';
     }
 
-    if (household.cashSavings.minorUnits == 0) {
+    if (savings == 0) {
       return 'A Family Building Financial Security';
     }
 
@@ -317,21 +326,22 @@ class StartingLifeEventGenerator {
         ? 'No parent or guardian employment details are recorded.'
         : parentDescriptions;
 
-    final incomeDescription =
-        household.annualIncome.minorUnits == 0
-            ? 'The household currently has no recorded annual income.'
-            : household.annualIncome.minorUnits <
-                    household.annualLivingCosts.minorUnits
-                ? 'The household income is lower than its estimated '
-                    'annual living costs, creating financial pressure.'
-                : household.annualIncome.minorUnits ==
-                        household.annualLivingCosts.minorUnits
-                    ? 'The household income matches its estimated '
-                        'annual living costs, leaving little room '
-                        'for unexpected expenses.'
-                    : 'The household income covers its estimated '
-                        'annual living costs, although other '
-                        'obligations may affect its financial flexibility.';
+    final annualIncome = household.parents.fold<int>(
+      0, (sum, parent) => sum + parent.annualIncome.minorUnits,
+    );
+    final annualExpenses = household.parents.fold<int>(
+      0, (sum, parent) => sum + parent.annualExpenses.minorUnits,
+    );
+    final incomeDescription = annualIncome == 0
+        ? 'The parents currently have no recorded annual income.'
+        : annualIncome < annualExpenses
+            ? 'The parents’ combined income is lower than their recorded '
+                'personal living contributions, creating financial pressure.'
+            : annualIncome == annualExpenses
+                ? 'The parents’ recorded income is fully committed to expenses, '
+                    'leaving little room for unexpected costs.'
+                : 'The parents earn income, but their individual expenses '
+                    'and obligations affect how much they can save.';
 
     final housingDescription = switch (household.housingStatus) {
       HousingStatus.rented =>
@@ -348,10 +358,19 @@ class StartingLifeEventGenerator {
         'The family currently has no stable housing.',
     };
 
-    final savingsDescription =
-        household.cashSavings.minorUnits == 0
-            ? 'The household has no recorded cash savings.'
-            : 'The household has recorded cash savings.';
+    final personalSavings = household.parents.fold<int>(
+      0, (sum, parent) => sum + parent.cashBalance.minorUnits,
+    );
+    final personalAssets = household.assets.fold<int>(
+      0, (sum, asset) => sum + asset.value.minorUnits,
+    );
+    final savingsDescription = personalSavings == 0
+        ? 'The parents have no recorded personal cash savings.'
+        : 'The parents have accumulated personal cash savings over time.';
+    final assetsDescription = personalAssets == 0
+        ? 'No parent-owned assets are recorded.'
+        : 'The parents hold individually assigned assets whose value is not '
+            'automatically transferred to you during childhood.';
 
     return 'Your early circumstances are shaped by the household '
         'you were born into. The details below reflect the family '
@@ -362,6 +381,7 @@ class StartingLifeEventGenerator {
         '$housingDescription '
         '$incomeDescription '
         '$savingsDescription '
+        '$assetsDescription '
         'These circumstances influence the opportunities and '
         'challenges around your childhood, but they do not determine '
         'the person you will become.';

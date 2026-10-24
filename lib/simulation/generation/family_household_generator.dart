@@ -27,7 +27,10 @@ class FamilyHouseholdGenerator {
     final tier = background.tier;
     final householdId = 'family-household-$birthYear';
     final normalizedFamilyName = familyName.trim().isEmpty
-        ? 'Family'
+        ? CulturalRandomizerCatalog.randomLastName(
+            countryCode: countryCode,
+            random: math.Random(random.nextInt(0x7fffffff)),
+          )
         : familyName.trim();
 
     final parents = _generateParents(
@@ -69,12 +72,34 @@ class FamilyHouseholdGenerator {
       parents: parents,
       tier: tier,
       housingStatus: housingStatus,
-    );
+    ).map((asset) => asset.ownerNpcId == null
+        ? FamilyAsset(
+            id: asset.id, name: asset.name, type: asset.type,
+            value: asset.value, ownerNpcId: parents.first.id,
+          )
+        : asset).toList(growable: false);
+    final savingsPerParent = cashSavings.minorUnits ~/ parents.length;
+    final financiallyInitializedParents = parents.map((parent) {
+      final personalAssets = assets
+          .where((asset) => asset.ownerNpcId == parent.id)
+          .toList(growable: false);
+      return parent.copyWith(
+        cashBalance: Money.fromMinorUnits(savingsPerParent),
+        annualExpenses: Money.fromMinorUnits(
+          parent.annualIncome.minorUnits *
+              (parent.incomeStability == IncomeStability.stable ? 70 : 85) ~/ 100,
+        ),
+        assets: personalAssets,
+        countryCode: countryCode,
+        siblingCount: 0,
+      );
+    }).toList(growable: false);
 
     return FamilyHousehold(
       id: householdId,
-      parents: parents,
-      cashSavings: cashSavings,
+      parents: financiallyInitializedParents,
+      // Aggregate savings are migrated into individual parent balances.
+      cashSavings: const Money.zero(),
       assets: assets,
       housingStatus: housingStatus,
       annualLivingCosts: annualLivingCosts,
