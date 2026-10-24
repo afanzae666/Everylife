@@ -3,7 +3,6 @@ import '../../domain/character/starting_background.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/family/family_household.dart';
 import '../../domain/family/parent_npc.dart';
-import '../../domain/family/family_asset.dart';
 
 class StartingLifeEventGenerator {
   const StartingLifeEventGenerator._();
@@ -282,12 +281,6 @@ class StartingLifeEventGenerator {
       return 'A Family Facing Financial Pressure';
     }
 
-    if (household.assets.any(
-      (asset) => asset.type == FamilyAssetType.business,
-    )) {
-      return 'A Family with Business Interests';
-    }
-
     if (household.cashSavings.minorUnits == 0) {
       return 'A Family Building Financial Security';
     }
@@ -360,16 +353,6 @@ class StartingLifeEventGenerator {
             ? 'The household has no recorded cash savings.'
             : 'The household has recorded cash savings.';
 
-    final assetDescription = household.assets.isEmpty
-        ? 'No additional family assets are recorded.'
-        : 'The household has ${household.assets.length} recorded '
-            'family assets: '
-            '${household.assets.map((asset) => asset.name).join(', ')}.';
-
-    final debtDescription = household.totalDebt.minorUnits > 0
-        ? 'The household has recorded outstanding debt.'
-        : 'No outstanding household debt is recorded.';
-
     return 'Your early circumstances are shaped by the household '
         'you were born into. The details below reflect the family '
         'situation recorded at the beginning of your life. '
@@ -379,8 +362,6 @@ class StartingLifeEventGenerator {
         '$housingDescription '
         '$incomeDescription '
         '$savingsDescription '
-        '$assetDescription '
-        '$debtDescription '
         'These circumstances influence the opportunities and '
         'challenges around your childhood, but they do not determine '
         'the person you will become.';
