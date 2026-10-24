@@ -3,25 +3,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:everylife/presentation/screens/life_screen.dart';
 
 void main() {
-  testWidgets('Life screen has family navigation and no Family Tree', (
+  testWidgets('Life screen shows relationship categories without Family Tree', (
     tester,
   ) async {
-    var familyTapped = false;
-
     await tester.pumpWidget(
-      MaterialApp(
-        home: LifeScreen(
-          zoom: 1,
-          onFamilyTap: () => familyTapped = true,
-        ),
-      ),
+      const MaterialApp(home: LifeScreen(zoom: 1)),
     );
 
+    expect(find.text('Parents'), findsOneWidget);
+    expect(find.text('Friends'), findsOneWidget);
+    expect(find.text('Partner'), findsOneWidget);
+    expect(find.text('Children'), findsOneWidget);
     expect(find.text('Family Tree'), findsNothing);
     expect(find.text('Family History'), findsNothing);
-    expect(find.text('Family'), findsOneWidget);
-
-    await tester.tap(find.text('Family'));
-    expect(familyTapped, isTrue);
   });
 }
