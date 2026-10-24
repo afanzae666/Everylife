@@ -9,7 +9,6 @@ import 'package:everylife/domain/family/parent_npc.dart';
 import 'package:everylife/domain/time/simulation_clock.dart';
 import 'package:everylife/domain/world/world_state.dart';
 import 'package:everylife/simulation/commands/age_up_command.dart';
-import 'package:everylife/simulation/commands/simulation_command.dart';
 import 'package:everylife/simulation/systems/parent_economy_system.dart';
 
 void main() {
