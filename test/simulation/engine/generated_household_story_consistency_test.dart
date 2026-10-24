@@ -1,4 +1,3 @@
-
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:everylife/data/repositories/save_repository.dart';
@@ -83,31 +82,28 @@ void main() {
             reason: 'Seed $seed misrepresented household savings.',
           );
 
-          if (household.assets.isEmpty) {
-            expect(
-              description,
-              contains('No additional family assets are recorded.'),
-              reason: 'Seed $seed omitted the absence of family assets.',
-            );
-          } else {
-            for (final asset in household.assets) {
-              expect(
-                description,
-                contains(asset.name),
-                reason:
-                    'Seed $seed omitted family asset ${asset.id}.',
-              );
-            }
-          }
+          expect(
+            description,
+            isNot(contains('Investment portfolio')),
+            reason: 'Seed $seed exposed family asset details.',
+          );
 
           expect(
             description,
-            contains(
-              household.totalDebt.minorUnits > 0
-                  ? 'The household has recorded outstanding debt.'
-                  : 'No outstanding household debt is recorded.',
-            ),
-            reason: 'Seed $seed misrepresented household debt.',
+            isNot(contains('No additional family assets are recorded.')),
+            reason: 'Seed $seed included an unnecessary asset notice.',
+          );
+
+          expect(
+            description,
+            isNot(contains('outstanding debt')),
+            reason: 'Seed $seed included an unnecessary debt notice.',
+          );
+
+          expect(
+            household.totalDebt.minorUnits,
+            0,
+            reason: 'Seed $seed generated household debt.',
           );
         }
       },
