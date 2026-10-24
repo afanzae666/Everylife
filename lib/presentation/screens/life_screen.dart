@@ -47,16 +47,6 @@ class LifeScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Life',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      SizedBox(height: s(1)),
-                      Text(
-                        'The people and relationships in your life.',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      SizedBox(height: s(4)),
-                      Text(
                         'Parents',
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
@@ -76,7 +66,7 @@ class LifeScreen extends StatelessWidget {
                           (parent) => Padding(
                             key: ValueKey('parent-${parent.id}'),
                             padding: EdgeInsets.symmetric(
-                              vertical: s(4),
+                              vertical: s(5),
                             ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -84,9 +74,9 @@ class LifeScreen extends StatelessWidget {
                                 _ParentAvatar(
                                   parent: parent,
                                   currentYear: currentYear,
-                                  size: s(64),
+                                  size: s(76),
                                 ),
-                                SizedBox(width: s(10)),
+                                SizedBox(width: s(12)),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -94,21 +84,39 @@ class LifeScreen extends StatelessWidget {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
+                                        _relationshipLabel(parent.role),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelMedium
+                                            ?.copyWith(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                      SizedBox(height: s(2)),
+                                      Text(
                                         parent.fullName,
                                         style: Theme.of(context)
                                             .textTheme
                                             .titleMedium,
                                       ),
-                                      SizedBox(height: s(3)),
-                                      Text(
-                                        parent.isAlive
-                                            ? (parent.occupation ??
-                                                parent.employmentStatus.name)
-                                            : 'Deceased${parent.deathYear == null ? '' : ' · ${parent.deathYear}'}',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium,
-                                      ),
+                                      if (!parent.isAlive) ...[
+                                        SizedBox(height: s(3)),
+                                        Text(
+                                          'Deceased'
+                                          '${parent.deathYear == null ? '' : ' · ${parent.deathYear}'}',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurfaceVariant,
+                                              ),
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 ),
@@ -141,6 +149,17 @@ class LifeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _relationshipLabel(FamilyRole role) {
+    switch (role) {
+      case FamilyRole.father:
+        return 'Father';
+      case FamilyRole.mother:
+        return 'Mother';
+      case FamilyRole.guardian:
+        return 'Guardian';
+    }
   }
 }
 
