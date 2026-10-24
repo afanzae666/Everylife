@@ -57,11 +57,7 @@ class FamilyHouseholdGenerator {
       countryLivingCostRange.$2,
     );
 
-    final totalDebt = _moneyBetween(
-      random,
-      _debtRange(tier).$1,
-      _debtRange(tier).$2,
-    );
+    const totalDebt = Money.zero();
 
     final assets = _generateAssets(
       random: random,
@@ -450,17 +446,6 @@ class FamilyHouseholdGenerator {
       StartingBackgroundTier.upperMiddleClass => (4800000, 10800000),
       StartingBackgroundTier.wealthy => (8400000, 21600000),
       StartingBackgroundTier.veryWealthy => (14400000, 48000000),
-    };
-  }
-
-  static (int, int) _debtRange(StartingBackgroundTier tier) {
-    return switch (tier) {
-      StartingBackgroundTier.struggling => (0, 500000),
-      StartingBackgroundTier.workingClass => (0, 1500000),
-      StartingBackgroundTier.middleClass => (0, 5000000),
-      StartingBackgroundTier.upperMiddleClass => (0, 15000000),
-      StartingBackgroundTier.wealthy => (0, 50000000),
-      StartingBackgroundTier.veryWealthy => (0, 200000000),
     };
   }
 
