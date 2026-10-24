@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:everylife/core/money/money.dart';
 
 import '../../core/money/currency_formatter.dart';
-import '../../core/money/money.dart';
 import '../../data/services/character_palette_service.dart';
 import '../../domain/character/character.dart';
 import '../../domain/character/character_stats.dart';
