@@ -28,144 +28,272 @@ class LifeScreen extends StatelessWidget {
       ),
       child: Scaffold(
         body: SafeArea(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              Card(
-                margin: EdgeInsets.zero,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.zero,
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(s(8)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          IconButton(
-                            key: const Key('life-back-button'),
-                            onPressed: () {
-                              Navigator.of(context).maybePop();
-                            },
-                            icon: const Icon(Icons.arrow_back),
-                            tooltip: 'Back',
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(
-                              minWidth: 40,
-                              minHeight: 40,
-                            ),
-                          ),
-                          SizedBox(width: s(4)),
-                          Text(
-                            'Life',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge,
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: s(4)),
-                      Text(
-                        'Parents',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      if (parents.isEmpty)
-                        const ListTile(
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
-                          leading: Icon(
-                            Icons.family_restroom_outlined,
-                          ),
-                          subtitle: Text(
-                            'Family details are not available in this save.',
-                          ),
-                        )
-                      else
-                        ...parents.map(
-                          (parent) => Padding(
-                            key: ValueKey('parent-${parent.id}'),
-                            padding: EdgeInsets.symmetric(
-                              vertical: s(5),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                _ParentAvatar(
-                                  parent: parent,
-                                  currentYear: currentYear,
-                                  size: s(76),
-                                ),
-                                SizedBox(width: s(12)),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        _relationshipLabel(parent.role),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelMedium
-                                            ?.copyWith(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                      ),
-                                      SizedBox(height: s(2)),
-                                      Text(
-                                        parent.fullName,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium,
-                                      ),
-                                      if (!parent.isAlive) ...[
-                                        SizedBox(height: s(3)),
-                                        Text(
-                                          'Deceased'
-                                          '${parent.deathYear == null ? '' : ' · ${parent.deathYear}'}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurfaceVariant,
-                                              ),
-                                        ),
-                                      ],
-                                    ],
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: EdgeInsets.zero,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _LifeHeader(zoom: zoom),
+                        _CategoryCard(
+                          title: 'Parents',
+                          icon: Icons.family_restroom_outlined,
+                          zoom: zoom,
+                          child: parents.isEmpty
+                              ? const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: 12,
                                   ),
+                                  child: Text(
+                                    'Family details are not available '
+                                    'in this save.',
+                                  ),
+                                )
+                              : Column(
+                                  children: [
+                                    for (var i = 0;
+                                        i < parents.length;
+                                        i++) ...[
+                                      if (i > 0)
+                                        SizedBox(height: s(8)),
+                                      _ParentNpcCard(
+                                        key: ValueKey(
+                                          'parent-card-${parents[i].id}',
+                                        ),
+                                        parent: parents[i],
+                                        currentYear: currentYear,
+                                        zoom: zoom,
+                                      ),
+                                    ],
+                                  ],
                                 ),
-                              ],
-                            ),
+                        ),
+                        _CategoryCard(
+                          title: 'Friends',
+                          icon: Icons.people_outline,
+                          zoom: zoom,
+                          child: const _CategoryPlaceholder(
+                            message: 'No friends to show yet.',
                           ),
                         ),
-                      const _LifeContainerItem(
-                        icon: Icons.people_outline,
-                        title: 'Friends',
-                      ),
-                      const _LifeContainerItem(
-                        icon: Icons.favorite_border,
-                        title: 'Partner',
-                      ),
-                      const _LifeContainerItem(
-                        icon: Icons.child_care_outlined,
-                        title: 'Children',
-                      ),
-                      const _LifeContainerItem(
-                        icon: Icons.people_alt_outlined,
-                        title: 'Relationships',
-                      ),
-                    ],
+                        _CategoryCard(
+                          title: 'Partner',
+                          icon: Icons.favorite_border,
+                          zoom: zoom,
+                          child: const _CategoryPlaceholder(
+                            message: 'No partner to show yet.',
+                          ),
+                        ),
+                        _CategoryCard(
+                          title: 'Children',
+                          icon: Icons.child_care_outlined,
+                          zoom: zoom,
+                          child: const _CategoryPlaceholder(
+                            message: 'No children to show yet.',
+                          ),
+                        ),
+                        _CategoryCard(
+                          title: 'Relationships',
+                          icon: Icons.people_alt_outlined,
+                          zoom: zoom,
+                          child: const _CategoryPlaceholder(
+                            message: 'Your other relationships will appear '
+                                'here.',
+                          ),
+                        ),
+                        const Spacer(),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              );
+            },
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LifeHeader extends StatelessWidget {
+  const _LifeHeader({
+    required this.zoom,
+  });
+
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) => value * zoom;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: s(8),
+          vertical: s(4),
+        ),
+        child: Row(
+          children: [
+            IconButton(
+              key: const Key('life-back-button'),
+              onPressed: () {
+                Navigator.of(context).maybePop();
+              },
+              icon: const Icon(Icons.arrow_back),
+              tooltip: 'Back',
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(
+                minWidth: 40,
+                minHeight: 40,
+              ),
+            ),
+            SizedBox(width: s(4)),
+            Text(
+              'Life',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CategoryCard extends StatelessWidget {
+  const _CategoryCard({
+    required this.title,
+    required this.icon,
+    required this.zoom,
+    required this.child,
+  });
+
+  final String title;
+  final IconData icon;
+  final double zoom;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) => value * zoom;
+
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: EdgeInsets.only(bottom: s(6)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(s(8)),
+        side: BorderSide(
+          color: theme.dividerColor.withValues(alpha: 0.55),
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(s(8)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  icon,
+                  size: s(20),
+                  color: theme.colorScheme.primary,
+                ),
+                SizedBox(width: s(7)),
+                Text(
+                  title,
+                  style: theme.textTheme.titleMedium,
+                ),
+              ],
+            ),
+            SizedBox(height: s(8)),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ParentNpcCard extends StatelessWidget {
+  const _ParentNpcCard({
+    required this.parent,
+    required this.currentYear,
+    required this.zoom,
+    super.key,
+  });
+
+  final ParentNpc parent;
+  final int currentYear;
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) => value * zoom;
+
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 0,
+      color: theme.colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(s(8)),
+        side: BorderSide(
+          color: theme.dividerColor.withValues(alpha: 0.45),
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(s(8)),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _ParentAvatar(
+              parent: parent,
+              currentYear: currentYear,
+              size: s(76),
+            ),
+            SizedBox(width: s(12)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _relationshipLabel(parent.role),
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: s(2)),
+                  Text(
+                    parent.fullName,
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  if (!parent.isAlive) ...[
+                    SizedBox(height: s(3)),
+                    Text(
+                      'Deceased'
+                      '${parent.deathYear == null ? '' : ' · ${parent.deathYear}'}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -264,23 +392,18 @@ class _ParentAvatar extends StatelessWidget {
   }
 }
 
-class _LifeContainerItem extends StatelessWidget {
-  const _LifeContainerItem({
-    required this.icon,
-    required this.title,
+class _CategoryPlaceholder extends StatelessWidget {
+  const _CategoryPlaceholder({
+    required this.message,
   });
 
-  final IconData icon;
-  final String title;
+  final String message;
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      dense: true,
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(icon),
-      title: Text(title),
-      subtitle: const Text('Future life system'),
+    return Text(
+      message,
+      style: Theme.of(context).textTheme.bodySmall,
     );
   }
 }
