@@ -1,3 +1,4 @@
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:everylife/core/random/seeded_random.dart';
@@ -8,14 +9,18 @@ import 'package:everylife/domain/time/simulation_clock.dart';
 import 'package:everylife/domain/world/world_state.dart';
 import 'package:everylife/simulation/engine/simulation_engine.dart';
 
-WorldState createTestState() {
+WorldState createTestState({
+  int currentYear = 2026,
+  String playerId = 'player-1',
+  String playerName = 'Test Player',
+}) {
   return WorldState(
-    clock: const SimulationClock(
-      currentYear: 2026,
+    clock: SimulationClock(
+      currentYear: currentYear,
     ),
     player: Character.create(
-      id: 'player-1',
-      name: 'Test Player',
+      id: playerId,
+      name: playerName,
       birthYear: 2026,
     ),
     events: const [],
@@ -335,5 +340,133 @@ void main() {
         );
       },
     );
+
+    test(
+      'invalid random state does not change active engine state',
+      () async {
+        final repository = _StubSaveRepository(
+          SaveData(
+            state: createTestState(
+              currentYear: 2030,
+              playerId: 'loaded-player',
+              playerName: 'Loaded Player',
+            ),
+            randomState: 0x80000000,
+            nextTickId: 8,
+          ),
+        );
+
+        final engine = createTestEngine(
+          saveRepository: repository,
+        );
+
+        final originalState = engine.state;
+        final originalRandomState = engine.random.state;
+        final originalTickId = engine.nextTickId;
+
+        final result = await engine.load();
+
+        expect(
+          result,
+          isA<Failure<void>>(),
+        );
+
+        expect(
+          engine.state,
+          same(originalState),
+        );
+
+        expect(
+          engine.random.state,
+          originalRandomState,
+        );
+
+        expect(
+          engine.nextTickId,
+          originalTickId,
+        );
+      },
+    );
+
+    test(
+      'invalid next tick ID does not change active engine state',
+      () async {
+        final repository = _StubSaveRepository(
+          SaveData(
+            state: createTestState(
+              currentYear: 2030,
+              playerId: 'loaded-player',
+              playerName: 'Loaded Player',
+            ),
+            randomState: 54321,
+            nextTickId: 0,
+          ),
+        );
+
+        final engine = createTestEngine(
+          saveRepository: repository,
+        );
+
+        final originalState = engine.state;
+        final originalRandomState = engine.random.state;
+        final originalTickId = engine.nextTickId;
+
+        final result = await engine.load();
+
+        expect(
+          result,
+          isA<Failure<void>>(),
+        );
+
+        expect(
+          engine.state,
+          same(originalState),
+        );
+
+        expect(
+          engine.random.state,
+          originalRandomState,
+        );
+
+        expect(
+          engine.nextTickId,
+          originalTickId,
+        );
+      },
+    );
   });
+}
+
+class _StubSaveRepository implements SaveRepository {
+  _StubSaveRepository(this.data);
+
+  SaveData? data;
+
+  @override
+  Future<void> save(
+    WorldState state, {
+    required int randomState,
+    required int nextTickId,
+    SaveSlot slot = SaveSlot.autosave,
+  }) async {
+    data = SaveData(
+      state: state,
+      randomState: randomState,
+      nextTickId: nextTickId,
+    );
+  }
+
+  @override
+  Future<SaveData?> load({
+    SaveSlot slot = SaveSlot.autosave,
+  }) async {
+    return data;
+  }
+
+  @override
+  Future<void> delete({
+    SaveSlot slot = SaveSlot.autosave,
+  }) async {
+    data = null;
+  }
 }
