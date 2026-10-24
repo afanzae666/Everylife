@@ -210,6 +210,25 @@ void main() {
       }
     });
 
+    test('starts every household with no debt', () {
+      for (final tier in StartingBackgroundTier.values) {
+        for (var seed = 0; seed < 50; seed++) {
+          final household = generate(
+            seed: seed,
+            tier: tier,
+          );
+
+          expect(
+            household.totalDebt.minorUnits,
+            0,
+            reason:
+                'A household in ${tier.name} with seed $seed '
+                'must start without debt.',
+          );
+        }
+      }
+    });
+
     test('generates non-negative financial values', () {
       for (final tier in StartingBackgroundTier.values) {
         for (var seed = 0; seed < 50; seed++) {
