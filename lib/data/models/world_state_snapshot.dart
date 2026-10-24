@@ -453,6 +453,12 @@ parent.employmentStatus.name,
 parent.annualIncome.minorUnits,
 'incomeStability':
 parent.incomeStability.name,
+'countryCode': parent.countryCode,
+'cashBalanceMinorUnits': parent.cashBalance.minorUnits,
+'annualExpensesMinorUnits': parent.annualExpenses.minorUnits,
+'isAlive': parent.isAlive,
+'deathYear': parent.deathYear,
+'siblingCount': parent.siblingCount,
 'appearance': {
 'base': parent.appearance.base,
 'skinTone': parent.appearance.skinTone,
@@ -504,6 +510,10 @@ if (assetsJson is! List) {
     'Field "familyHousehold.assets" must be a list.',
   );
 }
+
+final isLegacyFamilyFinancialSchema = parentsJson.any(
+  (value) => value is Map && !value.containsKey('cashBalanceMinorUnits'),
+);
 
 final parents = parentsJson
     .map(
@@ -561,6 +571,25 @@ final parents = parentsJson
           incomeStability: _parseIncomeStability(
             parent['incomeStability'],
           ),
+          countryCode: _optionalString(parent['countryCode']).isEmpty
+              ? 'ID' : _optionalString(parent['countryCode']),
+          cashBalance: Money.fromMinorUnits(
+            parent['cashBalanceMinorUnits'] == null
+                ? ((json['cashSavingsMinorUnits'] is int)
+                        ? json['cashSavingsMinorUnits'] as int
+                        : 0) ~/
+                    (parentsJson.isEmpty ? 1 : parentsJson.length)
+                : _requireInt(
+                    parent['cashBalanceMinorUnits'],
+                    'parent.cashBalanceMinorUnits',
+                  ),
+          ),
+          annualExpenses: Money.fromMinorUnits(
+            parent['annualExpensesMinorUnits'] == null ? 0 : _requireInt(parent['annualExpensesMinorUnits'], 'parent.annualExpensesMinorUnits'),
+          ),
+          isAlive: parent['isAlive'] is bool ? parent['isAlive'] as bool : true,
+          deathYear: parent['deathYear'] == null ? null : _requireInt(parent['deathYear'], 'parent.deathYear'),
+          siblingCount: parent['siblingCount'] == null ? 0 : _requireInt(parent['siblingCount'], 'parent.siblingCount'),
           appearance: parent['appearance'] == null
               ? const CharacterAppearance()
               : _parseAppearance(parent['appearance']),
@@ -599,26 +628,36 @@ final assets = assetsJson
               'asset.valueMinorUnits',
             ),
           ),
-          ownerNpcId: ownerNpcId.isEmpty
-              ? null
-              : ownerNpcId,
+          // Legacy unowned/shared assets are assigned once to the first
+          // parent so the estate cannot be inherited by multiple parents.
+          ownerNpcId: ownerNpcId.isEmpty && isLegacyFamilyFinancialSchema
+              ? (parents.isEmpty ? null : parents.first.id)
+              : (ownerNpcId.isEmpty ? null : ownerNpcId),
         );
       },
     )
     .toList(growable: false);
+
+final parentsWithAssets = parents.map((parent) => parent.copyWith(
+  assets: assets.where((asset) => asset.ownerNpcId == parent.id).toList(growable: false),
+)).toList(growable: false);
 
 return FamilyHousehold(
   id: _requireString(
     json['id'],
     'familyHousehold.id',
   ),
-  parents: parents,
-  cashSavings: Money.fromMinorUnits(
-    _requireInt(
-      json['cashSavingsMinorUnits'],
-      'familyHousehold.cashSavingsMinorUnits',
-    ),
-  ),
+  parents: parentsWithAssets,
+  // Legacy aggregate savings are migrated into parent accounts above.
+  // Keeping the old aggregate would count the same money twice.
+  cashSavings: isLegacyFamilyFinancialSchema
+      ? const Money.zero()
+      : Money.fromMinorUnits(
+          _requireInt(
+            json['cashSavingsMinorUnits'],
+            'familyHousehold.cashSavingsMinorUnits',
+          ),
+        ),
   assets: assets,
   housingStatus: _parseHousingStatus(
     json['housingStatus'],
