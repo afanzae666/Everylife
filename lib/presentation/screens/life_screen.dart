@@ -27,25 +27,45 @@ class LifeScreen extends StatelessWidget {
         textScaler: TextScaler.linear(zoom),
       ),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Life'),
-        ),
         body: SafeArea(
           child: ListView(
-            padding: EdgeInsets.fromLTRB(
-              s(8),
-              s(6),
-              s(8),
-              s(12),
-            ),
+            padding: EdgeInsets.zero,
             children: [
               Card(
                 margin: EdgeInsets.zero,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.zero,
+                ),
                 child: Padding(
                   padding: EdgeInsets.all(s(8)),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        children: [
+                          IconButton(
+                            key: const Key('life-back-button'),
+                            onPressed: () {
+                              Navigator.of(context).maybePop();
+                            },
+                            icon: const Icon(Icons.arrow_back),
+                            tooltip: 'Back',
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 40,
+                              minHeight: 40,
+                            ),
+                          ),
+                          SizedBox(width: s(4)),
+                          Text(
+                            'Life',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge,
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: s(4)),
                       Text(
                         'Parents',
                         style: Theme.of(context).textTheme.titleMedium,
