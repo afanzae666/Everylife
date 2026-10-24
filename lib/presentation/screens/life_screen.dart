@@ -215,4 +215,3 @@ class _LifeContainerItem extends StatelessWidget {
     );
   }
 }
-```
