@@ -263,13 +263,13 @@ class FamilyHouseholdGenerator {
         random.nextInt(childHairStyles.length)
       ],
       hairColor: inheritsHairColor &&
-              hairColors.contains(childAppearance!.hairColor)
-          ? childAppearance!.hairColor
+              hairColors.contains(childAppearance.hairColor)
+          ? childAppearance.hairColor
           : hairColors[random.nextInt(hairColors.length)],
       eyes: 'default',
       eyeColor: inheritsEyeColor &&
-              eyeColors.contains(childAppearance!.eyeColor)
-          ? childAppearance!.eyeColor
+              eyeColors.contains(childAppearance.eyeColor)
+          ? childAppearance.eyeColor
           : eyeColors[random.nextInt(eyeColors.length)],
       eyebrows: eyebrowStyles[random.nextInt(eyebrowStyles.length)],
       beard: gender == Gender.male && random.nextInt(100) < 35
