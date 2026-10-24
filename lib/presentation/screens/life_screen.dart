@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 class LifeScreen extends StatelessWidget {
   const LifeScreen({
     required this.zoom,
+    this.onFamilyTap,
     super.key,
   });
 
   final double zoom;
+  final VoidCallback? onFamilyTap;
 
   @override
   Widget build(BuildContext context) {
@@ -51,9 +53,10 @@ class LifeScreen extends StatelessWidget {
                             .bodySmall,
                       ),
                       SizedBox(height: s(4)),
-                      const _LifeContainerItem(
+                      _LifeContainerItem(
                         icon: Icons.family_restroom_outlined,
                         title: 'Family',
+                        onTap: onFamilyTap,
                       ),
                       const _LifeContainerItem(
                         icon: Icons.people_outline,
@@ -71,56 +74,11 @@ class LifeScreen extends StatelessWidget {
                         icon: Icons.people_alt_outlined,
                         title: 'Relationships',
                       ),
-                      const _LifeContainerItem(
-                        icon: Icons.account_tree_outlined,
-                        title: 'Family History',
-                      ),
                     ],
                   ),
                 ),
               ),
-              SizedBox(height: s(2)),
-              Card(
-                margin: EdgeInsets.zero,
-                child: Padding(
-                  padding: EdgeInsets.all(s(8)),
-                  child: Row(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.timeline_outlined,
-                        size: s(28),
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary,
-                      ),
-                      SizedBox(width: s(6)),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Family Tree',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall,
-                            ),
-                            SizedBox(height: s(1)),
-                            Text(
-                              'A future home for family records and the family tree.',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+
             ],
           ),
         ),
@@ -133,20 +91,23 @@ class _LifeContainerItem extends StatelessWidget {
   const _LifeContainerItem({
     required this.icon,
     required this.title,
+    this.onTap,
   });
 
   final IconData icon;
   final String title;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      onTap: onTap,
       dense: true,
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon),
       title: Text(title),
-      subtitle: const Text(
-        'Future life system',
+      subtitle: Text(
+        onTap == null ? 'Future life system' : 'View family members',
       ),
     );
   }
