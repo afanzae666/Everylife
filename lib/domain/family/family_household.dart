@@ -13,6 +13,8 @@ enum HousingStatus {
   homeless,
 }
 
+/// Legacy family container retained to read existing save files.
+/// Its aggregate money fields are not used by the active parent economy.
 class FamilyHousehold {
   FamilyHousehold({
     required this.id,
