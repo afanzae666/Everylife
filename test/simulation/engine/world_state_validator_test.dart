@@ -800,6 +800,142 @@ void main() {
       expect(validator.validate(state).isFailure, isTrue);
     });
 
+    
+    test('rejects an unable-to-work parent with income', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          parents: [
+            ParentNpc(
+              id: 'parent-1',
+              firstName: 'Alex',
+              lastName: 'Test',
+              gender: Gender.male,
+              birthYear: 1980,
+              role: FamilyRole.father,
+              employmentStatus: EmploymentStatus.unableToWork,
+              annualIncome: const Money.fromMinorUnits(200000),
+              incomeStability: IncomeStability.stable,
+            ),
+          ],
+        ),
+      );
+
+      expect(validator.validate(state).isFailure, isTrue);
+    });
+
+    test('rejects an unable-to-work parent with an occupation', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          parents: [
+            ParentNpc(
+              id: 'parent-1',
+              firstName: 'Alex',
+              lastName: 'Test',
+              gender: Gender.male,
+              birthYear: 1980,
+              role: FamilyRole.father,
+              employmentStatus: EmploymentStatus.unableToWork,
+              annualIncome: const Money.zero(),
+              incomeStability: IncomeStability.none,
+              occupation: 'Worker',
+            ),
+          ],
+        ),
+      );
+
+      expect(validator.validate(state).isFailure, isTrue);
+    });
+
+    test('rejects a retired parent with a current occupation', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          parents: [
+            ParentNpc(
+              id: 'parent-1',
+              firstName: 'Alex',
+              lastName: 'Test',
+              gender: Gender.male,
+              birthYear: 1950,
+              role: FamilyRole.father,
+              employmentStatus: EmploymentStatus.retired,
+              annualIncome: const Money.fromMinorUnits(100000),
+              incomeStability: IncomeStability.stable,
+              occupation: 'Worker',
+            ),
+          ],
+        ),
+      );
+
+      expect(validator.validate(state).isFailure, isTrue);
+    });
+
+    test('accepts a self-employed parent with income and occupation', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          parents: [
+            ParentNpc(
+              id: 'parent-1',
+              firstName: 'Alex',
+              lastName: 'Test',
+              gender: Gender.male,
+              birthYear: 1980,
+              role: FamilyRole.father,
+              employmentStatus: EmploymentStatus.selfEmployed,
+              annualIncome: const Money.fromMinorUnits(200000),
+              incomeStability: IncomeStability.variable,
+              occupation: 'Small business owner',
+            ),
+          ],
+        ),
+      );
+
+      expect(validator.validate(state).isSuccess, isTrue);
+    });
+
+    test('rejects an unemployed parent with stability but no income', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          parents: [
+            ParentNpc(
+              id: 'parent-1',
+              firstName: 'Alex',
+              lastName: 'Test',
+              gender: Gender.male,
+              birthYear: 1980,
+              role: FamilyRole.father,
+              employmentStatus: EmploymentStatus.unemployed,
+              annualIncome: const Money.zero(),
+              incomeStability: IncomeStability.stable,
+            ),
+          ],
+        ),
+      );
+
+      expect(validator.validate(state).isFailure, isTrue);
+    });
+
+    test('rejects a homemaker with stability but no income', () {
+      final state = createState().copyWith(
+        familyHousehold: createHousehold(
+          parents: [
+            ParentNpc(
+              id: 'parent-1',
+              firstName: 'Alex',
+              lastName: 'Test',
+              gender: Gender.male,
+              birthYear: 1980,
+              role: FamilyRole.father,
+              employmentStatus: EmploymentStatus.homemaker,
+              annualIncome: const Money.zero(),
+              incomeStability: IncomeStability.stable,
+            ),
+          ],
+        ),
+      );
+
+      expect(validator.validate(state).isFailure, isTrue);
+    });
+
     test('accepts a retired parent with recorded pension income', () {
       final state = createState().copyWith(
         familyHousehold: createHousehold(
