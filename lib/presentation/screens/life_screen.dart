@@ -1,16 +1,22 @@
+```dart
 import 'package:flutter/material.dart';
 
+import '../../data/services/character_palette_service.dart';
+import '../../domain/character/character.dart';
 import '../../domain/family/parent_npc.dart';
+import '../widgets/character_avatar.dart';
 
 class LifeScreen extends StatelessWidget {
   const LifeScreen({
     required this.zoom,
     this.parents = const <ParentNpc>[],
+    this.currentYear = 2026,
     super.key,
   });
 
   final double zoom;
   final List<ParentNpc> parents;
+  final int currentYear;
 
   @override
   Widget build(BuildContext context) {
@@ -38,21 +44,16 @@ class LifeScreen extends StatelessWidget {
                 child: Padding(
                   padding: EdgeInsets.all(s(8)),
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Life',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge,
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
                       SizedBox(height: s(1)),
                       Text(
                         'The people and relationships in your life.',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall,
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                       SizedBox(height: s(4)),
                       Text(
@@ -61,23 +62,33 @@ class LifeScreen extends StatelessWidget {
                       ),
                       if (parents.isEmpty)
                         const ListTile(
-  dense: true,
-  contentPadding: EdgeInsets.zero,
-  leading: Icon(Icons.family_restroom_outlined),
-  subtitle: Text('Family details are not available in this save.'),
-)
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(
+                            Icons.family_restroom_outlined,
+                          ),
+                          subtitle: Text(
+                            'Family details are not available in this save.',
+                          ),
+                        )
                       else
                         ...parents.map(
                           (parent) => ListTile(
+                            key: ValueKey('parent-${parent.id}'),
                             dense: true,
                             contentPadding: EdgeInsets.zero,
-                            leading: Icon(parent.isAlive
-                                ? Icons.person_outline
-                                : Icons.person_off_outlined),
+                            leading: _ParentAvatar(
+                              parent: parent,
+                              currentYear: currentYear,
+                              size: s(48),
+                            ),
                             title: Text(parent.fullName),
-                            subtitle: Text(parent.isAlive
-                                ? (parent.occupation ?? parent.employmentStatus.name)
-                                : 'Deceased${parent.deathYear == null ? '' : ' · ${parent.deathYear}'}'),
+                            subtitle: Text(
+                              parent.isAlive
+                                  ? (parent.occupation ??
+                                      parent.employmentStatus.name)
+                                  : 'Deceased${parent.deathYear == null ? '' : ' · ${parent.deathYear}'}',
+                            ),
                           ),
                         ),
                       const _LifeContainerItem(
@@ -100,10 +111,86 @@ class LifeScreen extends StatelessWidget {
                   ),
                 ),
               ),
-
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ParentAvatar extends StatelessWidget {
+  const _ParentAvatar({
+    required this.parent,
+    required this.currentYear,
+    required this.size,
+  });
+
+  final ParentNpc parent;
+  final int currentYear;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final fallback = CircleAvatar(
+      radius: size / 2,
+      child: Icon(
+        parent.isAlive
+            ? Icons.person_outline
+            : Icons.person_off_outlined,
+      ),
+    );
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: FutureBuilder<CharacterPaletteService>(
+        future: CharacterPaletteService.load(),
+        builder: (context, snapshot) {
+          final palette = snapshot.data;
+
+          if (snapshot.connectionState != ConnectionState.done ||
+              snapshot.hasError ||
+              palette == null) {
+            return fallback;
+          }
+
+          final character = Character.create(
+            id: parent.id,
+            firstName: parent.firstName,
+            lastName: parent.lastName,
+            gender: parent.gender,
+            birthYear: parent.birthYear,
+            appearance: parent.appearance,
+          );
+
+          final skinColor = palette.skinColor(
+            parent.appearance.skinTone,
+          );
+          final eyeColor = palette.eyeColor(
+            parent.appearance.eyeColor,
+          );
+          final hairColor = palette.hairColor(
+            parent.appearance.hairColor,
+          );
+
+          if (skinColor == null ||
+              eyeColor == null ||
+              hairColor == null) {
+            return fallback;
+          }
+
+          return ClipOval(
+            child: CharacterAvatar(
+              character: character,
+              currentYear: currentYear,
+              size: size,
+              skinColor: skinColor,
+              eyeColor: eyeColor,
+              hairColor: hairColor,
+            ),
+          );
+        },
       ),
     );
   }
@@ -120,7 +207,7 @@ class _LifeContainerItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-        return ListTile(
+    return ListTile(
       dense: true,
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon),
@@ -129,3 +216,4 @@ class _LifeContainerItem extends StatelessWidget {
     );
   }
 }
+```
