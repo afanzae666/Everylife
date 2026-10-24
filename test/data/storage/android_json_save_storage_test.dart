@@ -55,7 +55,7 @@ void main() {
     );
 
     test(
-      'overwrites the previous saved JSON',
+      'overwrites the previous saved JSON atomically',
       () async {
         const firstJson =
             '{"currentYear":2050}';
@@ -66,10 +66,18 @@ void main() {
         await storage.write(firstJson);
         await storage.write(secondJson);
 
-        final result =
-            await storage.read();
+        expect(await storage.read(), secondJson);
 
-        expect(result, secondJson);
+        final files = await temporaryDirectory
+            .list()
+            .where((entity) => entity is File)
+            .cast<File>()
+            .toList();
+
+        expect(
+          files.where((file) => file.path.contains('.tmp-')),
+          isEmpty,
+        );
       },
     );
 
@@ -267,7 +275,7 @@ void main() {
     );
 
     test(
-      'migrates legacy save to autosave',
+      'migrates legacy save to autosave and keeps a recovery backup',
       () async {
         const legacyJson =
             '{"currentYear":2040}';
@@ -283,10 +291,7 @@ void main() {
         final result =
             await storage.read();
 
-        expect(
-          result,
-          legacyJson,
-        );
+        expect(result, legacyJson);
 
         final autosaveFile = File(
           '${temporaryDirectory.path}/everylife_autosave.json',
@@ -302,9 +307,16 @@ void main() {
           legacyJson,
         );
 
+        // Keep the original as a backup until a separate, explicit
+        // cleanup policy is introduced.
         expect(
           await legacyFile.exists(),
-          isFalse,
+          isTrue,
+        );
+
+        expect(
+          await legacyFile.readAsString(),
+          legacyJson,
         );
       },
     );
@@ -333,10 +345,7 @@ void main() {
         final result =
             await storage.read();
 
-        expect(
-          result,
-          autosaveJson,
-        );
+        expect(result, autosaveJson);
 
         expect(
           await legacyFile.exists(),
@@ -347,6 +356,29 @@ void main() {
           await legacyFile.readAsString(),
           legacyJson,
         );
+      },
+    );
+
+    test(
+      'preserves the legacy backup after the migrated autosave is deleted',
+      () async {
+        const legacyJson =
+            '{"currentYear":2040}';
+
+        final legacyFile = File(
+          '${temporaryDirectory.path}/everylife_save.json',
+        );
+
+        await legacyFile.writeAsString(
+          legacyJson,
+        );
+
+        expect(await storage.read(), legacyJson);
+
+        await storage.delete();
+
+        // The next read can recover the old save again.
+        expect(await storage.read(), legacyJson);
       },
     );
   });
