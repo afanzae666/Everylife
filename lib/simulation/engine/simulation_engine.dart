@@ -41,7 +41,15 @@ class SimulationEngine {
           ],
         ),
         _validator = const WorldStateValidator(),
-        _nextTickId = nextTickId;
+        _nextTickId = nextTickId {
+    if (nextTickId < 1) {
+      throw ArgumentError.value(
+        nextTickId,
+        'nextTickId',
+        'Must be greater than zero.',
+      );
+    }
+  }
 
   WorldState _state;
 
@@ -146,9 +154,34 @@ class SimulationEngine {
     SaveSlot slot,
   ) async {
     try {
+      final validation = _validator.validate(_state);
+
+      if (validation
+          case Failure<void>(
+            :final message,
+          )) {
+        return Failure(
+          'Save failed: invalid world state: $message',
+        );
+      }
+
+      if (_nextTickId < 1) {
+        return const Failure(
+          'Save failed: next tick ID must be greater than zero.',
+        );
+      }
+
+      final randomState = _random.state;
+
+      if (randomState < 0 || randomState > 0x7fffffff) {
+        return const Failure(
+          'Save failed: random state is outside the valid range.',
+        );
+      }
+
       await _saveManager.save(
         _state,
-        randomState: _random.state,
+        randomState: randomState,
         nextTickId: _nextTickId,
         slot: slot,
       );
