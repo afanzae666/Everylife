@@ -114,24 +114,19 @@ class _LifeContainerItem extends StatelessWidget {
   const _LifeContainerItem({
     required this.icon,
     required this.title,
-    this.onTap,
   });
 
   final IconData icon;
   final String title;
-  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onTap,
+        return ListTile(
       dense: true,
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon),
       title: Text(title),
-      subtitle: Text(
-        onTap == null ? 'Future life system' : 'View family members',
-      ),
+      subtitle: const Text('Future life system'),
     );
   }
 }
