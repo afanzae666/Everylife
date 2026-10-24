@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../../domain/family/parent_npc.dart';
+
 class LifeScreen extends StatelessWidget {
   const LifeScreen({
     required this.zoom,
-    this.onFamilyTap,
+    this.parents = const <ParentNpc>[],
     super.key,
   });
 
   final double zoom;
-  final VoidCallback? onFamilyTap;
+  final List<ParentNpc> parents;
 
   @override
   Widget build(BuildContext context) {
@@ -53,11 +55,32 @@ class LifeScreen extends StatelessWidget {
                             .bodySmall,
                       ),
                       SizedBox(height: s(4)),
-                      _LifeContainerItem(
-                        icon: Icons.family_restroom_outlined,
-                        title: 'Family',
-                        onTap: onFamilyTap,
+                      Text(
+                        'Parents',
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
+                      if (parents.isEmpty)
+                        const ListTile(
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(Icons.family_restroom_outlined),
+                          title: Text('Parents'),
+                          subtitle: Text('Family details are not available in this save.'),
+                        )
+                      else
+                        ...parents.map(
+                          (parent) => ListTile(
+                            dense: true,
+                            contentPadding: EdgeInsets.zero,
+                            leading: Icon(parent.isAlive
+                                ? Icons.person_outline
+                                : Icons.person_off_outlined),
+                            title: Text(parent.fullName),
+                            subtitle: Text(parent.isAlive
+                                ? (parent.occupation ?? parent.employmentStatus.name)
+                                : 'Deceased${parent.deathYear == null ? '' : ' · ${parent.deathYear}'}'),
+                          ),
+                        ),
                       const _LifeContainerItem(
                         icon: Icons.people_outline,
                         title: 'Friends',

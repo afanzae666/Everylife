@@ -15,7 +15,6 @@ import 'assets_screen.dart';
 import 'career_screen.dart';
 import 'character_profile_screen.dart';
 import 'life_screen.dart';
-import 'family_screen.dart';
 import 'more_screen.dart';
 import 'menu_screen.dart';
 import 'save_load_screen.dart';
@@ -426,28 +425,12 @@ class _GameScreenState extends State<GameScreen> {
       MaterialPageRoute<void>(
         builder: (_) => LifeScreen(
           zoom: _uiScaleController.value,
-          onFamilyTap: _openFamilyPage,
+          parents: engine.state.familyHousehold?.parents ?? const [],
         ),
       ),
     );
   }
 
-  void _openFamilyPage() {
-    if (_isProcessingTurn) {
-      return;
-    }
-
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => FamilyScreen(
-          household: engine.state.familyHousehold,
-          currentYear: engine.state.clock.currentYear,
-          zoom: _uiScaleController.value,
-          currencyCode: _getCurrencyCode(engine.state.player),
-        ),
-      ),
-    );
-  }
 
   void _openMorePage() {
     if (_isProcessingTurn) {
