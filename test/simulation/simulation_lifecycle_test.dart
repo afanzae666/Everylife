@@ -61,6 +61,47 @@ void main() {
   );
 
   test(
+    'simulation tick rejects non-positive IDs',
+    () {
+      const zeroIdTick = SimulationTick(
+        id: 0,
+        fromYear: 2026,
+        toYear: 2027,
+      );
+      const negativeIdTick = SimulationTick(
+        id: -1,
+        fromYear: 2026,
+        toYear: 2027,
+      );
+
+      expect(
+        zeroIdTick.isValid,
+        isFalse,
+      );
+      expect(
+        negativeIdTick.isValid,
+        isFalse,
+      );
+    },
+  );
+
+  test(
+    'simulation tick rejects non-positive source years',
+    () {
+      const tick = SimulationTick(
+        id: 1,
+        fromYear: 0,
+        toYear: 1,
+      );
+
+      expect(
+        tick.isValid,
+        isFalse,
+      );
+    },
+  );
+
+  test(
     'world state validator accepts valid newborn state',
     () {
       final state = createState();
