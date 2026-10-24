@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:everylife/core/money/money.dart';
+import 'package:everylife/domain/character/appearance.dart';
 import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/character/character_stats.dart';
 import 'package:everylife/domain/character/gender.dart';
@@ -30,6 +31,13 @@ void main() {
             occupation: 'Teacher',
             annualIncome: Money.fromMinorUnits(250000),
             incomeStability: IncomeStability.stable,
+            appearance: const CharacterAppearance(
+              skinTone: 'medium',
+              hair: 'male_hair_03',
+              hairColor: 'dark_brown',
+              eyeColor: 'brown',
+              eyebrows: 'straight',
+            ),
           ),
           ParentNpc(
             id: 'parent-mother-2002',
@@ -137,6 +145,11 @@ void main() {
         father.incomeStability,
         IncomeStability.stable,
       );
+      expect(father.appearance.skinTone, 'medium');
+      expect(father.appearance.hair, 'male_hair_03');
+      expect(father.appearance.hairColor, 'dark_brown');
+      expect(father.appearance.eyeColor, 'brown');
+      expect(father.appearance.eyebrows, 'straight');
 
       expect(restoredHousehold.assets, hasLength(2));
       expect(
