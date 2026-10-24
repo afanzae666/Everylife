@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 
 import '../../data/services/character_palette_service.dart';
@@ -72,21 +73,46 @@ class LifeScreen extends StatelessWidget {
                         )
                       else
                         ...parents.map(
-                          (parent) => ListTile(
+                          (parent) => Padding(
                             key: ValueKey('parent-${parent.id}'),
-                            dense: true,
-                            contentPadding: EdgeInsets.zero,
-                            leading: _ParentAvatar(
-                              parent: parent,
-                              currentYear: currentYear,
-                              size: s(48),
+                            padding: EdgeInsets.symmetric(
+                              vertical: s(4),
                             ),
-                            title: Text(parent.fullName),
-                            subtitle: Text(
-                              parent.isAlive
-                                  ? (parent.occupation ??
-                                      parent.employmentStatus.name)
-                                  : 'Deceased${parent.deathYear == null ? '' : ' · ${parent.deathYear}'}',
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                _ParentAvatar(
+                                  parent: parent,
+                                  currentYear: currentYear,
+                                  size: s(64),
+                                ),
+                                SizedBox(width: s(10)),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        parent.fullName,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium,
+                                      ),
+                                      SizedBox(height: s(3)),
+                                      Text(
+                                        parent.isAlive
+                                            ? (parent.occupation ??
+                                                parent.employmentStatus.name)
+                                            : 'Deceased${parent.deathYear == null ? '' : ' · ${parent.deathYear}'}',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -131,18 +157,24 @@ class _ParentAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fallback = CircleAvatar(
-      radius: size / 2,
-      child: Icon(
-        parent.isAlive
-            ? Icons.person_outline
-            : Icons.person_off_outlined,
+    final fallback = SizedBox(
+      width: size,
+      height: size * 1.25,
+      child: Center(
+        child: CircleAvatar(
+          radius: size * 0.35,
+          child: Icon(
+            parent.isAlive
+                ? Icons.person_outline
+                : Icons.person_off_outlined,
+          ),
+        ),
       ),
     );
 
     return SizedBox(
       width: size,
-      height: size,
+      height: size * 1.25,
       child: FutureBuilder<CharacterPaletteService>(
         future: CharacterPaletteService.load(),
         builder: (context, snapshot) {
@@ -179,15 +211,13 @@ class _ParentAvatar extends StatelessWidget {
             return fallback;
           }
 
-          return ClipOval(
-            child: CharacterAvatar(
-              character: character,
-              currentYear: currentYear,
-              size: size,
-              skinColor: skinColor,
-              eyeColor: eyeColor,
-              hairColor: hairColor,
-            ),
+          return CharacterAvatar(
+            character: character,
+            currentYear: currentYear,
+            size: size,
+            skinColor: skinColor,
+            eyeColor: eyeColor,
+            hairColor: hairColor,
           );
         },
       ),
