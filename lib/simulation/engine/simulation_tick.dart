@@ -9,5 +9,8 @@ class SimulationTick {
   final int fromYear;
   final int toYear;
 
-  bool get isValid => toYear == fromYear + 1;
+  bool get isValid =>
+      id >= 1 &&
+      fromYear > 0 &&
+      toYear == fromYear + 1;
 }
