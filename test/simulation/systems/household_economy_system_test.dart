@@ -58,10 +58,20 @@ void main() {
   });
 
   test('does not advance finances for a deceased parent', () {
-    final parent = makeParent(alive: false, deathYear: 2025, balance: 2000);
-    final initial = makeState(parent);
-    expect(process(initial), same(initial));
-  });
+  final parent = makeParent(alive: false, deathYear: 2025, balance: 2000);
+  final initial = makeState(parent);
+  final advanced = initial.copyWith(
+    clock: initial.clock.advanceYear(),
+  );
+
+  expect(
+    system.process(
+      state: advanced,
+      command: const AgeUpCommand(),
+    ),
+    same(advanced),
+  );
+});
 
   test('distributes an estate once when a parent reaches terminal age', () {
     final parent = makeParent(
