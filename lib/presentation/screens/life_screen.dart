@@ -1,4 +1,3 @@
-```dart
 import 'package:flutter/material.dart';
 
 import '../../data/services/character_palette_service.dart';
