@@ -6,11 +6,11 @@ void main() {
   test('system priorities preserve simulation order', () {
     expect(
       SystemPriority.time.value <
-          SystemPriority.householdEconomy.value,
+          SystemPriority.parentEconomy.value,
       isTrue,
     );
     expect(
-      SystemPriority.householdEconomy.value <
+      SystemPriority.parentEconomy.value <
           SystemPriority.character.value,
       isTrue,
     );
