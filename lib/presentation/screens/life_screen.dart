@@ -61,12 +61,11 @@ class LifeScreen extends StatelessWidget {
                       ),
                       if (parents.isEmpty)
                         const ListTile(
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
-                          leading: Icon(Icons.family_restroom_outlined),
-                          title: Text('Parents'),
-                          subtitle: Text('Family details are not available in this save.'),
-                        )
+  dense: true,
+  contentPadding: EdgeInsets.zero,
+  leading: Icon(Icons.family_restroom_outlined),
+  subtitle: Text('Family details are not available in this save.'),
+)
                       else
                         ...parents.map(
                           (parent) => ListTile(
