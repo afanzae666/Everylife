@@ -70,6 +70,57 @@ void main() {
     );
 
     test(
+      'constructor rejects a non-positive next tick ID',
+      () {
+        expect(
+          () => SimulationEngine(
+            initialState: createTestState(),
+            random: SeededRandom(12345),
+            saveRepository: InMemorySaveRepository(),
+            nextTickId: 0,
+          ),
+          throwsArgumentError,
+        );
+
+        expect(
+          () => SimulationEngine(
+            initialState: createTestState(),
+            random: SeededRandom(12345),
+            saveRepository: InMemorySaveRepository(),
+            nextTickId: -1,
+          ),
+          throwsArgumentError,
+        );
+      },
+    );
+
+    test(
+      'save refuses an invalid world state without writing it',
+      () async {
+        final repository = InMemorySaveRepository();
+        final engine = SimulationEngine(
+          initialState: createTestState(
+            playerId: ' ',
+          ),
+          random: SeededRandom(12345),
+          saveRepository: repository,
+        );
+
+        final result = await engine.save();
+
+        expect(
+          result,
+          isA<Failure<void>>(),
+        );
+
+        expect(
+          await repository.load(),
+          isNull,
+        );
+      },
+    );
+
+    test(
       'ageUp advances simulation by exactly one year',
       () {
         final engine = createTestEngine(
