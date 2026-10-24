@@ -56,12 +56,12 @@ class LifeScreen extends StatelessWidget {
                                   ),
                                 )
                               : Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   children: [
                                     for (var i = 0;
                                         i < parents.length;
-                                        i++) ...[
-                                      if (i > 0)
-                                        SizedBox(height: s(8)),
+                                        i++)
                                       _ParentNpcCard(
                                         key: ValueKey(
                                           'parent-card-${parents[i].id}',
@@ -70,7 +70,6 @@ class LifeScreen extends StatelessWidget {
                                         currentYear: currentYear,
                                         zoom: zoom,
                                       ),
-                                    ],
                                   ],
                                 ),
                         ),
@@ -96,15 +95,6 @@ class LifeScreen extends StatelessWidget {
                           zoom: zoom,
                           child: const _CategoryPlaceholder(
                             message: 'No children to show yet.',
-                          ),
-                        ),
-                        _CategoryCard(
-                          title: 'Relationships',
-                          icon: Icons.people_alt_outlined,
-                          zoom: zoom,
-                          child: const _CategoryPlaceholder(
-                            message: 'Your other relationships will appear '
-                                'here.',
                           ),
                         ),
                         const Spacer(),
@@ -189,7 +179,7 @@ class _CategoryCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Card(
-      margin: EdgeInsets.only(bottom: s(6)),
+      margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(s(8)),
         side: BorderSide(
@@ -215,7 +205,7 @@ class _CategoryCard extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: s(8)),
+            SizedBox(height: s(2)),
             child,
           ],
         ),
