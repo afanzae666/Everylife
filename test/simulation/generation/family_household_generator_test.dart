@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:everylife/core/random/seeded_random.dart';
+import 'package:everylife/domain/character/appearance.dart';
 import 'package:everylife/domain/character/gender.dart';
 import 'package:everylife/domain/character/starting_background.dart';
 import 'package:everylife/domain/family/family_asset.dart';
@@ -43,6 +44,12 @@ void main() {
           parent.occupation,
           parent.annualIncome.minorUnits,
           parent.incomeStability.name,
+          parent.appearance.skinTone,
+          parent.appearance.hair,
+          parent.appearance.hairColor,
+          parent.appearance.eyeColor,
+          parent.appearance.eyebrows,
+          parent.appearance.beard,
         ].join('|');
       }).join(';'),
       household.assets.map((asset) {
@@ -225,6 +232,64 @@ void main() {
                 'A household in ${tier.name} with seed $seed '
                 'must start without debt.',
           );
+        }
+      }
+    });
+
+    test('keeps parent skin tones near the player appearance', () {
+      const skinTones = <String>[
+        'pale',
+        'very_light',
+        'light',
+        'light_medium',
+        'medium',
+        'medium_tan',
+        'tan',
+        'deep_tan',
+        'brown',
+        'deep_brown',
+        'dark',
+        'very_dark',
+      ];
+      const childAppearance = CharacterAppearance(
+        skinTone: 'medium',
+        hair: 'male_hair_03',
+        hairColor: 'dark_brown',
+        eyeColor: 'brown',
+      );
+
+      final household = FamilyHouseholdGenerator.generate(
+        random: SeededRandom(2345),
+        birthYear: 2026,
+        background: const StartingBackground(
+          tier: StartingBackgroundTier.middleClass,
+        ),
+        familyName: 'Santoso',
+        countryCode: 'ID',
+        childAppearance: childAppearance,
+      );
+      final childSkinIndex = skinTones.indexOf(childAppearance.skinTone);
+
+      for (final parent in household.parents) {
+        final parentSkinIndex = skinTones.indexOf(parent.appearance.skinTone);
+        expect(parentSkinIndex, greaterThanOrEqualTo(childSkinIndex - 2));
+        expect(parentSkinIndex, lessThanOrEqualTo(childSkinIndex + 2));
+      }
+    });
+
+    test('generates valid persistent appearance identifiers for parents', () {
+      for (var seed = 0; seed < 100; seed++) {
+        final household = generate(
+          seed: seed,
+          tier: StartingBackgroundTier.middleClass,
+        );
+
+        for (final parent in household.parents) {
+          expect(parent.appearance.skinTone, isNot('default'));
+          expect(parent.appearance.hairColor, isNot('default'));
+          expect(parent.appearance.eyeColor, isNot('default'));
+          expect(parent.appearance.hair, isNot('default'));
+          expect(parent.appearance.eyebrows, isNot('default'));
         }
       }
     });
