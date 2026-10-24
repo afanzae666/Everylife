@@ -31,6 +31,53 @@ class SimulationSaveSnapshot {
   factory SimulationSaveSnapshot.fromJson(
     Map<String, dynamic> json,
   ) {
+    
+    // Migrate the legacy format that stored WorldStateSnapshot
+    // directly, before SimulationSaveSnapshot was introduced.
+    if (!json.containsKey('schemaVersion')) {
+      final isLegacyWorldSnapshot =
+          json.containsKey('currentYear') &&
+          json['player'] is Map &&
+          json['events'] is List;
+
+      if (!isLegacyWorldSnapshot) {
+        throw const FormatException(
+          'Missing or invalid save schema version.',
+        );
+      }
+
+      final currentYear = _requireInt(
+        json['currentYear'],
+        'currentYear',
+      );
+
+      final player = _requireMap(
+        json['player'],
+        'player',
+      );
+
+      final birthYear = _requireInt(
+        player['birthYear'],
+        'player.birthYear',
+      );
+
+      // Legacy saves did not persist the random generator state.
+      // Use a deterministic valid fallback for migrated saves.
+      final randomState = 0;
+
+      // One successful age-up advances the tick ID by one.
+      // For a legacy save, reconstruct the next ID from elapsed years.
+      final nextTickId = currentYear >= birthYear
+          ? currentYear - birthYear + 1
+          : 1;
+
+      return SimulationSaveSnapshot(
+        world: WorldStateSnapshot.fromJson(json),
+        randomState: randomState,
+        nextTickId: nextTickId,
+      );
+    }
+
     final schemaVersion = _requireInt(
       json['schemaVersion'],
       'schemaVersion',
