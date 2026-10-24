@@ -75,9 +75,10 @@ void main() {
           expect(
             description,
             contains(
-              household.cashSavings.minorUnits == 0
-                  ? 'The household has no recorded cash savings.'
-                  : 'The household has recorded cash savings.',
+              household.parents.fold<int>(0, (sum, parent) =>
+                          sum + parent.cashBalance.minorUnits) == 0
+                  ? 'The parents have no recorded personal cash savings.'
+                  : 'The parents have accumulated personal cash savings over time.',
             ),
             reason: 'Seed $seed misrepresented household savings.',
           );
@@ -146,25 +147,24 @@ String _housingDescription(HousingStatus status) {
 }
 
 String _incomeDescription(FamilyHousehold household) {
-  final income = household.annualIncome.minorUnits;
-  final costs = household.annualLivingCosts.minorUnits;
+  final income = household.parents.fold<int>(
+    0, (sum, parent) => sum + parent.annualIncome.minorUnits,
+  );
+  final expenses = household.parents.fold<int>(
+    0, (sum, parent) => sum + parent.annualExpenses.minorUnits,
+  );
 
   if (income == 0) {
-    return 'The household currently has no recorded annual income.';
+    return 'The parents currently have no recorded annual income.';
   }
-
-  if (income < costs) {
-    return 'The household income is lower than its estimated '
-        'annual living costs, creating financial pressure.';
+  if (income < expenses) {
+    return 'The parents’ combined income is lower than their recorded '
+        'personal living contributions, creating financial pressure.';
   }
-
-  if (income == costs) {
-    return 'The household income matches its estimated '
-        'annual living costs, leaving little room '
-        'for unexpected expenses.';
+  if (income == expenses) {
+    return 'The parents’ recorded income is fully committed to expenses, '
+        'leaving little room for unexpected costs.';
   }
-
-  return 'The household income covers its estimated '
-      'annual living costs, although other '
-      'obligations may affect its financial flexibility.';
+  return 'The parents earn income, but their individual expenses '
+      'and obligations affect how much they can save.';
 }
