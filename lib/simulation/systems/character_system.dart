@@ -64,6 +64,25 @@ class CharacterSystem implements SimulationSystem {
       );
     }
 
+    final household = state.familyHousehold;
+    if (household != null) {
+      for (final sibling in household.siblings.where(
+        (sibling) => sibling.birthYear == currentYear &&
+            sibling.birthYear > state.player.birthYear,
+      )) {
+        final relation = sibling.gender.name == 'male' ? 'brother' : 'sister';
+        nextState = nextState.addEvent(
+          SimulationEvent(
+            id: 'sibling-born-${sibling.id}',
+            type: SimulationEventType.randomEvent,
+            year: currentYear,
+            title: 'A new sibling is born',
+            description: 'My $relation, ${sibling.fullName}, was born in $currentYear.',
+          ),
+        );
+      }
+    }
+
     final event = SimulationEvent(
       id: 'character-aged-$currentYear',
       type: SimulationEventType.characterAged,
