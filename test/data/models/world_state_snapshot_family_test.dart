@@ -11,6 +11,7 @@ import 'package:everylife/domain/character/gender.dart';
 import 'package:everylife/domain/family/family_asset.dart';
 import 'package:everylife/domain/family/family_household.dart';
 import 'package:everylife/domain/family/parent_npc.dart';
+import 'package:everylife/domain/family/sibling_npc.dart';
 import 'package:everylife/domain/time/simulation_clock.dart';
 import 'package:everylife/domain/world/world_state.dart';
 
@@ -66,6 +67,24 @@ void main() {
             type: FamilyAssetType.business,
             value: Money.fromMinorUnits(3500000),
             ownerNpcId: 'parent-mother-1982',
+          ),
+        ],
+        siblings: const [
+          SiblingNpc(
+            id: 'sibling-round-trip-older',
+            firstName: 'Morgan',
+            lastName: 'Morgan',
+            gender: Gender.female,
+            birthYear: 2020,
+            relationship: SiblingRelationship.fullSibling,
+          ),
+          SiblingNpc(
+            id: 'sibling-round-trip-step',
+            firstName: 'Jordan',
+            lastName: 'Lee',
+            gender: Gender.male,
+            birthYear: 2030,
+            relationship: SiblingRelationship.stepSibling,
           ),
         ],
         housingStatus: HousingStatus.ownedWithMortgage,
@@ -136,6 +155,16 @@ void main() {
       expect(restored.annualSurplus, originalHousehold.annualSurplus);
 
       expect(restored.parents, hasLength(originalHousehold.parents.length));
+      expect(restored.siblings, hasLength(originalHousehold.siblings.length));
+      for (var index = 0; index < originalHousehold.siblings.length; index++) {
+        final expected = originalHousehold.siblings[index];
+        final actual = restored.siblings[index];
+        expect(actual.id, expected.id);
+        expect(actual.fullName, expected.fullName);
+        expect(actual.gender, expected.gender);
+        expect(actual.birthYear, expected.birthYear);
+        expect(actual.relationship, expected.relationship);
+      }
 
       for (var index = 0;
           index < originalHousehold.parents.length;
