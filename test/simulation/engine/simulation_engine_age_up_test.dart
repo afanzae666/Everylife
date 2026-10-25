@@ -1,3 +1,4 @@
+
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../lib/data/repositories/save_repository.dart';
@@ -22,7 +23,7 @@ void main() {
 
       expect(engine.state.clock.currentYear, 2026);
       expect(engine.state.player.ageAt(2026), 0);
-      expect(engine.state.events.length, 2);
+      expect(engine.state.events.length, 3);
 
       final result = engine.ageUp();
 
@@ -47,7 +48,7 @@ void main() {
       final result = engine.ageUp();
 
       expect(result.isSuccess, isTrue);
-      expect(engine.state.events.length, 3);
+      expect(engine.state.events.length, 4);
 
       final event = engine.state.events.last;
 
