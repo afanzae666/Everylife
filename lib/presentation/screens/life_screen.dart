@@ -257,16 +257,16 @@ class _ParentNpcCard extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: EdgeInsets.all(s(4)),
+        padding: EdgeInsets.all(s(3)),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             _ParentAvatar(
               parent: parent,
               currentYear: currentYear,
-              size: s(76),
+              size: s(56),
             ),
-            SizedBox(width: s(8)),
+            SizedBox(width: s(6)),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -282,9 +282,9 @@ class _ParentNpcCard extends StatelessWidget {
                   SizedBox(height: s(1)),
                   Text(
                     parent.fullName,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+  fontWeight: FontWeight.w600,
+),
                   ),
                   if (!parent.isAlive) ...[
                     SizedBox(height: s(2)),
