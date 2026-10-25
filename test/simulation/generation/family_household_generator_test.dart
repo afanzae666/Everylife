@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:everylife/core/random/seeded_random.dart';
 import 'package:everylife/domain/character/cultural_name_catalog.dart';
-import 'package:everylife/domain/character/gender.dart';
 import 'package:everylife/domain/character/starting_background.dart';
 import 'package:everylife/domain/family/family_household.dart';
 import 'package:everylife/domain/family/parent_npc.dart';
