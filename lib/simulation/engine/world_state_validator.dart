@@ -3,6 +3,7 @@ import '../../core/result/result.dart';
 import '../../domain/family/family_asset.dart';
 import '../../domain/family/family_household.dart';
 import '../../domain/family/parent_npc.dart';
+import '../../domain/family/sibling_npc.dart';
 import '../../domain/world/world_state.dart';
 
 class WorldStateValidator {
@@ -230,6 +231,23 @@ class WorldStateValidator {
 
       if (employmentError != null) {
         return employmentError;
+      }
+    }
+
+    final siblingIds = <String>{};
+    for (final sibling in household.siblings) {
+      if (sibling.id.trim().isEmpty) {
+        return 'World state is invalid: sibling id cannot be empty.';
+      }
+      if (!siblingIds.add(sibling.id.trim())) {
+        return 'World state is invalid: duplicate sibling id "${sibling.id}".';
+      }
+      if (sibling.firstName.trim().isEmpty || sibling.lastName.trim().isEmpty) {
+        return 'World state is invalid: sibling name cannot be empty.';
+      }
+      if (sibling.birthYear <= 0 ||
+          (sibling.birthYear - playerBirthYear).abs() > 100) {
+        return 'World state is invalid: sibling "${sibling.id}" has an invalid birth year.';
       }
     }
 
