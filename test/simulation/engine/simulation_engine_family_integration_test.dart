@@ -1,25 +1,37 @@
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:everylife/data/repositories/save_repository.dart';
 import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/character/cultural_name_catalog.dart';
-import 'package:everylife/domain/family/parent_npc.dart';
 import 'package:everylife/domain/event/simulation_event.dart';
+import 'package:everylife/domain/family/parent_npc.dart';
 import 'package:everylife/simulation/engine/simulation_engine.dart';
 
 void main() {
   Character createPlayer() => Character.create(
-    id: 'player-family-test', firstName: 'Alfan', lastName: 'Zaenal',
-    birthYear: 2026,
-  );
+        id: 'player-family-test',
+        firstName: 'Alfan',
+        lastName: 'Zaenal',
+        birthYear: 2026,
+      );
 
-  SimulationEngine createEngine({int seed = 12345}) => SimulationEngine.create(
-    player: createPlayer(), seed: seed,
-    saveRepository: InMemorySaveRepository(),
-  );
+  SimulationEngine createEngine({int seed = 12345}) =>
+      SimulationEngine.create(
+        player: createPlayer(),
+        seed: seed,
+        saveRepository: InMemorySaveRepository(),
+      );
+
+  SimulationEvent eventByTitle(
+    SimulationEngine engine,
+    String title,
+  ) =>
+      engine.state.events.singleWhere((event) => event.title == title);
 
   test('generates individual parent financial records for a new life', () {
     final engine = createEngine();
     final parents = engine.state.familyHousehold!.parents;
+
     expect(parents, isNotEmpty);
     for (final parent in parents) {
       expect(parent.lastName, 'Zaenal');
@@ -28,44 +40,89 @@ void main() {
       expect(parent.annualExpenses.minorUnits, greaterThanOrEqualTo(0));
       expect(parent.assets, isNotNull);
     }
+
     expect(engine.state.familyHousehold!.cashSavings.minorUnits, 0);
   });
 
-  test('starting life event reflects concise employment details without exposing NPC names', () {
+  test('creates separate starting family and economy events', () {
     final engine = createEngine();
     final household = engine.state.familyHousehold!;
-    final event = engine.state.events.firstWhere(
-      (event) => event.type == SimulationEventType.startingLifeEvent,
+    final familyEvent = eventByTitle(engine, 'Starting Family');
+    final economyEvent = eventByTitle(engine, 'Starting Economy');
+
+    expect(familyEvent.type, SimulationEventType.startingLifeEvent);
+    expect(economyEvent.type, SimulationEventType.startingLifeEvent);
+    expect(familyEvent.year, 2026);
+    expect(economyEvent.year, 2026);
+    expect(familyEvent.description, isNotEmpty);
+    expect(economyEvent.description, isNotEmpty);
+
+    expect(
+      familyEvent.description,
+      isNot(contains('works as a')),
     );
-    expect(event.year, 2026);
-    expect(event.description, isNotEmpty);
+    expect(
+      familyEvent.description,
+      isNot(contains('currently unemployed')),
+    );
+    expect(
+      economyEvent.description,
+      isNot(contains('biological parents')),
+    );
+    expect(
+      economyEvent.description,
+      isNot(contains('orphanage')),
+    );
+
     for (final parent in household.parents) {
-      expect(parent.fullName, CulturalNameCatalog.formatFullName(
-        parent.countryCode, parent.firstName, parent.lastName,
-      ));
-      if (parent.isAlive && parent.role != FamilyRole.guardian) {
-        expect(event.description, contains(parent.role == FamilyRole.father
-            ? 'Your father'
-            : 'Your mother'));
+      expect(
+        parent.fullName,
+        CulturalNameCatalog.formatFullName(
+          parent.countryCode,
+          parent.firstName,
+          parent.lastName,
+        ),
+      );
+
+      if (parent.isAlive) {
+        final roleLabel = switch (parent.role) {
+          FamilyRole.father => 'Your father',
+          FamilyRole.mother => 'Your mother',
+          FamilyRole.guardian => 'Your guardian',
+          FamilyRole.stepFather => 'Your stepfather',
+          FamilyRole.stepMother => 'Your stepmother',
+        };
+        expect(economyEvent.description, contains(roleLabel));
       }
     }
-    expect(event.description, isNot(contains('Zaenal')));
-    expect(event.description, isNot(contains('Alfan')));
+
+    expect(familyEvent.description, isNot(contains('Zaenal')));
+    expect(economyEvent.description, isNot(contains('Zaenal')));
+    expect(familyEvent.description, isNot(contains('Alfan')));
+    expect(economyEvent.description, isNot(contains('Alfan')));
   });
 
   test('age-up advances each living parent financial balance', () {
     final engine = createEngine();
     final before = engine.state.familyHousehold!.parents;
+
     expect(engine.ageUp().isSuccess, isTrue);
     expect(engine.state.clock.currentYear, 2027);
+
     final after = engine.state.familyHousehold!.parents;
     expect(after.length, before.length);
+
     for (var i = 0; i < before.length; i++) {
       if (before[i].isAlive) {
-        expect(after[i].cashBalance.minorUnits,
-            before[i].cashBalance.minorUnits + before[i].annualIncome.minorUnits - before[i].annualExpenses.minorUnits >= 0
-                ? before[i].cashBalance.minorUnits + before[i].annualIncome.minorUnits - before[i].annualExpenses.minorUnits
-                : 0);
+        final expectedBalance =
+            before[i].cashBalance.minorUnits +
+                before[i].annualIncome.minorUnits -
+                before[i].annualExpenses.minorUnits;
+
+        expect(
+          after[i].cashBalance.minorUnits,
+          expectedBalance >= 0 ? expectedBalance : 0,
+        );
       }
     }
   });
