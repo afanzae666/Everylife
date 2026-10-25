@@ -3,6 +3,7 @@ import 'package:everylife/core/random/seeded_random.dart';
 import 'package:everylife/domain/character/cultural_name_catalog.dart';
 import 'package:everylife/domain/character/starting_background.dart';
 import 'package:everylife/domain/family/family_household.dart';
+import 'package:everylife/domain/family/sibling_npc.dart';
 import 'package:everylife/simulation/generation/family_household_generator.dart';
 
 void main() {
@@ -33,6 +34,22 @@ void main() {
       expect(parent.cashBalance.minorUnits, greaterThanOrEqualTo(0));
       expect(parent.annualExpenses.minorUnits, greaterThanOrEqualTo(0));
       expect(parent.assets.every((asset) => asset.ownerNpcId == parent.id), isTrue);
+    }
+  });
+
+  test('generates stable siblings with varied relationship and age data', () {
+    final first = generate(seed: 99);
+    final second = generate(seed: 99);
+    expect(first.siblings.map((sibling) => sibling.id).toList(),
+        second.siblings.map((sibling) => sibling.id).toList());
+    expect(first.siblings.map((sibling) => sibling.birthYear).toList(),
+        second.siblings.map((sibling) => sibling.birthYear).toList());
+    expect(first.siblings.length, lessThanOrEqualTo(3));
+    for (final sibling in first.siblings) {
+      expect(sibling.firstName, isNotEmpty);
+      expect(sibling.lastName, isNotEmpty);
+      expect(sibling.birthYear, isNot(2026));
+      expect(SiblingRelationship.values, contains(sibling.relationship));
     }
   });
 
