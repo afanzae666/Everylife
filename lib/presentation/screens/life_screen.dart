@@ -1,4 +1,4 @@
-
+```dart
 import 'package:flutter/material.dart';
 
 import '../../data/services/character_palette_service.dart';
@@ -67,14 +67,10 @@ class LifeScreen extends StatelessWidget {
                           title: 'Parents',
                           zoom: zoom,
                           child: parents.isEmpty
-                              ? const Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                  child: Text(
-                                    'Family details are not available '
-                                    'in this save.',
-                                  ),
+                              ? const _CategoryPlaceholder(
+                                  message:
+                                      'Family details are not available '
+                                      'in this save.',
                                 )
                               : Column(
                                   crossAxisAlignment:
@@ -174,38 +170,32 @@ class _LifeHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     double s(double value) => value * zoom;
 
-    return Card(
-      margin: EdgeInsets.zero,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: s(4),
+        vertical: s(2),
       ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: s(8),
-          vertical: s(4),
-        ),
-        child: Row(
-          children: [
-            IconButton(
-              key: const Key('life-back-button'),
-              onPressed: () {
-                Navigator.of(context).maybePop();
-              },
-              icon: const Icon(Icons.arrow_back),
-              tooltip: 'Back',
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(
-                minWidth: 40,
-                minHeight: 40,
-              ),
+      child: Row(
+        children: [
+          IconButton(
+            key: const Key('life-back-button'),
+            onPressed: () {
+              Navigator.of(context).maybePop();
+            },
+            icon: const Icon(Icons.arrow_back),
+            tooltip: 'Back',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(
+              minWidth: 40,
+              minHeight: 40,
             ),
-            SizedBox(width: s(4)),
-            Text(
-              'Life',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-          ],
-        ),
+          ),
+          SizedBox(width: s(4)),
+          Text(
+            'Life',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+        ],
       ),
     );
   }
@@ -230,18 +220,23 @@ class _CategoryCard extends StatelessWidget {
 
     return Card(
       margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(s(8)),
         side: BorderSide(
           color: theme.dividerColor.withValues(alpha: 0.55),
         ),
       ),
-      child: Padding(
-        padding: EdgeInsets.all(s(8)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(
+              top: s(2),
+              bottom: s(2),
+            ),
+            child: Center(
               child: Text(
                 title,
                 textAlign: TextAlign.center,
@@ -250,10 +245,9 @@ class _CategoryCard extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: s(2)),
-            child,
-          ],
-        ),
+          ),
+          child,
+        ],
       ),
     );
   }
@@ -369,6 +363,7 @@ class _SiblingNpcCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double s(double value) => value * zoom;
+
     final theme = Theme.of(context);
     final older = sibling.isOlderThan(playerBirthYear);
 
@@ -587,9 +582,16 @@ class _CategoryPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      message,
-      style: Theme.of(context).textTheme.bodySmall,
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 4,
+        vertical: 4,
+      ),
+      child: Text(
+        message,
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
     );
   }
 }
+```
