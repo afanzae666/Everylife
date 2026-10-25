@@ -6,6 +6,7 @@ import 'package:everylife/domain/event/simulation_event.dart';
 import 'package:everylife/domain/family/family_asset.dart';
 import 'package:everylife/domain/family/family_household.dart';
 import 'package:everylife/domain/family/parent_npc.dart';
+import 'package:everylife/domain/family/sibling_npc.dart';
 import 'package:everylife/domain/time/simulation_clock.dart';
 import 'package:everylife/domain/world/world_state.dart';
 import 'package:everylife/simulation/commands/age_up_command.dart';
@@ -33,12 +34,17 @@ void main() {
     siblingCount: siblingCount, isAlive: alive, deathYear: deathYear,
   );
 
-  WorldState makeState(ParentNpc parent, {int year = 2026}) => WorldState(
+  WorldState makeState(
+    ParentNpc parent, {
+    int year = 2026,
+    List<SiblingNpc> siblings = const <SiblingNpc>[],
+  }) => WorldState(
     clock: SimulationClock(currentYear: year),
     player: Character.create(id: 'player-1', name: 'Test Player', birthYear: 2000),
     events: const <SimulationEvent>[],
     familyHousehold: FamilyHousehold(
       id: 'legacy-family-container', parents: [parent],
+      siblings: siblings,
       cashSavings: const Money.zero(), assets: const <FamilyAsset>[],
       housingStatus: HousingStatus.rented,
       annualLivingCosts: const Money.zero(), totalDebt: const Money.zero(),
@@ -49,6 +55,28 @@ void main() {
     state: initial.copyWith(clock: initial.clock.advanceYear()),
     command: const AgeUpCommand(),
   );
+
+
+  test('preserves siblings when parent finances advance', () {
+    const sibling = SiblingNpc(
+      id: 'sibling-older-1',
+      firstName: 'Alex',
+      lastName: 'Parent',
+      gender: Gender.female,
+      birthYear: 1995,
+      relationship: SiblingRelationship.fullSibling,
+    );
+
+    final initial = makeState(
+      makeParent(),
+      siblings: const [sibling],
+    );
+
+    final result = process(initial);
+
+    expect(result.familyHousehold!.siblings, hasLength(1));
+    expect(result.familyHousehold!.siblings.single.id, sibling.id);
+  });
 
   test('accumulates income minus expenses in the parent personal balance', () {
     final result = process(makeState(makeParent()));
