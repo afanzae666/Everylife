@@ -90,18 +90,17 @@ void main() {
 
       if (parent.isAlive) {
         final roleLabel = switch (parent.role) {
-          FamilyRole.father => 'My father,',
-          FamilyRole.mother => 'My mother,',
-          FamilyRole.guardian => 'My guardian,',
-          FamilyRole.stepFather => 'My stepfather,',
-          FamilyRole.stepMother => 'My stepmother,',
+          FamilyRole.father => '• My father, ${parent.fullName},',
+          FamilyRole.mother => '• My mother, ${parent.fullName},',
+          FamilyRole.guardian => '• My guardian, ${parent.fullName},',
+          FamilyRole.stepFather => '• My stepfather, ${parent.fullName},',
+          FamilyRole.stepMother => '• My stepmother, ${parent.fullName},',
         };
+
         expect(economyEvent.description, contains(roleLabel));
       }
     }
 
-    expect(familyEvent.description, isNot(contains('Zaenal')));
-    expect(economyEvent.description, isNot(contains('Zaenal')));
     expect(familyEvent.description, isNot(contains('Alfan')));
     expect(economyEvent.description, isNot(contains('Alfan')));
   });
