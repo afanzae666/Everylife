@@ -144,12 +144,12 @@ class StartingLifeEventGenerator {
     final descriptions = <String>[];
 
     if (!hasFather) {
-      descriptions.add('My father is unknown.');
+      descriptions.add('• My father is unknown.');
     }
 
     for (final parent in parents) {
       final role = _roleLabel(parent.role);
-      final name = parent.firstName;
+      final name = parent.fullName;
       final ageText = 'age ${_parentAgeAtChildBirth(parent, household)}';
 
       if (!parent.isAlive) {
@@ -158,7 +158,7 @@ class StartingLifeEventGenerator {
             : ' in ${parent.deathYear}';
 
         descriptions.add(
-          'My $role, $name, is deceased$death ($ageText).',
+          '• My $role, $name, is deceased$death ($ageText).',
         );
         continue;
       }
@@ -166,15 +166,15 @@ class StartingLifeEventGenerator {
       final employment = _employmentDescription(parent);
 
       if (employment == null) {
-        descriptions.add('My $role, $name, is $ageText.');
+        descriptions.add('• My $role, $name ($ageText).');
       } else {
         descriptions.add(
-          'My $role, $name, $employment ($ageText).',
+          '• My $role, $name, $employment ($ageText).',
         );
       }
     }
 
-    return descriptions.join(' ');
+    return descriptions.join('\n');
   }
 
   static int _parentAgeAtChildBirth(
