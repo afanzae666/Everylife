@@ -38,6 +38,55 @@ void main() {
     }
   });
 
+  test('generates only the four agreed birth-family scenarios', () {
+    var intact = 0;
+    var singleMother = 0;
+    var motherDied = 0;
+    var orphanage = 0;
+
+    for (var seed = 0; seed < 500; seed++) {
+      final household = generate(seed: seed);
+      final father = household.parents.where((p) => p.role == FamilyRole.father);
+      final mother = household.parents.where((p) => p.role == FamilyRole.mother);
+      final guardians = household.parents.where((p) => p.role == FamilyRole.guardian);
+
+      if (guardians.isNotEmpty) {
+        orphanage++;
+        expect(household.parents, hasLength(1));
+        expect(guardians.single.gender, anyOf(Gender.male, Gender.female));
+        expect(household.housingStatus, HousingStatus.providedByOthers);
+        expect(household.assets, isEmpty);
+        expect(father, isEmpty);
+        expect(mother, isEmpty);
+      } else if (mother.isNotEmpty && !mother.single.isAlive) {
+        motherDied++;
+        expect(father, hasLength(1));
+        expect(mother.single.deathYear, 2026);
+        expect(father.single.isAlive, isTrue);
+      } else if (mother.isNotEmpty && father.isEmpty) {
+        singleMother++;
+        expect(mother, hasLength(1));
+      } else {
+        intact++;
+        expect(father, hasLength(1));
+        expect(mother, hasLength(1));
+        expect(father.single.isAlive, isTrue);
+        expect(mother.single.isAlive, isTrue);
+      }
+
+      expect(
+        household.parents.every((p) =>
+            p.role != FamilyRole.stepFather && p.role != FamilyRole.stepMother),
+        isTrue,
+      );
+    }
+
+    expect(intact, inInclusiveRange(190, 310));
+    expect(singleMother, inInclusiveRange(55, 145));
+    expect(motherDied, inInclusiveRange(20, 80));
+    expect(orphanage, inInclusiveRange(55, 145));
+  });
+
   test('generates stable siblings with varied relationship and age data', () {
     final first = generate(seed: 99);
     final second = generate(seed: 99);

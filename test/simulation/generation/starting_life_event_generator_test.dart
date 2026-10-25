@@ -3,95 +3,68 @@ import 'package:everylife/core/money/money.dart';
 import 'package:everylife/core/random/seeded_random.dart';
 import 'package:everylife/domain/character/gender.dart';
 import 'package:everylife/domain/character/starting_background.dart';
-import 'package:everylife/domain/family/family_asset.dart';
 import 'package:everylife/domain/family/family_household.dart';
 import 'package:everylife/domain/family/parent_npc.dart';
 import 'package:everylife/domain/event/simulation_event.dart';
 import 'package:everylife/simulation/generation/starting_life_event_generator.dart';
 
 void main() {
-  const parent = ParentNpc(
-    id: 'parent-1', firstName: 'Budi', lastName: 'Santoso',
-    gender: Gender.male, birthYear: 1980, role: FamilyRole.father,
+  const father = ParentNpc(
+    id: 'father', firstName: 'Budi', lastName: 'Santoso', gender: Gender.male,
+    birthYear: 1980, role: FamilyRole.father,
     employmentStatus: EmploymentStatus.employed, occupation: 'Teacher',
-    annualIncome: Money.fromMinorUnits(5000000),
-    incomeStability: IncomeStability.stable,
-    annualExpenses: Money.fromMinorUnits(4000000),
-    cashBalance: Money.fromMinorUnits(1000000),
+    annualIncome: Money.fromMinorUnits(5000000), incomeStability: IncomeStability.stable,
+  );
+  const mother = ParentNpc(
+    id: 'mother', firstName: 'Sari', lastName: 'Santoso', gender: Gender.female,
+    birthYear: 1982, role: FamilyRole.mother,
+    employmentStatus: EmploymentStatus.unemployed,
+    annualIncome: Money.zero(), incomeStability: IncomeStability.none,
   );
 
-  FamilyHousehold household({
-    List<ParentNpc> parents = const [parent],
-    HousingStatus housing = HousingStatus.rented,
-    List<FamilyAsset> assets = const [],
-  }) => FamilyHousehold(
-    id: 'family-context-test', parents: parents,
-    cashSavings: const Money.zero(), assets: assets,
-    housingStatus: housing,
-    annualLivingCosts: Money.fromMinorUnits(3000000),
-    totalDebt: Money.zero(),
+  FamilyHousehold household(List<ParentNpc> parents) => FamilyHousehold(
+    id: 'test-household', parents: parents, cashSavings: Money.zero(), assets: const [],
+    housingStatus: HousingStatus.rented, annualLivingCosts: Money.zero(), totalDebt: Money.zero(),
   );
 
-  SimulationEvent generate({
-    int seed = 123,
-    int year = 2026,
-    StartingBackgroundTier tier = StartingBackgroundTier.middleClass,
-    FamilyHousehold? family,
-  }) => StartingLifeEventGenerator.generate(
-    random: SeededRandom(seed), year: year,
-    background: StartingBackground(tier: tier), household: family,
-  );
+  SimulationEvent generate(FamilyHousehold family, {int seed = 123}) =>
+      StartingLifeEventGenerator.generate(
+        random: SeededRandom(seed), year: 2026,
+        background: const StartingBackground(tier: StartingBackgroundTier.middleClass),
+        household: family,
+      );
 
-  test('generates an event for every background tier', () {
-    for (final tier in StartingBackgroundTier.values) {
-      final event = generate(tier: tier);
-      expect(event.type, SimulationEventType.startingLifeEvent);
-      expect(event.year, 2026);
-      expect(event.title, isNotEmpty);
-      expect(event.description, isNotEmpty);
-    }
+  test('describes intact biological family and concise employment facts', () {
+    final event = generate(household(const [father, mother]));
+    expect(event.type, SimulationEventType.startingLifeEvent);
+    expect(event.description, contains('both of your biological parents'));
+    expect(event.description, contains('Your father works as a Teacher.'));
+    expect(event.description, contains('Your mother is currently unemployed.'));
+    expect(event.description, isNot(contains('savings')));
+    expect(event.description, isNot(contains('living costs')));
   });
 
-  test('is deterministic for a fixed seed and background', () {
-    final first = generate(seed: 12345, family: household());
-    final second = generate(seed: 12345, family: household());
-    expect(first.title, second.title);
-    expect(first.description, second.description);
-    expect(first.id, second.id);
+  test('describes single mother without inventing a father NPC', () {
+    final event = generate(household(const [mother]));
+    expect(event.description, contains('Your mother raises you on her own'));
   });
 
-  test('describes parents and their personal finances', () {
-    final event = generate(family: household());
-    expect(event.description, contains('Budi Santoso'));
-    expect(event.description, contains('works as a Teacher'));
-    expect(event.description, contains('parents have accumulated personal cash savings'));
-    expect(event.description, contains('parents earn income'));
-    expect(event.description, contains('Middle Class'));
+  test('describes deceased mother and omits her unverified employment history', () {
+    final deceasedMother = mother.copyWith(isAlive: false, deathYear: 2026);
+    final event = generate(household([father, deceasedMother]));
+    expect(event.description, contains('mother died while giving birth'));
+    expect(event.description, isNot(contains('Your mother is currently unemployed')));
   });
 
-  test('uses family housing facts for event title and description', () {
-    final event = generate(
-      tier: StartingBackgroundTier.veryWealthy,
-      family: household(housing: HousingStatus.temporary),
+  test('describes orphanage guardian without treating guardian as a parent', () {
+    const guardian = ParentNpc(
+      id: 'guardian', firstName: 'Ayu', lastName: 'Santoso', gender: Gender.female,
+      birthYear: 1980, role: FamilyRole.guardian,
+      employmentStatus: EmploymentStatus.employed, occupation: 'Caregiver',
+      annualIncome: Money.fromMinorUnits(1000000), incomeStability: IncomeStability.stable,
     );
-    expect(event.title, 'An Uncertain Place to Call Home');
-    expect(event.description, contains('temporary accommodation'));
-    expect(event.description, contains('Very Wealthy'));
-  });
-
-  test('does not expose individual asset names or household debt', () {
-    const asset = FamilyAsset(
-      id: 'asset-business', name: 'Secret Grocery Store',
-      type: FamilyAssetType.business, value: Money.fromMinorUnits(10000000),
-    );
-    final event = generate(family: household(assets: const [asset]));
-    expect(event.description, isNot(contains('Secret Grocery Store')));
-    expect(event.description, isNot(contains('outstanding debt')));
-  });
-
-  test('uses the requested year in event identity', () {
-    final event = generate(year: 2010, tier: StartingBackgroundTier.struggling);
-    expect(event.id, 'starting-life-event-2010');
-    expect(event.year, 2010);
+    final event = generate(household(const [guardian]));
+    expect(event.description, contains('orphanage'));
+    expect(event.description, isNot(contains('Your guardian works')));
   });
 }

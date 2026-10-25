@@ -3,11 +3,36 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:everylife/core/random/seeded_random.dart';
 import 'package:everylife/domain/character/starting_background.dart';
+import 'package:everylife/domain/family/family_household.dart';
 import 'package:everylife/simulation/generation/country_economic_profile.dart';
 import 'package:everylife/simulation/generation/family_household_generator.dart';
 
 void main() {
   group('CountryEconomicProfile', () {
+
+    test('starting economic weights cover game countries and total 100', () {
+      for (final code in [
+        'AE','AR','AT','AU','BE','BR','CA','CH','CL','CN','CO','CU','DE',
+        'DK','EG','ES','ET','FJ','FR','GB','GH','GR','ID','IE','IN','IT',
+        'JP','KE','KR','MA','MC','MX','MY','NG','NL','NP','NO','NZ','PK',
+        'PL','PT','RU','SA','SE','SG','TH','TR','UA','US','VN','ZA','TZ',
+        'PE','PH',
+      ]) {
+        final weights = CountryEconomicProfile.forCountryCode(code)
+            .startingBackgroundWeights;
+        expect(weights.length, 6, reason: code);
+        expect(weights.every((weight) => weight > 0), isTrue, reason: code);
+        expect(weights.reduce((a, b) => a + b), 100, reason: code);
+      }
+    });
+
+    test('higher-poverty profile weights struggling above wealthy classes', () {
+      final weights = CountryEconomicProfile.forCountryCode('TZ')
+          .startingBackgroundWeights;
+      expect(weights[0], greaterThan(weights[4]));
+      expect(weights[0], greaterThan(weights[5]));
+    });
+
     test('normalizes country codes before lookup', () {
       final lowerCase =
           CountryEconomicProfile.forCountryCode('id');
@@ -96,90 +121,56 @@ void main() {
   });
 
   group('Country-aware household generation', () {
-    test('same seed and country produce the same living costs', () {
+    test('same seed and country produce deterministic household generation', () {
       final first = FamilyHouseholdGenerator.generate(
-        random: SeededRandom(42),
-        birthYear: 2026,
-        background: const StartingBackground(
-          tier: StartingBackgroundTier.middleClass,
-        ),
-        familyName: 'Santoso',
-        countryCode: 'ID',
+        random: SeededRandom(42), birthYear: 2026,
+        background: const StartingBackground(tier: StartingBackgroundTier.middleClass),
+        familyName: 'Santoso', countryCode: 'ID',
       );
-
       final second = FamilyHouseholdGenerator.generate(
-        random: SeededRandom(42),
-        birthYear: 2026,
-        background: const StartingBackground(
-          tier: StartingBackgroundTier.middleClass,
-        ),
-        familyName: 'Santoso',
-        countryCode: 'ID',
+        random: SeededRandom(42), birthYear: 2026,
+        background: const StartingBackground(tier: StartingBackgroundTier.middleClass),
+        familyName: 'Santoso', countryCode: 'ID',
       );
-
-      expect(
-        first.annualLivingCosts.minorUnits,
-        second.annualLivingCosts.minorUnits,
-      );
+      expect(first.parents.map((p) => p.id).toList(), second.parents.map((p) => p.id).toList());
+      expect(first.cashSavings.minorUnits, 0);
+      expect(first.annualLivingCosts.minorUnits, 0);
+      expect(first.parents.every((p) => p.cashBalance.minorUnits == 0), isTrue);
+      expect(first.parents.every((p) => p.annualExpenses.minorUnits == 0), isTrue);
     });
 
-    test('higher-index countries have higher average living costs', () {
-      const sampleCount = 250;
-      var indonesiaTotal = 0;
-      var monacoTotal = 0;
-
-      for (var seed = 0; seed < sampleCount; seed++) {
-        final indonesia = FamilyHouseholdGenerator.generate(
-          random: SeededRandom(seed),
-          birthYear: 2026,
-          background: const StartingBackground(
-            tier: StartingBackgroundTier.middleClass,
-          ),
-          familyName: 'Santoso',
-          countryCode: 'ID',
-        );
-
-        final monaco = FamilyHouseholdGenerator.generate(
-          random: SeededRandom(seed),
-          birthYear: 2026,
-          background: const StartingBackground(
-            tier: StartingBackgroundTier.middleClass,
-          ),
-          familyName: 'Martin',
-          countryCode: 'MC',
-        );
-
-        indonesiaTotal += indonesia.annualLivingCosts.minorUnits;
-        monacoTotal += monaco.annualLivingCosts.minorUnits;
+    test('home value scales by country and rises with economic tier', () {
+      FamilyHousehold ownedHome({required String countryCode, required StartingBackgroundTier tier}) {
+        for (var seed = 0; seed < 1000; seed++) {
+          final household = FamilyHouseholdGenerator.generate(
+            random: SeededRandom(seed), birthYear: 2026,
+            background: StartingBackground(tier: tier),
+            familyName: 'Test', countryCode: countryCode,
+          );
+          if (household.assets.any((asset) => asset.type.name == 'property')) return household;
+        }
+        throw StateError('No owned home generated for $countryCode / $tier');
       }
-
-      final indonesiaAverage = indonesiaTotal / sampleCount;
-      final monacoAverage = monacoTotal / sampleCount;
-
-      expect(
-        monacoAverage,
-        greaterThan(indonesiaAverage),
-        reason: 'The higher gameplay cost index should produce higher '
-            'average household living costs for the same background tier.',
-      );
+      final struggling = ownedHome(countryCode: 'ID', tier: StartingBackgroundTier.struggling);
+      final veryWealthy = ownedHome(countryCode: 'ID', tier: StartingBackgroundTier.veryWealthy);
+      final swissMiddle = ownedHome(countryCode: 'CH', tier: StartingBackgroundTier.middleClass);
+      final indoMiddle = ownedHome(countryCode: 'ID', tier: StartingBackgroundTier.middleClass);
+      expect(veryWealthy.assets.single.value.minorUnits, greaterThan(struggling.assets.single.value.minorUnits));
+      expect(swissMiddle.assets.single.value.minorUnits, greaterThan(indoMiddle.assets.single.value.minorUnits));
     });
 
-    test('unknown countries still generate valid living costs', () {
-      final household = FamilyHouseholdGenerator.generate(
-        random: SeededRandom(123),
-        birthYear: 2026,
-        background: const StartingBackground(
-          tier: StartingBackgroundTier.workingClass,
-        ),
-        familyName: 'Family',
-        countryCode: 'XX',
-      );
-
-      expect(
-        household.annualLivingCosts.minorUnits,
-        greaterThanOrEqualTo(0),
-      );
-      expect(household.parents, isNotEmpty);
+    test('only creates a home asset and only for owned housing', () {
+      for (var seed = 0; seed < 300; seed++) {
+        final household = FamilyHouseholdGenerator.generate(
+          random: SeededRandom(seed), birthYear: 2026,
+          background: const StartingBackground(tier: StartingBackgroundTier.workingClass),
+          familyName: 'Test', countryCode: 'ID',
+        );
+        expect(household.assets.every((asset) => asset.type.name == 'property'), isTrue);
+        expect(household.assets.length, lessThanOrEqualTo(1));
+        expect(household.assets.isNotEmpty,
+            household.housingStatus == HousingStatus.familyOwned || household.housingStatus == HousingStatus.ownedWithMortgage);
+      }
     });
   });
 }
