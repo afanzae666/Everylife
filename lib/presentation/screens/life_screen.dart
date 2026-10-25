@@ -88,8 +88,16 @@ class LifeScreen extends StatelessWidget {
                                 ),
                         ),
                         _CategoryCard(
-                          title: 'Friends',
+                          title: 'Siblings',
                           icon: Icons.people_outline,
+                          zoom: zoom,
+                          child: const _CategoryPlaceholder(
+                            message: 'No siblings to show yet.',
+                          ),
+                        ),
+                        _CategoryCard(
+                          title: 'Friends',
+                          icon: Icons.people_alt_outlined,
                           zoom: zoom,
                           child: const _CategoryPlaceholder(
                             message: 'No friends to show yet.',
@@ -249,7 +257,7 @@ class _ParentNpcCard extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: EdgeInsets.all(s(8)),
+        padding: EdgeInsets.all(s(4)),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -258,7 +266,7 @@ class _ParentNpcCard extends StatelessWidget {
               currentYear: currentYear,
               size: s(76),
             ),
-            SizedBox(width: s(12)),
+            SizedBox(width: s(8)),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -271,13 +279,15 @@ class _ParentNpcCard extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(height: s(2)),
+                  SizedBox(height: s(1)),
                   Text(
                     parent.fullName,
-                    style: theme.textTheme.titleMedium,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   if (!parent.isAlive) ...[
-                    SizedBox(height: s(3)),
+                    SizedBox(height: s(2)),
                     Text(
                       'Deceased'
                       '${parent.deathYear == null ? '' : ' · ${parent.deathYear}'}',
