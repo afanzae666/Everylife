@@ -10,6 +10,7 @@ import '../../domain/event/simulation_event.dart';
 import '../../domain/family/family_asset.dart';
 import '../../domain/family/family_household.dart';
 import '../../domain/family/parent_npc.dart';
+import '../../domain/family/sibling_npc.dart';
 import '../../domain/time/simulation_clock.dart';
 import '../../domain/world/character_location.dart';
 import '../../domain/world/world_state.dart';
@@ -475,6 +476,28 @@ parent.incomeStability.name,
 },
 )
 .toList(growable: false),
+'siblings': household.siblings.map((sibling) => {
+  'id': sibling.id,
+  'firstName': sibling.firstName,
+  'lastName': sibling.lastName,
+  'gender': sibling.gender.name,
+  'birthYear': sibling.birthYear,
+  'relationship': sibling.relationship.name,
+  'countryCode': sibling.countryCode,
+  'appearance': {
+    'base': sibling.appearance.base,
+    'skinTone': sibling.appearance.skinTone,
+    'hair': sibling.appearance.hair,
+    'infantHair': sibling.appearance.infantHair,
+    'toddlerHair': sibling.appearance.toddlerHair,
+    'childHair': sibling.appearance.childHair,
+    'hairColor': sibling.appearance.hairColor,
+    'eyes': sibling.appearance.eyes,
+    'eyeColor': sibling.appearance.eyeColor,
+    'eyebrows': sibling.appearance.eyebrows,
+    'beard': sibling.appearance.beard,
+  },
+}).toList(growable: false),
 'assets': household.assets
 .map(
 (asset) => {
@@ -641,6 +664,25 @@ final assets = assetsJson
 final parentsWithAssets = parents.map((parent) => parent.copyWith(
   assets: assets.where((asset) => asset.ownerNpcId == parent.id).toList(growable: false),
 )).toList(growable: false);
+final siblingsJson = json['siblings'];
+final siblings = siblingsJson is List
+    ? siblingsJson.map((value) {
+        final sibling = _requireMap(value, 'familyHousehold.siblings[]');
+        return SiblingNpc(
+          id: _requireString(sibling['id'], 'sibling.id'),
+          firstName: _requireString(sibling['firstName'], 'sibling.firstName'),
+          lastName: _requireString(sibling['lastName'], 'sibling.lastName'),
+          gender: _parseGender(sibling['gender']),
+          birthYear: _requireInt(sibling['birthYear'], 'sibling.birthYear'),
+          relationship: _parseSiblingRelationship(sibling['relationship']),
+          countryCode: _optionalString(sibling['countryCode']).isEmpty
+              ? 'ID' : _optionalString(sibling['countryCode']),
+          appearance: sibling['appearance'] == null
+              ? const CharacterAppearance()
+              : _parseAppearance(sibling['appearance']),
+        );
+      }).toList(growable: false)
+    : const <SiblingNpc>[];
 
 return FamilyHousehold(
   id: _requireString(
@@ -648,6 +690,7 @@ return FamilyHousehold(
     'familyHousehold.id',
   ),
   parents: parentsWithAssets,
+  siblings: siblings,
   // Legacy aggregate savings are migrated into parent accounts above.
   // Keeping the old aggregate would count the same money twice.
   cashSavings: isLegacyFamilyFinancialSchema
@@ -749,6 +792,13 @@ throw FormatException(
   'Unknown income stability: $value',
 );
 
+}
+
+static SiblingRelationship _parseSiblingRelationship(Object? value) {
+  for (final relationship in SiblingRelationship.values) {
+    if (relationship.name == value) return relationship;
+  }
+  throw FormatException('Unknown sibling relationship: $value');
 }
 
 static HousingStatus _parseHousingStatus(
