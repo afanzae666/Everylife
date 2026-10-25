@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/services/character_palette_service.dart';
 import '../../domain/character/character.dart';
+import '../../domain/character/gender.dart';
 import '../../domain/family/parent_npc.dart';
 import '../../domain/family/sibling_npc.dart';
 import '../widgets/character_avatar.dart';
@@ -78,9 +79,7 @@ class LifeScreen extends StatelessWidget {
                                   crossAxisAlignment:
                                       CrossAxisAlignment.stretch,
                                   children: [
-                                    for (var i = 0;
-                                        i < parents.length;
-                                        i++)
+                                    for (var i = 0; i < parents.length; i++)
                                       _ParentNpcCard(
                                         key: ValueKey(
                                           'parent-card-${parents[i].id}',
@@ -101,11 +100,14 @@ class LifeScreen extends StatelessWidget {
                                   message: 'No siblings to show yet.',
                                 )
                               : Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   children: [
                                     for (var i = 0; i < siblings.length; i++)
                                       _SiblingNpcCard(
-                                        key: ValueKey('sibling-card-${siblings[i].id}'),
+                                        key: ValueKey(
+                                          'sibling-card-${siblings[i].id}',
+                                        ),
                                         sibling: siblings[i],
                                         playerBirthYear: playerBirthYear,
                                         currentYear: currentYear,
@@ -302,8 +304,8 @@ class _ParentNpcCard extends StatelessWidget {
                   Text(
                     parent.fullName,
                     style: theme.textTheme.bodyMedium?.copyWith(
-  fontWeight: FontWeight.w600,
-),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   if (!parent.isAlive) ...[
                     SizedBox(height: s(2)),
@@ -388,10 +390,14 @@ class _SiblingNpcCard extends StatelessWidget {
                 builder: (context, snapshot) {
                   final palette = snapshot.data;
                   if (snapshot.connectionState != ConnectionState.done ||
-                      snapshot.hasError || palette == null) {
-                    return Center(child: CircleAvatar(
-                      radius: s(18), child: const Icon(Icons.person_outline),
-                    ));
+                      snapshot.hasError ||
+                      palette == null) {
+                    return Center(
+                      child: CircleAvatar(
+                        radius: s(18),
+                        child: const Icon(Icons.person_outline),
+                      ),
+                    );
                   }
                   if (sibling.birthYear > currentYear) {
                     return Center(
@@ -409,13 +415,21 @@ class _SiblingNpcCard extends StatelessWidget {
                     birthYear: sibling.birthYear,
                     appearance: sibling.appearance,
                   );
-                  final skinColor = palette.skinColor(sibling.appearance.skinTone);
-                  final eyeColor = palette.eyeColor(sibling.appearance.eyeColor);
-                  final hairColor = palette.hairColor(sibling.appearance.hairColor);
-                  if (skinColor == null || eyeColor == null || hairColor == null) {
-                    return Center(child: CircleAvatar(
-                      radius: s(18), child: const Icon(Icons.person_outline),
-                    ));
+                  final skinColor =
+                      palette.skinColor(sibling.appearance.skinTone);
+                  final eyeColor =
+                      palette.eyeColor(sibling.appearance.eyeColor);
+                  final hairColor =
+                      palette.hairColor(sibling.appearance.hairColor);
+                  if (skinColor == null ||
+                      eyeColor == null ||
+                      hairColor == null) {
+                    return Center(
+                      child: CircleAvatar(
+                        radius: s(18),
+                        child: const Icon(Icons.person_outline),
+                      ),
+                    );
                   }
                   return CharacterAvatar(
                     character: character,
@@ -434,17 +448,24 @@ class _SiblingNpcCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('$ageLabel $siblingKind',
+                  Text(
+                    '$ageLabel $siblingKind',
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: theme.colorScheme.primary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   SizedBox(height: s(1)),
-                  Text(sibling.fullName,
-                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                  Text(
+                    sibling.fullName,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  Text('Born ${sibling.birthYear}', style: theme.textTheme.bodySmall),
+                  Text(
+                    'Born ${sibling.birthYear}',
+                    style: theme.textTheme.bodySmall,
+                  ),
                 ],
               ),
             ),
