@@ -4,18 +4,23 @@ import 'package:flutter/material.dart';
 import '../../data/services/character_palette_service.dart';
 import '../../domain/character/character.dart';
 import '../../domain/family/parent_npc.dart';
+import '../../domain/family/sibling_npc.dart';
 import '../widgets/character_avatar.dart';
 
 class LifeScreen extends StatelessWidget {
   const LifeScreen({
     required this.zoom,
     this.parents = const <ParentNpc>[],
+    this.siblings = const <SiblingNpc>[],
+    this.playerBirthYear = 2026,
     this.currentYear = 2026,
     super.key,
   });
 
   final double zoom;
   final List<ParentNpc> parents;
+  final List<SiblingNpc> siblings;
+  final int playerBirthYear;
   final int currentYear;
 
   @override
@@ -91,9 +96,23 @@ class LifeScreen extends StatelessWidget {
                           title: 'Siblings',
                           icon: Icons.people_outline,
                           zoom: zoom,
-                          child: const _CategoryPlaceholder(
-                            message: 'No siblings to show yet.',
-                          ),
+                          child: siblings.isEmpty
+                              ? const _CategoryPlaceholder(
+                                  message: 'No siblings to show yet.',
+                                )
+                              : Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    for (var i = 0; i < siblings.length; i++)
+                                      _SiblingNpcCard(
+                                        key: ValueKey('sibling-card-${siblings[i].id}'),
+                                        sibling: siblings[i],
+                                        playerBirthYear: playerBirthYear,
+                                        currentYear: currentYear,
+                                        zoom: zoom,
+                                      ),
+                                  ],
+                                ),
                         ),
                         _CategoryCard(
                           title: 'Friends',
@@ -313,7 +332,126 @@ class _ParentNpcCard extends StatelessWidget {
         return 'Mother';
       case FamilyRole.guardian:
         return 'Guardian';
+      case FamilyRole.stepFather:
+        return 'Stepfather';
+      case FamilyRole.stepMother:
+        return 'Stepmother';
     }
+  }
+}
+
+class _SiblingNpcCard extends StatelessWidget {
+  const _SiblingNpcCard({
+    required this.sibling,
+    required this.playerBirthYear,
+    required this.currentYear,
+    required this.zoom,
+    super.key,
+  });
+
+  final SiblingNpc sibling;
+  final int playerBirthYear;
+  final int currentYear;
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) => value * zoom;
+    final theme = Theme.of(context);
+    final older = sibling.isOlderThan(playerBirthYear);
+    final siblingKind = switch (sibling.relationship) {
+      SiblingRelationship.fullSibling =>
+        sibling.gender == Gender.male ? 'Full brother' : 'Full sister',
+      SiblingRelationship.halfSibling =>
+        sibling.gender == Gender.male ? 'Half-brother' : 'Half-sister',
+      SiblingRelationship.stepSibling =>
+        sibling.gender == Gender.male ? 'Stepbrother' : 'Stepsister',
+    };
+    final ageLabel = older ? 'Older' : 'Younger';
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 0,
+      color: theme.colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(s(8)),
+        side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.45)),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(s(3)),
+        child: Row(
+          children: [
+            SizedBox(
+              width: s(56),
+              height: s(70),
+              child: FutureBuilder<CharacterPaletteService>(
+                future: CharacterPaletteService.load(),
+                builder: (context, snapshot) {
+                  final palette = snapshot.data;
+                  if (snapshot.connectionState != ConnectionState.done ||
+                      snapshot.hasError || palette == null) {
+                    return Center(child: CircleAvatar(
+                      radius: s(18), child: const Icon(Icons.person_outline),
+                    ));
+                  }
+                  if (sibling.birthYear > currentYear) {
+                    return Center(
+                      child: CircleAvatar(
+                        radius: s(18),
+                        child: const Icon(Icons.person_outline),
+                      ),
+                    );
+                  }
+                  final character = Character.create(
+                    id: sibling.id,
+                    firstName: sibling.firstName,
+                    lastName: sibling.lastName,
+                    gender: sibling.gender,
+                    birthYear: sibling.birthYear,
+                    appearance: sibling.appearance,
+                  );
+                  final skinColor = palette.skinColor(sibling.appearance.skinTone);
+                  final eyeColor = palette.eyeColor(sibling.appearance.eyeColor);
+                  final hairColor = palette.hairColor(sibling.appearance.hairColor);
+                  if (skinColor == null || eyeColor == null || hairColor == null) {
+                    return Center(child: CircleAvatar(
+                      radius: s(18), child: const Icon(Icons.person_outline),
+                    ));
+                  }
+                  return CharacterAvatar(
+                    character: character,
+                    currentYear: currentYear,
+                    size: s(56),
+                    skinColor: skinColor,
+                    eyeColor: eyeColor,
+                    hairColor: hairColor,
+                  );
+                },
+              ),
+            ),
+            SizedBox(width: s(6)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('$ageLabel $siblingKind',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: s(1)),
+                  Text(sibling.fullName,
+                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  Text('Born ${sibling.birthYear}', style: theme.textTheme.bodySmall),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

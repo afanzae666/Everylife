@@ -426,6 +426,8 @@ class _GameScreenState extends State<GameScreen> {
         builder: (_) => LifeScreen(
   zoom: _uiScaleController.value,
   parents: engine.state.familyHousehold?.parents ?? const [],
+  siblings: engine.state.familyHousehold?.siblings ?? const [],
+  playerBirthYear: engine.state.player.birthYear,
   currentYear: engine.state.clock.currentYear,
 ),
       ),
@@ -1510,7 +1512,7 @@ class _NavigationItem extends StatelessWidget {
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [            
+          children: [
 Opacity(
   opacity: enabled ? 1.0 : 0.38,
   child: ColorFiltered(
