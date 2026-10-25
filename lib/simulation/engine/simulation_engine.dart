@@ -326,12 +326,12 @@ class SimulationEngine {
       childAppearance: player.appearance,
     );
 
-    final startingLifeEvent = StartingLifeEventGenerator.generate(
-      random: random,
-      year: player.birthYear,
-      background: startingBackground,
-      household: familyHousehold,
-    );
+    final startingLifeEvents = StartingLifeEventGenerator.generate(
+  random: random,
+  year: player.birthYear,
+  background: startingBackground,
+  household: familyHousehold,
+);
 
     final initialState = WorldState(
       clock: SimulationClock(
@@ -339,16 +339,15 @@ class SimulationEngine {
       ),
       player: player,
       events: [
-        SimulationEvent(
-          id: 'life-created',
-          type: SimulationEventType.lifeCreated,
-          year: player.birthYear,
-          title: 'A new life begins',
-          description:
-              '${player.name} was born in ${player.birthYear}.',
-        ),
-        startingLifeEvent,
-      ],
+  SimulationEvent(
+    id: 'life-created',
+    type: SimulationEventType.lifeCreated,
+    year: player.birthYear,
+    title: 'A new life begins',
+    description: '${player.name} was born in ${player.birthYear}.',
+  ),
+  ...startingLifeEvents,
+],
       startingBackground: startingBackground,
       familyHousehold: familyHousehold,
     );
