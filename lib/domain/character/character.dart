@@ -22,6 +22,8 @@ this.appearance = const CharacterAppearance(),
 this.location,
 this.assets = const <PlayerAsset>[],
 this.debt = const Money.zero(),
+this.birthMonth = 1,
+this.birthDay = 1,
 });
 
 final String id;
@@ -41,6 +43,8 @@ final String lastName;
 
 final Gender gender;
 final int birthYear;
+final int birthMonth;
+final int birthDay;
 final CharacterStats stats;
 
 /// Liquid money currently held by the character.
@@ -169,6 +173,8 @@ CharacterAppearance? appearance,
 CharacterLocation? location,
 List<PlayerAsset>? assets,
 Money? debt,
+int? birthMonth,
+int? birthDay,
 }) {
 final nextFirstName = firstName ?? this.firstName;
 final nextLastName = lastName ?? this.lastName;
@@ -197,6 +203,8 @@ return Character(
   location: nextLocation,
   assets: assets ?? this.assets,
   debt: debt ?? this.debt,
+  birthMonth: birthMonth ?? this.birthMonth,
+  birthDay: birthDay ?? this.birthDay,
 );
 
 }
@@ -211,6 +219,8 @@ required int birthYear,
 CharacterStats? stats,
 CharacterAppearance appearance = const CharacterAppearance(),
 CharacterLocation? location,
+int birthMonth = 1,
+int birthDay = 1,
 }) {
 var resolvedFirstName = firstName?.trim() ?? '';
 var resolvedLastName = lastName?.trim() ?? '';
@@ -250,6 +260,8 @@ return Character(
   money: const Money.zero(),
   appearance: appearance,
   location: location,
+  birthMonth: birthMonth,
+  birthDay: birthDay,
 );
 
 }
