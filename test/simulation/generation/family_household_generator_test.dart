@@ -3,6 +3,7 @@ import 'package:everylife/core/random/seeded_random.dart';
 import 'package:everylife/domain/character/cultural_name_catalog.dart';
 import 'package:everylife/domain/character/starting_background.dart';
 import 'package:everylife/domain/family/family_household.dart';
+import 'package:everylife/domain/family/parent_npc.dart';
 import 'package:everylife/domain/family/sibling_npc.dart';
 import 'package:everylife/simulation/generation/family_household_generator.dart';
 
@@ -50,6 +51,29 @@ void main() {
       expect(sibling.lastName, isNotEmpty);
       expect(sibling.birthYear, isNot(2026));
       expect(SiblingRelationship.values, contains(sibling.relationship));
+    }
+  });
+
+
+  test('does not generate half or step siblings without a step-parent context', () {
+    for (var seed = 0; seed < 100; seed++) {
+      final household = generate(seed: seed);
+      final hasStepParent = household.parents.any(
+        (parent) =>
+            parent.role == FamilyRole.stepFather ||
+            parent.role == FamilyRole.stepMother,
+      );
+
+      if (!hasStepParent) {
+        expect(
+          household.siblings.every(
+            (sibling) =>
+                sibling.relationship == SiblingRelationship.fullSibling,
+          ),
+          isTrue,
+          reason: 'Unexpected half/step sibling for seed $seed',
+        );
+      }
     }
   });
 
