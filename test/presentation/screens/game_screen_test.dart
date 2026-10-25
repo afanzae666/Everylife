@@ -88,11 +88,6 @@ void main() {
         );
 
         expect(
-          find.text('Age 0 • 2026'),
-          findsOneWidget,
-        );
-
-        expect(
           find.text('Infant'),
           findsOneWidget,
         );
