@@ -25,6 +25,8 @@ void main() {
             name: 'Marshall Royce',
             gender: Gender.male,
             birthYear: 2030,
+            birthMonth: 3,
+            birthDay: 20,
             stats: const CharacterStats(
               health: 91,
               intelligence: 73,
@@ -73,6 +75,8 @@ void main() {
           restored.player.birthYear,
           original.player.birthYear,
         );
+        expect(restored.player.birthMonth, 3);
+        expect(restored.player.birthDay, 20);
         expect(
           restored.player.stats.health,
           original.player.stats.health,

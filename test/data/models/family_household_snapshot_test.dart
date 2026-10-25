@@ -31,6 +31,7 @@ void main() {
             occupation: 'Teacher',
             annualIncome: Money.fromMinorUnits(250000),
             incomeStability: IncomeStability.stable,
+            relationshipPercent: 72,
             appearance: const CharacterAppearance(
               skinTone: 'medium',
               hair: 'male_hair_03',
@@ -50,6 +51,7 @@ void main() {
             occupation: 'Food seller',
             annualIncome: Money.fromMinorUnits(150000),
             incomeStability: IncomeStability.variable,
+            relationshipPercent: 28,
           ),
         ],
         cashSavings: Money.fromMinorUnits(500000),
@@ -140,6 +142,8 @@ void main() {
         EmploymentStatus.employed,
       );
       expect(father.occupation, 'Teacher');
+      expect(father.relationshipPercent, 72);
+      expect(restoredHousehold.parents[1].relationshipPercent, 28);
       expect(father.annualIncome.minorUnits, 250000);
       expect(
         father.incomeStability,
