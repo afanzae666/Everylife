@@ -3,6 +3,7 @@ import 'package:everylife/core/money/money.dart';
 
 import 'family_asset.dart';
 import 'parent_npc.dart';
+import 'sibling_npc.dart';
 
 enum HousingStatus {
   rented,
@@ -24,11 +25,16 @@ class FamilyHousehold {
     required this.housingStatus,
     required this.annualLivingCosts,
     required this.totalDebt,
+    List<SiblingNpc> siblings = const <SiblingNpc>[],
   })  : parents = List.unmodifiable(parents),
+        siblings = List.unmodifiable(siblings),
         assets = List.unmodifiable(assets);
 
   final String id;
   final List<ParentNpc> parents;
+
+  /// Siblings generated once at new-life creation and persisted in saves.
+  final List<SiblingNpc> siblings;
 
   /// Household cash and savings, separate from personal assets.
   final Money cashSavings;

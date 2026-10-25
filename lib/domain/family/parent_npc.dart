@@ -10,6 +10,8 @@ enum FamilyRole {
   father,
   mother,
   guardian,
+  stepFather,
+  stepMother,
 }
 
 enum EmploymentStatus {
