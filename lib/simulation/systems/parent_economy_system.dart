@@ -59,11 +59,14 @@ class ParentEconomySystem implements SimulationSystem {
             .toList(growable: false);
         final estateValue = parent.cashBalance.minorUnits +
             ownedAssets.fold<int>(0, (sum, asset) => sum + asset.value.minorUnits);
+        final isGuardian = parent.role == FamilyRole.guardian;
         final heirs = parent.siblingCount + 1;
-        final playerShare = estateValue ~/ heirs;
-        player = player.copyWith(
-          money: Money.fromMinorUnits(player.money.minorUnits + playerShare),
-        );
+        if (!isGuardian) {
+          final playerShare = estateValue ~/ heirs;
+          player = player.copyWith(
+            money: Money.fromMinorUnits(player.money.minorUnits + playerShare),
+          );
+        }
         updatedAssets.removeWhere((asset) => asset.ownerNpcId == parent.id);
         updatedParents.add(parent.copyWith(
           isAlive: false,
@@ -76,7 +79,9 @@ class ParentEconomySystem implements SimulationSystem {
           type: SimulationEventType.randomEvent,
           year: currentYear,
           title: '${parent.fullName} passed away',
-          description: "After the estate was divided among $heirs eligible heirs, you received your share of ${parent.fullName}'s estate.",
+          description: isGuardian
+              ? '${parent.fullName} passed away after many years of caring for you.'
+              : "After the estate was divided among $heirs eligible heirs, you received your share of ${parent.fullName}'s estate.",
         ));
         parentsChanged = true;
         continue;
