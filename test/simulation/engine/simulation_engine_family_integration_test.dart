@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:everylife/data/repositories/save_repository.dart';
 import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/character/cultural_name_catalog.dart';
+import 'package:everylife/domain/family/parent_npc.dart';
 import 'package:everylife/domain/event/simulation_event.dart';
 import 'package:everylife/simulation/engine/simulation_engine.dart';
 
@@ -30,7 +31,7 @@ void main() {
     expect(engine.state.familyHousehold!.cashSavings.minorUnits, 0);
   });
 
-  test('starting life event reflects culturally formatted parent names', () {
+  test('starting life event reflects concise employment details without exposing NPC names', () {
     final engine = createEngine();
     final household = engine.state.familyHousehold!;
     final event = engine.state.events.firstWhere(
@@ -42,8 +43,14 @@ void main() {
       expect(parent.fullName, CulturalNameCatalog.formatFullName(
         parent.countryCode, parent.firstName, parent.lastName,
       ));
-      expect(event.description, contains(parent.fullName));
+      if (parent.isAlive && parent.role != FamilyRole.guardian) {
+        expect(event.description, contains(parent.role == FamilyRole.father
+            ? 'Your father'
+            : 'Your mother'));
+      }
     }
+    expect(event.description, isNot(contains('Zaenal')));
+    expect(event.description, isNot(contains('Alfan')));
   });
 
   test('age-up advances each living parent financial balance', () {
