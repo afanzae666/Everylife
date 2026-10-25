@@ -6,6 +6,7 @@ import 'package:everylife/core/money/money.dart';
 import 'package:everylife/domain/character/appearance.dart';
 import 'package:everylife/domain/character/gender.dart';
 import 'package:everylife/domain/family/parent_npc.dart';
+import 'package:everylife/domain/family/sibling_npc.dart';
 import 'package:everylife/presentation/widgets/character_avatar.dart';
 
 void main() {
@@ -46,6 +47,46 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(CharacterAvatar), findsOneWidget);
+  });
+
+  testWidgets('Life screen places step-parents and step-siblings in existing cards', (
+    tester,
+  ) async {
+    final stepParent = ParentNpc(
+      id: 'step-parent-test',
+      firstName: 'Alex',
+      lastName: 'Morgan',
+      gender: Gender.female,
+      birthYear: 1980,
+      role: FamilyRole.stepMother,
+      employmentStatus: EmploymentStatus.unemployed,
+      annualIncome: Money.zero(),
+      incomeStability: IncomeStability.none,
+    );
+    const stepSibling = SiblingNpc(
+      id: 'step-sibling-test',
+      firstName: 'Jordan',
+      lastName: 'Lee',
+      gender: Gender.female,
+      birthYear: 2030,
+      relationship: SiblingRelationship.stepSibling,
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: LifeScreen(
+        zoom: 1,
+        currentYear: 2026,
+        playerBirthYear: 2026,
+        parents: [stepParent],
+        siblings: const [stepSibling],
+      ),
+    ));
+    await tester.pump();
+
+    expect(find.text('Stepmother'), findsOneWidget);
+    expect(find.text('Younger Stepsister'), findsOneWidget);
+    expect(find.text('Parents'), findsOneWidget);
+    expect(find.text('Siblings'), findsOneWidget);
   });
 
   testWidgets('Life screen shows all requested categories without Family Tree', (
