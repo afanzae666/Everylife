@@ -71,6 +71,79 @@ class CountryEconomicProfile {
     'PH': 5000,
   };
 
+
+  /// Approximate starting-family economic distribution for gameplay.
+  /// Values are balancing estimates informed by broad country income and
+  /// poverty patterns, not official household-level statistics.
+  /// Order: struggling, working class, middle class, upper middle class,
+  /// wealthy, very wealthy. Each distribution totals 100.
+  static const Map<String, List<int>> _startingTierWeights = {
+    // Lower-income countries and countries with comparatively high poverty.
+    'EG': [45, 30, 16, 6, 2, 1],
+    'ET': [55, 27, 12, 4, 1, 1],
+    'GH': [48, 29, 15, 5, 2, 1],
+    'ID': [42, 31, 17, 6, 3, 1],
+    'IN': [46, 30, 15, 6, 2, 1],
+    'KE': [50, 28, 14, 5, 2, 1],
+    'MA': [43, 31, 17, 6, 2, 1],
+    'NG': [55, 27, 12, 4, 1, 1],
+    'NP': [50, 29, 14, 5, 1, 1],
+    'PK': [52, 28, 13, 5, 1, 1],
+    'PH': [43, 31, 17, 6, 2, 1],
+    'TZ': [58, 26, 11, 3, 1, 1],
+    'VN': [35, 32, 21, 8, 3, 1],
+    // Emerging and middle-income economies.
+    'AR': [35, 31, 21, 8, 4, 1],
+    'BR': [38, 30, 20, 7, 4, 1],
+    'CL': [25, 30, 26, 12, 5, 2],
+    'CN': [25, 31, 27, 11, 5, 1],
+    'CO': [40, 30, 19, 7, 3, 1],
+    'CU': [38, 31, 20, 7, 3, 1],
+    'FJ': [30, 31, 24, 9, 4, 2],
+    'GR': [22, 29, 28, 13, 6, 2],
+    'MX': [36, 31, 21, 8, 3, 1],
+    'MY': [25, 31, 26, 11, 5, 2],
+    'PE': [39, 30, 19, 7, 4, 1],
+    'PL': [16, 26, 31, 16, 8, 3],
+    'RU': [30, 30, 24, 10, 5, 1],
+    'SA': [18, 25, 27, 16, 10, 4],
+    'TH': [30, 31, 24, 10, 4, 1],
+    'TR': [32, 31, 23, 9, 4, 1],
+    'UA': [30, 31, 24, 9, 5, 1],
+    'ZA': [42, 28, 18, 7, 4, 1],
+    // High-income economies; struggling households remain possible.
+    'AE': [12, 22, 29, 19, 12, 6],
+    'AT': [10, 23, 32, 19, 11, 5],
+    'AU': [12, 23, 31, 19, 10, 5],
+    'BE': [11, 24, 32, 19, 10, 4],
+    'CA': [13, 24, 31, 18, 10, 4],
+    'CH': [7, 17, 29, 22, 16, 9],
+    'DE': [10, 23, 32, 19, 11, 5],
+    'DK': [8, 20, 32, 21, 13, 6],
+    'ES': [15, 25, 31, 17, 9, 3],
+    'FR': [12, 24, 32, 18, 10, 4],
+    'GB': [14, 24, 30, 18, 10, 4],
+    'IE': [10, 22, 31, 20, 12, 5],
+    'IT': [14, 25, 31, 17, 9, 4],
+    'JP': [12, 25, 32, 18, 9, 4],
+    'KR': [13, 24, 31, 18, 10, 4],
+    'MC': [4, 10, 20, 23, 23, 20],
+    'NL': [9, 22, 32, 21, 11, 5],
+    'NO': [7, 19, 31, 22, 14, 7],
+    'NZ': [12, 24, 31, 18, 10, 5],
+    'PT': [17, 26, 30, 16, 8, 3],
+    'SE': [8, 20, 32, 22, 12, 6],
+    'SG': [8, 18, 28, 22, 15, 9],
+    'US': [17, 24, 28, 16, 10, 5],
+  };
+
+  /// Weights aligned with the six starting-background tiers. Unknown countries
+  /// use a neutral global estimate. Callers normalize by the weight total.
+  List<int> get startingBackgroundWeights =>
+      List<int>.unmodifiable(
+        _startingTierWeights[countryCode] ?? const [30, 30, 22, 10, 5, 3],
+      );
+
   /// The normalized country code used to resolve this profile.
   final String countryCode;
 

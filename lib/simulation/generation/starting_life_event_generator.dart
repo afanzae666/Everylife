@@ -7,393 +7,107 @@ import '../../domain/family/parent_npc.dart';
 class StartingLifeEventGenerator {
   const StartingLifeEventGenerator._();
 
-  static const Map<StartingBackgroundTier, List<_EventTemplate>>
-      _templates = {
-    StartingBackgroundTier.struggling: [
-      _EventTemplate(
-        title: 'Growing Up Against the Odds',
-        description:
-            'You were born into a struggling household where '
-            'even ordinary expenses can become difficult decisions. '
-            'Your family has little financial room for unexpected '
-            'problems, and building a secure future will take time '
-            'and sacrifice. Your early life begins with real '
-            'challenges, but your circumstances do not decide '
-            'the person you will become.',
-      ),
-      _EventTemplate(
-        title: 'A Household Under Pressure',
-        description:
-            'Your family begins this chapter of life with limited '
-            'financial security. Work may not always provide enough '
-            'income, savings are difficult to build, and an unexpected '
-            'expense can affect the entire household. The adults '
-            'around you must carefully balance immediate needs '
-            'against hopes for a better future.',
-      ),
-      _EventTemplate(
-        title: 'Hope Beyond Hardship',
-        description:
-            'You enter the world in a family that cannot easily '
-            'afford every opportunity it would like to provide. '
-            'Your household must make careful choices about daily '
-            'needs, education, and future plans. Although money '
-            'creates limits, the support, sacrifices, and decisions '
-            'within your family may still open a different path '
-            'for your life.',
-      ),
-    ],
-    StartingBackgroundTier.workingClass: [
-      _EventTemplate(
-        title: 'A Family Built on Hard Work',
-        description:
-            'You were born into a working-class household where '
-            'daily life depends on earning a living and managing '
-            'each paycheck carefully. Your family works to keep '
-            'the household running, but large expenses can still '
-            'put pressure on its finances. Stability is possible, '
-            'though it often depends on steady work and careful '
-            'planning.',
-      ),
-      _EventTemplate(
-        title: 'Every Paycheck Matters',
-        description:
-            'Your family relies on work and regular income to '
-            'cover everyday needs. There may be enough for the '
-            'essentials, but saving for major purchases or dealing '
-            'with an unexpected bill requires careful decisions. '
-            'Your early life begins in a household where persistence '
-            'and practical choices matter more than luxury.',
-      ),
-      _EventTemplate(
-        title: 'Building a Better Future',
-        description:
-            'You grow up in a family that hopes hard work will '
-            'create more opportunities for the next generation. '
-            'Your household aims to provide a decent upbringing '
-            'and a useful education while staying within its means. '
-            'The path ahead may not be easy, but your family has '
-            'a foundation from which to work toward greater '
-            'security and opportunity.',
-      ),
-    ],
-    StartingBackgroundTier.middleClass: [
-      _EventTemplate(
-        title: 'A Stable Start in Life',
-        description:
-            'You were born into a middle-class household with '
-            'a relatively stable standard of living. Everyday '
-            'needs can generally be met, and your family has some '
-            'room to plan beyond the next bill. Financial choices '
-            'still matter, but your early circumstances provide '
-            'a reasonable foundation for education, personal '
-            'development, and future ambitions.',
-      ),
-      _EventTemplate(
-        title: 'An Investment in Education',
-        description:
-            'Your family sees education and personal development '
-            'as important investments in your future. Within its '
-            'means, your household tries to provide useful learning '
-            'opportunities and a supportive environment. You may '
-            'have room to explore your interests and develop your '
-            'abilities, while still learning that time, effort, '
-            'and financial resources have their limits.',
-      ),
-      _EventTemplate(
-        title: 'Room to Find Your Own Path',
-        description:
-            'Your early years begin in a household that can offer '
-            'a degree of comfort without unlimited resources. '
-            'Your family may be able to support hobbies, learning, '
-            'and new experiences while still making practical '
-            'decisions about money. You have room to discover '
-            'your interests and ambitions, but the direction '
-            'of your life remains yours to shape.',
-      ),
-    ],
-    StartingBackgroundTier.upperMiddleClass: [
-      _EventTemplate(
-        title: 'Growing Up with Greater Opportunity',
-        description:
-            'You were born into a comfortable household with '
-            'resources to support a wider range of opportunities. '
-            'Your family may be able to afford quality education, '
-            'enrichment activities, and experiences beyond basic '
-            'daily needs. These advantages give you more options '
-            'early in life, although making the most of them '
-            'will still require your own effort and choices.',
-      ),
-      _EventTemplate(
-        title: 'High Expectations, Strong Support',
-        description:
-            'Your family has the means to invest in education, '
-            'skills, and long-term plans. You may grow up with '
-            'access to additional classes, enriching activities, '
-            'and a comfortable home environment. That support '
-            'can create valuable opportunities, but it may also '
-            'come with expectations about achievement and the '
-            'future you are expected to build.',
-      ),
-      _EventTemplate(
-        title: 'A World of Possibilities',
-        description:
-            'Your household enjoys a level of financial comfort '
-            'that makes it easier to explore different interests '
-            'and experiences. Your family may have the freedom '
-            'to plan ahead rather than focus only on immediate '
-            'expenses. This wider perspective can introduce you '
-            'to new ambitions and possibilities, even though '
-            'your future is not guaranteed by your upbringing.',
-      ),
-    ],
-    StartingBackgroundTier.wealthy: [
-      _EventTemplate(
-        title: 'Born into Financial Security',
-        description:
-            'You were born into a wealthy family with substantial '
-            'financial resources. Quality education, comfortable '
-            'living arrangements, and additional opportunities '
-            'may be readily available to you. Your family has '
-            'more freedom to plan for the future than most, '
-            'but wealth alone cannot decide your values, '
-            'relationships, or what you eventually accomplish.',
-      ),
-      _EventTemplate(
-        title: 'Connections and Opportunity',
-        description:
-            'Your family enjoys considerable financial comfort '
-            'and may be connected to professional, business, '
-            'or social circles that offer valuable experience. '
-            'You could encounter opportunities to learn about '
-            'business, investment, and influential careers earlier '
-            'than many people. These connections can be useful, '
-            'but trust and lasting achievement still have to '
-            'be earned.',
-      ),
-      _EventTemplate(
-        title: 'A Legacy in the Making',
-        description:
-            'You enter life in a household with significant '
-            'resources and the ability to think beyond immediate '
-            'financial needs. Your family may own valuable assets, '
-            'investments, or a successful business, and may begin '
-            'teaching you about responsibility and long-term '
-            'planning as you grow. You inherit advantages, '
-            'but how you use them will shape your own story.',
-      ),
-    ],
-    StartingBackgroundTier.veryWealthy: [
-      _EventTemplate(
-        title: 'Born into a Powerful Family Legacy',
-        description:
-            'You were born into a family whose wealth may span '
-            'major businesses, extensive investments, valuable '
-            'properties, or generations of accumulated assets. '
-            'Your household can provide extraordinary resources '
-            'and access to exclusive opportunities. Alongside '
-            'these advantages, family legacy may bring complex '
-            'responsibilities and expectations about the future.',
-      ),
-      _EventTemplate(
-        title: 'A Name with Influence',
-        description:
-            'Your family possesses exceptional wealth and may '
-            'have a recognized presence in business or influential '
-            'social circles. Its reputation can introduce you '
-            'to people and experiences far beyond ordinary life. '
-            'Yet a famous name can bring scrutiny and pressure '
-            'as well as opportunity, leaving you to decide '
-            'whether to follow the family path or create one '
-            'of your own.',
-      ),
-      _EventTemplate(
-        title: 'The Next Generation of a Fortune',
-        description:
-            'You begin life surrounded by the resources of a '
-            'family that may own large businesses, substantial '
-            'investments, or a broad portfolio of assets. Your '
-            'future could involve international education, '
-            'leadership, entrepreneurship, or responsibility '
-            'for preserving family wealth. Such a beginning '
-            'provides extraordinary possibilities, but managing '
-            'them wisely is a challenge of its own.',
-      ),
-    ],
-  };
-
   static SimulationEvent generate({
     required SeededRandom random,
     required int year,
     required StartingBackground background,
     FamilyHousehold? household,
   }) {
-    final templates = _templates[background.tier];
-
-    if (templates == null || templates.isEmpty) {
-      throw StateError(
-        'No starting life events are defined for '
-        '${background.tier.name}.',
-      );
-    }
-
-    final template = templates[random.nextInt(templates.length)];
-
-    if (household == null) {
-      return SimulationEvent(
-        id: 'starting-life-event-$year',
-        type: SimulationEventType.startingLifeEvent,
-        year: year,
-        title: template.title,
-        description: template.description,
-      );
-    }
+    final familyNarrative = _familyNarrative(household);
+    final economicNarrative = _economicNarrative(household);
+    final description = household == null
+        ? '${background.label}. Your family situation has not been recorded.'
+        : '$familyNarrative $economicNarrative';
 
     return SimulationEvent(
       id: 'starting-life-event-$year',
       type: SimulationEventType.startingLifeEvent,
       year: year,
-      title: _householdEventTitle(
-        household,
-        fallbackTitle: template.title,
-      ),
-      description: _householdEventDescription(
-        household,
-        background: background,
-      ),
+      title: 'Your Family Background',
+      description: description.trim(),
     );
   }
 
-  static String _householdEventTitle(
-    FamilyHousehold household, {
-    required String fallbackTitle,
-  }) {
-    if (household.housingStatus == HousingStatus.homeless) {
-      return 'A Family Without Stable Housing';
+  static String _familyNarrative(FamilyHousehold? household) {
+    if (household == null || household.parents.isEmpty) {
+      return 'Your family situation has not been recorded.';
     }
 
-    if (household.housingStatus == HousingStatus.temporary) {
-      return 'An Uncertain Place to Call Home';
+    final parents = household.parents;
+    final guardian = parents.any((parent) => parent.role == FamilyRole.guardian);
+    if (guardian) {
+      return 'Your biological parents entrusted you to an orphanage, where a guardian or caregiver looks after you.';
     }
 
-    final income = household.parents.fold<int>(
-      0, (sum, parent) => sum + parent.annualIncome.minorUnits,
-    );
-    final expenses = household.parents.fold<int>(
-      0, (sum, parent) => sum + parent.annualExpenses.minorUnits,
-    );
-    final savings = household.parents.fold<int>(
-      0, (sum, parent) => sum + parent.cashBalance.minorUnits,
-    );
-
-    if (income < expenses) {
-      return 'A Family Facing Financial Pressure';
+    final mother = _findRole(parents, FamilyRole.mother);
+    final father = _findRole(parents, FamilyRole.father);
+    if (mother != null && !mother.isAlive && father != null && father.isAlive) {
+      return 'Your mother died while giving birth to you. Your father raises you without her presence from the beginning of your life.';
     }
 
-    if (savings == 0) {
-      return 'A Family Building Financial Security';
+    if (mother != null && father == null) {
+      return 'Your mother raises you on her own from birth. Your biological father is not part of your life.';
     }
 
-    return fallbackTitle;
+    if (mother != null && father != null) {
+      return 'You were born into a family with both of your biological parents. They try to provide the best life they can for you.';
+    }
+
+    return 'Your family situation is recorded in your family details.';
   }
 
-  static String _householdEventDescription(
-    FamilyHousehold household, {
-    required StartingBackground background,
-  }) {
-    final parentDescriptions = household.parents.map((parent) {
-      final occupation = parent.occupation;
+  static String _economicNarrative(FamilyHousehold? household) {
+    if (household == null || household.parents.isEmpty) return '';
 
-      final employmentDescription = switch (parent.employmentStatus) {
-        EmploymentStatus.employed =>
-          occupation == null || occupation.trim().isEmpty
-              ? 'works as an employee'
-              : 'works as a $occupation',
-        EmploymentStatus.selfEmployed =>
-          occupation == null || occupation.trim().isEmpty
-              ? 'works independently'
-              : 'is self-employed as a $occupation',
-        EmploymentStatus.unemployed => 'is currently unemployed',
-        EmploymentStatus.retired => 'is retired',
-        EmploymentStatus.homemaker => 'takes care of the household',
-        EmploymentStatus.unableToWork => 'is unable to work',
+    final descriptions = <String>[];
+    for (final parent in household.parents) {
+      // A deceased parent's employment is historical context and is omitted
+      // until a trustworthy employment-history field exists.
+      if (!parent.isAlive || parent.role == FamilyRole.guardian) continue;
+      final description = _employmentDescription(parent);
+      if (description != null) descriptions.add(description);
+    }
+
+    if (descriptions.isEmpty) return '';
+    return descriptions.join(' ');
+  }
+
+  static String? _employmentDescription(ParentNpc parent) {
+    final occupation = parent.occupation?.trim();
+    switch (parent.employmentStatus) {
+      case EmploymentStatus.employed:
+        if (occupation == null || occupation.isEmpty) {
+          return 'Your ${_roleLabel(parent.role)} works as an employee.';
+        }
+        return 'Your ${_roleLabel(parent.role)} works as a $occupation.';
+      case EmploymentStatus.selfEmployed:
+        if (occupation == null || occupation.isEmpty) {
+          return 'Your ${_roleLabel(parent.role)} is self-employed.';
+        }
+        return 'Your ${_roleLabel(parent.role)} is self-employed as a $occupation.';
+      case EmploymentStatus.unemployed:
+        return 'Your ${_roleLabel(parent.role)} is currently unemployed.';
+      case EmploymentStatus.retired:
+        return 'Your ${_roleLabel(parent.role)} is retired.';
+      case EmploymentStatus.homemaker:
+        return 'Your ${_roleLabel(parent.role)} takes care of the household.';
+      case EmploymentStatus.unableToWork:
+        return 'Your ${_roleLabel(parent.role)} is unable to work.';
+    }
+  }
+
+  static String _roleLabel(FamilyRole role) => switch (role) {
+        FamilyRole.father => 'father',
+        FamilyRole.mother => 'mother',
+        FamilyRole.guardian => 'guardian',
+        FamilyRole.stepFather => 'stepfather',
+        FamilyRole.stepMother => 'stepmother',
       };
 
-      return '${parent.fullName} $employmentDescription.';
-    }).join(' ');
-
-    final parentsDescription = household.parents.isEmpty
-        ? 'No parent or guardian employment details are recorded.'
-        : parentDescriptions;
-
-    final annualIncome = household.parents.fold<int>(
-      0, (sum, parent) => sum + parent.annualIncome.minorUnits,
-    );
-    final annualExpenses = household.parents.fold<int>(
-      0, (sum, parent) => sum + parent.annualExpenses.minorUnits,
-    );
-    final incomeDescription = annualIncome == 0
-        ? 'The parents currently have no recorded annual income.'
-        : annualIncome < annualExpenses
-            ? 'The parents’ combined income is lower than their recorded '
-                'personal living contributions, creating financial pressure.'
-            : annualIncome == annualExpenses
-                ? 'The parents’ recorded income is fully committed to expenses, '
-                    'leaving little room for unexpected costs.'
-                : 'The parents earn income, but their individual expenses '
-                    'and obligations affect how much they can save.';
-
-    final housingDescription = switch (household.housingStatus) {
-      HousingStatus.rented =>
-        'The family lives in rented housing.',
-      HousingStatus.familyOwned =>
-        'The family lives in a home owned by the family.',
-      HousingStatus.ownedWithMortgage =>
-        'The family lives in a home financed with a mortgage.',
-      HousingStatus.temporary =>
-        'The family lives in temporary accommodation.',
-      HousingStatus.providedByOthers =>
-        'The family accommodation is provided by others.',
-      HousingStatus.homeless =>
-        'The family currently has no stable housing.',
-    };
-
-    final personalSavings = household.parents.fold<int>(
-      0, (sum, parent) => sum + parent.cashBalance.minorUnits,
-    );
-    final personalAssets = household.assets.fold<int>(
-      0, (sum, asset) => sum + asset.value.minorUnits,
-    );
-    final savingsDescription = personalSavings == 0
-        ? 'The parents have no recorded personal cash savings.'
-        : 'The parents have accumulated personal cash savings over time.';
-    final assetsDescription = personalAssets == 0
-        ? 'No parent-owned assets are recorded.'
-        : 'The parents hold individually assigned assets whose value is not '
-            'automatically transferred to you during childhood.';
-
-    return 'Your early circumstances are shaped by the household '
-        'you were born into. The details below reflect the family '
-        'situation recorded at the beginning of your life. '
-        'Your starting background is classified as '
-        '${background.label}. '
-        '$parentsDescription '
-        '$housingDescription '
-        '$incomeDescription '
-        '$savingsDescription '
-        '$assetsDescription '
-        'These circumstances influence the opportunities and '
-        'challenges around your childhood, but they do not determine '
-        'the person you will become.';
+  static ParentNpc? _findRole(List<ParentNpc> parents, FamilyRole role) {
+    for (final parent in parents) {
+      if (parent.role == role) return parent;
+    }
+    return null;
   }
-}
-
-class _EventTemplate {
-  const _EventTemplate({
-    required this.title,
-    required this.description,
-  });
-
-  final String title;
-  final String description;
 }
