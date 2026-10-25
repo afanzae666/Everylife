@@ -11,6 +11,7 @@ import '../../domain/character/starting_background.dart';
 import '../../domain/family/family_asset.dart';
 import '../../domain/family/family_household.dart';
 import '../../domain/family/parent_npc.dart';
+import '../../domain/family/sibling_npc.dart';
 import 'country_economic_profile.dart';
 
 class FamilyHouseholdGenerator {
@@ -39,6 +40,17 @@ class FamilyHouseholdGenerator {
       familyName: normalizedFamilyName,
       countryCode: countryCode,
       tier: tier,
+      childAppearance: childAppearance,
+    );
+
+    final siblings = _generateSiblings(
+      random: random,
+      birthYear: birthYear,
+      familyName: normalizedFamilyName,
+      countryCode: countryCode,
+      hasStepParent: parents.any((parent) =>
+          parent.role == FamilyRole.stepFather ||
+          parent.role == FamilyRole.stepMother),
       childAppearance: childAppearance,
     );
 
@@ -98,6 +110,7 @@ class FamilyHouseholdGenerator {
     return FamilyHousehold(
       id: householdId,
       parents: financiallyInitializedParents,
+      siblings: siblings,
       // Aggregate savings are migrated into individual parent balances.
       cashSavings: const Money.zero(),
       assets: assets,
@@ -138,7 +151,7 @@ class FamilyHouseholdGenerator {
       ];
     }
 
-    return [
+    final parents = <ParentNpc>[
       _generateParent(
         random: random,
         birthYear: birthYear,
@@ -162,6 +175,67 @@ class FamilyHouseholdGenerator {
         id: 'parent-mother-$birthYear',
       ),
     ];
+
+    // A blended family replaces one biological-parent role with a step-parent.
+    if (random.nextInt(100) < 22) {
+      final index = random.nextInt(parents.length);
+      final parent = parents[index];
+      parents[index] = parent.copyWith(
+        role: parent.gender == Gender.male
+            ? FamilyRole.stepFather
+            : FamilyRole.stepMother,
+      );
+    }
+    return parents;
+  }
+
+  static List<SiblingNpc> _generateSiblings({
+    required SeededRandom random,
+    required int birthYear,
+    required String familyName,
+    required String countryCode,
+    required bool hasStepParent,
+    CharacterAppearance? childAppearance,
+  }) {
+    final count = random.nextInt(4); // 0–3 siblings per new life.
+    final siblings = <SiblingNpc>[];
+    for (var i = 0; i < count; i++) {
+      final gender = random.nextBool() ? Gender.male : Gender.female;
+      final relationshipRoll = random.nextInt(100);
+      final relationship = hasStepParent && relationshipRoll < 28
+          ? SiblingRelationship.stepSibling
+          : relationshipRoll < 48
+              ? SiblingRelationship.halfSibling
+              : SiblingRelationship.fullSibling;
+      final older = random.nextBool();
+      final ageDifference = 1 + random.nextInt(18);
+      final siblingBirthYear = older
+          ? birthYear - ageDifference
+          : birthYear + ageDifference;
+      final siblingLastName = relationship == SiblingRelationship.stepSibling ||
+              (relationship == SiblingRelationship.halfSibling &&
+                  random.nextBool())
+          ? CulturalRandomizerCatalog.randomLastName(
+              countryCode: countryCode,
+              random: math.Random(random.nextInt(0x7fffffff)),
+            )
+          : familyName;
+      siblings.add(SiblingNpc(
+        id: 'sibling-$birthYear-$i',
+        firstName: _firstName(random, gender, countryCode),
+        lastName: siblingLastName,
+        gender: gender,
+        birthYear: siblingBirthYear,
+        relationship: relationship,
+        countryCode: countryCode,
+        appearance: _generateAppearance(
+          random: random,
+          gender: gender,
+          childAppearance: childAppearance,
+        ),
+      ));
+    }
+    return siblings;
   }
 
   static ParentNpc _generateParent({
