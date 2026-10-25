@@ -1,3 +1,4 @@
+
 import 'dart:math' as math;
 
 import 'package:everylife/core/money/money.dart';
@@ -43,18 +44,23 @@ class FamilyHouseholdGenerator {
       childAppearance: childAppearance,
     );
 
-    final siblings = _generateSiblings(
-      random: random,
-      birthYear: birthYear,
-      familyName: normalizedFamilyName,
-      countryCode: countryCode,
-      hasStepParent: false,
-      childAppearance: childAppearance,
-    );
-
     final isOrphanagePlacement = parents.any(
       (parent) => parent.role == FamilyRole.guardian,
     );
+
+    // An orphanage guardian is not a biological or adoptive sibling's parent.
+    // Do not generate player siblings for an orphanage starting scenario.
+    final siblings = isOrphanagePlacement
+        ? <SiblingNpc>[]
+        : _generateSiblings(
+            random: random,
+            birthYear: birthYear,
+            familyName: normalizedFamilyName,
+            countryCode: countryCode,
+            hasStepParent: false,
+            childAppearance: childAppearance,
+          );
+
     final housingStatus = isOrphanagePlacement
         ? HousingStatus.providedByOthers
         : _generateHousingStatus(
@@ -128,15 +134,25 @@ class FamilyHouseholdGenerator {
     if (scenarioRoll < 50) {
       return [
         _generateParent(
-          random: random, birthYear: birthYear, familyName: familyName,
-          countryCode: countryCode, tier: tier, childAppearance: childAppearance,
-          gender: Gender.male, role: FamilyRole.father,
+          random: random,
+          birthYear: birthYear,
+          familyName: familyName,
+          countryCode: countryCode,
+          tier: tier,
+          childAppearance: childAppearance,
+          gender: Gender.male,
+          role: FamilyRole.father,
           id: 'parent-father-$birthYear',
         ),
         _generateParent(
-          random: random, birthYear: birthYear, familyName: familyName,
-          countryCode: countryCode, tier: tier, childAppearance: childAppearance,
-          gender: Gender.female, role: FamilyRole.mother,
+          random: random,
+          birthYear: birthYear,
+          familyName: familyName,
+          countryCode: countryCode,
+          tier: tier,
+          childAppearance: childAppearance,
+          gender: Gender.female,
+          role: FamilyRole.mother,
           id: 'parent-mother-$birthYear',
         ),
       ];
@@ -145,9 +161,14 @@ class FamilyHouseholdGenerator {
     if (scenarioRoll < 70) {
       return [
         _generateParent(
-          random: random, birthYear: birthYear, familyName: familyName,
-          countryCode: countryCode, tier: tier, childAppearance: childAppearance,
-          gender: Gender.female, role: FamilyRole.mother,
+          random: random,
+          birthYear: birthYear,
+          familyName: familyName,
+          countryCode: countryCode,
+          tier: tier,
+          childAppearance: childAppearance,
+          gender: Gender.female,
+          role: FamilyRole.mother,
           id: 'parent-mother-$birthYear',
         ),
       ];
@@ -155,29 +176,73 @@ class FamilyHouseholdGenerator {
 
     if (scenarioRoll < 80) {
       final father = _generateParent(
-        random: random, birthYear: birthYear, familyName: familyName,
-        countryCode: countryCode, tier: tier, childAppearance: childAppearance,
-        gender: Gender.male, role: FamilyRole.father,
+        random: random,
+        birthYear: birthYear,
+        familyName: familyName,
+        countryCode: countryCode,
+        tier: tier,
+        childAppearance: childAppearance,
+        gender: Gender.male,
+        role: FamilyRole.father,
         id: 'parent-father-$birthYear',
       );
       final mother = _generateParent(
-        random: random, birthYear: birthYear, familyName: familyName,
-        countryCode: countryCode, tier: tier, childAppearance: childAppearance,
-        gender: Gender.female, role: FamilyRole.mother,
+        random: random,
+        birthYear: birthYear,
+        familyName: familyName,
+        countryCode: countryCode,
+        tier: tier,
+        childAppearance: childAppearance,
+        gender: Gender.female,
+        role: FamilyRole.mother,
         id: 'parent-mother-$birthYear',
       ).copyWith(isAlive: false, deathYear: birthYear);
       return [father, mother];
     }
 
     final gender = random.nextBool() ? Gender.male : Gender.female;
+    final guardianFamilyName = _guardianFamilyName(
+      random: random,
+      countryCode: countryCode,
+      playerFamilyName: familyName,
+    );
+
     return [
       _generateParent(
-        random: random, birthYear: birthYear, familyName: familyName,
-        countryCode: countryCode, tier: tier, childAppearance: childAppearance,
-        gender: gender, role: FamilyRole.guardian,
+        random: random,
+        birthYear: birthYear,
+        familyName: guardianFamilyName,
+        countryCode: countryCode,
+        tier: tier,
+        childAppearance: childAppearance,
+        gender: gender,
+        role: FamilyRole.guardian,
         id: 'parent-guardian-$birthYear',
       ),
     ];
+  }
+
+  static String _guardianFamilyName({
+    required SeededRandom random,
+    required String countryCode,
+    required String playerFamilyName,
+  }) {
+    // A guardian is a separate person, so do not reuse the player's surname.
+    // Retry with the country's surname pool until a different surname is found.
+    for (var attempt = 0; attempt < 20; attempt++) {
+      final candidate = CulturalRandomizerCatalog.randomLastName(
+        countryCode: countryCode,
+        random: math.Random(random.nextInt(0x7fffffff)),
+      );
+
+      if (candidate.trim().toLowerCase() !=
+          playerFamilyName.trim().toLowerCase()) {
+        return candidate;
+      }
+    }
+
+    // Defensive fallback for unusual/custom surnames or random sequences.
+    return '$playerFamilyName Guardian';
   }
 
   static List<SiblingNpc> _generateSiblings({
