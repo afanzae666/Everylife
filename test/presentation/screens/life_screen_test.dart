@@ -75,7 +75,7 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       home: LifeScreen(
         zoom: 1,
-        currentYear: 2026,
+        currentYear: 2030,
         playerBirthYear: 2026,
         parents: [stepParent],
         siblings: const [stepSibling],
@@ -87,6 +87,44 @@ void main() {
     expect(find.text('Younger Stepsister'), findsOneWidget);
     expect(find.text('Parents'), findsOneWidget);
     expect(find.text('Siblings'), findsOneWidget);
+  });
+
+
+  testWidgets('hides unborn siblings and uses simple labels for siblings', (
+    tester,
+  ) async {
+    const olderSibling = SiblingNpc(
+      id: 'older-brother-test',
+      firstName: 'Alex',
+      lastName: 'Lee',
+      gender: Gender.male,
+      birthYear: 2010,
+      relationship: SiblingRelationship.fullSibling,
+    );
+    const unbornSibling = SiblingNpc(
+      id: 'unborn-sister-test',
+      firstName: 'Jordan',
+      lastName: 'Lee',
+      gender: Gender.female,
+      birthYear: 2030,
+      relationship: SiblingRelationship.fullSibling,
+    );
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: LifeScreen(
+          zoom: 1,
+          currentYear: 2026,
+          playerBirthYear: 2020,
+          siblings: [olderSibling, unbornSibling],
+        ),
+      ),
+    );
+
+    expect(find.text('Older brother'), findsOneWidget);
+    expect(find.text('Alex Lee'), findsOneWidget);
+    expect(find.text('Jordan Lee'), findsNothing);
+    expect(find.text('Full brother'), findsNothing);
   });
 
   testWidgets('Life screen shows all requested categories without Family Tree', (
