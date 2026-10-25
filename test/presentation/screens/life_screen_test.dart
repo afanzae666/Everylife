@@ -139,6 +139,9 @@ void main() {
     expect(find.text('Parents'), findsOneWidget);
     expect(find.text('Friends'), findsOneWidget);
     expect(find.text('Enemies'), findsOneWidget);
+    expect(find.text('Siblings'), findsOneWidget);
+    expect(find.text('Grandparents'), findsOneWidget);
+    expect(find.text('Family'), findsOneWidget);
 
     expect(find.text('Partner'), findsNothing);
     expect(find.text('Family Tree'), findsNothing);
