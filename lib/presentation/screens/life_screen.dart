@@ -26,6 +26,10 @@ class LifeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final visibleSiblings = siblings
+        .where((sibling) => sibling.birthYear <= currentYear)
+        .toList(growable: false);
+
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(
         textScaler: TextScaler.linear(zoom),
@@ -95,7 +99,7 @@ class LifeScreen extends StatelessWidget {
                           title: 'Siblings',
                           icon: Icons.people_outline,
                           zoom: zoom,
-                          child: siblings.isEmpty
+                          child: visibleSiblings.isEmpty
                               ? const _CategoryPlaceholder(
                                   message: 'No siblings to show yet.',
                                 )
@@ -103,12 +107,12 @@ class LifeScreen extends StatelessWidget {
                                   crossAxisAlignment:
                                       CrossAxisAlignment.stretch,
                                   children: [
-                                    for (var i = 0; i < siblings.length; i++)
+                                    for (var i = 0; i < visibleSiblings.length; i++)
                                       _SiblingNpcCard(
                                         key: ValueKey(
-                                          'sibling-card-${siblings[i].id}',
+                                          'sibling-card-${visibleSiblings[i].id}',
                                         ),
-                                        sibling: siblings[i],
+                                        sibling: visibleSiblings[i],
                                         playerBirthYear: playerBirthYear,
                                         currentYear: currentYear,
                                         zoom: zoom,
@@ -363,7 +367,7 @@ class _SiblingNpcCard extends StatelessWidget {
     final older = sibling.isOlderThan(playerBirthYear);
     final siblingKind = switch (sibling.relationship) {
       SiblingRelationship.fullSibling =>
-        sibling.gender == Gender.male ? 'Full brother' : 'Full sister',
+        sibling.gender == Gender.male ? 'brother' : 'sister',
       SiblingRelationship.halfSibling =>
         sibling.gender == Gender.male ? 'Half-brother' : 'Half-sister',
       SiblingRelationship.stepSibling =>
