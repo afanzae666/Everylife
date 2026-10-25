@@ -20,6 +20,7 @@ class SiblingNpc {
     required this.relationship,
     this.appearance = const CharacterAppearance(),
     this.countryCode = 'ID',
+    this.relationshipPercent = 50,
   });
 
   final String id;
@@ -30,6 +31,9 @@ class SiblingNpc {
   final SiblingRelationship relationship;
   final CharacterAppearance appearance;
   final String countryCode;
+
+  /// Placeholder relationship score until the relationship simulation is built.
+  final int relationshipPercent;
 
   String get fullName => CulturalNameCatalog.formatFullName(
         countryCode,

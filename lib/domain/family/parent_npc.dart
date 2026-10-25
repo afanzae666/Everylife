@@ -50,6 +50,7 @@ class ParentNpc {
     this.isAlive = true,
     this.deathYear,
     this.siblingCount = 0,
+    this.relationshipPercent = 50,
   });
 
   final String id;
@@ -88,6 +89,9 @@ class ParentNpc {
   /// Number of other eligible siblings for estate-share calculation.
   final int siblingCount;
 
+  /// Placeholder relationship score until the relationship simulation is built.
+  final int relationshipPercent;
+
   String get fullName => CulturalNameCatalog.formatFullName(
         countryCode,
         firstName,
@@ -100,7 +104,7 @@ class ParentNpc {
     Money? annualIncome, IncomeStability? incomeStability,
     CharacterAppearance? appearance, String? countryCode, Money? cashBalance,
     Money? annualExpenses, List<FamilyAsset>? assets, bool? isAlive,
-    int? deathYear, int? siblingCount, bool clearDeathYear = false,
+    int? deathYear, int? siblingCount, int? relationshipPercent, bool clearDeathYear = false,
   }) => ParentNpc(
     id: id, firstName: firstName ?? this.firstName,
     lastName: lastName ?? this.lastName, gender: gender ?? this.gender,
@@ -117,6 +121,7 @@ class ParentNpc {
     isAlive: isAlive ?? this.isAlive,
     deathYear: clearDeathYear ? null : (deathYear ?? this.deathYear),
     siblingCount: siblingCount ?? this.siblingCount,
+    relationshipPercent: relationshipPercent ?? this.relationshipPercent,
   );
 
   bool get hasIncome {
