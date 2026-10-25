@@ -615,7 +615,7 @@ class _GameScreenState extends State<GameScreen> {
             : _openCharacterProfile,
         borderRadius: BorderRadius.circular(s(8)),
         child: _ResponsiveCard(
-          padding: EdgeInsets.all(s(8)),
+          padding: EdgeInsets.all(s(4)),
           child: Row(
             crossAxisAlignment:
                 CrossAxisAlignment.center,
@@ -709,16 +709,6 @@ class _GameScreenState extends State<GameScreen> {
                     ),
                     SizedBox(height: s(1)),
                     Text(
-                      'Age $age • ${state.clock.currentYear}',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall,
-                      maxLines: 1,
-                      overflow:
-                          TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: s(1)),
-                    Text(
                       lifeStageLabel,
                       style: Theme.of(context)
                           .textTheme
@@ -791,10 +781,10 @@ class _GameScreenState extends State<GameScreen> {
 
     return _ResponsiveCard(
       padding: EdgeInsets.fromLTRB(
-        s(8),
-        s(6),
-        s(8),
-        s(6),
+        s(4),
+        s(3),
+        s(4),
+        s(3),
       ),
       child: groupedEvents.isEmpty
           ? const Center(
@@ -941,10 +931,10 @@ class _GameScreenState extends State<GameScreen> {
 
     return _ResponsiveCard(
       padding: EdgeInsets.fromLTRB(
-        s(8),
-        s(6),
-        s(8),
-        s(7),
+        s(4),
+        s(3),
+        s(4),
+        s(3),
       ),
       child: LayoutBuilder(
         builder: (
@@ -1205,10 +1195,10 @@ class _StatCard extends StatelessWidget {
 
     return _ResponsiveCard(
       padding: EdgeInsets.fromLTRB(
-        s(5),
-        s(5),
-        s(5),
         s(4),
+        s(3),
+        s(4),
+        s(3),
       ),
       child: Column(
         mainAxisAlignment:
