@@ -105,6 +105,7 @@ class ParentEconomySystem implements SimulationSystem {
     final updatedHousehold = FamilyHousehold(
       id: household.id,
       parents: updatedParents,
+      siblings: household.siblings,
       // Legacy aggregate fields are retained only for old-save compatibility;
       // the economy system no longer changes or consults them.
       cashSavings: household.cashSavings,
