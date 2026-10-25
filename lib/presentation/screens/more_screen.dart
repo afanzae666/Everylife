@@ -32,7 +32,7 @@ class MoreScreen extends StatelessWidget {
               Card(
                 margin: EdgeInsets.zero,
                 child: Padding(
-                  padding: EdgeInsets.all(s(8)),
+                  padding: EdgeInsets.all(s(4)),
                   child: Column(
                     crossAxisAlignment:
                         CrossAxisAlignment.start,
@@ -75,7 +75,7 @@ class MoreScreen extends StatelessWidget {
               Card(
                 margin: EdgeInsets.zero,
                 child: Padding(
-                  padding: EdgeInsets.all(s(8)),
+                  padding: EdgeInsets.all(s(4)),
                   child: Row(
                     crossAxisAlignment:
                         CrossAxisAlignment.start,

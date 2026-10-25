@@ -269,6 +269,10 @@ final CharacterAppearance finalAppearance =
         ),
 );
     
+    final birthdayMonth = _random.nextInt(12) + 1;
+    final daysInBirthdayMonth = DateTime(_birthYear, birthdayMonth + 1, 0).day;
+    final birthdayDay = _random.nextInt(daysInBirthdayMonth) + 1;
+
     final Character character = Character.create(
       id:
           'player-${DateTime.now().microsecondsSinceEpoch}',
@@ -276,6 +280,8 @@ final CharacterAppearance finalAppearance =
       lastName: lastName,
       gender: _gender,
             birthYear: _birthYear,
+      birthMonth: birthdayMonth,
+      birthDay: birthdayDay,
       appearance: finalAppearance,
       location: CharacterLocation(
         countryCode: _countryCode,
@@ -1252,12 +1258,11 @@ final double previewContainerSize =
             children: [                   
               Expanded(
                 child: _ResponsiveCard(
-                  padding:
-                      EdgeInsets.fromLTRB(
-                    s(10),
-                    s(0),
-                    s(10),
-                    s(8),
+                  padding: EdgeInsets.fromLTRB(
+                    s(4),
+                    s(3),
+                    s(4),
+                    s(3),
                   ),
                   isOverlay: widget.isOverlay,
                   child: LayoutBuilder(

@@ -76,8 +76,8 @@ class _MenuOption extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 10,
+          horizontal: 8,
+          vertical: 4,
         ),
         leading: Icon(icon, size: 28),
         title: Text(

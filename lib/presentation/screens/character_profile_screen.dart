@@ -123,10 +123,7 @@ class CharacterProfileScreen extends StatelessWidget {
   ) {
     double s(double value) => value * zoom;
 
-    final age = character.ageAt(
-      currentYear,
-    );
-
+    final age = character.ageAt(currentYear);
     final lifeStage = character.lifeStageAt(
       currentYear,
     );
@@ -229,12 +226,12 @@ class CharacterProfileScreen extends StatelessWidget {
           height: s(2),
         ),
 
+        SizedBox(height: s(2)),
         Text(
           'Age $age • $currentYear',
           style: Theme.of(context).textTheme.bodyMedium,
           textAlign: TextAlign.center,
         ),
-
         SizedBox(
           height: s(5),
         ),
@@ -244,10 +241,10 @@ class CharacterProfileScreen extends StatelessWidget {
         // =========================================================
         _ResponsiveCard(
           padding: EdgeInsets.fromLTRB(
-            s(8),
-            s(6),
-            s(8),
-            s(6),
+            s(4),
+            s(3),
+            s(4),
+            s(3),
           ),
           child: _buildBasicInformation(
             context,
@@ -265,10 +262,10 @@ class CharacterProfileScreen extends StatelessWidget {
         // =========================================================
         _ResponsiveCard(
           padding: EdgeInsets.fromLTRB(
-            s(8),
-            s(6),
-            s(8),
-            s(5),
+            s(4),
+            s(3),
+            s(4),
+            s(3),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

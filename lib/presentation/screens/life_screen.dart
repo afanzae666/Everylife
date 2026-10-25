@@ -7,6 +7,7 @@ import '../../domain/character/gender.dart';
 import '../../domain/family/parent_npc.dart';
 import '../../domain/family/sibling_npc.dart';
 import '../widgets/character_avatar.dart';
+import 'npc_interaction_screen.dart';
 
 class LifeScreen extends StatelessWidget {
   const LifeScreen({
@@ -54,6 +55,13 @@ class LifeScreen extends StatelessWidget {
                           zoom: zoom,
                           child: const _CategoryPlaceholder(
                             message: 'No partner to show yet.',
+                          ),
+                        ),
+                        _CategoryCard(
+                          title: 'Fling',
+                          zoom: zoom,
+                          child: const _CategoryPlaceholder(
+                            message: 'No flings to show yet.',
                           ),
                         ),
                         _CategoryCard(
@@ -281,7 +289,18 @@ class _ParentNpcCard extends StatelessWidget {
           color: theme.dividerColor.withValues(alpha: 0.45),
         ),
       ),
-      child: Padding(
+      child: InkWell(
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => NpcInteractionScreen(
+              name: parent.fullName,
+              relationship: _relationshipLabel(parent.role),
+              relationshipPercent: parent.relationshipPercent,
+              subtitle: parent.isAlive ? null : 'Deceased',
+            ),
+          ),
+        ),
+        child: Padding(
         padding: EdgeInsets.all(s(3)),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -297,20 +316,30 @@ class _ParentNpcCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    _relationshipLabel(parent.role),
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          parent.fullName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: s(4)),
+                      Text(
+                        '(${_relationshipLabel(parent.role)})',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: s(1)),
-                  Text(
-                    parent.fullName,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  SizedBox(height: s(3)),
+                  _RelationshipBar(value: parent.relationshipPercent, zoom: zoom),
                   if (!parent.isAlive) ...[
                     SizedBox(height: s(2)),
                     Text(
@@ -324,8 +353,10 @@ class _ParentNpcCard extends StatelessWidget {
                 ],
               ),
             ),
+            Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
           ],
         ),
+      ),
       ),
     );
   }
@@ -333,15 +364,15 @@ class _ParentNpcCard extends StatelessWidget {
   String _relationshipLabel(FamilyRole role) {
     switch (role) {
       case FamilyRole.father:
-        return 'Father';
+        return 'father';
       case FamilyRole.mother:
-        return 'Mother';
+        return 'mother';
       case FamilyRole.guardian:
-        return 'Guardian';
+        return 'guardian';
       case FamilyRole.stepFather:
-        return 'Stepfather';
+        return 'stepfather';
       case FamilyRole.stepMother:
-        return 'Stepmother';
+        return 'stepmother';
     }
   }
 }
@@ -371,12 +402,12 @@ class _SiblingNpcCard extends StatelessWidget {
       SiblingRelationship.fullSibling =>
         sibling.gender == Gender.male ? 'brother' : 'sister',
       SiblingRelationship.halfSibling =>
-        sibling.gender == Gender.male ? 'Half-brother' : 'Half-sister',
+        sibling.gender == Gender.male ? 'half-brother' : 'half-sister',
       SiblingRelationship.stepSibling =>
-        sibling.gender == Gender.male ? 'Stepbrother' : 'Stepsister',
+        sibling.gender == Gender.male ? 'stepbrother' : 'stepsister',
     };
 
-    final ageLabel = older ? 'Older' : 'Younger';
+    final ageLabel = older ? 'older' : 'younger';
 
     return Card(
       margin: EdgeInsets.zero,
@@ -388,7 +419,17 @@ class _SiblingNpcCard extends StatelessWidget {
           color: theme.dividerColor.withValues(alpha: 0.45),
         ),
       ),
-      child: Padding(
+      child: InkWell(
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => NpcInteractionScreen(
+              name: sibling.fullName,
+              relationship: '$ageLabel $siblingKind',
+              relationshipPercent: sibling.relationshipPercent,
+            ),
+          ),
+        ),
+        child: Padding(
         padding: EdgeInsets.all(s(3)),
         child: Row(
           children: [
@@ -464,30 +505,72 @@ class _SiblingNpcCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    '$ageLabel $siblingKind',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          sibling.fullName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: s(4)),
+                      Text(
+                        '($ageLabel $siblingKind)',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: s(1)),
-                  Text(
-                    sibling.fullName,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Text(
-                    'Born ${sibling.birthYear}',
-                    style: theme.textTheme.bodySmall,
-                  ),
+                  SizedBox(height: s(3)),
+                  _RelationshipBar(value: sibling.relationshipPercent, zoom: zoom),
                 ],
               ),
             ),
+            Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
           ],
         ),
       ),
+      ),
+    );
+  }
+}
+
+
+class _RelationshipBar extends StatelessWidget {
+  const _RelationshipBar({required this.value, required this.zoom});
+
+  final int value;
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    final score = value.clamp(-100, 100).toInt();
+    final positive = score > 0;
+    final color = positive ? const Color(0xFF32CD62) : const Color(0xFFFF4545);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8 * zoom),
+          child: LinearProgressIndicator(
+            minHeight: 5 * zoom,
+            value: score.abs() / 100.0,
+            color: color,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+          ),
+        ),
+        SizedBox(height: 1 * zoom),
+        Text(
+          'Relationship · $score%',
+          style: Theme.of(context).textTheme.labelSmall,
+        ),
+      ],
     );
   }
 }

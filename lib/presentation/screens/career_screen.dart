@@ -119,7 +119,7 @@ class _SectionCard extends StatelessWidget {
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
-        padding: EdgeInsets.all(s(8)),
+        padding: EdgeInsets.all(s(4)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

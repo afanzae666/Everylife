@@ -70,7 +70,7 @@ class SettingsScreen extends StatelessWidget {
                     return SwitchListTile(
                       dense: true,
                       contentPadding: EdgeInsets.symmetric(
-                        horizontal: s(12),
+                        horizontal: s(6),
                       ),
                       secondary: Icon(
                         Icons.dark_mode_outlined,
@@ -95,7 +95,7 @@ class SettingsScreen extends StatelessWidget {
                 ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.symmetric(
-                    horizontal: s(12),
+                    horizontal: s(6),
                   ),
                   leading: Icon(
                     Icons.zoom_in_outlined,

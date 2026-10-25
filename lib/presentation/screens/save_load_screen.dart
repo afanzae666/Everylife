@@ -482,7 +482,7 @@ class _SaveLoadScreenState
                 dense: true,
                 contentPadding:
                     EdgeInsets.symmetric(
-                  horizontal: 16 * widget.zoom,
+                  horizontal: 8 * widget.zoom,
                 ),
                 secondary: Icon(
                   enabled
@@ -543,7 +543,7 @@ class _SaveLoadScreenState
 
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: 8 * widget.zoom,
+        horizontal: 4 * widget.zoom,
         vertical: 2 * widget.zoom,
       ),
       child: Row(
