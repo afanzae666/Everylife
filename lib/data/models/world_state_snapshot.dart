@@ -24,6 +24,8 @@ required this.playerFirstName,
 required this.playerLastName,
 required this.playerGender,
 required this.playerBirthYear,
+this.playerBirthMonth = 1,
+this.playerBirthDay = 1,
 required this.playerHealth,
 required this.playerIntelligence,
 required this.playerFitness,
@@ -50,6 +52,8 @@ final String playerFirstName;
 final String playerLastName;
 final Gender playerGender;
 final int playerBirthYear;
+final int playerBirthMonth;
+final int playerBirthDay;
 
 final int playerHealth;
 final int playerIntelligence;
@@ -99,6 +103,8 @@ return WorldStateSnapshot(
   playerLastName: player.resolvedLastName,
   playerGender: player.gender,
   playerBirthYear: player.birthYear,
+  playerBirthMonth: player.birthMonth,
+  playerBirthDay: player.birthDay,
   playerHealth: stats.health,
   playerIntelligence: stats.intelligence,
   playerFitness: stats.fitness,
@@ -132,6 +138,8 @@ firstName: playerFirstName,
 lastName: playerLastName,
 gender: playerGender,
 birthYear: playerBirthYear,
+birthMonth: playerBirthMonth,
+birthDay: playerBirthDay,
 stats: CharacterStats(
 health: playerHealth,
 intelligence: playerIntelligence,
@@ -173,6 +181,8 @@ return {
 'lastName': playerLastName,
 'gender': playerGender.name,
 'birthYear': playerBirthYear,
+'birthMonth': playerBirthMonth,
+'birthDay': playerBirthDay,
 'stats': {
 'health': playerHealth,
 'intelligence': playerIntelligence,
@@ -288,6 +298,8 @@ return WorldStateSnapshot(
     player['birthYear'],
     'player.birthYear',
   ),
+  playerBirthMonth: player['birthMonth'] is int ? player['birthMonth'] as int : 1,
+  playerBirthDay: player['birthDay'] is int ? player['birthDay'] as int : 1,
   playerHealth: _requireInt(
     stats['health'],
     'player.stats.health',
@@ -460,6 +472,7 @@ parent.incomeStability.name,
 'isAlive': parent.isAlive,
 'deathYear': parent.deathYear,
 'siblingCount': parent.siblingCount,
+'relationshipPercent': parent.relationshipPercent,
 'appearance': {
 'base': parent.appearance.base,
 'skinTone': parent.appearance.skinTone,
@@ -482,6 +495,7 @@ parent.incomeStability.name,
   'lastName': sibling.lastName,
   'gender': sibling.gender.name,
   'birthYear': sibling.birthYear,
+  'relationshipPercent': sibling.relationshipPercent,
   'relationship': sibling.relationship.name,
   'countryCode': sibling.countryCode,
   'appearance': {
@@ -613,6 +627,7 @@ final parents = parentsJson
           isAlive: parent['isAlive'] is bool ? parent['isAlive'] as bool : true,
           deathYear: parent['deathYear'] == null ? null : _requireInt(parent['deathYear'], 'parent.deathYear'),
           siblingCount: parent['siblingCount'] == null ? 0 : _requireInt(parent['siblingCount'], 'parent.siblingCount'),
+          relationshipPercent: parent['relationshipPercent'] is int ? (parent['relationshipPercent'] as int).clamp(-100, 100).toInt() : 50,
           appearance: parent['appearance'] == null
               ? const CharacterAppearance()
               : _parseAppearance(parent['appearance']),
@@ -674,6 +689,7 @@ final siblings = siblingsJson is List
           lastName: _requireString(sibling['lastName'], 'sibling.lastName'),
           gender: _parseGender(sibling['gender']),
           birthYear: _requireInt(sibling['birthYear'], 'sibling.birthYear'),
+          relationshipPercent: sibling['relationshipPercent'] is int ? (sibling['relationshipPercent'] as int).clamp(-100, 100).toInt() : 50,
           relationship: _parseSiblingRelationship(sibling['relationship']),
           countryCode: _optionalString(sibling['countryCode']).isEmpty
               ? 'ID' : _optionalString(sibling['countryCode']),
