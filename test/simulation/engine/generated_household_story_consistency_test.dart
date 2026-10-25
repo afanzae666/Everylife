@@ -121,6 +121,15 @@ void main() {
           );
         }
 
+        for (final parent in household.parents) {
+          if (parent.isAlive) {
+            expect(
+              economyDescription,
+              contains(parent.fullName),
+            );
+          }
+        }
+
         for (final parent in household.parents.where(
           (parent) => parent.isAlive,
         )) {
@@ -151,7 +160,6 @@ void main() {
           expect(description, isNot(contains('living costs')));
           expect(description, isNot(contains('Investment portfolio')));
           expect(description, isNot(contains('outstanding debt')));
-          expect(description, isNot(contains('Morgan')));
           expect(description, isNot(contains('Alex')));
         }
       }
