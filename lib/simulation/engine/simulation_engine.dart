@@ -311,15 +311,18 @@ class SimulationEngine {
   }) {
     final random = SeededRandom(seed);
 
-    final startingBackground =
-        StartingBackgroundGenerator.generate(random);
+    final countryCode = player.location?.countryCode ?? 'ID';
+    final startingBackground = StartingBackgroundGenerator.generate(
+      random,
+      countryCode: countryCode,
+    );
 
     final familyHousehold = FamilyHouseholdGenerator.generate(
       random: random,
       birthYear: player.birthYear,
       background: startingBackground,
       familyName: player.resolvedLastName,
-      countryCode: player.location?.countryCode ?? 'ID',
+      countryCode: countryCode,
       childAppearance: player.appearance,
     );
 
