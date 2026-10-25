@@ -64,6 +64,7 @@ void main() {
 
   test('generates separate family and economy events', () {
     final events = generateEvents(household(const [father, mother]));
+    final economy = economyEvent(events).description;
 
     expect(events, hasLength(3));
     expect(
@@ -75,14 +76,21 @@ void main() {
       familyEvent(events).description,
       contains('both of my parents'),
     );
+
     expect(
-      economyEvent(events).description,
-      contains('My father, Budi Santoso, works as a teacher'),
+      economy,
+      contains(
+        '• My father, Budi Santoso, works as a teacher (age 25).',
+      ),
     );
     expect(
-      economyEvent(events).description,
-      contains('My mother, Sari Santoso, is currently unemployed'),
+      economy,
+      contains(
+        '• My mother, Sari Santoso, is currently unemployed (age 23).',
+      ),
     );
+    expect(economy, contains('\n• My mother,'));
+    expect(economy, isNot(contains('biological parents')));
 
     expect(
       familyEvent(events).description,
@@ -92,25 +100,29 @@ void main() {
       familyEvent(events).description,
       isNot(contains('unemployed')),
     );
-    expect(
-      economyEvent(events).description,
-      isNot(contains('biological parents')),
-    );
   });
 
   test('describes a single mother separately from her employment', () {
     final events = generateEvents(household(const [mother]));
+    final economy = economyEvent(events).description;
 
     expect(
       familyEvent(events).description,
       contains('My mother raised me on her own'),
     );
     expect(
-      economyEvent(events).description,
-      contains('My mother, Sari Santoso, is currently unemployed'),
+      economy,
+      contains('• My father is unknown.'),
     );
     expect(
-      economyEvent(events).description,
+      economy,
+      contains(
+        '• My mother, Sari Santoso, is currently unemployed (age 25).',
+      ),
+    );
+    expect(economy, contains('\n• My mother,'));
+    expect(
+      economy,
       isNot(contains('raises you on her own')),
     );
   });
@@ -121,42 +133,65 @@ void main() {
       deathYear: 2026,
     );
     final events = generateEvents(household([father, deceasedMother]));
+    final economy = economyEvent(events).description;
 
     expect(
       familyEvent(events).description,
       contains('My mother died while giving birth'),
     );
     expect(
-      economyEvent(events).description,
-      contains('My father, Budi Santoso, works as a teacher'),
+      economy,
+      contains(
+        '• My father, Budi Santoso, works as a teacher (age 25).',
+      ),
     );
     expect(
-      economyEvent(events).description,
+      economy,
+      contains(
+        '• My mother, Sari Santoso, is deceased in 2026 (age 23).',
+      ),
+    );
+    expect(
+      economy,
       isNot(contains('Your mother is currently unemployed')),
     );
   });
 
-  test('uses first-person family details and identifies the birthday zodiac', () {
-    final player = Character.create(
-      id: 'birthday-test',
-      firstName: 'Olivia',
-      lastName: 'Taylor',
-      birthYear: 2026,
-      birthMonth: 3,
-      birthDay: 20,
-    );
-    final events = StartingLifeEventGenerator.generate(
-      random: SeededRandom(123),
-      year: 2026,
-      background: const StartingBackground(tier: StartingBackgroundTier.middleClass),
-      household: household(const [father, mother]),
-      player: player,
-    );
-    final birthday = events.singleWhere((event) => event.title == 'My Birthday');
-    expect(birthday.description, 'My birthday is March 20. I am a Pisces.');
-    expect(events, hasLength(4));
-    expect(events.map((event) => event.description).join(' '), isNot(contains('You ')));
-  });
+  test(
+    'uses first-person family details and identifies the birthday zodiac',
+    () {
+      final player = Character.create(
+        id: 'birthday-test',
+        firstName: 'Olivia',
+        lastName: 'Taylor',
+        birthYear: 2026,
+        birthMonth: 3,
+        birthDay: 20,
+      );
+      final events = StartingLifeEventGenerator.generate(
+        random: SeededRandom(123),
+        year: 2026,
+        background: const StartingBackground(
+          tier: StartingBackgroundTier.middleClass,
+        ),
+        household: household(const [father, mother]),
+        player: player,
+      );
+      final birthday = events.singleWhere(
+        (event) => event.title == 'My Birthday',
+      );
+
+      expect(
+        birthday.description,
+        'My birthday is March 20. I am a Pisces.',
+      );
+      expect(events, hasLength(4));
+      expect(
+        events.map((event) => event.description).join(' '),
+        isNot(contains('You ')),
+      );
+    },
+  );
 
   test('keeps orphanage story separate from guardian employment', () {
     const guardian = ParentNpc(
@@ -173,6 +208,7 @@ void main() {
     );
 
     final events = generateEvents(household(const [guardian]));
+    final economy = economyEvent(events).description;
 
     expect(
       familyEvent(events).description,
@@ -183,12 +219,12 @@ void main() {
       isNot(contains('Caregiver')),
     );
     expect(
-      economyEvent(events).description,
-      contains('My guardian, Ayu Santoso, works as a caregiver'),
+      economy,
+      contains(
+        '• My guardian, Ayu Santoso, works as a caregiver (age 25).',
+      ),
     );
-    expect(
-      economyEvent(events).description,
-      isNot(contains('orphanage')),
-    );
+    expect(economy, contains('• My father is unknown.'));
+    expect(economy, isNot(contains('orphanage')));
   });
 }
