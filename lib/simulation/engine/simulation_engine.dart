@@ -331,6 +331,7 @@ class SimulationEngine {
   year: player.birthYear,
   background: startingBackground,
   household: familyHousehold,
+  player: player,
 );
 
     final initialState = WorldState(
@@ -344,7 +345,7 @@ class SimulationEngine {
     type: SimulationEventType.lifeCreated,
     year: player.birthYear,
     title: 'A new life begins',
-    description: '${player.name} was born in ${player.birthYear}.',
+    description: '${player.fullName} was born in ${player.birthYear}.',
   ),
   ...startingLifeEvents,
 ],
