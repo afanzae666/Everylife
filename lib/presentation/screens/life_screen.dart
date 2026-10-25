@@ -40,6 +40,22 @@ class LifeScreen extends StatelessWidget {
                       children: [
                         _LifeHeader(zoom: zoom),
                         _CategoryCard(
+                          title: 'Love',
+                          icon: Icons.favorite_border,
+                          zoom: zoom,
+                          child: const _CategoryPlaceholder(
+                            message: 'No partner to show yet.',
+                          ),
+                        ),
+                        _CategoryCard(
+                          title: 'Children',
+                          icon: Icons.child_care_outlined,
+                          zoom: zoom,
+                          child: const _CategoryPlaceholder(
+                            message: 'No children to show yet.',
+                          ),
+                        ),
+                        _CategoryCard(
                           title: 'Parents',
                           icon: Icons.family_restroom_outlined,
                           zoom: zoom,
@@ -80,19 +96,11 @@ class LifeScreen extends StatelessWidget {
                           ),
                         ),
                         _CategoryCard(
-                          title: 'Partner',
-                          icon: Icons.favorite_border,
+                          title: 'Enemies',
+                          icon: Icons.person_off_outlined,
                           zoom: zoom,
                           child: const _CategoryPlaceholder(
-                            message: 'No partner to show yet.',
-                          ),
-                        ),
-                        _CategoryCard(
-                          title: 'Children',
-                          icon: Icons.child_care_outlined,
-                          zoom: zoom,
-                          child: const _CategoryPlaceholder(
-                            message: 'No children to show yet.',
+                            message: 'No enemies to show yet.',
                           ),
                         ),
                         const Spacer(),
