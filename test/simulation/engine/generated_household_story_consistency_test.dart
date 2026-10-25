@@ -43,7 +43,7 @@ void main() {
         final familyDescription = familyEvent.description;
         final economyDescription = economyEvent.description;
 
-        expect(startingEvents, hasLength(2));
+        expect(startingEvents, hasLength(4));
         expect(familyDescription, isNotEmpty);
         expect(economyDescription, isNotEmpty);
 
@@ -65,7 +65,7 @@ void main() {
         );
         expect(
           economyDescription,
-          isNot(contains('raises you on her own')),
+          isNot(contains('My mother raised me on her own')),
         );
         expect(
           economyDescription,
@@ -107,17 +107,17 @@ void main() {
         } else if (mother != null && !mother.isAlive && father != null) {
           expect(
             familyDescription,
-            contains('mother died while giving birth'),
+            contains('My mother died while giving birth'),
           );
         } else if (mother != null && father == null) {
           expect(
             familyDescription,
-            contains('raises you on her own'),
+            contains('My mother raised me on her own'),
           );
         } else {
           expect(
             familyDescription,
-            contains('both of your biological parents'),
+            contains('both of my parents'),
           );
         }
 
@@ -130,13 +130,13 @@ void main() {
               occupation != null) {
             expect(
               economyDescription,
-              contains('works as a $occupation'),
+              contains(occupation.toLowerCase()),
             );
           } else if (parent.employmentStatus.name == 'selfEmployed' &&
               occupation != null) {
             expect(
               economyDescription,
-              contains('self-employed as a $occupation'),
+              contains(occupation.toLowerCase()),
             );
           } else if (parent.employmentStatus.name == 'unemployed') {
             expect(
