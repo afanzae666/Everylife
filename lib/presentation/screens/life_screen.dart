@@ -51,7 +51,6 @@ class LifeScreen extends StatelessWidget {
                         _LifeHeader(zoom: zoom),
                         _CategoryCard(
                           title: 'Love',
-                          icon: Icons.favorite_border,
                           zoom: zoom,
                           child: const _CategoryPlaceholder(
                             message: 'No partner to show yet.',
@@ -59,7 +58,6 @@ class LifeScreen extends StatelessWidget {
                         ),
                         _CategoryCard(
                           title: 'Children',
-                          icon: Icons.child_care_outlined,
                           zoom: zoom,
                           child: const _CategoryPlaceholder(
                             message: 'No children to show yet.',
@@ -67,7 +65,6 @@ class LifeScreen extends StatelessWidget {
                         ),
                         _CategoryCard(
                           title: 'Parents',
-                          icon: Icons.family_restroom_outlined,
                           zoom: zoom,
                           child: parents.isEmpty
                               ? const Padding(
@@ -97,7 +94,6 @@ class LifeScreen extends StatelessWidget {
                         ),
                         _CategoryCard(
                           title: 'Siblings',
-                          icon: Icons.people_outline,
                           zoom: zoom,
                           child: visibleSiblings.isEmpty
                               ? const _CategoryPlaceholder(
@@ -107,10 +103,13 @@ class LifeScreen extends StatelessWidget {
                                   crossAxisAlignment:
                                       CrossAxisAlignment.stretch,
                                   children: [
-                                    for (var i = 0; i < visibleSiblings.length; i++)
+                                    for (var i = 0;
+                                        i < visibleSiblings.length;
+                                        i++)
                                       _SiblingNpcCard(
                                         key: ValueKey(
-                                          'sibling-card-${visibleSiblings[i].id}',
+                                          'sibling-card-'
+                                          '${visibleSiblings[i].id}',
                                         ),
                                         sibling: visibleSiblings[i],
                                         playerBirthYear: playerBirthYear,
@@ -121,8 +120,23 @@ class LifeScreen extends StatelessWidget {
                                 ),
                         ),
                         _CategoryCard(
+                          title: 'Grandparents',
+                          zoom: zoom,
+                          child: const _CategoryPlaceholder(
+                            message:
+                                'Grandparent details are not available yet.',
+                          ),
+                        ),
+                        _CategoryCard(
+                          title: 'Family',
+                          zoom: zoom,
+                          child: const _CategoryPlaceholder(
+                            message:
+                                'Extended family details are not available yet.',
+                          ),
+                        ),
+                        _CategoryCard(
                           title: 'Friends',
-                          icon: Icons.people_alt_outlined,
                           zoom: zoom,
                           child: const _CategoryPlaceholder(
                             message: 'No friends to show yet.',
@@ -130,7 +144,6 @@ class LifeScreen extends StatelessWidget {
                         ),
                         _CategoryCard(
                           title: 'Enemies',
-                          icon: Icons.person_off_outlined,
                           zoom: zoom,
                           child: const _CategoryPlaceholder(
                             message: 'No enemies to show yet.',
@@ -201,13 +214,11 @@ class _LifeHeader extends StatelessWidget {
 class _CategoryCard extends StatelessWidget {
   const _CategoryCard({
     required this.title,
-    required this.icon,
     required this.zoom,
     required this.child,
   });
 
   final String title;
-  final IconData icon;
   final double zoom;
   final Widget child;
 
@@ -228,21 +239,16 @@ class _CategoryCard extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.all(s(8)),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              children: [
-                Icon(
-                  icon,
-                  size: s(20),
-                  color: theme.colorScheme.primary,
+            Center(
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontSize: s(11),
                 ),
-                SizedBox(width: s(7)),
-                Text(
-                  title,
-                  style: theme.textTheme.titleMedium,
-                ),
-              ],
+              ),
             ),
             SizedBox(height: s(2)),
             child,
@@ -365,6 +371,7 @@ class _SiblingNpcCard extends StatelessWidget {
     double s(double value) => value * zoom;
     final theme = Theme.of(context);
     final older = sibling.isOlderThan(playerBirthYear);
+
     final siblingKind = switch (sibling.relationship) {
       SiblingRelationship.fullSibling =>
         sibling.gender == Gender.male ? 'brother' : 'sister',
@@ -373,14 +380,18 @@ class _SiblingNpcCard extends StatelessWidget {
       SiblingRelationship.stepSibling =>
         sibling.gender == Gender.male ? 'Stepbrother' : 'Stepsister',
     };
+
     final ageLabel = older ? 'Older' : 'Younger';
+
     return Card(
       margin: EdgeInsets.zero,
       elevation: 0,
       color: theme.colorScheme.surfaceContainerLow,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(s(8)),
-        side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.45)),
+        side: BorderSide(
+          color: theme.dividerColor.withValues(alpha: 0.45),
+        ),
       ),
       child: Padding(
         padding: EdgeInsets.all(s(3)),
@@ -393,6 +404,7 @@ class _SiblingNpcCard extends StatelessWidget {
                 future: CharacterPaletteService.load(),
                 builder: (context, snapshot) {
                   final palette = snapshot.data;
+
                   if (snapshot.connectionState != ConnectionState.done ||
                       snapshot.hasError ||
                       palette == null) {
@@ -403,6 +415,7 @@ class _SiblingNpcCard extends StatelessWidget {
                       ),
                     );
                   }
+
                   if (sibling.birthYear > currentYear) {
                     return Center(
                       child: CircleAvatar(
@@ -411,6 +424,7 @@ class _SiblingNpcCard extends StatelessWidget {
                       ),
                     );
                   }
+
                   final character = Character.create(
                     id: sibling.id,
                     firstName: sibling.firstName,
@@ -419,12 +433,14 @@ class _SiblingNpcCard extends StatelessWidget {
                     birthYear: sibling.birthYear,
                     appearance: sibling.appearance,
                   );
+
                   final skinColor =
                       palette.skinColor(sibling.appearance.skinTone);
                   final eyeColor =
                       palette.eyeColor(sibling.appearance.eyeColor);
                   final hairColor =
                       palette.hairColor(sibling.appearance.hairColor);
+
                   if (skinColor == null ||
                       eyeColor == null ||
                       hairColor == null) {
@@ -435,6 +451,7 @@ class _SiblingNpcCard extends StatelessWidget {
                       ),
                     );
                   }
+
                   return CharacterAvatar(
                     character: character,
                     currentYear: currentYear,
