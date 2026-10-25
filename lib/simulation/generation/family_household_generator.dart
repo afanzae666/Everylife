@@ -202,11 +202,11 @@ class FamilyHouseholdGenerator {
     for (var i = 0; i < count; i++) {
       final gender = random.nextBool() ? Gender.male : Gender.female;
       final relationshipRoll = random.nextInt(100);
-      final relationship = hasStepParent && relationshipRoll < 28
-          ? SiblingRelationship.stepSibling
-          : relationshipRoll < 48
+      final relationship = !hasStepParent
+          ? SiblingRelationship.fullSibling
+          : relationshipRoll < 55
               ? SiblingRelationship.halfSibling
-              : SiblingRelationship.fullSibling;
+              : SiblingRelationship.stepSibling;
       final older = random.nextBool();
       final ageDifference = 1 + random.nextInt(18);
       final siblingBirthYear = older
