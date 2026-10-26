@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:everylife/presentation/screens/life_screen.dart';
@@ -91,7 +90,6 @@ void main() {
     expect(find.text('Siblings'), findsOneWidget);
   });
 
-
   testWidgets('hides unborn siblings and uses simple labels for siblings', (
     tester,
   ) async {
@@ -127,7 +125,7 @@ void main() {
     expect(find.text('Alex Lee'), findsOneWidget);
     expect(find.text('Jordan Lee'), findsNothing);
     expect(find.text('Full brother'), findsNothing);
-    expect(find.text('Siblings'), findsNothing);
+    expect(find.text('Siblings'), findsOneWidget);
   });
 
   testWidgets('hides NPC categories that have no NPCs', (tester) async {
@@ -146,7 +144,11 @@ void main() {
       'Grandparents',
       'Family',
     ]) {
-      expect(find.text(category), findsNothing, reason: '$category should be hidden when empty');
+      expect(
+        find.text(category),
+        findsNothing,
+        reason: '$category should be hidden when empty',
+      );
     }
 
     expect(find.text('Partner'), findsNothing);
@@ -185,5 +187,4 @@ void main() {
     expect(find.text('Siblings'), findsOneWidget);
     expect(find.text('Jamie Taylor'), findsOneWidget);
   });
-
 }
