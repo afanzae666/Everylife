@@ -125,6 +125,42 @@ test('generates non-empty names for every supported country', () {
   }
 });
 
+test('provides 30 unique candidates in every name category', () {
+  for (final String countryCode in countryCodes) {
+    final Map<String, int> stats =
+        CulturalRandomizerCatalog.namePoolStatsForCountry(countryCode);
+
+    expect(stats['male'], 30, reason: '$countryCode male pool size');
+    expect(stats['maleUnique'], 30, reason: '$countryCode male names must be unique');
+    expect(stats['female'], 30, reason: '$countryCode female pool size');
+    expect(stats['femaleUnique'], 30, reason: '$countryCode female names must be unique');
+    expect(stats['family'], 30, reason: '$countryCode family pool size');
+    expect(stats['familyUnique'], 30, reason: '$countryCode family names must be unique');
+  }
+});
+
+test('seeded random generators remain deterministic', () {
+  for (final String countryCode in countryCodes) {
+    final Random firstRandom = Random(2026);
+    final Random secondRandom = Random(2026);
+
+    for (int i = 0; i < 30; i++) {
+      expect(
+        CulturalRandomizerCatalog.randomFirstName(
+          countryCode: countryCode,
+          gender: Gender.male,
+          random: firstRandom,
+        ),
+        CulturalRandomizerCatalog.randomFirstName(
+          countryCode: countryCode,
+          gender: Gender.male,
+          random: secondRandom,
+        ),
+      );
+    }
+  }
+});
+
 test('generates only valid palette IDs for every country', () {
   for (final String countryCode in countryCodes) {
     for (int i = 0; i < 50; i++) {
