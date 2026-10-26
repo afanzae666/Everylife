@@ -28,6 +28,12 @@ void main() {
   ) =>
       engine.state.events.singleWhere((event) => event.title == title);
 
+  List<SimulationEvent> eventsByTitle(
+    SimulationEngine engine,
+    String title,
+  ) =>
+      engine.state.events.where((event) => event.title == title).toList();
+
   test('generates individual parent financial records for a new life', () {
     final engine = createEngine();
     final parents = engine.state.familyHousehold!.parents;
@@ -52,14 +58,31 @@ void main() {
     final engine = createEngine();
     final household = engine.state.familyHousehold!;
     final familyEvent = eventByTitle(engine, 'Starting Family');
-    final economyEvent = eventByTitle(engine, 'Starting Economy');
+    final economyEvents = eventsByTitle(engine, 'Starting Economy');
+    final economyDescription = economyEvents.map((event) => event.description).join('\n');
 
     expect(familyEvent.type, SimulationEventType.startingLifeEvent);
-    expect(economyEvent.type, SimulationEventType.startingLifeEvent);
+    expect(economyEvents.first.type, SimulationEventType.startingLifeEvent);
     expect(familyEvent.year, 2026);
-    expect(economyEvent.year, 2026);
+    expect(economyEvents.first.year, 2026);
     expect(familyEvent.description, isNotEmpty);
-    expect(economyEvent.description, isNotEmpty);
+    expect(economyDescription, isNotEmpty);
+    expect(
+      economyEvents.every((event) => !event.description.contains('•')),
+      isTrue,
+    );
+    final birthEvent = engine.state.events.singleWhere(
+      (event) => event.id == 'life-created',
+    );
+    expect(birthEvent.description, contains('Alfan Zaenal was born in 2026.'));
+    expect(
+      birthEvent.description.length,
+      greaterThan('Alfan Zaenal was born in 2026.'.length),
+    );
+    expect(
+      engine.state.events.where((event) => event.title == 'My Conception'),
+      isEmpty,
+    );
 
     expect(
       familyEvent.description,
@@ -70,11 +93,11 @@ void main() {
       isNot(contains('currently unemployed')),
     );
     expect(
-      economyEvent.description,
+      economyDescription,
       isNot(contains('biological parents')),
     );
     expect(
-      economyEvent.description,
+      economyDescription,
       isNot(contains('orphanage')),
     );
 
@@ -90,19 +113,19 @@ void main() {
 
       if (parent.isAlive) {
         final roleLabel = switch (parent.role) {
-          FamilyRole.father => '• My father, ${parent.fullName},',
-          FamilyRole.mother => '• My mother, ${parent.fullName},',
-          FamilyRole.guardian => '• My guardian, ${parent.fullName},',
-          FamilyRole.stepFather => '• My stepfather, ${parent.fullName},',
-          FamilyRole.stepMother => '• My stepmother, ${parent.fullName},',
+          FamilyRole.father => 'My father, ${parent.fullName},',
+          FamilyRole.mother => 'My mother, ${parent.fullName},',
+          FamilyRole.guardian => 'My guardian, ${parent.fullName},',
+          FamilyRole.stepFather => 'My stepfather, ${parent.fullName},',
+          FamilyRole.stepMother => 'My stepmother, ${parent.fullName},',
         };
 
-        expect(economyEvent.description, contains(roleLabel));
+        expect(economyDescription, contains(roleLabel));
       }
     }
 
     expect(familyEvent.description, isNot(contains('Alfan')));
-    expect(economyEvent.description, isNot(contains('Alfan')));
+    expect(economyDescription, isNot(contains('Alfan')));
   });
 
   test('age-up advances each living parent financial balance', () {

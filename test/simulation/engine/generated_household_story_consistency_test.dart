@@ -36,13 +36,16 @@ void main() {
         final familyEvent = startingEvents.singleWhere(
           (event) => event.title == 'Starting Family',
         );
-        final economyEvent = startingEvents.singleWhere(
-          (event) => event.title == 'Starting Economy',
-        );
+        final economyEvents = startingEvents
+            .where((event) => event.title == 'Starting Economy')
+            .toList();
 
         final familyDescription = familyEvent.description;
-        final economyDescription = economyEvent.description;
+        final economyDescription = economyEvents
+            .map((event) => event.description)
+            .join('\n');
 
+        expect(economyEvents, isNotEmpty);
         expect(startingEvents, hasLength(4));
         expect(familyDescription, isNotEmpty);
         expect(economyDescription, isNotEmpty);
