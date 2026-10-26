@@ -66,18 +66,32 @@ class CharacterSystem implements SimulationSystem {
 
     final household = state.familyHousehold;
     if (household != null) {
-      for (final sibling in household.siblings.where(
+      final newbornSiblings = household.siblings.where(
         (sibling) => sibling.birthYear == currentYear &&
             sibling.birthYear > state.player.birthYear,
-      )) {
-        final relation = sibling.gender.name == 'male' ? 'brother' : 'sister';
+      ).toList(growable: false);
+      final reportedBirthYears = <int>{};
+      for (final sibling in newbornSiblings) {
+        if (!reportedBirthYears.add(sibling.birthYear)) continue;
+        final sameBirth = newbornSiblings
+            .where((candidate) => candidate.birthYear == sibling.birthYear)
+            .toList(growable: false);
+        final names = sameBirth.map((candidate) => candidate.fullName).toSet();
+        final relation = sameBirth.every((candidate) => candidate.gender.name == 'male')
+            ? 'brothers'
+            : sameBirth.every((candidate) => candidate.gender.name != 'male')
+                ? 'sisters'
+                : 'siblings';
+        final description = sameBirth.length > 1
+            ? 'My twin $relation, ${names.join(' and ')}, were born in $currentYear.'
+            : 'My ${relation == 'brothers' ? 'brother' : relation == 'sisters' ? 'sister' : 'sibling'}, ${sibling.fullName}, was born in $currentYear.';
         nextState = nextState.addEvent(
           SimulationEvent(
-            id: 'sibling-born-${sibling.id}',
+            id: 'siblings-born-$currentYear',
             type: SimulationEventType.randomEvent,
             year: currentYear,
-            title: 'A new sibling is born',
-            description: 'My $relation, ${sibling.fullName}, was born in $currentYear.',
+            title: sameBirth.length > 1 ? 'Twins are born' : 'A new sibling is born',
+            description: description,
           ),
         );
       }
