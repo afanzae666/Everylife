@@ -444,6 +444,8 @@ FamilyHousehold household,
 ) {
 return {
 'id': household.id,
+'isAffairConception': household.isAffairConception,
+'raisedByFather': household.raisedByFather,
 'cashSavingsMinorUnits':
 household.cashSavings.minorUnits,
 'housingStatus': household.housingStatus.name,
@@ -707,6 +709,8 @@ return FamilyHousehold(
     json['id'],
     'familyHousehold.id',
   ),
+  isAffairConception: json['isAffairConception'] == true,
+  raisedByFather: json['raisedByFather'] == true,
   parents: parentsWithAssets,
   siblings: siblings,
   // Legacy aggregate savings are migrated into parent accounts above.
