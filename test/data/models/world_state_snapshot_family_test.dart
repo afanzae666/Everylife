@@ -91,6 +91,8 @@ void main() {
         housingStatus: HousingStatus.ownedWithMortgage,
         annualLivingCosts: Money.fromMinorUnits(390000),
         totalDebt: Money.fromMinorUnits(5200000),
+        isAffairConception: true,
+        raisedByFather: true,
       );
 
       final originalState = WorldState(
@@ -143,6 +145,8 @@ void main() {
 
       expect(restored, isNotNull);
       expect(restored!.id, originalHousehold.id);
+      expect(restored.isAffairConception, isTrue);
+      expect(restored.raisedByFather, isTrue);
       expect(restored.housingStatus, originalHousehold.housingStatus);
       expect(restored.cashSavings, originalHousehold.cashSavings);
       expect(
