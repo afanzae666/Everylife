@@ -211,7 +211,7 @@ class _ParentNpcCard extends StatelessWidget {
 
     final theme = Theme.of(context);
 
-    return Card(
+    final card = Card(
       margin: EdgeInsets.zero,
       elevation: 0,
       color: theme.colorScheme.surfaceContainerLow,
@@ -290,6 +290,18 @@ class _ParentNpcCard extends StatelessWidget {
         ),
       ),
       ),
+    );
+
+    if (parent.isAlive) return card;
+
+    return ColorFiltered(
+      colorFilter: const ColorFilter.matrix(<double>[
+        0.2126, 0.7152, 0.0722, 0, 18,
+        0.2126, 0.7152, 0.0722, 0, 18,
+        0.2126, 0.7152, 0.0722, 0, 18,
+        0, 0, 0, 1, 0,
+      ]),
+      child: card,
     );
   }
 
@@ -584,16 +596,7 @@ class _ParentAvatar extends StatelessWidget {
             eyeColor: eyeColor,
             hairColor: hairColor,
           );
-          if (parent.isAlive) return avatar;
-          return ColorFiltered(
-            colorFilter: const ColorFilter.matrix(<double>[
-              0.2126, 0.7152, 0.0722, 0, 0,
-              0.2126, 0.7152, 0.0722, 0, 0,
-              0.2126, 0.7152, 0.0722, 0, 0,
-              0, 0, 0, 1, 0,
-            ]),
-            child: avatar,
-          );
+          return avatar;
         },
       ),
     );
