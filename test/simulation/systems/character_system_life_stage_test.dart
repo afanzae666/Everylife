@@ -10,6 +10,62 @@ import '../../../lib/simulation/commands/age_up_command.dart';
 import '../../../lib/simulation/systems/character_system.dart';
 
 void main() {
+  test('reports a twin birth once when siblings share a birth year', () {
+    final player = Character(
+      id: 'player-twin-test',
+      name: 'Taylor Morgan',
+      birthYear: 2026,
+      stats: const CharacterStats(),
+      money: Money.zero(),
+    );
+    final state = WorldState(
+      clock: const SimulationClock(currentYear: 2029),
+      player: player,
+      events: const [],
+      familyHousehold: FamilyHousehold(
+        id: 'twin-household-test',
+        parents: const [],
+        siblings: const [
+          SiblingNpc(
+            id: 'twin-one',
+            firstName: 'Olivia',
+            lastName: 'Morgan',
+            gender: Gender.female,
+            birthYear: 2029,
+            relationship: SiblingRelationship.fullSibling,
+            isTwin: true,
+          ),
+          SiblingNpc(
+            id: 'twin-two',
+            firstName: 'Emma',
+            lastName: 'Morgan',
+            gender: Gender.female,
+            birthYear: 2029,
+            relationship: SiblingRelationship.fullSibling,
+            isTwin: true,
+          ),
+        ],
+        cashSavings: Money.zero(),
+        assets: const [],
+        housingStatus: HousingStatus.temporary,
+        annualLivingCosts: Money.zero(),
+        totalDebt: Money.zero(),
+      ),
+    );
+
+    final result = CharacterSystem().process(
+      state: state,
+      command: const AgeUpCommand(),
+    );
+    final birthEvents = result.events.where(
+      (event) => event.title == 'Twins are born',
+    );
+
+    expect(birthEvents, hasLength(1));
+    expect(birthEvents.single.description, contains('Olivia Morgan'));
+    expect(birthEvents.single.description, contains('Emma Morgan'));
+  });
+
   group('CharacterSystem life stage transitions', () {
     test('creates lifeStageChanged when entering toddler stage', () {
       final state = _createState(
