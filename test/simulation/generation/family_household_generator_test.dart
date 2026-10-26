@@ -24,6 +24,39 @@ void main() {
         countryCode: countryCode,
       );
 
+  test(
+    'affair scenarios are marked and add a stepmother only when father raises the child',
+    () {
+      var foundAffair = false;
+      var foundFatherRaisedAffair = false;
+
+      for (var seed = 0; seed < 2000; seed++) {
+        final household = generate(seed: seed);
+        if (!household.isAffairConception) continue;
+        foundAffair = true;
+
+        final stepMothers = household.parents.where(
+          (parent) => parent.role == FamilyRole.stepMother,
+        );
+        if (household.raisedByFather) {
+          foundFatherRaisedAffair = true;
+          expect(stepMothers, hasLength(1));
+          expect(
+            household.parents.where(
+              (parent) => parent.role == FamilyRole.mother,
+            ),
+            hasLength(1),
+          );
+        } else {
+          expect(stepMothers, isEmpty);
+        }
+      }
+
+      expect(foundAffair, isTrue);
+      expect(foundFatherRaisedAffair, isTrue);
+    },
+  );
+
   test('generates stable parent identities and personal financial records',
       () {
     final first = generate();

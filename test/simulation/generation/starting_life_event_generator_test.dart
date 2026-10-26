@@ -36,7 +36,12 @@ void main() {
     incomeStability: IncomeStability.none,
   );
 
-  FamilyHousehold household(List<ParentNpc> parents) => FamilyHousehold(
+  FamilyHousehold household(
+    List<ParentNpc> parents, {
+    bool isAffairConception = false,
+    bool raisedByFather = false,
+  }) =>
+      FamilyHousehold(
         id: 'test-household',
         parents: parents,
         cashSavings: Money.zero(),
@@ -44,6 +49,8 @@ void main() {
         housingStatus: HousingStatus.rented,
         annualLivingCosts: Money.zero(),
         totalDebt: Money.zero(),
+        isAffairConception: isAffairConception,
+        raisedByFather: raisedByFather,
       );
 
   List<SimulationEvent> generateEvents(FamilyHousehold family) =>
@@ -203,6 +210,51 @@ void main() {
       );
     },
   );
+
+  test('birth narrative is first-person and includes the affair sentence', () {
+    final player = Character.create(
+      id: 'affair-birth-test',
+      firstName: 'Ayu',
+      lastName: 'Santoso',
+      birthYear: 2026,
+      birthMonth: 3,
+      birthDay: 20,
+    );
+    final description = StartingLifeEventGenerator.birthNarrative(
+      player: player,
+      household: household(
+        const [father, mother],
+        isAffairConception: true,
+      ),
+      random: SeededRandom(123),
+    );
+
+    expect(
+      description,
+      'I was born in 2026. I was conceived during an affair between my '
+      'mother and a married man.',
+    );
+    expect(description, isNot(contains('Ayu Santoso was born')));
+  });
+
+  test('ordinary two-parent birth does not mention an affair', () {
+    final player = Character.create(
+      id: 'ordinary-birth-test',
+      firstName: 'Ayu',
+      lastName: 'Santoso',
+      birthYear: 2026,
+      birthMonth: 3,
+      birthDay: 20,
+    );
+    final description = StartingLifeEventGenerator.birthNarrative(
+      player: player,
+      household: household(const [father, mother]),
+      random: SeededRandom(123),
+    );
+
+    expect(description, startsWith('I was born in 2026. '));
+    expect(description, isNot(contains('affair')));
+  });
 
   test('keeps orphanage story separate from guardian employment', () {
     const guardian = ParentNpc(
