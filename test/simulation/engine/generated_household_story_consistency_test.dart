@@ -39,6 +39,9 @@ void main() {
         final economyEvents = startingEvents
             .where((event) => event.title == 'Starting Economy')
             .toList();
+        final birthdayEvents = startingEvents
+            .where((event) => event.title == 'My Birthday')
+            .toList();
 
         final familyDescription = familyEvent.description;
         final economyDescription = economyEvents
@@ -46,7 +49,15 @@ void main() {
             .join('\n');
 
         expect(economyEvents, isNotEmpty);
-        expect(startingEvents, hasLength(4));
+
+        // One family event, one birthday event, and a variable number
+        // of economy events depending on the generated family.
+        expect(birthdayEvents, hasLength(1));
+        expect(
+          startingEvents,
+          hasLength(economyEvents.length + 2),
+        );
+
         expect(familyDescription, isNotEmpty);
         expect(economyDescription, isNotEmpty);
 
