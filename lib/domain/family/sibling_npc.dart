@@ -21,6 +21,7 @@ class SiblingNpc {
     this.appearance = const CharacterAppearance(),
     this.countryCode = 'ID',
     this.relationshipPercent = 50,
+    this.isTwin = false,
   });
 
   final String id;
@@ -34,6 +35,9 @@ class SiblingNpc {
 
   /// Placeholder relationship score until the relationship simulation is built.
   final int relationshipPercent;
+
+  /// True when this sibling belongs to a generated twin birth.
+  final bool isTwin;
 
   String get fullName => CulturalNameCatalog.formatFullName(
         countryCode,
