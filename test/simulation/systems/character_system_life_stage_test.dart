@@ -3,6 +3,9 @@ import 'package:everylife/core/money/money.dart';
 
 import '../../../lib/domain/character/character.dart';
 import '../../../lib/domain/character/character_stats.dart';
+import '../../../lib/domain/character/gender.dart';
+import '../../../lib/domain/family/family_household.dart';
+import '../../../lib/domain/family/sibling_npc.dart';
 import '../../../lib/domain/event/simulation_event.dart';
 import '../../../lib/domain/time/simulation_clock.dart';
 import '../../../lib/domain/world/world_state.dart';
