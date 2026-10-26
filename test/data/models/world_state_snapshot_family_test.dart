@@ -77,6 +77,7 @@ void main() {
             gender: Gender.female,
             birthYear: 2020,
             relationship: SiblingRelationship.fullSibling,
+            isTwin: true,
           ),
           SiblingNpc(
             id: 'sibling-round-trip-step',
@@ -164,6 +165,7 @@ void main() {
         expect(actual.gender, expected.gender);
         expect(actual.birthYear, expected.birthYear);
         expect(actual.relationship, expected.relationship);
+        expect(actual.isTwin, expected.isTwin);
       }
 
       for (var index = 0;
