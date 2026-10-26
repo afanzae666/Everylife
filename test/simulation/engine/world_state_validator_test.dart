@@ -54,6 +54,7 @@ ParentNpc createParent({
   String lastName = 'Test',
   int birthYear = 1980,
   Money annualIncome = const Money.fromMinorUnits(200000),
+  FamilyRole role = FamilyRole.father,
 }) {
   return ParentNpc(
     id: id,
@@ -61,7 +62,7 @@ ParentNpc createParent({
     lastName: lastName,
     gender: Gender.male,
     birthYear: birthYear,
-    role: FamilyRole.father,
+    role: role,
     employmentStatus: EmploymentStatus.employed,
     annualIncome: annualIncome,
     incomeStability: IncomeStability.stable,
@@ -555,18 +556,40 @@ void main() {
       expect(validator.validate(state).isFailure, isTrue);
     });
 
-    test('rejects a household with more than two parents', () {
+    test(
+      'rejects a household with more than two parents when there is no step-parent',
+      () {
+        final state = createState().copyWith(
+          familyHousehold: createHousehold(
+            parents: [
+              createParent(id: 'parent-1'),
+              createParent(id: 'parent-2'),
+              createParent(id: 'parent-3'),
+              createParent(id: 'parent-4'),
+            ],
+          ),
+        );
+
+        expect(validator.validate(state).isFailure, isTrue);
+      },
+    );
+
+    test('accepts three parents when one is a step-parent', () {
       final state = createState().copyWith(
         familyHousehold: createHousehold(
           parents: [
-            createParent(id: 'parent-1'),
-            createParent(id: 'parent-2'),
-            createParent(id: 'parent-3'),
+            createParent(id: 'parent-father'),
+            createParent(id: 'parent-mother', firstName: 'Jamie'),
+            createParent(
+              id: 'parent-step-mother',
+              firstName: 'Morgan',
+              role: FamilyRole.stepMother,
+            ),
           ],
         ),
       );
 
-      expect(validator.validate(state).isFailure, isTrue);
+      expect(validator.validate(state).isSuccess, isTrue);
     });
 
     test('accepts a world state without a household for legacy saves', () {
