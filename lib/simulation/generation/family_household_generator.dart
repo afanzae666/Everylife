@@ -47,6 +47,12 @@ class FamilyHouseholdGenerator {
     final isOrphanagePlacement = parents.any(
       (parent) => parent.role == FamilyRole.guardian,
     );
+    final motherDiedInChildbirth = parents.any(
+      (parent) =>
+          parent.role == FamilyRole.mother &&
+          !parent.isAlive &&
+          parent.deathYear == birthYear,
+    );
 
     // An orphanage guardian is not a biological or adoptive sibling's parent.
     // Do not generate player siblings for an orphanage starting scenario.
@@ -59,6 +65,8 @@ class FamilyHouseholdGenerator {
             countryCode: countryCode,
             hasStepParent: false,
             childAppearance: childAppearance,
+            latestAllowedBirthYear:
+                motherDiedInChildbirth ? birthYear : null,
           );
 
     final housingStatus = isOrphanagePlacement
@@ -252,6 +260,7 @@ class FamilyHouseholdGenerator {
     required String countryCode,
     required bool hasStepParent,
     CharacterAppearance? childAppearance,
+    int? latestAllowedBirthYear,
   }) {
     final count = random.nextInt(4); // 0–3 siblings per new life.
     final siblings = <SiblingNpc>[];
@@ -267,11 +276,15 @@ class FamilyHouseholdGenerator {
       final older = random.nextBool();
       final ageDifference = 1 + random.nextInt(18);
       final joinsTwinBirth = i > 0 && random.nextInt(100) < 12;
-      final siblingBirthYear = joinsTwinBirth
+      final proposedBirthYear = joinsTwinBirth
           ? siblings.last.birthYear
           : older
               ? birthYear - ageDifference
               : birthYear + ageDifference;
+      final siblingBirthYear = latestAllowedBirthYear != null &&
+              proposedBirthYear > latestAllowedBirthYear
+          ? birthYear - ageDifference
+          : proposedBirthYear;
       final siblingLastName = relationship == SiblingRelationship.stepSibling ||
               (relationship == SiblingRelationship.halfSibling &&
                   random.nextBool())
