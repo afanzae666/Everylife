@@ -81,6 +81,40 @@ void main() {
     }
   });
 
+
+  test('generates unique full names for siblings in one household', () {
+    for (var seed = 0; seed < 300; seed++) {
+      final household = generate(seed: seed);
+      final names = household.siblings
+          .map((sibling) => sibling.fullName.toLowerCase())
+          .toList();
+      expect(
+        names.toSet().length,
+        names.length,
+        reason: 'Sibling names collided for seed $seed: $names',
+      );
+    }
+  });
+
+  test('can generate explicitly marked twin siblings', () {
+    var foundTwinBirth = false;
+
+    for (var seed = 0; seed < 1000 && !foundTwinBirth; seed++) {
+      final household = generate(seed: seed);
+      final twins = household.siblings.where((sibling) => sibling.isTwin);
+      if (twins.length >= 2) {
+        foundTwinBirth = true;
+        expect(twins.map((sibling) => sibling.birthYear).toSet(), hasLength(1));
+      }
+    }
+
+    expect(
+      foundTwinBirth,
+      isTrue,
+      reason: 'Expected the seeded generator range to include a twin birth.',
+    );
+  });
+
   test('orphanage scenarios have one guardian and no siblings', () {
     var orphanageScenariosFound = 0;
 
