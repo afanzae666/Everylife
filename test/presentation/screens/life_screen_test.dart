@@ -47,6 +47,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(CharacterAvatar), findsOneWidget);
+    expect(find.text('Parents'), findsOneWidget);
+    expect(find.text('Siblings'), findsNothing);
   });
 
   testWidgets('Life screen places step-parents and step-siblings in existing cards', (
@@ -125,27 +127,63 @@ void main() {
     expect(find.text('Alex Lee'), findsOneWidget);
     expect(find.text('Jordan Lee'), findsNothing);
     expect(find.text('Full brother'), findsNothing);
+    expect(find.text('Siblings'), findsNothing);
   });
 
-  testWidgets('Life screen shows all requested categories without Family Tree', (
-    tester,
-  ) async {
+  testWidgets('hides NPC categories that have no NPCs', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(home: LifeScreen(zoom: 1)),
     );
 
-    expect(find.text('Love'), findsOneWidget);
-    expect(find.text('Fling'), findsOneWidget);
-    expect(find.text('Children'), findsOneWidget);
-    expect(find.text('Parents'), findsOneWidget);
-    expect(find.text('Friends'), findsOneWidget);
-    expect(find.text('Enemies'), findsOneWidget);
-    expect(find.text('Siblings'), findsOneWidget);
-    expect(find.text('Grandparents'), findsOneWidget);
-    expect(find.text('Family'), findsOneWidget);
+    for (final category in [
+      'Love',
+      'Fling',
+      'Children',
+      'Parents',
+      'Friends',
+      'Enemies',
+      'Siblings',
+      'Grandparents',
+      'Family',
+    ]) {
+      expect(find.text(category), findsNothing, reason: '$category should be hidden when empty');
+    }
 
     expect(find.text('Partner'), findsNothing);
     expect(find.text('Family Tree'), findsNothing);
     expect(find.text('Family History'), findsNothing);
   });
+
+  testWidgets('shows the siblings category when sibling data arrives', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(home: LifeScreen(zoom: 1)),
+    );
+    expect(find.text('Siblings'), findsNothing);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: LifeScreen(
+          zoom: 1,
+          currentYear: 2026,
+          playerBirthYear: 2026,
+          siblings: [
+            SiblingNpc(
+              id: 'new-sibling',
+              firstName: 'Jamie',
+              lastName: 'Taylor',
+              gender: Gender.female,
+              birthYear: 2026,
+              relationship: SiblingRelationship.fullSibling,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('Siblings'), findsOneWidget);
+    expect(find.text('Jamie Taylor'), findsOneWidget);
+  });
+
 }
