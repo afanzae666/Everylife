@@ -165,8 +165,16 @@ class WorldStateValidator {
       return 'World state is invalid: household must have at least one parent.';
     }
 
-    if (household.parents.length > 2) {
-      return 'World state is invalid: household cannot have more than two parents.';
+    final hasStepParent = household.parents.any(
+      (parent) =>
+          parent.role == FamilyRole.stepFather ||
+          parent.role == FamilyRole.stepMother,
+    );
+    final maximumParents = hasStepParent ? 3 : 2;
+    if (household.parents.length > maximumParents) {
+      return hasStepParent
+          ? 'World state is invalid: household cannot have more than three parents.'
+          : 'World state is invalid: a household with no step-parent cannot have more than two parents.';
     }
 
     if (household.cashSavings.minorUnits < 0) {
