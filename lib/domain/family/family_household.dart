@@ -26,12 +26,22 @@ class FamilyHousehold {
     required this.annualLivingCosts,
     required this.totalDebt,
     List<SiblingNpc> siblings = const <SiblingNpc>[],
+    this.isAffairConception = false,
+    this.raisedByFather = false,
   })  : parents = List.unmodifiable(parents),
         siblings = List.unmodifiable(siblings),
         assets = List.unmodifiable(assets);
 
   final String id;
   final List<ParentNpc> parents;
+
+  /// True when the starting-life story establishes conception during an affair.
+  /// Defaults to false when loading saves created before this field existed.
+  final bool isAffairConception;
+
+  /// Whether the father is the primary caregiver in the affair scenario.
+  /// A stepmother may be generated only for this branch.
+  final bool raisedByFather;
 
   /// Siblings generated once at new-life creation and persisted in saves.
   final List<SiblingNpc> siblings;
