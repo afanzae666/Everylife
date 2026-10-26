@@ -117,6 +117,21 @@ void main() {
             familyDescription,
             contains('My mother raised me on her own'),
           );
+        } else if (familyDescription.contains('affair with a married man')) {
+          // An affair background can produce a child whose biological father
+          // is not the parent who raises them. Keep this distinct from the
+          // ordinary two-parent caregiving narrative.
+          expect(mother, isNotNull);
+          expect(father, isNotNull);
+          expect(
+            familyDescription,
+            contains('My biological father'),
+          );
+          expect(
+            familyDescription.contains('My mother raised me') ||
+                familyDescription.contains('My father raised me'),
+            isTrue,
+          );
         } else {
           expect(
             familyDescription,

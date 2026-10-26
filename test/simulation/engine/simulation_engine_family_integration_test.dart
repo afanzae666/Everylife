@@ -74,10 +74,10 @@ void main() {
     final birthEvent = engine.state.events.singleWhere(
       (event) => event.id == 'life-created',
     );
-    expect(birthEvent.description, contains('Alfan Zaenal was born in 2026.'));
+    expect(birthEvent.description, contains('I was born in 2026.'));
     expect(
       birthEvent.description.length,
-      greaterThan('Alfan Zaenal was born in 2026.'.length),
+      greaterThan('I was born in 2026.'.length),
     );
     expect(
       engine.state.events.where((event) => event.title == 'My Conception'),
