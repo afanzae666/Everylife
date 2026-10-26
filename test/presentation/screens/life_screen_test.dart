@@ -50,6 +50,39 @@ void main() {
     expect(find.text('Siblings'), findsNothing);
   });
 
+
+  testWidgets('deceased parent is visibly marked and has no interaction chevron', (
+    tester,
+  ) async {
+    final deceasedParent = ParentNpc(
+      id: 'deceased-parent-test',
+      firstName: 'Grace',
+      lastName: 'Wilson',
+      gender: Gender.female,
+      birthYear: 1980,
+      role: FamilyRole.mother,
+      employmentStatus: EmploymentStatus.unemployed,
+      annualIncome: Money.zero(),
+      incomeStability: IncomeStability.none,
+      isAlive: false,
+      deathYear: 2026,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LifeScreen(
+          zoom: 1,
+          currentYear: 2040,
+          parents: [deceasedParent],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Deceased · 2026'), findsOneWidget);
+    expect(find.byIcon(Icons.chevron_right), findsNothing);
+  });
+
   testWidgets('Life screen places step-parents and step-siblings in existing cards', (
     tester,
   ) async {
