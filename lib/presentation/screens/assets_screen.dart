@@ -158,7 +158,7 @@ return MediaQuery(
               ),
             ),
           ),
-          SizedBox(height: s(3)),
+          SizedBox(height: 0),
           Card(
             margin: EdgeInsets.zero,
             child: Padding(
@@ -185,7 +185,7 @@ return MediaQuery(
               ),
             ),
           ),
-          SizedBox(height: s(3)),
+          SizedBox(height: 0),
           Card(
             margin: EdgeInsets.zero,
             child: Padding(

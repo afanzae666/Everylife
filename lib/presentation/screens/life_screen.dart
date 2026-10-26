@@ -50,109 +50,41 @@ class LifeScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _LifeHeader(zoom: zoom),
-                        _CategoryCard(
-                          title: 'Love',
-                          zoom: zoom,
-                          child: const _CategoryPlaceholder(
-                            message: 'No partner to show yet.',
+                        if (parents.isNotEmpty)
+                          _CategoryCard(
+                            title: 'Parents',
+                            zoom: zoom,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                for (final parent in parents)
+                                  _ParentNpcCard(
+                                    key: ValueKey('parent-card-${parent.id}'),
+                                    parent: parent,
+                                    currentYear: currentYear,
+                                    zoom: zoom,
+                                  ),
+                              ],
+                            ),
                           ),
-                        ),
-                        _CategoryCard(
-                          title: 'Fling',
-                          zoom: zoom,
-                          child: const _CategoryPlaceholder(
-                            message: 'No flings to show yet.',
+                        if (visibleSiblings.isNotEmpty)
+                          _CategoryCard(
+                            title: 'Siblings',
+                            zoom: zoom,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                for (final sibling in visibleSiblings)
+                                  _SiblingNpcCard(
+                                    key: ValueKey('sibling-card-${sibling.id}'),
+                                    sibling: sibling,
+                                    playerBirthYear: playerBirthYear,
+                                    currentYear: currentYear,
+                                    zoom: zoom,
+                                  ),
+                              ],
+                            ),
                           ),
-                        ),
-                        _CategoryCard(
-                          title: 'Children',
-                          zoom: zoom,
-                          child: const _CategoryPlaceholder(
-                            message: 'No children to show yet.',
-                          ),
-                        ),
-                        _CategoryCard(
-                          title: 'Parents',
-                          zoom: zoom,
-                          child: parents.isEmpty
-                              ? const _CategoryPlaceholder(
-                                  message:
-                                      'Family details are not available '
-                                      'in this save.',
-                                )
-                              : Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    for (var i = 0; i < parents.length; i++)
-                                      _ParentNpcCard(
-                                        key: ValueKey(
-                                          'parent-card-${parents[i].id}',
-                                        ),
-                                        parent: parents[i],
-                                        currentYear: currentYear,
-                                        zoom: zoom,
-                                      ),
-                                  ],
-                                ),
-                        ),
-                        _CategoryCard(
-                          title: 'Siblings',
-                          zoom: zoom,
-                          child: visibleSiblings.isEmpty
-                              ? const _CategoryPlaceholder(
-                                  message: 'No siblings to show yet.',
-                                )
-                              : Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    for (var i = 0;
-                                        i < visibleSiblings.length;
-                                        i++)
-                                      _SiblingNpcCard(
-                                        key: ValueKey(
-                                          'sibling-card-'
-                                          '${visibleSiblings[i].id}',
-                                        ),
-                                        sibling: visibleSiblings[i],
-                                        playerBirthYear: playerBirthYear,
-                                        currentYear: currentYear,
-                                        zoom: zoom,
-                                      ),
-                                  ],
-                                ),
-                        ),
-                        _CategoryCard(
-                          title: 'Grandparents',
-                          zoom: zoom,
-                          child: const _CategoryPlaceholder(
-                            message:
-                                'Grandparent details are not available yet.',
-                          ),
-                        ),
-                        _CategoryCard(
-                          title: 'Family',
-                          zoom: zoom,
-                          child: const _CategoryPlaceholder(
-                            message:
-                                'Extended family details are not available yet.',
-                          ),
-                        ),
-                        _CategoryCard(
-                          title: 'Friends',
-                          zoom: zoom,
-                          child: const _CategoryPlaceholder(
-                            message: 'No friends to show yet.',
-                          ),
-                        ),
-                        _CategoryCard(
-                          title: 'Enemies',
-                          zoom: zoom,
-                          child: const _CategoryPlaceholder(
-                            message: 'No enemies to show yet.',
-                          ),
-                        ),
                         const Spacer(),
                       ],
                     ),
@@ -651,28 +583,6 @@ class _ParentAvatar extends StatelessWidget {
             hairColor: hairColor,
           );
         },
-      ),
-    );
-  }
-}
-
-class _CategoryPlaceholder extends StatelessWidget {
-  const _CategoryPlaceholder({
-    required this.message,
-  });
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 4,
-        vertical: 4,
-      ),
-      child: Text(
-        message,
-        style: Theme.of(context).textTheme.bodySmall,
       ),
     );
   }

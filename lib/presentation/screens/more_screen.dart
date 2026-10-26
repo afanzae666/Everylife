@@ -71,7 +71,7 @@ class MoreScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(height: s(2)),
+              SizedBox(height: 0),
               Card(
                 margin: EdgeInsets.zero,
                 child: Padding(

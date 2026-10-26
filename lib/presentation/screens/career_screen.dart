@@ -59,7 +59,7 @@ class CareerScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: s(2)),
+              SizedBox(height: 0),
               _SectionCard(
                 zoom: zoom,
                 icon: null,

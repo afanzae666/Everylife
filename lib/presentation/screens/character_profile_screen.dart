@@ -254,7 +254,7 @@ class CharacterProfileScreen extends StatelessWidget {
         ),
 
         SizedBox(
-          height: s(2),
+          height: 0,
         ),
 
         // =========================================================

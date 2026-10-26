@@ -570,7 +570,7 @@ class _GameScreenState extends State<GameScreen> {
               age,
               lifeStageLabel,
             ),
-            SizedBox(height: s(2)),
+            SizedBox(height: 0),
             Expanded(
               child: _buildLifeEventsCard(
                 context,
@@ -579,7 +579,7 @@ class _GameScreenState extends State<GameScreen> {
                 events,
               ),
             ),
-            SizedBox(height: s(2)),
+            SizedBox(height: 0),
             _buildCoreStatsCard(
               context,
               zoom,
@@ -947,7 +947,7 @@ class _GameScreenState extends State<GameScreen> {
             zoom,
           );
 
-          final spacing = s(2);
+          final spacing = 0.0;
 
           return GridView.builder(
             shrinkWrap: true,
