@@ -171,6 +171,36 @@ void main() {
     }
   });
 
+  test('mother who died in childbirth has no later-born siblings', () {
+    var foundScenario = false;
+
+    for (var seed = 0; seed < 1000; seed++) {
+      final household = generate(seed: seed);
+      final deceasedMother = household.parents.where(
+        (parent) =>
+            parent.role == FamilyRole.mother &&
+            !parent.isAlive &&
+            parent.deathYear == 2026,
+      );
+
+      if (deceasedMother.isEmpty) continue;
+      foundScenario = true;
+
+      expect(
+        household.siblings.every((sibling) => sibling.birthYear <= 2026),
+        isTrue,
+        reason: 'Seed $seed generated a sibling after the mother died: '
+            '${household.siblings.map((sibling) => sibling.birthYear).toList()}',
+      );
+    }
+
+    expect(
+      foundScenario,
+      isTrue,
+      reason: 'The seed range should include the mother-died scenario.',
+    );
+  });
+
   test('uses family-name-first formatting for China and Japan', () {
     for (final countryCode in ['CN', 'JP']) {
       final household = generate(
