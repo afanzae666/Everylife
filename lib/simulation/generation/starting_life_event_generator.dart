@@ -24,20 +24,15 @@ class StartingLifeEventGenerator {
         title: 'Starting Family',
         description: _familyNarrative(household, background),
       ),
-      SimulationEvent(
-        id: 'starting-life-event-$year-economy',
-        type: SimulationEventType.startingLifeEvent,
-        year: year,
-        title: 'Starting Economy',
-        description: _parentDetailsNarrative(household),
-      ),
-      SimulationEvent(
-        id: 'starting-life-event-$year-conception',
-        type: SimulationEventType.startingLifeEvent,
-        year: year,
-        title: 'My Conception',
-        description: _conceptionNarrative(household, random),
-      ),
+      ..._parentDetailsNarratives(household).asMap().entries.map(
+            (entry) => SimulationEvent(
+              id: 'starting-life-event-$year-economy-${entry.key}',
+              type: SimulationEventType.startingLifeEvent,
+              year: year,
+              title: 'Starting Economy',
+              description: entry.value,
+            ),
+          ),
     ];
 
     if (player != null) {
@@ -56,6 +51,15 @@ class StartingLifeEventGenerator {
     }
 
     return events;
+  }
+
+  static String birthNarrative({
+    required Character player,
+    required FamilyHousehold? household,
+    required SeededRandom random,
+  }) {
+    final conception = _conceptionNarrative(household, random);
+    return '${player.fullName} was born in ${player.birthYear}. $conception';
   }
 
   static String _familyNarrative(
@@ -132,22 +136,25 @@ class StartingLifeEventGenerator {
         '${siblingSummary()}';
   }
 
-  static String _parentDetailsNarrative(FamilyHousehold? household) {
+  static List<String> _parentDetailsNarratives(
+    FamilyHousehold? household,
+  ) {
     if (household == null || household.parents.isEmpty) {
-      return 'My parents’ names and employment details are not available.';
+      return const [
+        'My parents’ names and employment details are not available.',
+      ];
     }
 
-    final parents = household.parents;
-    final hasFather = parents.any(
+    final descriptions = <String>[];
+    final hasFather = household.parents.any(
       (parent) => parent.role == FamilyRole.father,
     );
-    final descriptions = <String>[];
 
     if (!hasFather) {
-      descriptions.add('• My father is unknown.');
+      descriptions.add('My father is unknown.');
     }
 
-    for (final parent in parents) {
+    for (final parent in household.parents) {
       final role = _roleLabel(parent.role);
       final name = parent.fullName;
       final ageText = 'age ${_parentAgeAtChildBirth(parent, household)}';
@@ -156,25 +163,21 @@ class StartingLifeEventGenerator {
         final death = parent.deathYear == null
             ? ''
             : ' in ${parent.deathYear}';
-
         descriptions.add(
-          '• My $role, $name, is deceased$death ($ageText).',
+          'My $role, $name, is deceased$death ($ageText).',
         );
         continue;
       }
 
       final employment = _employmentDescription(parent);
-
       if (employment == null) {
-        descriptions.add('• My $role, $name ($ageText).');
+        descriptions.add('My $role, $name ($ageText).');
       } else {
-        descriptions.add(
-          '• My $role, $name, $employment ($ageText).',
-        );
+        descriptions.add('My $role, $name, $employment ($ageText).');
       }
     }
 
-    return descriptions.join('\n');
+    return descriptions;
   }
 
   static int _parentAgeAtChildBirth(
