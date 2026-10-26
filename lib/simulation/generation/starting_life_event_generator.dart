@@ -59,7 +59,7 @@ class StartingLifeEventGenerator {
     required SeededRandom random,
   }) {
     final conception = _conceptionNarrative(household, random);
-    return '${player.fullName} was born in ${player.birthYear}. $conception';
+    return 'I was born in ${player.birthYear}. $conception';
   }
 
   static String _familyNarrative(
@@ -110,6 +110,18 @@ class StartingLifeEventGenerator {
     if (guardian) {
       return 'I was placed in an orphanage, where a guardian or caregiver '
           'looks after me. My biological parents are unknown.';
+    }
+
+    if (household.isAffairConception && mother != null && father != null) {
+      if (household.raisedByFather) {
+        return 'I was born from an affair. My father raised me with my '
+            'stepmother, while my biological mother remained part of my '
+            'family history.'
+            '${siblingSummary()}';
+      }
+      return 'My mother raised me after an affair with a married man. '
+          'My biological father was not my primary caregiver.'
+          '${siblingSummary()}';
     }
 
     if (mother != null &&
@@ -262,6 +274,11 @@ class StartingLifeEventGenerator {
 
     if (guardian || (!hasMother && !hasFather)) {
       return 'The circumstances of my conception are unknown.';
+    }
+
+    if (household?.isAffairConception == true && hasMother && hasFather) {
+      return 'I was conceived during an affair between my mother and a '
+          'married man.';
     }
 
     if (hasMother && !hasFather) {

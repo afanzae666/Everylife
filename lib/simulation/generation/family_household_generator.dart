@@ -47,6 +47,28 @@ class FamilyHouseholdGenerator {
     final isOrphanagePlacement = parents.any(
       (parent) => parent.role == FamilyRole.guardian,
     );
+    final hasBothLivingParents = parents.any(
+          (parent) => parent.role == FamilyRole.father && parent.isAlive,
+        ) &&
+        parents.any(
+          (parent) => parent.role == FamilyRole.mother && parent.isAlive,
+        );
+    // Affair is an uncommon possibility only for a two-parent birth scenario.
+    final isAffairConception = hasBothLivingParents && random.nextInt(100) < 8;
+    final raisedByFather = isAffairConception && random.nextBool();
+    if (raisedByFather) {
+      parents.add(_generateParent(
+        random: random,
+        birthYear: birthYear,
+        familyName: normalizedFamilyName,
+        countryCode: countryCode,
+        tier: tier,
+        childAppearance: childAppearance,
+        gender: Gender.female,
+        role: FamilyRole.stepMother,
+        id: 'parent-step-mother-$birthYear',
+      ));
+    }
     final motherDiedInChildbirth = parents.any(
       (parent) =>
           parent.role == FamilyRole.mother &&
@@ -63,7 +85,9 @@ class FamilyHouseholdGenerator {
             birthYear: birthYear,
             familyName: normalizedFamilyName,
             countryCode: countryCode,
-            hasStepParent: false,
+            hasStepParent: parents.any((parent) =>
+                parent.role == FamilyRole.stepMother ||
+                parent.role == FamilyRole.stepFather),
             childAppearance: childAppearance,
             latestAllowedBirthYear:
                 motherDiedInChildbirth ? birthYear : null,
@@ -124,6 +148,8 @@ class FamilyHouseholdGenerator {
       housingStatus: housingStatus,
       annualLivingCosts: annualLivingCosts,
       totalDebt: totalDebt,
+      isAffairConception: isAffairConception,
+      raisedByFather: raisedByFather,
     );
   }
 
