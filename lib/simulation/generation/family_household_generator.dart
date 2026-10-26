@@ -255,6 +255,7 @@ class FamilyHouseholdGenerator {
   }) {
     final count = random.nextInt(4); // 0–3 siblings per new life.
     final siblings = <SiblingNpc>[];
+    final usedNames = <String>{};
     for (var i = 0; i < count; i++) {
       final gender = random.nextBool() ? Gender.male : Gender.female;
       final relationshipRoll = random.nextInt(100);
@@ -265,9 +266,12 @@ class FamilyHouseholdGenerator {
               : SiblingRelationship.stepSibling;
       final older = random.nextBool();
       final ageDifference = 1 + random.nextInt(18);
-      final siblingBirthYear = older
-          ? birthYear - ageDifference
-          : birthYear + ageDifference;
+      final joinsTwinBirth = i > 0 && random.nextInt(100) < 12;
+      final siblingBirthYear = joinsTwinBirth
+          ? siblings.last.birthYear
+          : older
+              ? birthYear - ageDifference
+              : birthYear + ageDifference;
       final siblingLastName = relationship == SiblingRelationship.stepSibling ||
               (relationship == SiblingRelationship.halfSibling &&
                   random.nextBool())
@@ -276,9 +280,22 @@ class FamilyHouseholdGenerator {
               random: math.Random(random.nextInt(0x7fffffff)),
             )
           : familyName;
+      var firstName = _firstName(random, gender, countryCode);
+      var fullNameKey = '${firstName.toLowerCase()} ${siblingLastName.toLowerCase()}';
+      var attempts = 0;
+      while (usedNames.contains(fullNameKey) && attempts < 30) {
+        firstName = _firstName(random, gender, countryCode);
+        fullNameKey = '${firstName.toLowerCase()} ${siblingLastName.toLowerCase()}';
+        attempts++;
+      }
+      // Extremely small/custom name catalogs may exhaust retries; suffix the
+      // display first name rather than creating indistinguishable NPC cards.
+      if (usedNames.contains(fullNameKey)) firstName = '$firstName ${i + 1}';
+      usedNames.add('${firstName.toLowerCase()} ${siblingLastName.toLowerCase()}');
       siblings.add(SiblingNpc(
         id: 'sibling-$birthYear-$i',
-        firstName: _firstName(random, gender, countryCode),
+        firstName: firstName,
+        isTwin: joinsTwinBirth,
         lastName: siblingLastName,
         gender: gender,
         birthYear: siblingBirthYear,
@@ -290,6 +307,28 @@ class FamilyHouseholdGenerator {
           childAppearance: childAppearance,
         ),
       ));
+    }
+    final birthYearCounts = <int, int>{};
+    for (final sibling in siblings) {
+      birthYearCounts.update(sibling.birthYear, (count) => count + 1,
+          ifAbsent: () => 1);
+    }
+    for (var i = 0; i < siblings.length; i++) {
+      final sibling = siblings[i];
+      if (birthYearCounts[sibling.birthYear]! > 1 && !sibling.isTwin) {
+        siblings[i] = SiblingNpc(
+          id: sibling.id,
+          firstName: sibling.firstName,
+          lastName: sibling.lastName,
+          gender: sibling.gender,
+          birthYear: sibling.birthYear,
+          relationship: sibling.relationship,
+          appearance: sibling.appearance,
+          countryCode: sibling.countryCode,
+          relationshipPercent: sibling.relationshipPercent,
+          isTwin: true,
+        );
+      }
     }
     return siblings;
   }
