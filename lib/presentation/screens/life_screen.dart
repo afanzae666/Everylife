@@ -222,16 +222,15 @@ class _ParentNpcCard extends StatelessWidget {
         ),
       ),
       child: InkWell(
-        onTap: () => Navigator.of(context).push(
+        onTap: parent.isAlive ? () => Navigator.of(context).push(
           MaterialPageRoute<void>(
             builder: (_) => NpcInteractionScreen(
               name: parent.fullName,
               relationship: _relationshipLabel(parent.role),
               relationshipPercent: parent.relationshipPercent,
-              subtitle: parent.isAlive ? null : 'Deceased',
             ),
           ),
-        ),
+        ) : null,
         child: Padding(
         padding: EdgeInsets.all(s(3)),
         child: Row(
@@ -285,7 +284,8 @@ class _ParentNpcCard extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
+            if (parent.isAlive)
+              Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
           ],
         ),
       ),
@@ -574,13 +574,25 @@ class _ParentAvatar extends StatelessWidget {
             return fallback;
           }
 
-          return CharacterAvatar(
+          final avatar = CharacterAvatar(
             character: character,
-            currentYear: currentYear,
+            currentYear: parent.isAlive
+                ? currentYear
+                : (parent.deathYear ?? currentYear),
             size: size,
             skinColor: skinColor,
             eyeColor: eyeColor,
             hairColor: hairColor,
+          );
+          if (parent.isAlive) return avatar;
+          return ColorFiltered(
+            colorFilter: const ColorFilter.matrix(<double>[
+              0.2126, 0.7152, 0.0722, 0, 0,
+              0.2126, 0.7152, 0.0722, 0, 0,
+              0.2126, 0.7152, 0.0722, 0, 0,
+              0, 0, 0, 1, 0,
+            ]),
+            child: avatar,
           );
         },
       ),
