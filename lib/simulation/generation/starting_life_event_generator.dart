@@ -16,13 +16,29 @@ class StartingLifeEventGenerator {
     FamilyHousehold? household,
     Character? player,
   }) {
+    final familyDescription = _familyNarrative(household, background);
+
+    // Include the birth and conception story in the starting family event.
+    // Previously, birthNarrative existed but was never called by generate().
+    final birthDescription = player == null
+        ? null
+        : birthNarrative(
+            player: player,
+            household: household,
+            random: random,
+          );
+
+    final combinedFamilyDescription = birthDescription == null
+        ? familyDescription
+        : '$birthDescription\n\n$familyDescription';
+
     final events = <SimulationEvent>[
       SimulationEvent(
         id: 'starting-life-event-$year-family',
         type: SimulationEventType.startingLifeEvent,
         year: year,
         title: 'Starting Family',
-        description: _familyNarrative(household, background),
+        description: combinedFamilyDescription,
       ),
       ..._parentDetailsNarratives(household).asMap().entries.map(
             (entry) => SimulationEvent(
@@ -119,6 +135,7 @@ class StartingLifeEventGenerator {
             'family history.'
             '${siblingSummary()}';
       }
+
       return 'My mother raised me after an affair with a married man. '
           'My biological father was not my primary caregiver.'
           '${siblingSummary()}';
