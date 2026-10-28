@@ -9,6 +9,20 @@ import '../../domain/family/sibling_npc.dart';
 import '../widgets/character_avatar.dart';
 import 'npc_interaction_screen.dart';
 
+
+String _parentDetails(ParentNpc parent) {
+  final employment = switch (parent.employmentStatus) {
+    EmploymentStatus.employed => parent.occupation ?? 'Employed',
+    EmploymentStatus.selfEmployed => parent.occupation ?? 'Self-employed',
+    EmploymentStatus.unemployed => 'Unemployed',
+    EmploymentStatus.retired => 'Retired',
+    EmploymentStatus.homemaker => 'Homemaker',
+    EmploymentStatus.unableToWork => 'Unable to work',
+  };
+  return '$employment · ${parent.countryCode}'
+      '${parent.isAlive ? '' : ' · Deceased${parent.deathYear == null ? '' : ' in ${parent.deathYear}'}'}';
+}
+
 class LifeScreen extends StatelessWidget {
   const LifeScreen({
     required this.zoom,
@@ -162,7 +176,7 @@ class _CategoryCard extends StatelessWidget {
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(s(8)),
+        borderRadius: BorderRadius.zero,
         side: BorderSide(
           color: theme.dividerColor.withValues(alpha: 0.55),
         ),
@@ -216,7 +230,7 @@ class _ParentNpcCard extends StatelessWidget {
       elevation: 0,
       color: theme.colorScheme.surfaceContainerLow,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(s(8)),
+        borderRadius: BorderRadius.zero,
         side: BorderSide(
           color: theme.dividerColor.withValues(alpha: 0.45),
         ),
@@ -228,6 +242,14 @@ class _ParentNpcCard extends StatelessWidget {
               name: parent.fullName,
               relationship: _relationshipLabel(parent.role),
               relationshipPercent: parent.relationshipPercent,
+              currentYear: currentYear,
+              birthYear: parent.birthYear,
+              subtitle: _parentDetails(parent),
+              avatar: _ParentAvatar(
+                parent: parent,
+                currentYear: currentYear,
+                size: 112,
+              ),
             ),
           ),
         ) : null,
@@ -353,26 +375,38 @@ class _SiblingNpcCard extends StatelessWidget {
 
     final ageLabel = older ? 'older' : 'younger';
 
-    return Card(
+    final card = Card(
       margin: EdgeInsets.zero,
       elevation: 0,
       color: theme.colorScheme.surfaceContainerLow,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(s(8)),
+        borderRadius: BorderRadius.zero,
         side: BorderSide(
           color: theme.dividerColor.withValues(alpha: 0.45),
         ),
       ),
       child: InkWell(
-        onTap: () => Navigator.of(context).push(
+        onTap: sibling.isAlive ? () => Navigator.of(context).push(
           MaterialPageRoute<void>(
             builder: (_) => NpcInteractionScreen(
               name: sibling.fullName,
               relationship: '$ageLabel $siblingKind',
               relationshipPercent: sibling.relationshipPercent,
+              currentYear: currentYear,
+              birthYear: sibling.birthYear,
+              subtitle: 'Sibling · ${sibling.relationship.name}',
+              avatar: SizedBox(
+                width: 112,
+                height: 140,
+                child: _SiblingAvatarForProfile(
+                  sibling: sibling,
+                  currentYear: currentYear,
+                  size: 112,
+                ),
+              ),
             ),
           ),
-        ),
+        ) : null,
         child: Padding(
         padding: EdgeInsets.all(s(3)),
         child: Row(
@@ -434,7 +468,7 @@ class _SiblingNpcCard extends StatelessWidget {
 
                   return CharacterAvatar(
                     character: character,
-                    currentYear: currentYear,
+                    currentYear: sibling.isAlive ? currentYear : (sibling.deathYear ?? currentYear),
                     size: s(56),
                     skinColor: skinColor,
                     eyeColor: eyeColor,
@@ -473,14 +507,33 @@ class _SiblingNpcCard extends StatelessWidget {
                   ),
                   SizedBox(height: s(3)),
                   _RelationshipBar(value: sibling.relationshipPercent, zoom: zoom),
+                  if (!sibling.isAlive) ...[
+                    SizedBox(height: s(2)),
+                    Text(
+                      'Deceased${sibling.deathYear == null ? '' : ' · ${sibling.deathYear}'}',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
+            if (sibling.isAlive)
+              Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
           ],
         ),
       ),
       ),
+    );
+
+    if (sibling.isAlive) return card;
+    return ColorFiltered(
+      colorFilter: const ColorFilter.matrix(<double>[
+        0.2126, 0.7152, 0.0722, 0, 18,
+        0.2126, 0.7152, 0.0722, 0, 18,
+        0.2126, 0.7152, 0.0722, 0, 18,
+        0, 0, 0, 1, 0,
+      ]),
+      child: card,
     );
   }
 }
@@ -599,6 +652,53 @@ class _ParentAvatar extends StatelessWidget {
           return avatar;
         },
       ),
+    );
+  }
+}
+
+class _SiblingAvatarForProfile extends StatelessWidget {
+  const _SiblingAvatarForProfile({
+    required this.sibling,
+    required this.currentYear,
+    required this.size,
+  });
+
+  final SiblingNpc sibling;
+  final int currentYear;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<CharacterPaletteService>(
+      future: CharacterPaletteService.load(),
+      builder: (context, snapshot) {
+        final palette = snapshot.data;
+        if (palette == null || snapshot.hasError ||
+            snapshot.connectionState != ConnectionState.done) {
+          return const Icon(Icons.person_outline, size: 64);
+        }
+        final skin = palette.skinColor(sibling.appearance.skinTone);
+        final eyes = palette.eyeColor(sibling.appearance.eyeColor);
+        final hair = palette.hairColor(sibling.appearance.hairColor);
+        if (skin == null || eyes == null || hair == null) {
+          return const Icon(Icons.person_outline, size: 64);
+        }
+        return CharacterAvatar(
+          character: Character.create(
+            id: sibling.id,
+            firstName: sibling.firstName,
+            lastName: sibling.lastName,
+            gender: sibling.gender,
+            birthYear: sibling.birthYear,
+            appearance: sibling.appearance,
+          ),
+          currentYear: currentYear,
+          size: size,
+          skinColor: skin,
+          eyeColor: eyes,
+          hairColor: hair,
+        );
+      },
     );
   }
 }

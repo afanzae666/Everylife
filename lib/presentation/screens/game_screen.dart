@@ -613,7 +613,7 @@ class _GameScreenState extends State<GameScreen> {
         onTap: _isProcessingTurn
             ? null
             : _openCharacterProfile,
-        borderRadius: BorderRadius.circular(s(8)),
+        borderRadius: BorderRadius.zero,
         child: _ResponsiveCard(
           padding: EdgeInsets.all(s(4)),
           child: Row(
@@ -1152,7 +1152,7 @@ class _ResponsiveCard extends StatelessWidget {
       color: theme.colorScheme.surface,
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.zero,
         side: BorderSide(
           color: theme.dividerColor.withValues(
             alpha: 0.55,
@@ -1494,7 +1494,7 @@ class _NavigationItem extends StatelessWidget {
 
     return InkWell(
       onTap: enabled ? onTap : null,
-      borderRadius: BorderRadius.circular(s(8)),
+      borderRadius: BorderRadius.zero,
       child: Padding(
         padding: EdgeInsets.symmetric(
           horizontal: s(2),
