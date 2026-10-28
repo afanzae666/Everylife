@@ -34,6 +34,31 @@ void main() {
   ) =>
       engine.state.events.where((event) => event.title == title).toList();
 
+  test('NPC interaction updates relationship and appends a life event', () {
+    final engine = createEngine();
+    final parent = engine.state.familyHousehold!.parents.firstWhere(
+      (npc) => npc.isAlive,
+    );
+    final originalScore = parent.relationshipPercent;
+    final originalEventCount = engine.state.events.length;
+
+    final result = engine.interactWithNpc(
+      npcId: parent.id,
+      action: 'Spend Time',
+    );
+
+    expect(result.isSuccess, isTrue);
+    expect(engine.state.familyHousehold!.parents
+        .firstWhere((npc) => npc.id == parent.id).relationshipPercent,
+        (originalScore + 5).clamp(-100, 100));
+    expect(engine.state.events, hasLength(originalEventCount + 1));
+    final event = engine.state.events.last;
+    expect(event.type, SimulationEventType.npcInteraction);
+    expect(event.title, 'Spend Time');
+    expect(event.description, contains(parent.fullName));
+    expect(event.year, engine.state.clock.currentYear);
+  });
+
   test('generates individual parent financial records for a new life', () {
     final engine = createEngine();
     final parents = engine.state.familyHousehold!.parents;
