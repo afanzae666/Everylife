@@ -111,7 +111,7 @@ class StartingLifeEventGenerator {
 
     if (guardian) {
       return 'I was placed in an orphanage, where a guardian or caregiver '
-          'looks after me. My biological parents are unknown.';
+          'looks after me.';
     }
 
     if (household.isAffairConception && mother != null && father != null) {
@@ -164,8 +164,11 @@ class StartingLifeEventGenerator {
     final hasFather = household.parents.any(
       (parent) => parent.role == FamilyRole.father,
     );
+    final hasGuardian = household.parents.any(
+      (parent) => parent.role == FamilyRole.guardian,
+    );
 
-    if (!hasFather) {
+    if (!hasFather && !hasGuardian) {
       descriptions.add('My father is unknown.');
     }
 
