@@ -9,6 +9,47 @@ import 'package:everylife/domain/family/sibling_npc.dart';
 import 'package:everylife/presentation/widgets/character_avatar.dart';
 
 void main() {
+
+  testWidgets('relationship is refreshed when returning from the NPC profile', (
+    tester,
+  ) async {
+    var currentParent = ParentNpc(
+      id: 'refresh-parent-test',
+      firstName: 'Marshall',
+      lastName: 'Royce',
+      gender: Gender.male,
+      birthYear: 1980,
+      role: FamilyRole.father,
+      employmentStatus: EmploymentStatus.employed,
+      occupation: 'Teacher',
+      annualIncome: Money.fromMinorUnits(10000),
+      incomeStability: IncomeStability.stable,
+      relationshipPercent: 40,
+    );
+
+    await tester.pumpWidget(MaterialApp(
+      home: LifeScreen(
+        zoom: 1,
+        currentYear: 2026,
+        parents: [currentParent],
+        readCurrentParents: () => [currentParent],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Marshall Royce'));
+    await tester.pumpAndSettle();
+
+    currentParent = currentParent.copyWith(relationshipPercent: 75);
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.pumpAndSettle();
+
+    final relationshipBar = tester.widget<LinearProgressIndicator>(
+      find.byType(LinearProgressIndicator).first,
+    );
+    expect(relationshipBar.value, 0.75);
+  });
+
   testWidgets('Life screen renders a character avatar for each parent', (
     tester,
   ) async {
@@ -46,6 +87,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(CharacterAvatar), findsOneWidget);
+    expect(find.byIcon(Icons.arrow_forward_ios), findsOneWidget);
     expect(find.text('Parents'), findsOneWidget);
     expect(find.text('Siblings'), findsNothing);
   });
