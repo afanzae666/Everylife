@@ -434,6 +434,8 @@ class _GameScreenState extends State<GameScreen> {
     if (result.isSuccess && mounted) setState(() {});
     return result;
   },
+  readCurrentParents: () => engine.state.familyHousehold?.parents ?? const [],
+  readCurrentSiblings: () => engine.state.familyHousehold?.siblings ?? const [],
 ),
       ),
     );

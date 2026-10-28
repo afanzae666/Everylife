@@ -77,13 +77,13 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
               child: Dialog(
                 shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
                 child: Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 30),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(narrative, style: Theme.of(context).textTheme.bodyLarge),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 24),
                       const Text('Tap anywhere to continue', textAlign: TextAlign.center),
                     ],
                   ),
@@ -135,8 +135,13 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.of(context).maybePop()),
-        title: Text(widget.relationship),
+        title: Text(
+          widget.relationship.toUpperCase(),
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+        ),
       ),
       body: ListView(
         padding: EdgeInsets.zero,
@@ -156,8 +161,15 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                     Expanded(child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(widget.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
-                        Text(widget.relationship, style: Theme.of(context).textTheme.labelSmall),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(widget.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
+                            ),
+                            const SizedBox(width: 5),
+                            Text('(${widget.relationship.substring(0, 1).toUpperCase()}${widget.relationship.substring(1)})', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700)),
+                          ],
+                        ),
                         const SizedBox(height: 3),
                         ClipRRect(borderRadius: BorderRadius.zero, child: LinearProgressIndicator(minHeight: 7, value: score.abs() / 100, color: color, backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest)),
                         const SizedBox(height: 3),

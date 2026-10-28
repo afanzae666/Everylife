@@ -28,7 +28,7 @@ String _parentDetails(ParentNpc parent) {
 Result<NpcInteractionOutcome> _noNpcInteraction({required String npcId, required String action}) =>
     const Failure('NPC interaction is unavailable outside the active simulation.');
 
-class LifeScreen extends StatelessWidget {
+class LifeScreen extends StatefulWidget {
   const LifeScreen({
     required this.zoom,
     this.parents = const <ParentNpc>[],
@@ -36,6 +36,8 @@ class LifeScreen extends StatelessWidget {
     this.playerBirthYear = 2026,
     this.currentYear = 2026,
     this.onNpcInteraction = _noNpcInteraction,
+    this.readCurrentParents,
+    this.readCurrentSiblings,
     super.key,
   });
 
@@ -45,10 +47,40 @@ class LifeScreen extends StatelessWidget {
   final int playerBirthYear;
   final int currentYear;
   final Result<NpcInteractionOutcome> Function({required String npcId, required String action}) onNpcInteraction;
+  final List<ParentNpc> Function()? readCurrentParents;
+  final List<SiblingNpc> Function()? readCurrentSiblings;
+
+  @override
+  State<LifeScreen> createState() => _LifeScreenState();
+}
+
+class _LifeScreenState extends State<LifeScreen> {
+  late List<ParentNpc> _parents = widget.parents;
+  late List<SiblingNpc> _siblings = widget.siblings;
+
+  void _refreshNpcData() {
+    if (!mounted) return;
+    setState(() {
+      _parents = widget.readCurrentParents?.call() ?? _parents;
+      _siblings = widget.readCurrentSiblings?.call() ?? _siblings;
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant LifeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.parents, widget.parents)) _parents = widget.parents;
+    if (!identical(oldWidget.siblings, widget.siblings)) _siblings = widget.siblings;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final visibleSiblings = siblings
+    final zoom = widget.zoom;
+    final parents = _parents;
+    final currentYear = widget.currentYear;
+    final playerBirthYear = widget.playerBirthYear;
+    final onNpcInteraction = widget.onNpcInteraction;
+    final visibleSiblings = _siblings
         .where((sibling) => sibling.birthYear <= currentYear)
         .toList(growable: false);
 
@@ -85,6 +117,7 @@ class LifeScreen extends StatelessWidget {
                                     currentYear: currentYear,
                                     zoom: zoom,
                                     onNpcInteraction: onNpcInteraction,
+                                    onInteractionPageClosed: _refreshNpcData,
                                   ),
                               ],
                             ),
@@ -104,6 +137,7 @@ class LifeScreen extends StatelessWidget {
                                     currentYear: currentYear,
                                     zoom: zoom,
                                     onNpcInteraction: onNpcInteraction,
+                                    onInteractionPageClosed: _refreshNpcData,
                                   ),
                               ],
                             ),
@@ -222,9 +256,11 @@ class _ParentNpcCard extends StatelessWidget {
     required this.currentYear,
     required this.zoom,
     required this.onNpcInteraction,
+    required this.onInteractionPageClosed,
     super.key,
   });
 
+  final VoidCallback onInteractionPageClosed;
   final ParentNpc parent;
   final int currentYear;
   final Result<NpcInteractionOutcome> Function({required String npcId, required String action}) onNpcInteraction;
@@ -247,7 +283,7 @@ class _ParentNpcCard extends StatelessWidget {
         ),
       ),
       child: InkWell(
-        onTap: parent.isAlive ? () => Navigator.of(context).push(
+        onTap: parent.isAlive ? () => Navigator.of(context).push<void>(
           MaterialPageRoute<void>(
             builder: (_) => NpcInteractionScreen(
               npcId: parent.id,
@@ -265,7 +301,7 @@ class _ParentNpcCard extends StatelessWidget {
               ),
             ),
           ),
-        ) : null,
+        ).then((_) => onInteractionPageClosed()) : null,
         child: Padding(
         padding: EdgeInsets.all(s(3)),
         child: Row(
@@ -319,8 +355,7 @@ class _ParentNpcCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (parent.isAlive)
-              const Text('•••'),
+            if (parent.isAlive) Icon(Icons.arrow_forward_ios, size: s(14)),
           ],
         ),
       ),
@@ -363,9 +398,11 @@ class _SiblingNpcCard extends StatelessWidget {
     required this.currentYear,
     required this.zoom,
     required this.onNpcInteraction,
+    required this.onInteractionPageClosed,
     super.key,
   });
 
+  final VoidCallback onInteractionPageClosed;
   final SiblingNpc sibling;
   final int playerBirthYear;
   final int currentYear;
@@ -401,7 +438,7 @@ class _SiblingNpcCard extends StatelessWidget {
         ),
       ),
       child: InkWell(
-        onTap: sibling.isAlive ? () => Navigator.of(context).push(
+        onTap: sibling.isAlive ? () => Navigator.of(context).push<void>(
           MaterialPageRoute<void>(
             builder: (_) => NpcInteractionScreen(
               npcId: sibling.id,
@@ -423,7 +460,7 @@ class _SiblingNpcCard extends StatelessWidget {
               ),
             ),
           ),
-        ) : null,
+        ).then((_) => onInteractionPageClosed()) : null,
         child: Padding(
         padding: EdgeInsets.all(s(3)),
         child: Row(
@@ -534,8 +571,7 @@ class _SiblingNpcCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (sibling.isAlive)
-              const Text('•••'),
+            if (sibling.isAlive) Icon(Icons.arrow_forward_ios, size: s(14)),
           ],
         ),
       ),
