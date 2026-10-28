@@ -311,7 +311,10 @@ void main() {
         'My guardian, Ayu Santoso, works as a caregiver (age 25).',
       ),
     );
-    expect(economy, contains('My father is unknown.'));
+    expect(
+  economy,
+  isNot(contains('My father is unknown.')),
+);
     expect(economy, isNot(contains('orphanage')));
   });
 }
