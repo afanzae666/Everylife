@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import '../../data/services/character_palette_service.dart';
 import '../../domain/character/character.dart';
 import '../../domain/character/gender.dart';
+import '../../core/result/result.dart';
+import '../../domain/event/npc_interaction_outcome.dart';
 import '../../domain/family/parent_npc.dart';
 import '../../domain/family/sibling_npc.dart';
 import '../widgets/character_avatar.dart';
@@ -23,6 +25,9 @@ String _parentDetails(ParentNpc parent) {
       '${parent.isAlive ? '' : ' · Deceased${parent.deathYear == null ? '' : ' in ${parent.deathYear}'}'}';
 }
 
+Result<NpcInteractionOutcome> _noNpcInteraction({required String npcId, required String action}) =>
+    const Failure('NPC interaction is unavailable outside the active simulation.');
+
 class LifeScreen extends StatelessWidget {
   const LifeScreen({
     required this.zoom,
@@ -30,6 +35,7 @@ class LifeScreen extends StatelessWidget {
     this.siblings = const <SiblingNpc>[],
     this.playerBirthYear = 2026,
     this.currentYear = 2026,
+    this.onNpcInteraction = _noNpcInteraction,
     super.key,
   });
 
@@ -38,6 +44,7 @@ class LifeScreen extends StatelessWidget {
   final List<SiblingNpc> siblings;
   final int playerBirthYear;
   final int currentYear;
+  final Result<NpcInteractionOutcome> Function({required String npcId, required String action}) onNpcInteraction;
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +84,7 @@ class LifeScreen extends StatelessWidget {
                                     parent: parent,
                                     currentYear: currentYear,
                                     zoom: zoom,
+                                    onNpcInteraction: onNpcInteraction,
                                   ),
                               ],
                             ),
@@ -95,6 +103,7 @@ class LifeScreen extends StatelessWidget {
                                     playerBirthYear: playerBirthYear,
                                     currentYear: currentYear,
                                     zoom: zoom,
+                                    onNpcInteraction: onNpcInteraction,
                                   ),
                               ],
                             ),
@@ -212,11 +221,13 @@ class _ParentNpcCard extends StatelessWidget {
     required this.parent,
     required this.currentYear,
     required this.zoom,
+    required this.onNpcInteraction,
     super.key,
   });
 
   final ParentNpc parent;
   final int currentYear;
+  final Result<NpcInteractionOutcome> Function({required String npcId, required String action}) onNpcInteraction;
   final double zoom;
 
   @override
@@ -239,7 +250,9 @@ class _ParentNpcCard extends StatelessWidget {
         onTap: parent.isAlive ? () => Navigator.of(context).push(
           MaterialPageRoute<void>(
             builder: (_) => NpcInteractionScreen(
+              npcId: parent.id,
               name: parent.fullName,
+              onInteraction: onNpcInteraction,
               relationship: _relationshipLabel(parent.role),
               relationshipPercent: parent.relationshipPercent,
               currentYear: currentYear,
@@ -307,7 +320,7 @@ class _ParentNpcCard extends StatelessWidget {
               ),
             ),
             if (parent.isAlive)
-              Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
+              const Text('•••'),
           ],
         ),
       ),
@@ -349,12 +362,14 @@ class _SiblingNpcCard extends StatelessWidget {
     required this.playerBirthYear,
     required this.currentYear,
     required this.zoom,
+    required this.onNpcInteraction,
     super.key,
   });
 
   final SiblingNpc sibling;
   final int playerBirthYear;
   final int currentYear;
+  final Result<NpcInteractionOutcome> Function({required String npcId, required String action}) onNpcInteraction;
   final double zoom;
 
   @override
@@ -389,7 +404,9 @@ class _SiblingNpcCard extends StatelessWidget {
         onTap: sibling.isAlive ? () => Navigator.of(context).push(
           MaterialPageRoute<void>(
             builder: (_) => NpcInteractionScreen(
+              npcId: sibling.id,
               name: sibling.fullName,
+              onInteraction: onNpcInteraction,
               relationship: '$ageLabel $siblingKind',
               relationshipPercent: sibling.relationshipPercent,
               currentYear: currentYear,
@@ -518,7 +535,7 @@ class _SiblingNpcCard extends StatelessWidget {
               ),
             ),
             if (sibling.isAlive)
-              Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
+              const Text('•••'),
           ],
         ),
       ),

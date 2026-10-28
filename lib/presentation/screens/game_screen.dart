@@ -429,6 +429,11 @@ class _GameScreenState extends State<GameScreen> {
   siblings: engine.state.familyHousehold?.siblings ?? const [],
   playerBirthYear: engine.state.player.birthYear,
   currentYear: engine.state.clock.currentYear,
+  onNpcInteraction: ({required npcId, required action}) {
+    final result = engine.interactWithNpc(npcId: npcId, action: action);
+    if (result.isSuccess && mounted) setState(() {});
+    return result;
+  },
 ),
       ),
     );
