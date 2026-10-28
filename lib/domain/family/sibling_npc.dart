@@ -22,6 +22,8 @@ class SiblingNpc {
     this.countryCode = 'ID',
     this.relationshipPercent = 50,
     this.isTwin = false,
+    this.isAlive = true,
+    this.deathYear,
   });
 
   final String id;
@@ -38,6 +40,12 @@ class SiblingNpc {
 
   /// True when this sibling belongs to a generated twin birth.
   final bool isTwin;
+
+  /// Whether this sibling is alive and can be interacted with.
+  final bool isAlive;
+
+  /// Calendar year of death, when known.
+  final int? deathYear;
 
   String get fullName => CulturalNameCatalog.formatFullName(
         countryCode,
