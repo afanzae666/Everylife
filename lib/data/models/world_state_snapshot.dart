@@ -499,6 +499,8 @@ parent.incomeStability.name,
   'birthYear': sibling.birthYear,
   'relationshipPercent': sibling.relationshipPercent,
   'isTwin': sibling.isTwin,
+  'isAlive': sibling.isAlive,
+  'deathYear': sibling.deathYear,
   'relationship': sibling.relationship.name,
   'countryCode': sibling.countryCode,
   'appearance': {
@@ -694,6 +696,8 @@ final siblings = siblingsJson is List
           birthYear: _requireInt(sibling['birthYear'], 'sibling.birthYear'),
           relationshipPercent: sibling['relationshipPercent'] is int ? (sibling['relationshipPercent'] as int).clamp(-100, 100).toInt() : 50,
           isTwin: sibling['isTwin'] == true,
+          isAlive: sibling['isAlive'] != false,
+          deathYear: sibling['deathYear'] is int ? sibling['deathYear'] as int : null,
           relationship: _parseSiblingRelationship(sibling['relationship']),
           countryCode: _optionalString(sibling['countryCode']).isEmpty
               ? 'ID' : _optionalString(sibling['countryCode']),
