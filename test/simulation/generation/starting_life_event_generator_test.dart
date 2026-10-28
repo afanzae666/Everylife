@@ -71,6 +71,30 @@ void main() {
       .map((event) => event.description)
       .join('\n');
 
+
+  test('orphan background mentions the guardian without an unknown-father line', () {
+    const guardian = ParentNpc(
+      id: 'guardian',
+      firstName: 'Mira',
+      lastName: 'Putri',
+      gender: Gender.female,
+      birthYear: 1980,
+      role: FamilyRole.guardian,
+      employmentStatus: EmploymentStatus.homemaker,
+      annualIncome: Money.zero(),
+      incomeStability: IncomeStability.none,
+    );
+
+    final events = generateEvents(household(const [guardian]));
+    final family = familyEvent(events).description;
+    final economy = economyNarratives(events);
+
+    expect(family, contains('guardian or caregiver looks after me'));
+    expect(family, isNot(contains('biological parents are unknown')));
+    expect(economy, isNot(contains('My father is unknown.')));
+    expect(economy, contains('My guardian, Mira Putri'));
+  });
+
   test('generates separate family and economy events', () {
     final events = generateEvents(household(const [father, mother]));
     final economy = economyNarratives(events);
