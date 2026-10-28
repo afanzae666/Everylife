@@ -5,6 +5,8 @@ import '../../data/repositories/save_repository.dart';
 import '../../data/services/save_manager.dart';
 import '../../domain/character/character.dart';
 import '../../domain/event/simulation_event.dart';
+import '../../domain/event/npc_interaction_outcome.dart';
+import '../../domain/family/family_household.dart';
 import '../../domain/time/simulation_clock.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
@@ -118,6 +120,97 @@ class SimulationEngine {
     _state = nextState;
 
     return const Success(null);
+  }
+
+  Result<NpcInteractionOutcome> interactWithNpc({
+    required String npcId,
+    required String action,
+  }) {
+    final household = _state.familyHousehold;
+    if (household == null) {
+      return const Failure('No NPC household is available.');
+    }
+
+    final parentIndex = household.parents.indexWhere((npc) => npc.id == npcId);
+    final siblingIndex = household.siblings.indexWhere((npc) => npc.id == npcId);
+    if (parentIndex < 0 && siblingIndex < 0) {
+      return const Failure('NPC could not be found.');
+    }
+
+    final isParent = parentIndex >= 0;
+    final alive = isParent
+        ? household.parents[parentIndex].isAlive
+        : household.siblings[siblingIndex].isAlive;
+    if (!alive) return const Failure('A deceased NPC cannot be interacted with.');
+
+    final currentScore = isParent
+        ? household.parents[parentIndex].relationshipPercent
+        : household.siblings[siblingIndex].relationshipPercent;
+    final change = switch (action) {
+      'Talk' => 2,
+      'Spend Time' => 5,
+      'Compliment' => 3,
+      'Help' => 4,
+      'Argue' => -8,
+      'Apologize' => 4,
+      _ => null,
+    };
+    if (change == null) return const Failure('Unknown NPC interaction.');
+    final nextScore = (currentScore + change).clamp(-100, 100).toInt();
+    final npcName = isParent
+        ? household.parents[parentIndex].fullName
+        : household.siblings[siblingIndex].fullName;
+    final narrative = switch (action) {
+      'Talk' => 'You had a conversation with $npcName.',
+      'Spend Time' => 'You spent time with $npcName and grew a little closer.',
+      'Compliment' => 'You complimented $npcName. They appreciated the kind words.',
+      'Help' => 'You helped $npcName when they needed support.',
+      'Argue' => 'You argued with $npcName, putting some strain on your relationship.',
+      'Apologize' => 'You apologized to $npcName and tried to make things right.',
+      _ => '',
+    };
+
+    final parents = List.of(household.parents);
+    final siblings = List.of(household.siblings);
+    if (isParent) {
+      parents[parentIndex] = parents[parentIndex].copyWith(relationshipPercent: nextScore);
+    } else {
+      siblings[siblingIndex] = siblings[siblingIndex].copyWith(relationshipPercent: nextScore);
+    }
+    final nextHousehold = FamilyHousehold(
+      id: household.id,
+      parents: parents,
+      siblings: siblings,
+      cashSavings: household.cashSavings,
+      assets: household.assets,
+      housingStatus: household.housingStatus,
+      annualLivingCosts: household.annualLivingCosts,
+      totalDebt: household.totalDebt,
+      isAffairConception: household.isAffairConception,
+      raisedByFather: household.raisedByFather,
+    );
+    final event = SimulationEvent(
+      id: 'npc-interaction-${_state.events.length + 1}-${_state.clock.currentYear}-$npcId',
+      type: SimulationEventType.npcInteraction,
+      year: _state.clock.currentYear,
+      title: action,
+      description: narrative,
+    );
+    final nextState = _state.copyWith(
+      familyHousehold: nextHousehold,
+      events: [..._state.events, event],
+    );
+    final committed = _commit(nextState);
+    if (committed case Failure<void>(:final message)) return Failure(message);
+
+    return Success(NpcInteractionOutcome(
+      npcId: npcId,
+      action: action,
+      narrative: narrative,
+      relationshipPercent: nextScore,
+      year: _state.clock.currentYear,
+      age: (_state.clock.currentYear - _state.player.birthYear).clamp(0, 150),
+    ));
   }
 
   Result<void> ageUp() {
