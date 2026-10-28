@@ -6,6 +6,7 @@ enum SimulationEventType {
   characterAged,
   lifeStageChanged,
   randomEvent,
+  npcInteraction,
 }
 
 class SimulationEvent {
