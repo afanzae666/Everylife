@@ -165,9 +165,7 @@ abstract final class EveryLifeTheme {
         elevation: EveryLifeDimensions.elevationFlat,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(
-            EveryLifeDimensions.radiusMedium,
-          ),
+          borderRadius: BorderRadius.zero,
           side: BorderSide(
             color: border,
             width: EveryLifeDimensions.borderThin,
