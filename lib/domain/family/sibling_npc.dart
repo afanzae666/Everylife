@@ -53,5 +53,20 @@ class SiblingNpc {
         lastName,
       );
 
+  SiblingNpc copyWith({int? relationshipPercent}) => SiblingNpc(
+        id: id,
+        firstName: firstName,
+        lastName: lastName,
+        gender: gender,
+        birthYear: birthYear,
+        relationship: relationship,
+        appearance: appearance,
+        countryCode: countryCode,
+        relationshipPercent: relationshipPercent ?? this.relationshipPercent,
+        isTwin: isTwin,
+        isAlive: isAlive,
+        deathYear: deathYear,
+      );
+
   bool isOlderThan(int playerBirthYear) => birthYear < playerBirthYear;
 }
