@@ -473,9 +473,8 @@ class _CompactInfoRow extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 2 * zoom),
       child: SizedBox(
         width: double.infinity,
-        child: RichText(
-          softWrap: true,
-          text: TextSpan(
+        child: Text.rich(
+          TextSpan(
             style: textStyle,
             children: [
               TextSpan(text: '$label : '),
@@ -485,6 +484,7 @@ class _CompactInfoRow extends StatelessWidget {
               ),
             ],
           ),
+          softWrap: true,
         ),
       ),
     );

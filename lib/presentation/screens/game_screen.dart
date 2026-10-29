@@ -1505,14 +1505,15 @@ class _NavigationItem extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.symmetric(
           horizontal: s(2),
-          vertical: s(2),
+          vertical: 0,
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: s(34),
-              height: s(34),
+              width: s(28),
+              height: s(28),
               decoration: BoxDecoration(
                 color: theme.colorScheme.primary,
                 shape: BoxShape.circle,
@@ -1527,20 +1528,22 @@ class _NavigationItem extends StatelessWidget {
                   ),
                   child: SvgPicture.asset(
                     assetPath,
-                    width: s(19),
-                    height: s(19),
+                    width: s(16),
+                    height: s(16),
                     fit: BoxFit.contain,
                   ),
                 ),
               ),
             ),
-            SizedBox(height: s(2)),
+            SizedBox(height: s(1)),
             Text(
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurface,
+                fontSize: s(10),
+                height: 1.0,
               ),
             ),
           ],
