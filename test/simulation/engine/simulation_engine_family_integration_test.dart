@@ -4,6 +4,8 @@ import 'package:everylife/data/repositories/save_repository.dart';
 import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/character/cultural_name_catalog.dart';
 import 'package:everylife/domain/event/simulation_event.dart';
+import 'package:everylife/domain/event/npc_interaction_outcome.dart';
+import 'package:everylife/core/result/result.dart';
 import 'package:everylife/domain/family/parent_npc.dart';
 import 'package:everylife/simulation/engine/simulation_engine.dart';
 
@@ -36,6 +38,10 @@ void main() {
 
   test('NPC interaction updates relationship and appends a life event', () {
     final engine = createEngine();
+    // NPC interactions are unavailable during infancy (ages 0–2).
+    engine.ageUp();
+    engine.ageUp();
+    engine.ageUp();
     final parent = engine.state.familyHousehold!.parents.firstWhere(
       (npc) => npc.isAlive,
     );
@@ -57,6 +63,76 @@ void main() {
     expect(event.title, 'Spend Time');
     expect(event.description, contains(parent.fullName));
     expect(event.year, engine.state.clock.currentYear);
+  });
+
+  test('blocks NPC interactions during infancy', () {
+    final engine = createEngine();
+    final parent = engine.state.familyHousehold!.parents.firstWhere(
+      (npc) => npc.isAlive,
+    );
+
+    final result = engine.interactWithNpc(
+      npcId: parent.id,
+      action: 'Talk',
+    );
+
+    expect(result.isFailure, isTrue);
+    expect(engine.state.events.where((event) =>
+        event.type == SimulationEventType.npcInteraction), isEmpty);
+  });
+
+  test('interaction narrative is first-person and age-appropriate', () {
+    final childEngine = createEngine();
+    childEngine.ageUp();
+    childEngine.ageUp();
+    childEngine.ageUp();
+    final childParent = childEngine.state.familyHousehold!.parents.firstWhere(
+      (npc) => npc.isAlive,
+    );
+    final childResult = childEngine.interactWithNpc(
+      npcId: childParent.id,
+      action: 'Talk',
+    );
+    expect(childResult.isSuccess, isTrue);
+    if (childResult case Success<NpcInteractionOutcome>(:final value)) {
+      expect(value.narrative, startsWith('I '));
+      expect(value.narrative, contains(childParent.fullName));
+      expect(value.narrative, isNot(contains('You had a conversation')));
+    }
+
+    final teenEngine = createEngine(seed: 98765);
+    for (var i = 0; i < 13; i++) {
+      teenEngine.ageUp();
+    }
+    final teenParent = teenEngine.state.familyHousehold!.parents.firstWhere(
+      (npc) => npc.isAlive,
+    );
+    final teenResult = teenEngine.interactWithNpc(
+      npcId: teenParent.id,
+      action: 'Talk',
+    );
+    expect(teenResult.isSuccess, isTrue);
+    if (teenResult case Success<NpcInteractionOutcome>(:final value)) {
+      expect(value.narrative, startsWith('I '));
+      expect(value.narrative, contains(teenParent.fullName));
+    }
+  });
+
+  test('blocks non-basic interactions for toddler and child stages', () {
+    final engine = createEngine();
+    engine.ageUp();
+    engine.ageUp();
+    engine.ageUp();
+    final parent = engine.state.familyHousehold!.parents.firstWhere(
+      (npc) => npc.isAlive,
+    );
+
+    final result = engine.interactWithNpc(
+      npcId: parent.id,
+      action: 'Argue',
+    );
+
+    expect(result.isFailure, isTrue);
   });
 
   test('generates individual parent financial records for a new life', () {
