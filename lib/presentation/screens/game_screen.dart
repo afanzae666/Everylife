@@ -622,7 +622,7 @@ class _GameScreenState extends State<GameScreen> {
             : _openCharacterProfile,
         borderRadius: BorderRadius.zero,
         child: _ResponsiveCard(
-          padding: EdgeInsets.all(s(4)),
+          padding: EdgeInsets.all(s(3)),
           child: Row(
             crossAxisAlignment:
                 CrossAxisAlignment.center,
@@ -637,8 +637,8 @@ class _GameScreenState extends State<GameScreen> {
                       ConnectionState.done) {
                     return SizedBox(
                       key: const Key('character-avatar'),
-                      width: s(68),
-                      height: s(85),
+                      width: s(56),
+                      height: s(70),
                       child: const Center(
                         child: SizedBox(
                           width: 18,
@@ -655,8 +655,8 @@ class _GameScreenState extends State<GameScreen> {
                       snapshot.data == null) {
                     return SizedBox(
                       key: const Key('character-avatar'),
-                      width: s(68),
-                      height: s(85),
+                      width: s(56),
+                      height: s(70),
                     );
                   }
 
@@ -682,8 +682,8 @@ class _GameScreenState extends State<GameScreen> {
                       hairColor == null) {
                     return SizedBox(
                       key: const Key('character-avatar'),
-                      width: s(54),
-                      height: s(54),
+                      width: s(56),
+                      height: s(70),
                     );
                   }
 
@@ -692,14 +692,14 @@ class _GameScreenState extends State<GameScreen> {
                     character: player,
                     currentYear:
                         state.clock.currentYear,
-                    size: s(68),
+                    size: s(56),
                     skinColor: skinColor,
                     eyeColor: eyeColor,
                     hairColor: hairColor,
                   );
                 },
               ),
-              SizedBox(width: s(8)),
+              SizedBox(width: s(6)),
               Expanded(
                 child: Column(
                   crossAxisAlignment:

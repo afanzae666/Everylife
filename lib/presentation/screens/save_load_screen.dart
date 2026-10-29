@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../core/result/result.dart';
+import '../../core/money/currency_formatter.dart';
+import '../../core/money/fixed_exchange_rates.dart';
 import '../../data/repositories/save_repository.dart';
+import '../../domain/world/country_catalog.dart';
 
 class SaveLoadScreen extends StatefulWidget {
   const SaveLoadScreen({
@@ -54,6 +57,19 @@ class _SaveLoadScreenState
   late Map<SaveSlot, SaveData?> _saveData;
 
   bool _isProcessing = false;
+
+  String _formatSavedMoney(SaveData data) {
+    final countryCode = data.state.player.location?.countryCode ?? '';
+    final country = CountryCatalog.findByCode(countryCode);
+    var currencyCode = country?.currencyCode ?? 'USD';
+    if (FixedExchangeRates.snapshot.rateFor(currencyCode) == null) {
+      currencyCode = 'USD';
+    }
+    return CurrencyFormatter.format(
+      data.state.player.money,
+      currencyCode: currencyCode,
+    );
+  }
 
   @override
   void initState() {
@@ -587,7 +603,7 @@ class _SaveLoadScreenState
                     '  •  Year '
                     '${data.state.clock.currentYear}'
                     '  •  Money '
-                    '${data.state.player.money}',
+                    '${_formatSavedMoney(data)}',
                     maxLines: 2,
                     overflow:
                         TextOverflow.ellipsis,

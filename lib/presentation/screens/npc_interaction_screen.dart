@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/result/result.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
+import '../../domain/character/life_stage.dart';
 
 class NpcInteractionScreen extends StatefulWidget {
   const NpcInteractionScreen({
@@ -14,6 +15,7 @@ class NpcInteractionScreen extends StatefulWidget {
     this.avatar,
     this.birthYear,
     this.currentYear,
+    this.playerAge = 18,
     this.isAlive = true,
     super.key,
   });
@@ -30,6 +32,7 @@ class NpcInteractionScreen extends StatefulWidget {
   final Widget? avatar;
   final int? birthYear;
   final int? currentYear;
+  final int playerAge;
   final bool isAlive;
 
   @override
@@ -75,7 +78,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
               behavior: HitTestBehavior.opaque,
               onTap: () => Navigator.of(dialogContext).pop(),
               child: Dialog(
-                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 30),
                   child: Column(
@@ -102,7 +105,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
     showDialog<void>(
       context: context,
       builder: (dialogContext) => Dialog(
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: SingleChildScrollView(
@@ -114,7 +117,6 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                 const SizedBox(height: 8),
                 Text(widget.name, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 4),
-                Text(widget.relationship, textAlign: TextAlign.center),
                 if (widget.birthYear != null && widget.currentYear != null)
                   Text('Age ${(widget.currentYear! - widget.birthYear!).clamp(0, 150)}', textAlign: TextAlign.center),
                 if (widget.subtitle != null) ...[const SizedBox(height: 12), Text(widget.subtitle!)],
@@ -126,6 +128,17 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
         ),
       ),
     );
+  }
+
+  List<String> get _availableActions {
+    final stage = LifeStageAge.fromAge(widget.playerAge.clamp(0, 150).toInt());
+    if (stage == LifeStage.infant) return const [];
+
+    const basic = ['Talk', 'Spend Time', 'Compliment', 'Help'];
+    if (stage == LifeStage.toddler || stage == LifeStage.child) {
+      return basic;
+    }
+    return const ['Talk', 'Spend Time', 'Compliment', 'Help', 'Argue'];
   }
 
   @override
@@ -161,14 +174,14 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                     Expanded(child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(widget.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
-                            ),
-                            const SizedBox(width: 5),
-                            Text('(${widget.relationship.substring(0, 1).toUpperCase()}${widget.relationship.substring(1)})', style: Theme.of(context).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700)),
-                          ],
+                        Text(
+                          widget.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 3),
                         ClipRRect(borderRadius: BorderRadius.zero, child: LinearProgressIndicator(minHeight: 7, value: score.abs() / 100, color: color, backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest)),
@@ -182,10 +195,19 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
               ),
             ),
           ),
-          const Padding(padding: EdgeInsets.all(8), child: Text('Interactions')),
-          for (final action in const ['Talk', 'Spend Time', 'Compliment', 'Help', 'Argue'])
-            _ActionRow(title: action, onPressed: widget.isAlive ? () => _interact(action) : null),
-          if (_hadArgument) _ActionRow(title: 'Apologize', onPressed: widget.isAlive ? () => _interact('Apologize') : null),
+          if (_availableActions.isNotEmpty) ...[
+            const Padding(padding: EdgeInsets.all(8), child: Text('Interactions')),
+            for (final action in _availableActions)
+              _ActionRow(
+                title: action,
+                onPressed: widget.isAlive ? () => _interact(action) : null,
+              ),
+            if (_hadArgument && widget.playerAge >= 13)
+              _ActionRow(
+                title: 'Apologize',
+                onPressed: widget.isAlive ? () => _interact('Apologize') : null,
+              ),
+          ],
         ],
       ),
     );
