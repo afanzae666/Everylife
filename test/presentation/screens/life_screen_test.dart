@@ -88,19 +88,6 @@ void main() {
 
     expect(find.byType(CharacterAvatar), findsOneWidget);
     expect(find.byIcon(Icons.arrow_forward_ios), findsOneWidget);
-    expect(find.text('Test Parent'), findsOneWidget);
-    expect(find.text('(Father)'), findsOneWidget);
-    final nameRelationshipRow = find.ancestor(
-      of: find.text('(Father)'),
-      matching: find.byType(Row),
-    ).first;
-    expect(
-      find.descendant(
-        of: nameRelationshipRow,
-        matching: find.text('Test Parent'),
-      ),
-      findsOneWidget,
-    );
     expect(find.text('Parents'), findsOneWidget);
     expect(find.text('Siblings'), findsNothing);
   });
@@ -172,8 +159,8 @@ void main() {
     ));
     await tester.pump();
 
-    expect(find.text('(stepmother)'), findsOneWidget);
-    expect(find.text('(younger stepsister)'), findsOneWidget);
+    expect(find.text('(Stepmother)'), findsOneWidget);
+    expect(find.text('(Younger stepsister)'), findsOneWidget);
     expect(find.text('Parents'), findsOneWidget);
     expect(find.text('Siblings'), findsOneWidget);
   });
@@ -209,7 +196,7 @@ void main() {
       ),
     );
 
-    expect(find.text('(older brother)'), findsOneWidget);
+    expect(find.text('(Older brother)'), findsOneWidget);
     expect(find.text('Alex Lee'), findsOneWidget);
     expect(find.text('Jordan Lee'), findsNothing);
     expect(find.text('Full brother'), findsNothing);

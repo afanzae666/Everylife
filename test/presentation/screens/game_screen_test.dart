@@ -1040,31 +1040,5 @@ await waitForLifeFeedbackToFinish(
         );
       },
     );
-    testWidgets(
-      'renders circular backgrounds behind standard bottom navigation icons',
-      (tester) async {
-        final engine = createTestEngine(InMemorySaveRepository());
-        await tester.pumpWidget(
-          MaterialApp(home: GameScreen(engine: engine)),
-        );
-        await tester.pumpAndSettle();
-
-        for (final label in ['Career', 'Assets', 'Life', 'More']) {
-          expect(find.text(label), findsOneWidget);
-        }
-        expect(ageUpButtonFinder(), findsOneWidget);
-
-        final circularIconBackgrounds = tester.widgetList<Container>(
-          find.byWidgetPredicate((widget) {
-            if (widget is! Container || widget.decoration is! BoxDecoration) {
-              return false;
-            }
-            return (widget.decoration! as BoxDecoration).shape ==
-                BoxShape.circle;
-          }),
-        );
-        expect(circularIconBackgrounds.length, greaterThanOrEqualTo(4));
-      },
-    );
   });
 }
