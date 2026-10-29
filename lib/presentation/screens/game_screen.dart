@@ -622,7 +622,7 @@ class _GameScreenState extends State<GameScreen> {
             : _openCharacterProfile,
         borderRadius: BorderRadius.zero,
         child: _ResponsiveCard(
-          padding: EdgeInsets.all(s(3)),
+          padding: EdgeInsets.all(s(4)),
           child: Row(
             crossAxisAlignment:
                 CrossAxisAlignment.center,
@@ -637,8 +637,8 @@ class _GameScreenState extends State<GameScreen> {
                       ConnectionState.done) {
                     return SizedBox(
                       key: const Key('character-avatar'),
-                      width: s(56),
-                      height: s(70),
+                      width: s(68),
+                      height: s(85),
                       child: const Center(
                         child: SizedBox(
                           width: 18,
@@ -655,8 +655,8 @@ class _GameScreenState extends State<GameScreen> {
                       snapshot.data == null) {
                     return SizedBox(
                       key: const Key('character-avatar'),
-                      width: s(56),
-                      height: s(70),
+                      width: s(68),
+                      height: s(85),
                     );
                   }
 
@@ -682,8 +682,8 @@ class _GameScreenState extends State<GameScreen> {
                       hairColor == null) {
                     return SizedBox(
                       key: const Key('character-avatar'),
-                      width: s(56),
-                      height: s(70),
+                      width: s(54),
+                      height: s(54),
                     );
                   }
 
@@ -692,14 +692,14 @@ class _GameScreenState extends State<GameScreen> {
                     character: player,
                     currentYear:
                         state.clock.currentYear,
-                    size: s(56),
+                    size: s(68),
                     skinColor: skinColor,
                     eyeColor: eyeColor,
                     hairColor: hairColor,
                   );
                 },
               ),
-              SizedBox(width: s(6)),
+              SizedBox(width: s(8)),
               Expanded(
                 child: Column(
                   crossAxisAlignment:
@@ -1510,28 +1510,30 @@ class _NavigationItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-Opacity(
-  opacity: enabled ? 1.0 : 0.38,
-  child: ColorFiltered(
-    colorFilter: theme.brightness == Brightness.dark
-        ? const ColorFilter.matrix(<double>[
-            -1, 0, 0, 0, 255,
-            0, -1, 0, 0, 255,
-            0, 0, -1, 0, 255,
-            0, 0, 0, 1, 0,
-          ])
-        : const ColorFilter.mode(
-            Colors.transparent,
-            BlendMode.dst,
-          ),
-    child: SvgPicture.asset(
-      assetPath,
-      width: s(23),
-      height: s(23),
-      fit: BoxFit.contain,
-    ),
-  ),
-),
+            Container(
+              width: s(34),
+              height: s(34),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Opacity(
+                opacity: enabled ? 1.0 : 0.38,
+                child: ColorFiltered(
+                  colorFilter: const ColorFilter.mode(
+                    Colors.white,
+                    BlendMode.srcIn,
+                  ),
+                  child: SvgPicture.asset(
+                    assetPath,
+                    width: s(19),
+                    height: s(19),
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            ),
             SizedBox(height: s(2)),
             Text(
               label,

@@ -8,6 +8,7 @@ import '../../domain/world/country_catalog.dart';
 import '../../domain/world/city_catalog.dart';
 import '../../domain/character/character.dart';
 import '../../domain/character/gender.dart';
+import '../../domain/character/life_stage.dart';
 import '../widgets/character_avatar.dart';
 
 class CharacterProfileScreen extends StatelessWidget {
@@ -59,7 +60,7 @@ class CharacterProfileScreen extends StatelessWidget {
       return null;
     }
 
-    return '${country.name}, ${city.name}';
+    return '${city.name}, ${country.name}';
   }
 
   @override
@@ -123,6 +124,10 @@ class CharacterProfileScreen extends StatelessWidget {
     double s(double value) => value * zoom;
 
     final age = character.ageAt(currentYear);
+    final lifeStage = character.lifeStageAt(
+      currentYear,
+    );
+
     return ListView(
       padding: EdgeInsets.fromLTRB(
         s(8),
@@ -244,6 +249,7 @@ class CharacterProfileScreen extends StatelessWidget {
           child: _buildBasicInformation(
             context,
             zoom,
+            lifeStage,
           ),
         ),
 
@@ -323,6 +329,7 @@ class CharacterProfileScreen extends StatelessWidget {
   Widget _buildBasicInformation(
     BuildContext context,
     double zoom,
+    LifeStage lifeStage,
   ) {
     double s(double value) => value * zoom;
 
@@ -364,10 +371,61 @@ class CharacterProfileScreen extends StatelessWidget {
             zoom: zoom,
           ),
 
+        _CompactInfoRow(
+          label: 'Life Stage',
+          value: _formatLifeStage(
+            lifeStage,
+          ),
+          zoom: zoom,
+        ),
+
+        _CompactInfoRow(
+          label: 'Occupation',
+          value: '—',
+          zoom: zoom,
+        ),
+
+        _CompactInfoRow(
+          label: 'Relationship',
+          value: '—',
+          zoom: zoom,
+        ),
+
+        _CompactInfoRow(
+          label: 'Education',
+          value: '—',
+          zoom: zoom,
+        ),
       ],
     );
   }
 
+  String _formatLifeStage(
+    LifeStage stage,
+  ) {
+    switch (stage) {
+      case LifeStage.infant:
+        return 'Infant';
+
+      case LifeStage.toddler:
+        return 'Toddler';
+
+      case LifeStage.child:
+        return 'Child';
+
+      case LifeStage.teen:
+        return 'Teen';
+
+      case LifeStage.youngAdult:
+        return 'Young Adult';
+
+      case LifeStage.adult:
+        return 'Adult';
+
+      case LifeStage.senior:
+        return 'Senior';
+    }
+  }
 }
 
 class _ResponsiveCard extends StatelessWidget {
@@ -408,45 +466,26 @@ class _CompactInfoRow extends StatelessWidget {
   final double zoom;
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
-    double s(double value) => value * zoom;
-
-    final textStyle = Theme.of(context).textTheme.bodySmall;
+  Widget build(BuildContext context) {
+    final textStyle = Theme.of(context).textTheme.bodySmall!;
 
     return Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: s(2),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 5,
-            child: Text(
-              label,
-              style: textStyle,
-              softWrap: true,
-            ),
-          ),
-
-          SizedBox(
-            width: s(3),
-          ),
-
-          Flexible(
-            flex: 4,
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: textStyle!.copyWith(
-                fontWeight: FontWeight.w600,
+      padding: EdgeInsets.symmetric(vertical: 2 * zoom),
+      child: SizedBox(
+        width: double.infinity,
+        child: RichText(
+          softWrap: true,
+          text: TextSpan(
+            style: textStyle,
+            children: [
+              TextSpan(text: '$label : '),
+              TextSpan(
+                text: value,
+                style: textStyle.copyWith(fontWeight: FontWeight.w600),
               ),
-              softWrap: true,
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

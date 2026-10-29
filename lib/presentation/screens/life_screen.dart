@@ -12,6 +12,10 @@ import '../widgets/character_avatar.dart';
 import 'npc_interaction_screen.dart';
 
 
+String _capitalizeRelationshipLabel(String value) => value.isEmpty
+    ? value
+    : '${value[0].toUpperCase()}${value.substring(1)}';
+
 String _parentDetails(ParentNpc parent) {
   final employment = switch (parent.employmentStatus) {
     EmploymentStatus.employed => parent.occupation ?? 'Employed',
@@ -24,10 +28,6 @@ String _parentDetails(ParentNpc parent) {
   return '$employment · ${parent.countryCode}'
       '${parent.isAlive ? '' : ' · Deceased${parent.deathYear == null ? '' : ' in ${parent.deathYear}'}'}';
 }
-
-String _capitalizeRelationshipLabel(String value) => value.isEmpty
-    ? value
-    : '${value[0].toUpperCase()}${value.substring(1)}';
 
 Result<NpcInteractionOutcome> _noNpcInteraction({required String npcId, required String action}) =>
     const Failure('NPC interaction is unavailable outside the active simulation.');
@@ -118,7 +118,6 @@ class _LifeScreenState extends State<LifeScreen> {
                                   _ParentNpcCard(
                                     key: ValueKey('parent-card-${parent.id}'),
                                     parent: parent,
-                                    playerBirthYear: playerBirthYear,
                                     currentYear: currentYear,
                                     zoom: zoom,
                                     onNpcInteraction: onNpcInteraction,
@@ -258,7 +257,6 @@ class _CategoryCard extends StatelessWidget {
 class _ParentNpcCard extends StatelessWidget {
   const _ParentNpcCard({
     required this.parent,
-    required this.playerBirthYear,
     required this.currentYear,
     required this.zoom,
     required this.onNpcInteraction,
@@ -268,7 +266,6 @@ class _ParentNpcCard extends StatelessWidget {
 
   final VoidCallback onInteractionPageClosed;
   final ParentNpc parent;
-  final int playerBirthYear;
   final int currentYear;
   final Result<NpcInteractionOutcome> Function({required String npcId, required String action}) onNpcInteraction;
   final double zoom;
@@ -298,7 +295,6 @@ class _ParentNpcCard extends StatelessWidget {
               onInteraction: onNpcInteraction,
               relationship: _relationshipLabel(parent.role),
               relationshipPercent: parent.relationshipPercent,
-              playerAge: currentYear - playerBirthYear,
               currentYear: currentYear,
               birthYear: parent.birthYear,
               subtitle: _parentDetails(parent),
@@ -328,7 +324,8 @@ class _ParentNpcCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Expanded(
+                      Flexible(
+                        fit: FlexFit.loose,
                         child: Text(
                           parent.fullName,
                           maxLines: 1,
@@ -454,7 +451,6 @@ class _SiblingNpcCard extends StatelessWidget {
               onInteraction: onNpcInteraction,
               relationship: '$ageLabel $siblingKind',
               relationshipPercent: sibling.relationshipPercent,
-              playerAge: currentYear - playerBirthYear,
               currentYear: currentYear,
               birthYear: sibling.birthYear,
               subtitle: 'Sibling · ${sibling.relationship.name}',
@@ -548,7 +544,8 @@ class _SiblingNpcCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Expanded(
+                      Flexible(
+                        fit: FlexFit.loose,
                         child: Text(
                           sibling.fullName,
                           maxLines: 1,
