@@ -4,6 +4,7 @@ import '../../core/result/result.dart';
 import '../../data/repositories/save_repository.dart';
 import '../../data/services/save_manager.dart';
 import '../../domain/character/character.dart';
+import '../../domain/character/life_stage.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
 import '../../domain/family/family_household.dart';
@@ -126,6 +127,18 @@ class SimulationEngine {
     required String npcId,
     required String action,
   }) {
+    final playerAge = (_state.clock.currentYear - _state.player.birthYear)
+        .clamp(0, 150)
+        .toInt();
+    final playerStage = LifeStageAge.fromAge(playerAge);
+    if (playerStage == LifeStage.infant) {
+      return const Failure('NPC interactions are unavailable during infancy.');
+    }
+    if ((playerStage == LifeStage.toddler || playerStage == LifeStage.child) &&
+        !const ['Talk', 'Spend Time', 'Compliment', 'Help'].contains(action)) {
+      return const Failure('This interaction is not available at your current life stage.');
+    }
+
     final household = _state.familyHousehold;
     if (household == null) {
       return const Failure('No NPC household is available.');
@@ -160,15 +173,11 @@ class SimulationEngine {
     final npcName = isParent
         ? household.parents[parentIndex].fullName
         : household.siblings[siblingIndex].fullName;
-    final narrative = switch (action) {
-      'Talk' => 'You had a conversation with $npcName.',
-      'Spend Time' => 'You spent time with $npcName and grew a little closer.',
-      'Compliment' => 'You complimented $npcName. They appreciated the kind words.',
-      'Help' => 'You helped $npcName when they needed support.',
-      'Argue' => 'You argued with $npcName, putting some strain on your relationship.',
-      'Apologize' => 'You apologized to $npcName and tried to make things right.',
-      _ => '',
-    };
+    final narrative = _interactionNarrative(
+      action: action,
+      npcName: npcName,
+      stage: playerStage,
+    );
 
     final parents = List.of(household.parents);
     final siblings = List.of(household.siblings);
@@ -211,6 +220,124 @@ class SimulationEngine {
       year: _state.clock.currentYear,
       age: (_state.clock.currentYear - _state.player.birthYear).clamp(0, 150),
     ));
+  }
+
+  String _interactionNarrative({
+    required String action,
+    required String npcName,
+    required LifeStage stage,
+  }) {
+    final child = stage == LifeStage.toddler || stage == LifeStage.child;
+    final teen = stage == LifeStage.teen;
+    final senior = stage == LifeStage.senior;
+
+    final options = switch (action) {
+      'Talk' => child
+          ? <String>[
+              'I told $npcName about something that happened today.',
+              'I chatted with $npcName and shared what was on my mind.',
+              'I talked with $npcName and enjoyed having someone listen.',
+            ]
+          : teen
+              ? <String>[
+                  'I talked with $npcName about school, friends, and what comes next.',
+                  'I opened up to $npcName about a few things on my mind.',
+                  'I caught up with $npcName and exchanged thoughts about life.',
+                ]
+              : senior
+                  ? <String>[
+                      'I had a thoughtful conversation with $npcName and shared a few memories.',
+                      'I caught up with $npcName and enjoyed hearing their perspective.',
+                      'I talked with $npcName about life and the things that matter most.',
+                    ]
+                  : <String>[
+                      'I caught up with $npcName and talked about what has been happening lately.',
+                      'I shared my thoughts with $npcName and listened to theirs.',
+                      'I had a meaningful conversation with $npcName.',
+                    ],
+      'Spend Time' => child
+          ? <String>[
+              'I played and spent some happy time with $npcName.',
+              'I spent time with $npcName doing something we both enjoyed.',
+              'I stayed with $npcName for a while, and we had fun together.',
+            ]
+          : <String>[
+              'I spent time with $npcName, and we felt a little closer afterward.',
+              'I shared some time with $npcName and made a good memory.',
+              'I enjoyed being around $npcName and strengthening our bond.',
+            ],
+      'Compliment' => child
+          ? <String>[
+              'I told $npcName something I liked about them, and they smiled.',
+              'I said something nice to $npcName and could tell it cheered them up.',
+              'I let $npcName know I thought they did a great job.',
+            ]
+          : senior
+              ? <String>[
+                  'I told $npcName how much I valued them and the memories we share.',
+                  'I praised something about $npcName that I have always admired.',
+                  'I reminded $npcName that their kindness means a lot to me.',
+                ]
+              : <String>[
+                  'I said something kind to $npcName, and they seemed pleased.',
+                  'I complimented $npcName and made sure they knew I appreciated them.',
+                  'I pointed out something I admired about $npcName.',
+                ],
+      'Help' => child
+          ? <String>[
+              'I helped $npcName with a small task and felt useful.',
+              'I offered $npcName a hand with something they were doing.',
+              'I helped $npcName tidy up and finish what they were working on.',
+            ]
+          : senior
+              ? <String>[
+                  'I helped $npcName with something difficult and was glad I could support them.',
+                  'I offered practical help to $npcName when they needed it.',
+                  'I made time to help $npcName and ease some of their burden.',
+                ]
+              : <String>[
+                  'I helped $npcName with something they needed to get done.',
+                  'I offered support to $npcName when they could use a hand.',
+                  'I stepped in to help $npcName, showing that they could count on me.',
+                ],
+      'Argue' => teen
+          ? <String>[
+              'I argued with $npcName after we disagreed, and things felt awkward afterward.',
+              'I let a disagreement with $npcName turn into an argument.',
+              'I lost my patience with $npcName, and our disagreement became heated.',
+            ]
+          : senior
+              ? <String>[
+                  'I had a disagreement with $npcName, and it left a distance between us.',
+                  'I argued with $npcName, wishing afterward that we had handled it more calmly.',
+                  'I let tension grow between me and $npcName after we exchanged harsh words.',
+                ]
+              : <String>[
+                  'I argued with $npcName, and the disagreement put a strain on our relationship.',
+                  'I noticed things getting tense between me and $npcName after we disagreed.',
+                  'I clashed with $npcName, leaving both of us frustrated.',
+                ],
+      'Apologize' => teen
+          ? <String>[
+              'I apologized to $npcName and tried to clear the air.',
+              'I admitted my mistake to $npcName and hoped we could move on.',
+              'I reached out to $npcName to make peace after our argument.',
+            ]
+          : senior
+              ? <String>[
+                  'I apologized to $npcName and hoped we could put the disagreement behind us.',
+                  'I spoke sincerely with $npcName and tried to mend our relationship.',
+                  'I asked $npcName to forgive me and made an effort to make things right.',
+                ]
+              : <String>[
+                  'I apologized to $npcName and tried to make things right.',
+                  'I admitted I was wrong to $npcName and made an effort to repair our bond.',
+                  'I reached out to $npcName with an apology and hoped we could move forward.',
+                ],
+      _ => <String>['I interacted with $npcName.'],
+    };
+
+    return options[_random.nextInt(options.length)];
   }
 
   Result<void> ageUp() {
