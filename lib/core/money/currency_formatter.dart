@@ -37,12 +37,9 @@ class CurrencyFormatter {
 
   /// Formats [money] using the selected ISO 4217 [currencyCode].
   ///
-  /// Values below one billion are displayed in full, with thousands grouped.
-  /// Unnecessary trailing decimal zeroes are omitted, but meaningful
-  /// fractional digits are preserved.
-  ///
-  /// Values from one billion onward use compact suffixes such as B and T.
-  /// Compact values retain up to two decimal places and omit trailing zeroes.
+  /// Ordinary displayed values are rounded to whole local currency units.
+  /// Compact values use suffixes such as B and T, without unnecessary
+  /// trailing decimal zeroes.
   ///
   /// Uses the fixed gameplay exchange-rate snapshot unless [snapshot] is
   /// supplied. Unknown currencies or missing exchange rates throw an
@@ -70,30 +67,15 @@ class CurrencyFormatter {
 
     final divisor = _powerOfTen(currency.fractionDigits);
     final absoluteMinorUnits = localMinorUnits.abs();
-    final wholeUnits = absoluteMinorUnits ~/ divisor;
-    final remainder = absoluteMinorUnits % divisor;
+    // Round once at the display boundary; stored Money remains unchanged.
+    final wholeUnits = (absoluteMinorUnits + divisor ~/ 2) ~/ divisor;
 
-    final String number;
-
-    if (wholeUnits >= _billion) {
-      number = _formatCompact(wholeUnits);
-    } else {
-      final wholePart = _groupThousands(wholeUnits);
-
-      if (remainder == 0 || currency.fractionDigits == 0) {
-        number = wholePart;
-      } else {
-        final fraction = remainder
-            .toString()
-            .padLeft(currency.fractionDigits, '0')
-            .replaceFirst(RegExp(r'0+$'), '');
-
-        number = '$wholePart.$fraction';
-      }
-    }
+    final String number = wholeUnits >= _billion
+        ? _formatCompact(wholeUnits)
+        : _groupThousands(wholeUnits);
 
     final separator = currency.symbol.length == 1 ? '' : ' ';
-    final sign = localMinorUnits < 0 ? '-' : '';
+    final sign = localMinorUnits < 0 && wholeUnits > 0 ? '-' : '';
 
     return '$sign${currency.symbol}$separator$number';
   }
@@ -114,7 +96,6 @@ class CurrencyFormatter {
     final trimmed = formatted
         .replaceFirst(RegExp(r'0+$'), '')
         .replaceFirst(RegExp(r'\.$'), '');
-
     return '$trimmed${_compactUnits[unitIndex]}';
   }
 
