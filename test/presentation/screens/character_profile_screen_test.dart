@@ -93,39 +93,14 @@ void main() {
         findsNothing,
       );
 
+      expect(find.text('Life Stage'), findsNothing);
+      expect(find.text('Occupation'), findsNothing);
+      expect(find.text('Relationship'), findsNothing);
+      expect(find.text('Education'), findsNothing);
+
       expect(
-        find.text('Jakarta, Indonesia'),
+        find.text('Indonesia, Jakarta'),
         findsNothing,
-      );
-
-      expect(
-        find.text('Life Stage'),
-        findsOneWidget,
-      );
-
-      expect(
-        find.text('Child'),
-        findsOneWidget,
-      );
-
-      expect(
-        find.text('Occupation'),
-        findsOneWidget,
-      );
-
-      expect(
-        find.text('Relationship'),
-        findsOneWidget,
-      );
-
-      expect(
-        find.text('Education'),
-        findsOneWidget,
-      );
-
-      expect(
-        find.text('—'),
-        findsNWidgets(3),
       );
 
       expect(
@@ -311,7 +286,7 @@ void main() {
       );
 
       expect(
-        find.text('Jakarta, Indonesia'),
+        find.text('Indonesia, Jakarta'),
         findsOneWidget,
       );
     },

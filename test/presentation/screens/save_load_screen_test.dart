@@ -416,6 +416,15 @@ void main() {
         );
 
         expect(
+          find.textContaining('Money \$0'),
+          findsOneWidget,
+        );
+        expect(
+          find.textContaining('\$0.00'),
+          findsNothing,
+        );
+
+        expect(
           find.textContaining('Saved '),
           findsOneWidget,
         );
