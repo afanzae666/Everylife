@@ -17,13 +17,13 @@ void main() {
       );
     });
 
-    test('preserves meaningful EUR fractional digits', () {
+    test('rounds fractional local currency amounts to whole units', () {
       expect(
         CurrencyFormatter.format(
           const Money.fromMinorUnits(100),
           currencyCode: 'EUR',
         ),
-        '€0.89',
+        '€1',
       );
     });
 
@@ -57,17 +57,17 @@ void main() {
       );
     });
 
-    test('preserves meaningful fractional cents', () {
+    test('rounds sub-unit currency amounts without showing decimals', () {
       expect(
         CurrencyFormatter.format(
           const Money.fromMinorUnits(1),
           currencyCode: 'USD',
         ),
-        r'$0.01',
+        r'$0',
       );
     });
 
-    test('formats compact values from one billion onward', () {
+    test('formats compact values without unnecessary trailing zeroes', () {
       expect(
         CurrencyFormatter.format(
           const Money.fromMinorUnits(100000000000),
@@ -83,15 +83,22 @@ void main() {
         ),
         r'$1.25B',
       );
+      expect(
+        CurrencyFormatter.format(
+          const Money.fromMinorUnits(10000000000000),
+          currencyCode: 'USD',
+        ),
+        r'$100B',
+      );
     });
 
-    test('formats negative values and preserves fractional digits', () {
+    test('rounds negative values to whole local currency units', () {
       expect(
         CurrencyFormatter.format(
           const Money.fromMinorUnits(-100),
           currencyCode: 'EUR',
         ),
-        '-€0.89',
+        '-€1',
       );
 
       expect(
