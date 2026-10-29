@@ -68,38 +68,20 @@ void main() {
         );
       }
 
-      expect(
-        find.text('Born'),
-        findsOneWidget,
-      );
-
-      expect(
-        find.text('2026'),
-        findsOneWidget,
-      );
-
-      expect(
-        find.text('Gender'),
-        findsOneWidget,
-      );
-
-      expect(
-        find.text('Male'),
-        findsOneWidget,
-      );
+      expect(find.text('Born : 2026'), findsOneWidget);
+      expect(find.text('Gender : Male'), findsOneWidget);
+      expect(find.text('Life Stage : Child'), findsOneWidget);
+      expect(find.text('Occupation : —'), findsOneWidget);
+      expect(find.text('Relationship : —'), findsOneWidget);
+      expect(find.text('Education : —'), findsOneWidget);
 
       expect(
         find.text('Location'),
         findsNothing,
       );
 
-      expect(find.text('Life Stage'), findsNothing);
-      expect(find.text('Occupation'), findsNothing);
-      expect(find.text('Relationship'), findsNothing);
-      expect(find.text('Education'), findsNothing);
-
       expect(
-        find.text('Indonesia, Jakarta'),
+        find.text('Jakarta, Indonesia'),
         findsNothing,
       );
 
@@ -286,7 +268,7 @@ void main() {
       );
 
       expect(
-        find.text('Indonesia, Jakarta'),
+        find.text('Jakarta, Indonesia'),
         findsOneWidget,
       );
     },
