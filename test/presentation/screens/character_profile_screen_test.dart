@@ -69,17 +69,27 @@ void main() {
       }
 
       expect(
-        find.text('Born : 2026'),
+        find.text('Born'),
         findsOneWidget,
       );
 
       expect(
-        find.text('Gender : Male'),
+        find.text('2026'),
         findsOneWidget,
       );
 
       expect(
-        find.textContaining('Location :'),
+        find.text('Gender'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('Male'),
+        findsOneWidget,
+      );
+
+      expect(
+        find.text('Location'),
         findsNothing,
       );
 
@@ -271,10 +281,14 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Location : Indonesia, Jakarta'),
+        find.text('Location'),
         findsOneWidget,
       );
 
+      expect(
+        find.text('Indonesia, Jakarta'),
+        findsOneWidget,
+      );
     },
   );
 

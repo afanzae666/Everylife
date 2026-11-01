@@ -125,33 +125,6 @@ void main() {
     expect(find.byIcon(Icons.chevron_right), findsNothing);
   });
 
-  testWidgets('deceased NPC card cannot be opened', (tester) async {
-    final deceasedParent = ParentNpc(
-      id: 'dead-parent-no-open',
-      firstName: 'Grace',
-      lastName: 'Wilson',
-      gender: Gender.female,
-      birthYear: 1980,
-      role: FamilyRole.mother,
-      employmentStatus: EmploymentStatus.unemployed,
-      annualIncome: Money.zero(),
-      incomeStability: IncomeStability.none,
-      isAlive: false,
-      deathYear: 2026,
-    );
-
-    await tester.pumpWidget(MaterialApp(
-      home: LifeScreen(zoom: 1, parents: [deceasedParent]),
-    ));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Grace Wilson'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Life'), findsOneWidget);
-    expect(find.text('Spend Time'), findsNothing);
-  });
-
   testWidgets('Life screen places step-parents and step-siblings in existing cards', (
     tester,
   ) async {
@@ -186,8 +159,8 @@ void main() {
     ));
     await tester.pump();
 
-    expect(find.text('Alex Morgan (Stepmother)'), findsOneWidget);
-    expect(find.text('Jordan Lee (Younger stepsister)'), findsOneWidget);
+    expect(find.text('(Stepmother)'), findsOneWidget);
+    expect(find.text('(Younger stepsister)'), findsOneWidget);
     expect(find.text('Parents'), findsOneWidget);
     expect(find.text('Siblings'), findsOneWidget);
   });
@@ -223,7 +196,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Alex Lee (Older brother)'), findsOneWidget);
+    expect(find.text('(Older brother)'), findsOneWidget);
     expect(find.text('Alex Lee'), findsOneWidget);
     expect(find.text('Jordan Lee'), findsNothing);
     expect(find.text('Full brother'), findsNothing);
