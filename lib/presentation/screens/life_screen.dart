@@ -326,26 +326,27 @@ class _ParentNpcCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: parent.fullName,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          parent.fullName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        TextSpan(
-                          text: ' (${_capitalizeRelationshipLabel(_relationshipLabel(parent.role))})',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      ),
+                      SizedBox(width: s(4)),
+                      Text(
+                        '(${_capitalizeRelationshipLabel(_relationshipLabel(parent.role))})',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
                         ),
-                      ],
-                    ),
-                    key: Key('npc-name-relationship-${parent.id}'),
-                    softWrap: true,
+                      ),
+                    ],
                   ),
                   SizedBox(height: s(3)),
                   _RelationshipBar(value: parent.relationshipPercent, zoom: zoom),
@@ -545,26 +546,27 @@ class _SiblingNpcCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: sibling.fullName,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          sibling.fullName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        TextSpan(
-                          text: ' (${_capitalizeRelationshipLabel('$ageLabel $siblingKind')})',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      ),
+                      SizedBox(width: s(4)),
+                      Text(
+                        '(${_capitalizeRelationshipLabel('$ageLabel $siblingKind')})',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
                         ),
-                      ],
-                    ),
-                    key: Key('npc-name-relationship-${sibling.id}'),
-                    softWrap: true,
+                      ),
+                    ],
                   ),
                   SizedBox(height: s(3)),
                   _RelationshipBar(value: sibling.relationshipPercent, zoom: zoom),
