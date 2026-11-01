@@ -408,45 +408,23 @@ class _CompactInfoRow extends StatelessWidget {
   final double zoom;
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     double s(double value) => value * zoom;
-
     final textStyle = Theme.of(context).textTheme.bodySmall;
 
     return Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: s(2),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 5,
-            child: Text(
-              label,
-              style: textStyle,
-              softWrap: true,
+      padding: EdgeInsets.symmetric(vertical: s(2)),
+      child: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: '$label : '),
+            TextSpan(
+              text: value,
+              style: textStyle?.copyWith(fontWeight: FontWeight.w600),
             ),
-          ),
-
-          SizedBox(
-            width: s(3),
-          ),
-
-          Flexible(
-            flex: 4,
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: textStyle!.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              softWrap: true,
-            ),
-          ),
-        ],
+          ],
+        ),
+        softWrap: true,
       ),
     );
   }
