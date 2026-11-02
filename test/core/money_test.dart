@@ -11,6 +11,12 @@ void main() {
       expect(money.toString(), '\$100.50');
     });
 
+    test('formats negative amounts below one unit with a sign', () {
+      expect(const Money.fromMinorUnits(-50).toString(), '-\$0.50');
+      expect(const Money.fromMinorUnits(-10050).toString(), '-\$100.50');
+      expect(const Money.zero().toString(), '\$0.00');
+    });
+
     test('adds money without floating point errors', () {
       const first = Money.fromMinorUnits(10);
       const second = Money.fromMinorUnits(20);
