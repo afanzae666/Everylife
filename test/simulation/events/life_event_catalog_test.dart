@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/event/life_event.dart';
+import 'package:everylife/domain/event/life_progress.dart';
 import 'package:everylife/domain/time/simulation_clock.dart';
 import 'package:everylife/domain/world/world_state.dart';
 import 'package:everylife/simulation/events/life_event_catalog.dart';
@@ -69,6 +70,7 @@ void main() {
 
   test('flags that events require are set by some outcome', () {
     final addable = <String>{
+      ...SystemFlags.all,
       for (final event in events)
         for (final outcome in outcomesOf(event)) ...outcome.addFlags,
     };
