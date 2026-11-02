@@ -4,6 +4,7 @@ import '../../core/result/result.dart';
 import '../../data/repositories/save_repository.dart';
 import '../../data/services/save_manager.dart';
 import '../../domain/character/character.dart';
+import '../../domain/career/job_catalog.dart';
 import '../../domain/character/life_stage.dart';
 import '../../domain/event/life_event.dart';
 import '../../domain/event/simulation_event.dart';
@@ -12,12 +13,16 @@ import '../../domain/time/simulation_clock.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
+import '../career/career_actions.dart';
 import '../events/life_effect_applier.dart';
 import '../events/life_event_catalog.dart';
 import '../generation/family_household_generator.dart';
 import '../generation/starting_background_generator.dart';
 import '../generation/starting_life_event_generator.dart';
+import '../systems/career_system.dart';
 import '../systems/character_system.dart';
+import '../systems/education_system.dart';
+import '../systems/family_mortality_system.dart';
 import '../systems/event_system.dart';
 import '../systems/mortality_system.dart';
 import '../systems/parent_economy_system.dart';
@@ -58,6 +63,9 @@ class SimulationEngine {
     }
   }
 
+  /// How many times the player may interact with one family member a year.
+  static const int maxInteractionsPerNpcPerYear = 2;
+
   WorldState _state;
 
   final SeededRandom _random;
@@ -85,8 +93,56 @@ class SimulationEngine {
   /// rolls and random life events. Kept separate from the constructor so
   /// engine tests can run without randomness.
   void registerGameplaySystems() {
+    registerSystem(FamilyMortalitySystem(random: _random));
+    registerSystem(EducationSystem(random: _random));
+    registerSystem(CareerSystem(random: _random));
     registerSystem(MortalitySystem(random: _random));
     registerSystem(EventSystem(random: _random));
+  }
+
+  /// Jobs the player currently qualifies for.
+  List<JobDefinition> get availableJobs => CareerActions.availableJobs(_state);
+
+  /// Chance (percent) of being hired for [job].
+  int hiringChance(JobDefinition job) => CareerActions.hiringChance(_state, job);
+
+  /// Chance (percent) that a university application succeeds.
+  int get universityChance => CareerActions.universityChance(_state);
+
+  Result<String> applyForJob(String jobId) => _commitAction(
+        CareerActions.applyForJob(
+          state: _state,
+          random: _random,
+          jobId: jobId,
+        ),
+      );
+
+  Result<String> quitJob() => _commitAction(CareerActions.quitJob(_state));
+
+  Result<String> askForRaise() => _commitAction(
+        CareerActions.askForRaise(state: _state, random: _random),
+      );
+
+  Result<String> applyForUniversity() => _commitAction(
+        CareerActions.applyForUniversity(state: _state, random: _random),
+      );
+
+  Result<String> dropOutOfSchool() =>
+      _commitAction(CareerActions.dropOutOfSchool(_state));
+
+  Result<String> _commitAction(Result<CareerActionResult> result) {
+    if (result case Failure<CareerActionResult>(:final message)) {
+      return Failure(message);
+    }
+
+    final action = (result as Success<CareerActionResult>).value;
+    final committed = _commit(action.state);
+
+    if (committed case Failure<void>(:final message)) {
+      return Failure(message);
+    }
+
+    return Success(action.message);
   }
 
   /// The event currently waiting for the player's decision, if any.
@@ -279,6 +335,14 @@ class SimulationEngine {
       _ => null,
     };
     if (change == null) return const Failure('Unknown NPC interaction.');
+    final interactionKey = '${_state.clock.currentYear}:$npcId';
+    final timesThisYear = _state.lifeProgress.interactionCounts[interactionKey] ?? 0;
+    if (timesThisYear >= maxInteractionsPerNpcPerYear) {
+      return const Failure(
+        'I have already spent enough time with them this year. '
+        'Maybe next year.',
+      );
+    }
     final nextScore = (currentScore + change).clamp(-100, 100).toInt();
     final npcName = isParent
         ? household.parents[parentIndex].fullName
@@ -307,9 +371,37 @@ class SimulationEngine {
       title: action,
       description: narrative,
     );
+    final statEffect = switch (action) {
+      'Spend Time' => const StatEffect(StatKey.happiness, 1),
+      'Apologize' => const StatEffect(StatKey.happiness, 1),
+      'Compliment' => const StatEffect(StatKey.charisma, 1),
+      'Help' => const StatEffect(StatKey.willpower, 1),
+      'Argue' => const StatEffect(StatKey.happiness, -2),
+      _ => null,
+    };
+    var interactionStats = _state.player.stats;
+    if (statEffect != null) {
+      final raised = interactionStats.valueOf(statEffect.stat) + statEffect.delta;
+      interactionStats = switch (statEffect.stat) {
+        StatKey.happiness => interactionStats.copyWith(happiness: raised),
+        StatKey.charisma => interactionStats.copyWith(charisma: raised),
+        StatKey.willpower => interactionStats.copyWith(willpower: raised),
+        _ => interactionStats,
+      };
+    }
     final nextState = _state.copyWith(
+      player: _state.player.copyWith(stats: interactionStats),
       familyHousehold: nextHousehold,
       events: [..._state.events, event],
+      lifeProgress: _state.lifeProgress.copyWith(
+        interactionCounts: {
+          // Only this year's counts matter; older keys are dropped.
+          for (final entry in _state.lifeProgress.interactionCounts.entries)
+            if (entry.key.startsWith('${_state.clock.currentYear}:'))
+              entry.key: entry.value,
+          interactionKey: timesThisYear + 1,
+        },
+      ),
     );
     final committed = _commit(nextState);
     if (committed case Failure<void>(:final message)) return Failure(message);
