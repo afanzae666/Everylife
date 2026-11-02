@@ -5,16 +5,21 @@ import '../../data/repositories/save_repository.dart';
 import '../../data/services/save_manager.dart';
 import '../../domain/character/character.dart';
 import '../../domain/character/life_stage.dart';
+import '../../domain/event/life_event.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
 import '../../domain/time/simulation_clock.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
+import '../events/life_effect_applier.dart';
+import '../events/life_event_catalog.dart';
 import '../generation/family_household_generator.dart';
 import '../generation/starting_background_generator.dart';
 import '../generation/starting_life_event_generator.dart';
 import '../systems/character_system.dart';
+import '../systems/event_system.dart';
+import '../systems/mortality_system.dart';
 import '../systems/parent_economy_system.dart';
 import '../systems/simulation_system.dart';
 import '../systems/time_system.dart';
@@ -74,6 +79,112 @@ class SimulationEngine {
     SimulationSystem system,
   ) {
     _scheduler.registerSystem(system);
+  }
+
+  /// Registers the systems that make a life unpredictable: yearly death
+  /// rolls and random life events. Kept separate from the constructor so
+  /// engine tests can run without randomness.
+  void registerGameplaySystems() {
+    registerSystem(MortalitySystem(random: _random));
+    registerSystem(EventSystem(random: _random));
+  }
+
+  /// The event currently waiting for the player's decision, if any.
+  LifeEventDefinition? get pendingLifeEvent {
+    final pending = _state.lifeProgress.pending;
+
+    if (pending == null) return null;
+
+    return LifeEventCatalog.byId(pending.eventId);
+  }
+
+  /// Whether the player can afford [choice] right now.
+  bool canAffordChoice(LifeChoice choice) {
+    final required = LifeEffectApplier.scaleMoney(
+      _state,
+      choice.requiresMoneyBase,
+    );
+
+    return _state.player.money.minorUnits >= required;
+  }
+
+  /// Resolves the pending event with the chosen option.
+  Result<LifeChoiceResult> resolveLifeChoice(String choiceId) {
+    final pending = _state.lifeProgress.pending;
+
+    if (pending == null) {
+      return const Failure('There is no event waiting for a decision.');
+    }
+
+    final definition = LifeEventCatalog.byId(pending.eventId);
+
+    if (definition == null) {
+      // The event no longer exists (for example after a game update).
+      // Drop it instead of trapping the player in an unresolvable state.
+      final cleared = _state.copyWith(
+        lifeProgress: _state.lifeProgress.copyWith(clearPending: true),
+      );
+      _commit(cleared);
+
+      return const Failure('That event is no longer available.');
+    }
+
+    LifeChoice? choice;
+    for (final candidate in definition.choices) {
+      if (candidate.id == choiceId) {
+        choice = candidate;
+        break;
+      }
+    }
+
+    if (choice == null) {
+      return const Failure('Unknown choice.');
+    }
+
+    if (!canAffordChoice(choice)) {
+      return const Failure('You cannot afford this choice.');
+    }
+
+    final outcome = LifeEffectApplier.pickOutcome(choice.outcomes, _random);
+
+    final applied = LifeEffectApplier.applyOutcome(
+      state: _state,
+      outcome: outcome,
+    );
+
+    final progress = applied.lifeProgress.copyWith(
+      choices: {
+        ...applied.lifeProgress.choices,
+        definition.id: choice.id,
+      },
+      clearPending: true,
+    );
+
+    final nextState = applied.copyWith(lifeProgress: progress).addEvent(
+          SimulationEvent(
+            id: 'life-choice-${pending.year}-${definition.id}',
+            type: SimulationEventType.lifeChoice,
+            year: pending.year,
+            title: definition.title,
+            description:
+                '${definition.description} I chose to: ${choice.label}. '
+                '${outcome.text}',
+          ),
+        );
+
+    final committed = _commit(nextState);
+
+    if (committed case Failure<void>(:final message)) {
+      return Failure(message);
+    }
+
+    return Success(
+      LifeChoiceResult(
+        eventTitle: definition.title,
+        choiceLabel: choice.label,
+        resultText: outcome.text,
+      ),
+    );
   }
 
   Result<void> execute(
