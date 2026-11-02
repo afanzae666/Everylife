@@ -1,4 +1,4 @@
-import '../../core/money/money.dart';
+import 'package:everylife/core/money/money.dart';
 import '../../core/random/seeded_random.dart';
 import '../../domain/career/education_state.dart';
 import '../../domain/career/job_catalog.dart';
