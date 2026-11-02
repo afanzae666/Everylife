@@ -49,6 +49,10 @@ class _LifeSimulationAppState
 
   String? _startupError;
 
+  /// Problems found while reading save slots during startup. A damaged slot
+  /// is skipped instead of blocking the whole game.
+  final List<String> _startupSaveProblems = <String>[];
+
   @override
   void initState() {
     super.initState();
@@ -136,6 +140,11 @@ class _LifeSimulationAppState
 
       if (saveData == null) {
         setState(() {
+          // When every existing slot was unreadable, explain it instead of
+          // silently showing character creation.
+          _startupError = _startupSaveProblems.isEmpty
+              ? null
+              : _startupSaveProblems.join('\n');
           _isInitializing = false;
         });
 
@@ -195,9 +204,9 @@ class _LifeSimulationAppState
   }
 
   Future<SaveData?> _loadStartupSave() async {
-    final autosave = await _saveRepository.load(
-      slot: SaveSlot.autosave,
-    );
+    _startupSaveProblems.clear();
+
+    final autosave = await _tryLoadSlot(SaveSlot.autosave);
 
     if (autosave != null) {
       return autosave;
@@ -213,9 +222,7 @@ class _LifeSimulationAppState
     SaveData? latestManualSave;
 
     for (final slot in manualSlots) {
-      final saveData = await _saveRepository.load(
-        slot: slot,
-      );
+      final saveData = await _tryLoadSlot(slot);
 
       if (saveData == null) {
         continue;
@@ -236,7 +243,25 @@ class _LifeSimulationAppState
       }
     }
 
+    // A readable manual save is enough to start; the damaged slot stays on
+    // disk untouched so it can still be inspected or recovered.
+    if (latestManualSave != null) {
+      _startupSaveProblems.clear();
+    }
+
     return latestManualSave;
+  }
+
+  Future<SaveData?> _tryLoadSlot(SaveSlot slot) async {
+    try {
+      return await _saveRepository.load(slot: slot);
+    } catch (error) {
+      _startupSaveProblems.add(
+        'Save slot "${slot.name}" could not be read: $error',
+      );
+
+      return null;
+    }
   }
 
   Future<void> _createCharacter(
@@ -455,6 +480,14 @@ class _LifeSimulationAppState
     return engine;
   }
 
+  /// Lets the player continue past unreadable saves. Damaged save files are
+  /// not deleted; a later save simply replaces the slot it writes to.
+  void _startFreshAfterStartupError() {
+    setState(() {
+      _startupError = null;
+    });
+  }
+
   void _retryStartup() {
     setState(() {
       _isInitializing = true;
@@ -564,6 +597,12 @@ class _LifeSimulationAppState
                   onPressed: _retryStartup,
                   icon: const Icon(Icons.refresh),
                   label: const Text('RETRY'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: _startFreshAfterStartupError,
+                  icon: const Icon(Icons.add),
+                  label: const Text('START A NEW LIFE'),
                 ),
               ],
             ),
