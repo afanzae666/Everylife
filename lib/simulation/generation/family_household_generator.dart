@@ -85,6 +85,7 @@ class FamilyHouseholdGenerator {
             birthYear: birthYear,
             familyName: normalizedFamilyName,
             countryCode: countryCode,
+            parents: parents,
             hasStepParent: parents.any((parent) =>
                 parent.role == FamilyRole.stepMother ||
                 parent.role == FamilyRole.stepFather),
@@ -284,6 +285,7 @@ class FamilyHouseholdGenerator {
     required int birthYear,
     required String familyName,
     required String countryCode,
+    required List<ParentNpc> parents,
     required bool hasStepParent,
     CharacterAppearance? childAppearance,
     int? latestAllowedBirthYear,
@@ -299,20 +301,22 @@ class FamilyHouseholdGenerator {
           : relationshipRoll < 55
               ? SiblingRelationship.halfSibling
               : SiblingRelationship.stepSibling;
-      final older = random.nextBool();
-      final ageDifference = 1 + random.nextInt(18);
       final joinsTwinBirth = i > 0 && random.nextInt(100) < 12;
-      final proposedBirthYear = joinsTwinBirth
+      // A twin always shares the previous sibling's relationship so the
+      // pair has the same parents and the same plausible birth window.
+      final effectiveRelationship =
+          joinsTwinBirth ? siblings.last.relationship : relationship;
+      final siblingBirthYear = joinsTwinBirth
           ? siblings.last.birthYear
-          : older
-              ? birthYear - ageDifference
-              : birthYear + ageDifference;
-      final siblingBirthYear = latestAllowedBirthYear != null &&
-              proposedBirthYear > latestAllowedBirthYear
-          ? birthYear - ageDifference
-          : proposedBirthYear;
-      final siblingLastName = relationship == SiblingRelationship.stepSibling ||
-              (relationship == SiblingRelationship.halfSibling &&
+          : _pickSiblingBirthYear(
+              random: random,
+              playerBirthYear: birthYear,
+              relationship: effectiveRelationship,
+              parents: parents,
+              latestAllowedBirthYear: latestAllowedBirthYear,
+            );
+      final siblingLastName = effectiveRelationship == SiblingRelationship.stepSibling ||
+              (effectiveRelationship == SiblingRelationship.halfSibling &&
                   random.nextBool())
           ? CulturalRandomizerCatalog.randomLastName(
               countryCode: countryCode,
@@ -338,7 +342,7 @@ class FamilyHouseholdGenerator {
         lastName: siblingLastName,
         gender: gender,
         birthYear: siblingBirthYear,
-        relationship: relationship,
+        relationship: effectiveRelationship,
         countryCode: countryCode,
         appearance: _generateAppearance(
           random: random,
@@ -370,6 +374,91 @@ class FamilyHouseholdGenerator {
       }
     }
     return siblings;
+  }
+
+  /// Youngest age at which a parent can plausibly have a child.
+  static const int _minParentAge = 18;
+
+  /// Oldest plausible age at which a mother or father has a child.
+  static const int _maxMotherAge = 45;
+  static const int _maxFatherAge = 60;
+
+  /// Returns the inclusive birth-year window in which [parent] could have
+  /// had a child.
+  static (int, int) _parentBirthWindow(ParentNpc parent) {
+    final maxAge = parent.gender == Gender.female
+        ? _maxMotherAge
+        : _maxFatherAge;
+
+    return (
+      parent.birthYear + _minParentAge,
+      parent.birthYear + maxAge,
+    );
+  }
+
+  /// Picks a sibling birth year that is biologically plausible.
+  ///
+  /// Full siblings must fit the birth window of every biological parent.
+  /// Half and step siblings are bound by the step-parent when one exists.
+  /// The year is within 18 years of the player and is never the player's
+  /// own birth year (same-year siblings are generated explicitly as twins).
+  static int _pickSiblingBirthYear({
+    required SeededRandom random,
+    required int playerBirthYear,
+    required SiblingRelationship relationship,
+    required List<ParentNpc> parents,
+    int? latestAllowedBirthYear,
+  }) {
+    final Iterable<ParentNpc> bindingParents;
+    if (relationship == SiblingRelationship.fullSibling) {
+      bindingParents = parents.where(
+        (parent) =>
+            parent.role == FamilyRole.father ||
+            parent.role == FamilyRole.mother,
+      );
+    } else {
+      final stepParents = parents.where(
+        (parent) =>
+            parent.role == FamilyRole.stepMother ||
+            parent.role == FamilyRole.stepFather,
+      );
+      bindingParents = stepParents.isNotEmpty ? stepParents : parents;
+    }
+
+    var earliest = playerBirthYear - 18;
+    var latest = playerBirthYear + 18;
+
+    for (final parent in bindingParents) {
+      final window = _parentBirthWindow(parent);
+      if (window.$1 > earliest) earliest = window.$1;
+      if (window.$2 < latest) latest = window.$2;
+    }
+
+    if (latestAllowedBirthYear != null && latestAllowedBirthYear < latest) {
+      latest = latestAllowedBirthYear;
+    }
+
+    final olderYears = <int>[
+      for (var year = earliest; year < playerBirthYear && year <= latest; year++)
+        year,
+    ];
+    final youngerYears = <int>[
+      for (var year = playerBirthYear + 1; year <= latest; year++)
+        if (year >= earliest) year,
+    ];
+
+    final preferOlder = random.nextBool();
+    final pool = preferOlder
+        ? (olderYears.isNotEmpty ? olderYears : youngerYears)
+        : (youngerYears.isNotEmpty ? youngerYears : olderYears);
+
+    if (pool.isEmpty) {
+      // Defensive fallback: parents are generated at least 22 years old, so
+      // the four years before the player are always inside the window.
+      return playerBirthYear - 1 - random.nextInt(4);
+    }
+
+    return pool[random.nextInt(pool.length)];
   }
 
   static ParentNpc _generateParent({
