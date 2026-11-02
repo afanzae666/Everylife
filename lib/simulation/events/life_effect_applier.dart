@@ -3,6 +3,7 @@ import 'package:everylife/core/money/money.dart';
 import '../../core/random/seeded_random.dart';
 import '../../domain/character/character_stats.dart';
 import '../../domain/event/life_event.dart';
+import '../../domain/family/family_household.dart';
 import '../../domain/world/world_state.dart';
 import '../generation/country_economic_profile.dart';
 
@@ -102,7 +103,53 @@ abstract final class LifeEffectApplier {
         money: Money.fromMinorUnits(money),
         debt: Money.fromMinorUnits(debt),
       ),
+      familyHousehold: _applyRelations(state, outcome),
       lifeProgress: state.lifeProgress.copyWith(flags: flags),
+    );
+  }
+
+  /// Moves the relationship score of living family members.
+  static FamilyHousehold? _applyRelations(
+    WorldState state,
+    LifeOutcome outcome,
+  ) {
+    final household = state.familyHousehold;
+
+    if (household == null ||
+        (outcome.parentRelation == 0 && outcome.siblingRelation == 0)) {
+      return household;
+    }
+
+    final year = state.clock.currentYear;
+
+    int shift(int score, int delta) =>
+        (score + delta).clamp(-100, 100).toInt();
+
+    return household.copyWith(
+      parents: [
+        for (final parent in household.parents)
+          parent.isAlive && outcome.parentRelation != 0
+              ? parent.copyWith(
+                  relationshipPercent: shift(
+                    parent.relationshipPercent,
+                    outcome.parentRelation,
+                  ),
+                )
+              : parent,
+      ],
+      siblings: [
+        for (final sibling in household.siblings)
+          sibling.isAlive &&
+                  sibling.birthYear <= year &&
+                  outcome.siblingRelation != 0
+              ? sibling.copyWith(
+                  relationshipPercent: shift(
+                    sibling.relationshipPercent,
+                    outcome.siblingRelation,
+                  ),
+                )
+              : sibling,
+      ],
     );
   }
 
