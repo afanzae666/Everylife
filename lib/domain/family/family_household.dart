@@ -58,6 +58,37 @@ class FamilyHousehold {
   /// Combined household debt at the starting point.
   final Money totalDebt;
 
+  /// Returns a copy with the given fields replaced.
+  ///
+  /// Always prefer this over calling the constructor directly: it keeps
+  /// every field (including [isAffairConception] and [raisedByFather]) so
+  /// systems cannot accidentally reset story flags when they update the
+  /// household.
+  FamilyHousehold copyWith({
+    List<ParentNpc>? parents,
+    List<SiblingNpc>? siblings,
+    Money? cashSavings,
+    List<FamilyAsset>? assets,
+    HousingStatus? housingStatus,
+    Money? annualLivingCosts,
+    Money? totalDebt,
+    bool? isAffairConception,
+    bool? raisedByFather,
+  }) {
+    return FamilyHousehold(
+      id: id,
+      parents: parents ?? this.parents,
+      siblings: siblings ?? this.siblings,
+      cashSavings: cashSavings ?? this.cashSavings,
+      assets: assets ?? this.assets,
+      housingStatus: housingStatus ?? this.housingStatus,
+      annualLivingCosts: annualLivingCosts ?? this.annualLivingCosts,
+      totalDebt: totalDebt ?? this.totalDebt,
+      isAffairConception: isAffairConception ?? this.isAffairConception,
+      raisedByFather: raisedByFather ?? this.raisedByFather,
+    );
+  }
+
   Money get annualIncome {
     return parents.fold(
       const Money.zero(),
