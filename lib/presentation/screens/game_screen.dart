@@ -5,6 +5,7 @@ import 'package:everylife/core/money/money.dart';
 
 import '../../core/money/currency_formatter.dart';
 import '../../core/money/fixed_exchange_rates.dart';
+import '../../core/result/result.dart';
 import '../../data/services/character_palette_service.dart';
 import '../../data/settings/auto_save_settings.dart';
 import '../../domain/character/life_stage.dart';
@@ -162,6 +163,16 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
+  void _showTurnMessage(String message) {
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
   Future<void> _ageUp() async {
     if (_isProcessingTurn) {
       return;
@@ -177,10 +188,11 @@ class _GameScreenState extends State<GameScreen> {
       return;
     }
 
-    if (!result.isSuccess) {
+    if (result case Failure<void>(:final message)) {
       setState(() {
         _isProcessingTurn = false;
       });
+      _showTurnMessage('Unable to age up: $message');
       return;
     }
 
@@ -189,10 +201,14 @@ class _GameScreenState extends State<GameScreen> {
     _scrollLifeEventsToBottom();
 
     if (_autoSaveController.value) {
-      await engine.save();
+      final saveResult = await engine.save();
 
       if (!mounted) {
         return;
+      }
+
+      if (saveResult case Failure<void>(:final message)) {
+        _showTurnMessage('Auto-save failed: $message');
       }
     }
 
