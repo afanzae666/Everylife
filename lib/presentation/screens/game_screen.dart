@@ -11,7 +11,9 @@ import '../../data/settings/auto_save_settings.dart';
 import '../../domain/character/life_stage.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../simulation/engine/simulation_engine.dart';
+import '../../domain/event/life_event.dart';
 import '../widgets/character_avatar.dart';
+import '../widgets/life_event_dialogs.dart';
 import 'assets_screen.dart';
 import 'career_screen.dart';
 import 'character_profile_screen.dart';
@@ -64,6 +66,7 @@ class _GameScreenState extends State<GameScreen> {
 
   bool _autoSaveSettingReady = false;
   bool _isProcessingTurn = false;
+  bool _isShowingLifeDialog = false;
 
   final ScrollController _lifeEventsScrollController =
       ScrollController();
@@ -94,6 +97,11 @@ class _GameScreenState extends State<GameScreen> {
     _loadAutoSaveSetting();
 
     _scrollLifeEventsToBottom(jump: true);
+
+    // A loaded save may be waiting on a decision or already be over.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handleLifeFlow();
+    });
   }
 
   @override
@@ -173,8 +181,100 @@ class _GameScreenState extends State<GameScreen> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
+  /// Shows the pending decision or the ending dialog, if there is one.
+  Future<void> _handleLifeFlow() async {
+    if (_isShowingLifeDialog || !mounted) {
+      return;
+    }
+
+    _isShowingLifeDialog = true;
+
+    try {
+      while (mounted) {
+        final progress = engine.state.lifeProgress;
+
+        if (progress.ending != null) {
+          final player = engine.state.player;
+          final startNew = await showLifeEndedDialog(
+            context,
+            name: player.fullName,
+            ending: progress.ending!,
+            netWorthText: _formatMoney(
+              Money.fromMinorUnits(progress.ending!.netWorthMinorUnits),
+              currencyCode: _getCurrencyCode(player),
+            ),
+          );
+
+          if (startNew && mounted) {
+            widget.onNewLifeCreationRequested?.call();
+          }
+
+          return;
+        }
+
+        if (progress.pending == null) {
+          return;
+        }
+
+        final event = engine.pendingLifeEvent;
+
+        if (event == null) {
+          // Unknown event id: this clears it so the game cannot get stuck.
+          engine.resolveLifeChoice('');
+          setState(() {});
+          continue;
+        }
+
+        final choiceId = await showLifeDecisionDialog(
+          context,
+          event: event,
+          canAfford: engine.canAffordChoice,
+        );
+
+        if (!mounted || choiceId == null) {
+          return;
+        }
+
+        final result = engine.resolveLifeChoice(choiceId);
+
+        if (result case Failure<LifeChoiceResult>(:final message)) {
+          _showTurnMessage(message);
+          continue;
+        }
+
+        setState(() {});
+        _scrollLifeEventsToBottom();
+
+        if (result case Success<LifeChoiceResult>(:final value)) {
+          await showLifeResultDialog(context, value);
+        }
+
+        if (!mounted) {
+          return;
+        }
+
+        if (_autoSaveController.value) {
+          final saveResult = await engine.save();
+
+          if (saveResult case Failure<void>(:final message)) {
+            _showTurnMessage('Auto-save failed: $message');
+          }
+        }
+      }
+    } finally {
+      _isShowingLifeDialog = false;
+    }
+  }
+
   Future<void> _ageUp() async {
     if (_isProcessingTurn) {
+      return;
+    }
+
+    final lifeProgress = engine.state.lifeProgress;
+
+    if (lifeProgress.ending != null || lifeProgress.pending != null) {
+      await _handleLifeFlow();
       return;
     }
 
@@ -219,6 +319,8 @@ class _GameScreenState extends State<GameScreen> {
     setState(() {
       _isProcessingTurn = false;
     });
+
+    await _handleLifeFlow();
   }
 
   Future<bool> _openSaveManager({
@@ -262,6 +364,7 @@ class _GameScreenState extends State<GameScreen> {
 
                 setState(() {});
                 _scrollLifeEventsToBottom();
+                _handleLifeFlow();
               },
               isNewLifeFlow: isNewLifeFlow,
             ),
