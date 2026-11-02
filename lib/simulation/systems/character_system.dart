@@ -59,7 +59,7 @@ class CharacterSystem implements SimulationSystem {
           year: currentYear,
           title: 'A new life stage begins',
           description:
-              '${state.player.name} entered ${currentStage.name}.',
+              '${state.player.name} entered ${_stageLabel(currentStage)}.',
         ),
       );
     }
@@ -103,9 +103,22 @@ class CharacterSystem implements SimulationSystem {
       year: currentYear,
       title: 'Another year passes',
       description:
-          '${state.player.name} is now $age years old.',
+          '${state.player.name} is now $age '
+          '${age == 1 ? 'year' : 'years'} old.',
     );
 
     return nextState.addEvent(event);
+  }
+
+  static String _stageLabel(LifeStage stage) {
+    return switch (stage) {
+      LifeStage.infant => 'infancy',
+      LifeStage.toddler => 'toddlerhood',
+      LifeStage.child => 'childhood',
+      LifeStage.teen => 'the teenage years',
+      LifeStage.youngAdult => 'young adulthood',
+      LifeStage.adult => 'adulthood',
+      LifeStage.senior => 'the senior years',
+    };
   }
 }

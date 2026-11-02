@@ -107,17 +107,13 @@ class ParentEconomySystem implements SimulationSystem {
                 household.housingStatus == HousingStatus.ownedWithMortgage)
         ? HousingStatus.providedByOthers
         : household.housingStatus;
-    final updatedHousehold = FamilyHousehold(
-      id: household.id,
+    // copyWith keeps every other field, including the story flags
+    // isAffairConception and raisedByFather. The legacy aggregate money
+    // fields are intentionally left untouched.
+    final updatedHousehold = household.copyWith(
       parents: updatedParents,
-      siblings: household.siblings,
-      // Legacy aggregate fields are retained only for old-save compatibility;
-      // the economy system no longer changes or consults them.
-      cashSavings: household.cashSavings,
       assets: updatedAssets,
       housingStatus: housingStatus,
-      annualLivingCosts: household.annualLivingCosts,
-      totalDebt: household.totalDebt,
     );
     return nextState.copyWith(
       player: player,
