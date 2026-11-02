@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/money/currency_formatter.dart';
 import '../../core/money/fixed_exchange_rates.dart';
-import '../../core/money/money.dart';
+import 'package:everylife/core/money/money.dart';
 import '../../core/result/result.dart';
 import '../../domain/career/education_state.dart';
 import '../../domain/career/job_catalog.dart';
