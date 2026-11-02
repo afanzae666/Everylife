@@ -1,7 +1,10 @@
 enum SystemPriority {
   time(100),
   parentEconomy(150),
+  familyMortality(160),
   character(200),
+  education(250),
+  career(300),
   mortality(800),
   event(900);
 
