@@ -57,9 +57,10 @@ void main() {
 
     expect(updated.isAffairConception, isTrue);
     expect(updated.raisedByFather, isTrue);
+    // Income 100000 minus the default expenses (70% of income).
     expect(
       updated.parents.single.cashBalance,
-      const Money.fromMinorUnits(100000),
+      const Money.fromMinorUnits(30000),
     );
   });
 }
