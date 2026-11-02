@@ -7,7 +7,6 @@ import '../../domain/character/character.dart';
 import '../../domain/character/life_stage.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
-import '../../domain/family/family_household.dart';
 import '../../domain/time/simulation_clock.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
@@ -186,17 +185,9 @@ class SimulationEngine {
     } else {
       siblings[siblingIndex] = siblings[siblingIndex].copyWith(relationshipPercent: nextScore);
     }
-    final nextHousehold = FamilyHousehold(
-      id: household.id,
+    final nextHousehold = household.copyWith(
       parents: parents,
       siblings: siblings,
-      cashSavings: household.cashSavings,
-      assets: household.assets,
-      housingStatus: household.housingStatus,
-      annualLivingCosts: household.annualLivingCosts,
-      totalDebt: household.totalDebt,
-      isAffairConception: household.isAffairConception,
-      raisedByFather: household.raisedByFather,
     );
     final event = SimulationEvent(
       id: 'npc-interaction-${_state.events.length + 1}-${_state.clock.currentYear}-$npcId',
