@@ -7,6 +7,9 @@ enum SimulationEventType {
   lifeStageChanged,
   randomEvent,
   npcInteraction,
+  lifeEvent,
+  lifeChoice,
+  death,
 }
 
 class SimulationEvent {
