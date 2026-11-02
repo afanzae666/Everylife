@@ -12,7 +12,6 @@ import '../presentation/screens/character_creation_screen.dart';
 import '../presentation/screens/game_screen.dart';
 import '../presentation/screens/loading_screen.dart';
 import '../simulation/engine/simulation_engine.dart';
-import '../simulation/systems/event_system.dart';
 import 'app_dependencies.dart';
 import 'theme/everylife_theme.dart';
 import 'theme/everylife_theme_mode_controller.dart';
@@ -160,11 +159,7 @@ class _LifeSimulationAppState
         nextTickId: saveData.nextTickId,
       );
 
-      engine.registerSystem(
-        EventSystem(
-          random: engine.random,
-        ),
-      );
+      engine.registerGameplaySystems();
 
       setState(() {
         _engine = engine;
@@ -471,11 +466,7 @@ class _LifeSimulationAppState
       saveRepository: _saveRepository,
     );
 
-    engine.registerSystem(
-      EventSystem(
-        random: engine.random,
-      ),
-    );
+    engine.registerGameplaySystems();
 
     return engine;
   }
