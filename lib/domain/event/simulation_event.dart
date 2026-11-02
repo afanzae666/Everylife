@@ -10,6 +10,9 @@ enum SimulationEventType {
   lifeEvent,
   lifeChoice,
   death,
+  education,
+  career,
+  family,
 }
 
 class SimulationEvent {

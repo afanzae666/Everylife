@@ -69,6 +69,8 @@ class LifeOutcome {
     this.moneyBase = 0,
     this.addFlags = const <String>[],
     this.removeFlags = const <String>[],
+    this.parentRelation = 0,
+    this.siblingRelation = 0,
   });
 
   /// First-person result text shown to the player.
@@ -85,6 +87,12 @@ class LifeOutcome {
 
   final List<String> addFlags;
   final List<String> removeFlags;
+
+  /// Change to the relationship score with every living parent.
+  final int parentRelation;
+
+  /// Change to the relationship score with every living, born sibling.
+  final int siblingRelation;
 }
 
 class LifeChoice {

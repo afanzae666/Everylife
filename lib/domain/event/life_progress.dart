@@ -1,3 +1,29 @@
+import '../career/career_state.dart';
+import '../career/education_state.dart';
+
+/// Flags that systems (not events) set and clear. Events may require them.
+abstract final class SystemFlags {
+  static const String employed = 'employed';
+  static const String student = 'student';
+  static const String graduatedHighSchool = 'graduated_high_school';
+  static const String graduatedUniversity = 'graduated_university';
+  static const String schoolDropout = 'school_dropout';
+  static const String lostParent = 'lost_parent';
+  static const String lostSibling = 'lost_sibling';
+  static const String bankrupt = 'bankrupt';
+
+  static const Set<String> all = {
+    employed,
+    student,
+    graduatedHighSchool,
+    graduatedUniversity,
+    schoolDropout,
+    lostParent,
+    lostSibling,
+    bankrupt,
+  };
+}
+
 /// An event that was shown to the player and is waiting for a decision.
 class PendingLifeEvent {
   const PendingLifeEvent({
@@ -72,6 +98,9 @@ class LifeProgress {
     this.choices = const <String, String>{},
     this.pending,
     this.ending,
+    this.education = const EducationState(),
+    this.career = const CareerState(),
+    this.interactionCounts = const <String, int>{},
   });
 
   /// Story flags set by earlier outcomes (for example "bullied").
@@ -86,6 +115,16 @@ class LifeProgress {
   final PendingLifeEvent? pending;
   final LifeEnding? ending;
 
+  /// Schooling progress.
+  final EducationState education;
+
+  /// Work, income, and retirement.
+  final CareerState career;
+
+  /// How often the player interacted with each family member this year.
+  /// Keys look like "2031:parent-father-2000".
+  final Map<String, int> interactionCounts;
+
   bool hasFlag(String flag) => flags.contains(flag);
 
   bool get isAlive => ending == null;
@@ -97,6 +136,9 @@ class LifeProgress {
     PendingLifeEvent? pending,
     bool clearPending = false,
     LifeEnding? ending,
+    EducationState? education,
+    CareerState? career,
+    Map<String, int>? interactionCounts,
   }) {
     return LifeProgress(
       flags: flags ?? this.flags,
@@ -104,6 +146,9 @@ class LifeProgress {
       choices: choices ?? this.choices,
       pending: clearPending ? null : (pending ?? this.pending),
       ending: ending ?? this.ending,
+      education: education ?? this.education,
+      career: career ?? this.career,
+      interactionCounts: interactionCounts ?? this.interactionCounts,
     );
   }
 
@@ -113,6 +158,9 @@ class LifeProgress {
         'choices': choices,
         if (pending != null) 'pending': pending!.toJson(),
         if (ending != null) 'ending': ending!.toJson(),
+        'education': education.toJson(),
+        'career': career.toJson(),
+        'interactionCounts': interactionCounts,
       };
 
   /// Reads saved progress. Missing or malformed data (for example from a
@@ -144,6 +192,15 @@ class LifeProgress {
           : const <String, String>{},
       pending: PendingLifeEvent.fromJson(json['pending']),
       ending: LifeEnding.fromJson(json['ending']),
+      education: EducationState.fromJson(json['education']),
+      career: CareerState.fromJson(json['career']),
+      interactionCounts: json['interactionCounts'] is Map
+          ? {
+              for (final entry in (json['interactionCounts'] as Map).entries)
+                if (entry.key is String && entry.value is int)
+                  entry.key as String: entry.value as int,
+            }
+          : const <String, int>{},
     );
   }
 }
