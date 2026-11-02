@@ -45,9 +45,11 @@ class Money {
 
   @override
   String toString() {
-    final units = minorUnits ~/ minorUnitsPerUnit;
-    final cents = minorUnits.abs() % minorUnitsPerUnit;
+    final absolute = minorUnits.abs();
+    final units = absolute ~/ minorUnitsPerUnit;
+    final cents = absolute % minorUnitsPerUnit;
+    final sign = minorUnits < 0 ? '-' : '';
 
-    return '\$$units.${cents.toString().padLeft(2, '0')}';
+    return '$sign\$$units.${cents.toString().padLeft(2, '0')}';
   }
 }
