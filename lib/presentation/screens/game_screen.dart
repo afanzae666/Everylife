@@ -529,7 +529,17 @@ class _GameScreenState extends State<GameScreen> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => CareerScreen(
+          engine: engine,
           zoom: _uiScaleController.value,
+          onChanged: () async {
+            if (mounted) {
+              setState(() {});
+            }
+
+            if (_autoSaveController.value) {
+              await engine.save();
+            }
+          },
         ),
       ),
     );
