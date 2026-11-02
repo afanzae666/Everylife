@@ -6,6 +6,7 @@ import '../../domain/character/character_stats.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/player_asset.dart';
 import '../../domain/character/starting_background.dart';
+import '../../domain/event/life_progress.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/family/family_asset.dart';
 import '../../domain/family/family_household.dart';
@@ -42,6 +43,7 @@ this.playerLocation,
 this.playerStartingBackgroundTier,
 this.familyHousehold,
 required this.events,
+this.lifeProgress = const LifeProgress(),
 });
 
 final int currentYear;
@@ -89,6 +91,10 @@ final FamilyHousehold? familyHousehold;
 
 final List<SimulationEvent> events;
 
+/// Story flags, event history, pending decision, and ending.
+/// Defaults to empty for saves created before this system existed.
+final LifeProgress lifeProgress;
+
 factory WorldStateSnapshot.fromWorldState(
 WorldState state,
 ) {
@@ -122,6 +128,7 @@ return WorldStateSnapshot(
       state.startingBackground?.tier,
   familyHousehold: state.familyHousehold,
   events: List.unmodifiable(state.events),
+  lifeProgress: state.lifeProgress,
 );
 
 }
@@ -168,6 +175,7 @@ playerStartingBackgroundTier == null
 tier: playerStartingBackgroundTier!,
 ),
 familyHousehold: familyHousehold,
+lifeProgress: lifeProgress,
 );
 }
 
@@ -230,6 +238,7 @@ playerStartingBackgroundTier?.name,
 'familyHousehold': familyHousehold == null
 ? null
 : _familyHouseholdToJson(familyHousehold!),
+'lifeProgress': lifeProgress.toJson(),
 'events': events
 .map(
 (event) => {
@@ -373,6 +382,7 @@ return WorldStateSnapshot(
         )
         .toList(growable: false),
   ),
+  lifeProgress: LifeProgress.fromJson(json['lifeProgress']),
 );
 
 }
