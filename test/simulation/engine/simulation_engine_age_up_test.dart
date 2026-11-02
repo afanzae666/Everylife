@@ -58,7 +58,7 @@ void main() {
       expect(event.title, 'Another year passes');
       expect(
         event.description,
-        'Test Player is now 1 years old.',
+        'Test Player is now 1 year old.',
       );
     });
 
