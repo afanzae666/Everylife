@@ -20,7 +20,13 @@ class CareerActionResult {
 /// Player-triggered school and work actions (the career screen buttons).
 abstract final class CareerActions {
   /// Jobs the player is old enough and qualified for.
+  ///
+  /// Nobody can work full time while enrolled in school or university.
   static List<JobDefinition> availableJobs(WorldState state) {
+    if (state.lifeProgress.education.isStudent) {
+      return const <JobDefinition>[];
+    }
+
     final age = state.player.ageAt(state.clock.currentYear);
     final education = state.lifeProgress.education.highest;
 
@@ -114,12 +120,18 @@ abstract final class CareerActions {
       return const Failure('I already have a job. I would need to quit first.');
     }
 
+    if (state.lifeProgress.education.isStudent) {
+      return const Failure(
+        'I cannot work full time while I am still studying.',
+      );
+    }
+
     if (!availableJobs(state).any((candidate) => candidate.id == jobId)) {
       return const Failure('I do not qualify for that job yet.');
     }
 
     if (career.lastApplicationYear == year) {
-      return const Failure('I already applied this year. I can try again next year.');
+      return const Failure('I already applied this year. I can try again after my next birthday.');
     }
 
     final hired = random.nextInt(100) < hiringChance(state, job);
@@ -267,12 +279,18 @@ abstract final class CareerActions {
       return const Failure('I already have a university degree.');
     }
 
-    if (education.highest != EducationLevel.secondary) {
+    if (education.highest != EducationLevel.highSchool) {
       return const Failure('I need a high school diploma first.');
     }
 
+    if (state.lifeProgress.career.hasJob) {
+      return const Failure(
+        'I cannot study and work full time. I would have to quit my job first.',
+      );
+    }
+
     if (education.lastUniversityApplicationYear == year) {
-      return const Failure('I already applied this year. I can try again next year.');
+      return const Failure('I already applied this year. I can try again after my next birthday.');
     }
 
     final accepted = random.nextInt(100) < universityChance(state);
@@ -294,7 +312,7 @@ abstract final class CareerActions {
       type: SimulationEventType.education,
       title: accepted ? 'Accepted to university' : 'University said no',
       text: accepted
-          ? 'I was accepted to university and will start this year.'
+          ? 'I was accepted to university and will start soon.'
           : 'My university application was turned down.',
     );
 
@@ -303,7 +321,7 @@ abstract final class CareerActions {
         state: next,
         message: accepted
             ? 'You are in! University starts now.'
-            : 'The university turned you down. You can apply again next year.',
+            : 'The university turned you down. You can apply again after your next birthday.',
       ),
     );
   }
@@ -317,7 +335,7 @@ abstract final class CareerActions {
 
     final education = state.lifeProgress.education;
 
-    if (education.stage != SchoolStage.secondary &&
+    if (education.stage != SchoolStage.high &&
         education.stage != SchoolStage.university) {
       return const Failure('There is no school I can leave right now.');
     }
