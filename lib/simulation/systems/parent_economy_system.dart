@@ -8,6 +8,7 @@ import '../../domain/family/family_household.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
+import 'funeral_planner.dart';
 import 'simulation_system.dart';
 import 'system_priority.dart';
 
@@ -40,6 +41,7 @@ class ParentEconomySystem implements SimulationSystem {
     final currentYear = state.clock.currentYear;
     var player = state.player;
     var parentsChanged = false;
+    final diedNow = <ParentNpc>[];
     final updatedParents = <ParentNpc>[];
     final updatedAssets = List<FamilyAsset>.of(household.assets);
     var nextState = state;
@@ -70,6 +72,7 @@ class ParentEconomySystem implements SimulationSystem {
           );
         }
         updatedAssets.removeWhere((asset) => asset.ownerNpcId == parent.id);
+        diedNow.add(parent);
         updatedParents.add(parent.copyWith(
           isAlive: false,
           deathYear: currentYear,
@@ -148,9 +151,12 @@ class ParentEconomySystem implements SimulationSystem {
       assets: updatedAssets,
       housingStatus: housingStatus,
     );
-    return nextState.copyWith(
-      player: player,
-      familyHousehold: updatedHousehold,
+    return FuneralPlanner.schedule(
+      nextState.copyWith(
+        player: player,
+        familyHousehold: updatedHousehold,
+      ),
+      diedNow,
     );
   }
 

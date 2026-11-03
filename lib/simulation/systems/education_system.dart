@@ -10,9 +10,11 @@ import 'system_priority.dart';
 
 /// Moves the player through school and university once a year.
 ///
-/// Primary school starts at 6, secondary at 13, and graduation is at 18.
-/// University (4 years) starts when the player was accepted (the
-/// "university" flag from an event, or an application on the career screen).
+/// School starts at 6: elementary school (6-11), middle school (12-14) and
+/// high school (15-17). Graduation is at 18. University (4 years) starts when
+/// the player was accepted (the "university" flag from an event, or an
+/// application on the occupation screen) and is only possible without a
+/// full-time job.
 class EducationSystem implements SimulationSystem {
   EducationSystem({
     required SeededRandom random,
@@ -21,6 +23,17 @@ class EducationSystem implements SimulationSystem {
   final SeededRandom _random;
 
   static const int universityYears = 4;
+
+  /// Ages at which the player moves up.
+  static const int elementaryStartAge = 6;
+  static const int middleStartAge = 12;
+  static const int highStartAge = 15;
+  static const int graduationAge = 18;
+
+  /// Number of grades in each school stage.
+  static const int elementaryYears = 6;
+  static const int middleYears = 3;
+  static const int highYears = 3;
 
   @override
   String get id => 'education';
@@ -71,6 +84,7 @@ class EducationSystem implements SimulationSystem {
         flags: flags,
         stats: state.player.stats.intelligence,
         will: state.player.stats.willpower,
+        hasJob: progress.career.hasJob,
         log: log,
       );
     }
@@ -111,30 +125,41 @@ class EducationSystem implements SimulationSystem {
     int age,
     Set<String> flags,
   ) {
-    if (age >= 18) {
+    if (age >= graduationAge) {
       flags.add(SystemFlags.graduatedHighSchool);
 
       return education.copyWith(
         initialized: true,
-        highest: education.highest.index > EducationLevel.secondary.index
+        highest: education.highest.index > EducationLevel.highSchool.index
             ? education.highest
-            : EducationLevel.secondary,
+            : EducationLevel.highSchool,
         stage: SchoolStage.none,
       );
     }
 
-    if (age >= 13) {
+    if (age >= highStartAge) {
       return education.copyWith(
         initialized: true,
-        highest: EducationLevel.primary,
-        stage: SchoolStage.secondary,
+        highest: EducationLevel.middle,
+        stage: SchoolStage.high,
+        yearsInStage: age - highStartAge,
       );
     }
 
-    if (age >= 6) {
+    if (age >= middleStartAge) {
       return education.copyWith(
         initialized: true,
-        stage: SchoolStage.primary,
+        highest: EducationLevel.elementary,
+        stage: SchoolStage.middle,
+        yearsInStage: age - middleStartAge,
+      );
+    }
+
+    if (age >= elementaryStartAge) {
+      return education.copyWith(
+        initialized: true,
+        stage: SchoolStage.elementary,
+        yearsInStage: age - elementaryStartAge,
       );
     }
 
@@ -147,6 +172,7 @@ class EducationSystem implements SimulationSystem {
     required Set<String> flags,
     required int stats,
     required int will,
+    required bool hasJob,
     required void Function(String key, String title, String text) log,
   }) {
     var current = education;
@@ -168,34 +194,68 @@ class EducationSystem implements SimulationSystem {
     switch (current.stage) {
       case SchoolStage.none:
         if (current.highest == EducationLevel.none &&
-            age >= 6 &&
-            age < 13 &&
+            age >= elementaryStartAge &&
+            age < middleStartAge &&
             !flags.contains(SystemFlags.schoolDropout)) {
-          current = current.copyWith(stage: SchoolStage.primary, yearsInStage: 0);
-          log('primary', 'First day of primary school', 'I started primary school.');
-        } else if (current.highest == EducationLevel.secondary &&
-            flags.remove('university')) {
-          current = current.copyWith(stage: SchoolStage.university, yearsInStage: 0);
-          log('university', 'University begins', 'I started university.');
-        }
-      case SchoolStage.primary:
-        if (age >= 13) {
           current = current.copyWith(
-            highest: EducationLevel.primary,
-            stage: SchoolStage.secondary,
+            stage: SchoolStage.elementary,
             yearsInStage: 0,
           );
-          log('secondary', 'Secondary school', 'I moved up to secondary school.');
+          log(
+            'elementary',
+            'First day of elementary school',
+            'I started elementary school.',
+          );
+        } else if (current.highest == EducationLevel.highSchool &&
+            flags.contains('university')) {
+          flags.remove('university');
+
+          if (hasJob) {
+            // Nobody studies full time and works full time.
+            log(
+              'university-blocked',
+              'No time for university',
+              'I could not start university because I work full time.',
+            );
+          } else {
+            current = current.copyWith(
+              stage: SchoolStage.university,
+              yearsInStage: 0,
+            );
+            log('university', 'University begins', 'I started university.');
+          }
         }
-      case SchoolStage.secondary:
-        if (age >= 18) {
+      case SchoolStage.elementary:
+        if (age >= middleStartAge) {
           current = current.copyWith(
-            highest: EducationLevel.secondary,
+            highest: EducationLevel.elementary,
+            stage: SchoolStage.middle,
+            yearsInStage: 0,
+          );
+          log('middle', 'Middle school', 'I started middle school.');
+        }
+      case SchoolStage.middle:
+        if (age >= highStartAge) {
+          current = current.copyWith(
+            highest: EducationLevel.middle,
+            stage: SchoolStage.high,
+            yearsInStage: 0,
+          );
+          log('high', 'High school', 'I started high school.');
+        }
+      case SchoolStage.high:
+        if (age >= graduationAge) {
+          current = current.copyWith(
+            highest: EducationLevel.highSchool,
             stage: SchoolStage.none,
             yearsInStage: 0,
           );
           flags.add(SystemFlags.graduatedHighSchool);
-          log('graduation', 'High school graduation', 'I graduated from high school.');
+          log(
+            'graduation',
+            'High school graduation',
+            'I graduated from high school.',
+          );
         }
       case SchoolStage.university:
         if (current.yearsInStage >= universityYears) {
@@ -206,11 +266,22 @@ class EducationSystem implements SimulationSystem {
               yearsInStage: 0,
             );
             flags.add(SystemFlags.graduatedUniversity);
-            log('degree', 'University graduation', 'I earned my bachelor degree.');
+            log(
+              'degree',
+              'University graduation',
+              'I earned my bachelor degree.',
+            );
           } else {
-            current = current.copyWith(stage: SchoolStage.none, yearsInStage: 0);
+            current = current.copyWith(
+              stage: SchoolStage.none,
+              yearsInStage: 0,
+            );
             flags.add(SystemFlags.schoolDropout);
-            log('failed', 'Left university', 'My grades were too low to graduate.');
+            log(
+              'failed',
+              'Left university',
+              'My grades were too low to graduate.',
+            );
           }
         }
     }

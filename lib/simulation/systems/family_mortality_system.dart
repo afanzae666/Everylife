@@ -9,6 +9,7 @@ import '../../domain/family/sibling_npc.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
+import 'funeral_planner.dart';
 import 'mortality_system.dart';
 import 'simulation_system.dart';
 import 'system_priority.dart';
@@ -59,6 +60,7 @@ class FamilyMortalitySystem implements SimulationSystem {
     var changed = false;
 
     final parents = <ParentNpc>[];
+    final diedNow = <ParentNpc>[];
 
     for (final parent in household.parents) {
       if (!parent.isAlive) {
@@ -78,6 +80,7 @@ class FamilyMortalitySystem implements SimulationSystem {
       }
 
       changed = true;
+      diedNow.add(parent);
 
       final isBiological =
           parent.role == FamilyRole.father || parent.role == FamilyRole.mother;
@@ -195,7 +198,8 @@ class FamilyMortalitySystem implements SimulationSystem {
       next = next.addEvent(entry);
     }
 
-    return next;
+    // The player decides how to say goodbye (burial, cremation, ...).
+    return FuneralPlanner.schedule(next, diedNow);
   }
 
   String _parentDeathText({
