@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:everylife/core/money/money.dart';
@@ -1650,7 +1651,6 @@ class _AgeUpButton extends StatelessWidget {
     double s(double value) => value * zoom;
 
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Material(
       key: const Key('bottom-nav-age-up'),
@@ -1662,53 +1662,111 @@ class _AgeUpButton extends StatelessWidget {
               }
             : null,
         customBorder: const CircleBorder(),
-        child: Ink(
-          width: s(70),
-          height: s(70),
-          decoration: BoxDecoration(
-            color: isDark
-                ? theme.colorScheme.primaryContainer
-                : theme.colorScheme.surface,
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: theme.colorScheme.tertiary,
-              width: s(1.8),
+        child: Opacity(
+          opacity: enabled ? 1.0 : 0.38,
+          child: Container(
+            width: s(70),
+            height: s(70),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.18),
+                  blurRadius: s(5),
+                  offset: Offset(0, s(3)),
+                ),
+              ],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.18),
-                blurRadius: s(5),
-                offset: Offset(0, s(3)),
-              ),
-            ],
-          ),
-          child: Center(
-            child: Container(
-              width: s(64),
-              height: s(64),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: theme.colorScheme.tertiary.withValues(
-                    alpha: 0.35,
-                  ),
-                  width: s(1),
-                ),
-              ),
-              child: Opacity(
-                opacity: enabled ? 1.0 : 0.38,
-                child: Image.asset(
-                  'assets/icons/age_up.png',
-                  width: s(64),
-                  height: s(64),
-                  fit: BoxFit.contain,
-                ),
+            child: CustomPaint(
+              painter: _AgeUpPainter(
+                color: theme.colorScheme.primary,
+                background: theme.colorScheme.surface,
               ),
             ),
           ),
         ),
       ),
     );
+  }
+}
+
+/// Draws the Age Up button in code: a thick ring with three light slots and
+/// a big four-point star surrounded by four small ones.
+class _AgeUpPainter extends CustomPainter {
+  const _AgeUpPainter({
+    required this.color,
+    required this.background,
+  });
+
+  final Color color;
+  final Color background;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = size.shortestSide / 2;
+    final fill = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill
+      ..isAntiAlias = true;
+    final light = Paint()
+      ..color = background
+      ..style = PaintingStyle.fill
+      ..isAntiAlias = true;
+
+    // Ring: a solid disc with a lighter disc inside it.
+    canvas.drawCircle(center, radius * 0.96, fill);
+    canvas.drawCircle(center, radius * 0.77, light);
+
+    // Three light slots cut into the ring.
+    final slot = Paint()
+      ..color = background
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = radius * 0.09
+      ..strokeCap = StrokeCap.round
+      ..isAntiAlias = true;
+    final slotRect = Rect.fromCircle(center: center, radius: radius * 0.87);
+
+    void arc(double startDegrees, double endDegrees) {
+      canvas.drawArc(
+        slotRect,
+        startDegrees * math.pi / 180,
+        (endDegrees - startDegrees) * math.pi / 180,
+        false,
+        slot,
+      );
+    }
+
+    arc(245, 295); // top
+    arc(135, 185); // lower left
+    arc(355, 405); // lower right
+
+    // Stars.
+    _star(canvas, center, radius * 0.36, fill);
+    _star(canvas, center + Offset(0, -radius * 0.55), radius * 0.09, fill);
+    _star(canvas, center + Offset(0, radius * 0.55), radius * 0.09, fill);
+    _star(canvas, center + Offset(-radius * 0.53, 0), radius * 0.09, fill);
+    _star(canvas, center + Offset(radius * 0.53, 0), radius * 0.09, fill);
+  }
+
+  /// A four-point star with curved (concave) sides.
+  void _star(Canvas canvas, Offset center, double r, Paint paint) {
+    final k = r * 0.2;
+    final path = Path()
+      ..moveTo(center.dx, center.dy - r)
+      ..quadraticBezierTo(center.dx + k, center.dy - k, center.dx + r, center.dy)
+      ..quadraticBezierTo(center.dx + k, center.dy + k, center.dx, center.dy + r)
+      ..quadraticBezierTo(center.dx - k, center.dy + k, center.dx - r, center.dy)
+      ..quadraticBezierTo(center.dx - k, center.dy - k, center.dx, center.dy - r)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_AgeUpPainter oldDelegate) {
+    return oldDelegate.color != color || oldDelegate.background != background;
   }
 }
 
