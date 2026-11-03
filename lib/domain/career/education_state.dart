@@ -1,14 +1,26 @@
 /// Where the player currently studies.
-enum SchoolStage { none, primary, secondary, university }
+///
+/// School runs from age 6 to 17: elementary (6-11), middle (12-14) and high
+/// school (15-17). University is optional after graduating at 18.
+enum SchoolStage { none, elementary, middle, high, university }
 
 /// The highest level the player has completed.
-enum EducationLevel { none, primary, secondary, bachelor }
+enum EducationLevel { none, elementary, middle, highSchool, bachelor }
 
-T _enumByName<T extends Enum>(List<T> values, Object? name, T fallback) {
+/// Stage names used by saves made before the three-school system.
+const Map<String, String> _legacyNames = {
+  'primary': 'elementary',
+  'secondary': 'high',
+};
+
+T _enumByName<T extends Enum>(List<T> values, Object? name, T fallback,
+    {Map<String, String> legacy = const {}}) {
   if (name is! String) return fallback;
 
+  final key = legacy[name] ?? name;
+
   for (final value in values) {
-    if (value.name == name) return value;
+    if (value.name == key) return value;
   }
 
   return fallback;
@@ -79,11 +91,20 @@ class EducationState {
 
     return EducationState(
       initialized: json['initialized'] == true,
-      stage: _enumByName(SchoolStage.values, json['stage'], SchoolStage.none),
+      stage: _enumByName(
+        SchoolStage.values,
+        json['stage'],
+        SchoolStage.none,
+        legacy: _legacyNames,
+      ),
       highest: _enumByName(
         EducationLevel.values,
         json['highest'],
         EducationLevel.none,
+        legacy: const {
+          'primary': 'elementary',
+          'secondary': 'highSchool',
+        },
       ),
       grades: grades is int ? grades.clamp(0, 100).toInt() : 60,
       yearsInStage: years is int ? years : 0,
