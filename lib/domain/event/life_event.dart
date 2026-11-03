@@ -101,11 +101,38 @@ class LifeChoice {
     required this.label,
     required this.outcomes,
     this.requiresMoneyBase = 0,
+    this.narration,
   });
 
   final String id;
   final String label;
   final List<LifeOutcome> outcomes;
+
+  /// Optional first-person sentence that tells what I did. When missing, it
+  /// is made from [label] (see [story]).
+  final String? narration;
+
+  /// What I did, as a sentence in the story. Button labels are commands
+  /// ("Join the team"); the story says "I join the team." so the event text
+  /// reads as one flowing paragraph without an "I chose to:" prefix.
+  String get story {
+    final custom = narration;
+
+    if (custom != null && custom.trim().isNotEmpty) return custom;
+
+    final text = label.trim();
+
+    if (text.isEmpty) return '';
+
+    final lowered = text[0].toLowerCase() + text.substring(1);
+    final sentence = 'I $lowered';
+
+    return sentence.endsWith('.') ||
+            sentence.endsWith('!') ||
+            sentence.endsWith('?')
+        ? sentence
+        : '$sentence.';
+  }
 
   /// Money the player must hold (baseline minor units) to pick this choice.
   final int requiresMoneyBase;
@@ -128,10 +155,15 @@ class LifeEventDefinition {
     this.needsLivingSibling = false,
     this.choices = const <LifeChoice>[],
     this.autoOutcomes = const <LifeOutcome>[],
+    this.scripted = false,
   });
 
   final String id;
   final String title;
+
+  /// Scripted events are started by game systems (for example a funeral),
+  /// never drawn at random.
+  final bool scripted;
 
   /// First-person scene text.
   final String description;
@@ -157,6 +189,14 @@ class LifeEventDefinition {
   /// Player decisions. When empty, [autoOutcomes] are applied automatically.
   final List<LifeChoice> choices;
   final List<LifeOutcome> autoOutcomes;
+}
+
+/// Fills the `{who}` placeholder that scripted events use for the person the
+/// event is about (for example "my father, Alex Rivera").
+abstract final class LifeText {
+  static String fill(String text, String? subject) {
+    return text.replaceAll('{who}', subject ?? 'someone close to me');
+  }
 }
 
 /// What the player sees after resolving a choice.
