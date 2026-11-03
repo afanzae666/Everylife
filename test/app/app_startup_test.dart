@@ -79,7 +79,7 @@ void main() {
         );
 
         expect(
-          find.text('Birth Year'),
+          find.text('Gender'),
           findsOneWidget,
         );
 
