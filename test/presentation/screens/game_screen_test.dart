@@ -101,7 +101,7 @@ void main() {
     );
 
     testWidgets(
-      'displays all 8 core stats',
+      'displays the four main stats and hides the rest behind a tap',
       (tester) async {
         final repository =
             InMemorySaveRepository();
@@ -119,18 +119,12 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        const statKeys = [
+        for (final key in [
+          'happiness',
           'health',
           'intelligence',
-          'fitness',
-          'happiness',
-          'willpower',
-          'charisma',
-          'creativity',
-          'luck',
-        ];
-
-        for (final key in statKeys) {
+          'looks',
+        ]) {
           expect(
             find.byKey(
               Key('core-stat-$key'),
@@ -140,14 +134,10 @@ void main() {
         }
 
         for (final label in [
-          'Health',
-          'Intelligence',
-          'Fitness',
           'Happiness',
-          'Willpower',
-          'Charisma',
-          'Creativity',
-          'Luck',
+          'Health',
+          'Smarts',
+          'Looks',
         ]) {
           expect(
             find.text(label),
@@ -155,15 +145,33 @@ void main() {
           );
         }
 
-        expect(
-          find.text('Core Stats'),
-          findsNothing,
-        );
+        // The other traits are not on the main screen.
+        for (final label in [
+          'Fitness',
+          'Willpower',
+          'Charisma',
+          'Creativity',
+          'Luck',
+        ]) {
+          expect(
+            find.text(label),
+            findsNothing,
+          );
+        }
 
-        expect(
-          find.text('8 / 8'),
-          findsNothing,
+        await tester.tap(
+          find.byKey(const Key('core-stat-happiness')),
         );
+        await tester.pumpAndSettle();
+
+        expect(find.text('My Traits'), findsOneWidget);
+        expect(find.text('Fitness'), findsOneWidget);
+        expect(find.text('Luck'), findsNothing);
+
+        await tester.tap(find.text('Tap anywhere to close'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('My Traits'), findsNothing);
       },
     );
 
