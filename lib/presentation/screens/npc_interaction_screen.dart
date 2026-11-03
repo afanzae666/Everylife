@@ -17,6 +17,7 @@ class NpcInteractionScreen extends StatefulWidget {
     this.currentYear,
     this.playerAge = 18,
     this.isAlive = true,
+    this.initiallyLocked = false,
     super.key,
   });
 
@@ -35,6 +36,10 @@ class NpcInteractionScreen extends StatefulWidget {
   final int playerAge;
   final bool isAlive;
 
+  /// True when the player already used this person's interaction for the
+  /// current age. Every family member allows one interaction per age.
+  final bool initiallyLocked;
+
   @override
   State<NpcInteractionScreen> createState() => _NpcInteractionScreenState();
 }
@@ -43,9 +48,10 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
   late int _score = widget.relationshipPercent.clamp(-100, 100).toInt();
   bool _hadArgument = false;
   bool _showingNarrative = false;
+  late bool _locked = widget.initiallyLocked;
 
   void _interact(String action) {
-    if (!widget.isAlive || _showingNarrative) return;
+    if (!widget.isAlive || _showingNarrative || _locked) return;
     final result = widget.onInteraction(npcId: widget.npcId, action: action);
     switch (result) {
       case Success<NpcInteractionOutcome>(:final value):
@@ -54,6 +60,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
           if (action == 'Argue') _hadArgument = true;
           if (action == 'Apologize') _hadArgument = false;
           _showingNarrative = true;
+          _locked = true;
         });
         _showNarrative(value.narrative);
       case Failure<NpcInteractionOutcome>(:final message):
@@ -87,7 +94,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                     children: [
                       Text(narrative, style: Theme.of(context).textTheme.bodyLarge),
                       const SizedBox(height: 24),
-                      const Text('Tap anywhere to continue', textAlign: TextAlign.center),
+                      const Text('Tap anywhere to close', textAlign: TextAlign.center),
                     ],
                   ),
                 ),
@@ -197,15 +204,27 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
           ),
           if (_availableActions.isNotEmpty) ...[
             const Padding(padding: EdgeInsets.all(8), child: Text('Interactions')),
+            if (_locked && widget.isAlive)
+              const Padding(
+                padding: EdgeInsets.fromLTRB(8, 0, 8, 8),
+                child: Text(
+                  'I already spent time with them. '
+                  'Maybe after my next birthday.',
+                  key: Key('interaction-locked-note'),
+                ),
+              ),
             for (final action in _availableActions)
               _ActionRow(
                 title: action,
-                onPressed: widget.isAlive ? () => _interact(action) : null,
+                onPressed:
+                    widget.isAlive && !_locked ? () => _interact(action) : null,
               ),
             if (_hadArgument && widget.playerAge >= 13)
               _ActionRow(
                 title: 'Apologize',
-                onPressed: widget.isAlive ? () => _interact('Apologize') : null,
+                onPressed: widget.isAlive && !_locked
+                    ? () => _interact('Apologize')
+                    : null,
               ),
           ],
         ],

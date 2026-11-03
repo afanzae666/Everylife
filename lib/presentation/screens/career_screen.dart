@@ -12,7 +12,10 @@ import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
 import '../../simulation/systems/education_system.dart';
 
-/// School, university, and work: status, actions, and history.
+/// School (ages 6-17) or occupation (18+): status, actions, and history.
+///
+/// Under 18 the page is "School": elementary, middle and high school.
+/// From 18 it is "Occupation": university, jobs, money, and pension.
 class CareerScreen extends StatefulWidget {
   const CareerScreen({
     required this.engine,
@@ -77,20 +80,31 @@ class _CareerScreenState extends State<CareerScreen> {
   }
 
   String _stageLabel(EducationState education) {
+    int grade(int total) => (education.yearsInStage + 1).clamp(1, total).toInt();
+
     return switch (education.stage) {
       SchoolStage.none => 'Not enrolled',
-      SchoolStage.primary => 'Primary school',
-      SchoolStage.secondary => 'High school',
+      SchoolStage.elementary =>
+        'Elementary school (grade ${grade(EducationSystem.elementaryYears)} '
+            'of ${EducationSystem.elementaryYears})',
+      SchoolStage.middle =>
+        'Middle school (grade ${grade(EducationSystem.middleYears)} '
+            'of ${EducationSystem.middleYears})',
+      SchoolStage.high =>
+        'High school (grade ${grade(EducationSystem.highYears)} '
+            'of ${EducationSystem.highYears})',
       SchoolStage.university =>
-        'University (year ${education.yearsInStage + 1} of ${EducationSystem.universityYears})',
+        'University (year ${grade(EducationSystem.universityYears)} '
+            'of ${EducationSystem.universityYears})',
     };
   }
 
   String _levelLabel(EducationLevel level) {
     return switch (level) {
       EducationLevel.none => 'None yet',
-      EducationLevel.primary => 'Primary school',
-      EducationLevel.secondary => 'High school diploma',
+      EducationLevel.elementary => 'Elementary school',
+      EducationLevel.middle => 'Middle school',
+      EducationLevel.highSchool => 'High school diploma',
       EducationLevel.bachelor => "Bachelor's degree",
     };
   }
@@ -100,22 +114,28 @@ class _CareerScreenState extends State<CareerScreen> {
     final state = engine.state;
     final progress = state.lifeProgress;
     final player = state.player;
+    final age = player.ageAt(state.clock.currentYear);
+    final isSchoolAge = age < 18;
 
     return MediaQuery(
       data: MediaQuery.of(context).copyWith(
         textScaler: TextScaler.linear(widget.zoom),
       ),
       child: Scaffold(
-        appBar: AppBar(title: const Text('Career')),
+        appBar: AppBar(title: Text(isSchoolAge ? 'School' : 'Occupation')),
         body: SafeArea(
           child: ListView(
             padding: EdgeInsets.fromLTRB(s(8), s(6), s(8), s(12)),
             children: [
-              _buildFinances(player.money, player.debt),
-              SizedBox(height: s(6)),
+              if (!isSchoolAge) ...[
+                _buildFinances(player.money, player.debt),
+                SizedBox(height: s(6)),
+              ],
               _buildEducation(progress.education, state.clock.currentYear),
-              SizedBox(height: s(6)),
-              _buildWork(),
+              if (!isSchoolAge) ...[
+                SizedBox(height: s(6)),
+                _buildWork(),
+              ],
               SizedBox(height: s(6)),
               _buildHistory(state.events),
             ],
@@ -143,11 +163,12 @@ class _CareerScreenState extends State<CareerScreen> {
 
   Widget _buildEducation(EducationState education, int year) {
     final age = engine.state.player.ageAt(year);
+    final hasJob = engine.state.lifeProgress.career.hasJob;
     final canApply = !education.isStudent &&
-        education.highest == EducationLevel.secondary &&
+        education.highest == EducationLevel.highSchool &&
         age >= 18;
     final appliedThisYear = education.lastUniversityApplicationYear == year;
-    final canDropOut = education.stage == SchoolStage.secondary ||
+    final canDropOut = education.stage == SchoolStage.high ||
         education.stage == SchoolStage.university;
 
     return Card(
@@ -161,7 +182,10 @@ class _CareerScreenState extends State<CareerScreen> {
               children: [
                 const Icon(Icons.school_outlined),
                 SizedBox(width: s(6)),
-                Text('Education', style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  age < 18 ? 'School' : 'Education',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ],
             ),
             SizedBox(height: s(4)),
@@ -174,15 +198,24 @@ class _CareerScreenState extends State<CareerScreen> {
               LinearProgressIndicator(value: education.grades / 100),
             ],
             if (canApply || canDropOut) SizedBox(height: s(6)),
+            if (canApply && hasJob)
+              Padding(
+                padding: EdgeInsets.only(bottom: s(4)),
+                child: const Text(
+                  'I cannot study and work full time. '
+                  'I would have to quit my job first.',
+                  key: Key('university-needs-quit'),
+                ),
+              ),
             if (canApply)
               FilledButton.tonal(
                 key: const Key('apply-university'),
-                onPressed: appliedThisYear
+                onPressed: appliedThisYear || hasJob
                     ? null
                     : () => _run(engine.applyForUniversity()),
                 child: Text(
                   appliedThisYear
-                      ? 'Applied this year'
+                      ? 'Applied already'
                       : 'APPLY TO UNIVERSITY (${engine.universityChance}% chance)',
                 ),
               ),
@@ -249,6 +282,14 @@ class _CareerScreenState extends State<CareerScreen> {
       ]);
     } else if (age < 16) {
       children.add(const Text('I am too young to work.'));
+    } else if (state.lifeProgress.education.isStudent) {
+      children.addAll([
+        const Text('Student'),
+        const Text(
+          'I cannot work full time while I am still studying.',
+          key: Key('student-cannot-work'),
+        ),
+      ]);
     } else {
       children.add(const Text('Unemployed'));
 
@@ -303,6 +344,7 @@ class _CareerScreenState extends State<CareerScreen> {
         .reversed
         .take(10)
         .toList();
+    final birthYear = engine.state.player.birthYear;
 
     return Card(
       margin: EdgeInsets.zero,
@@ -323,7 +365,10 @@ class _CareerScreenState extends State<CareerScreen> {
             for (final event in history)
               Padding(
                 padding: EdgeInsets.only(bottom: s(2)),
-                child: Text('${event.year}: ${event.description}'),
+                child: Text(
+                  'Age ${(event.year - birthYear).clamp(0, 150)}: '
+                  '${event.description}',
+                ),
               ),
           ],
         ),

@@ -1,6 +1,5 @@
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:everylife/core/money/money.dart';
 
 import '../../core/money/currency_formatter.dart';
@@ -11,6 +10,7 @@ import '../../data/settings/auto_save_settings.dart';
 import '../../domain/character/life_stage.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../simulation/engine/simulation_engine.dart';
+import '../../simulation/events/life_effect_applier.dart';
 import '../../domain/event/life_event.dart';
 import '../widgets/character_avatar.dart';
 import '../widgets/life_event_dialogs.dart';
@@ -228,7 +228,9 @@ class _GameScreenState extends State<GameScreen> {
         final choiceId = await showLifeDecisionDialog(
           context,
           event: event,
+          description: engine.pendingDescription,
           canAfford: engine.canAffordChoice,
+          costLabel: _choiceCostLabel,
         );
 
         if (!mounted || choiceId == null) {
@@ -521,6 +523,90 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  /// The price shown under a choice that costs money, in the player's
+  /// currency (null when the choice is free).
+  String? _choiceCostLabel(LifeChoice choice) {
+    if (choice.requiresMoneyBase <= 0) {
+      return null;
+    }
+
+    final scaled = LifeEffectApplier.scaleMoney(
+      engine.state,
+      choice.requiresMoneyBase,
+    );
+
+    return 'Cost: ${_formatMoney(
+      Money.fromMinorUnits(scaled),
+      currencyCode: _getCurrencyCode(engine.state.player),
+    )}';
+  }
+
+  /// Ages 0-5: the first tab shows who I am instead of a school or a job.
+  Future<void> _openInfantInfo() async {
+    if (_isProcessingTurn) {
+      return;
+    }
+
+    final player = engine.state.player;
+    final age = player.ageAt(engine.state.clock.currentYear);
+    final stats = player.stats;
+    final household = engine.state.familyHousehold;
+    final theme = Theme.of(context);
+
+    Widget row(String label, int value) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Row(
+            children: [
+              Expanded(child: Text(label)),
+              Text('$value'),
+            ],
+          ),
+        );
+
+    final parents = [
+      if (household != null)
+        for (final parent in household.parents)
+          Text(
+            '${parent.isAlive ? '' : '(deceased) '}${parent.fullName}',
+            textAlign: TextAlign.center,
+          ),
+    ];
+
+    await showTapToCloseOverlay(
+      context,
+      title: player.fullName,
+      text: '',
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Age $age · ${_formatLifeStage(LifeStageAge.fromAge(age))}',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyLarge,
+          ),
+          const SizedBox(height: 12),
+          row('Health', stats.health),
+          row('Happiness', stats.happiness),
+          row('Intelligence', stats.intelligence),
+          row('Fitness', stats.fitness),
+          row('Charisma', stats.charisma),
+          row('Creativity', stats.creativity),
+          if (parents.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              'My family',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleSmall,
+            ),
+            const SizedBox(height: 4),
+            ...parents,
+          ],
+        ],
+      ),
+    );
+  }
+
   void _openCareerPage() {
     if (_isProcessingTurn) {
       return;
@@ -563,6 +649,7 @@ class _GameScreenState extends State<GameScreen> {
     if (result.isSuccess && mounted) setState(() {});
     return result;
   },
+  isNpcLocked: engine.hasInteractedThisYear,
   readCurrentParents: () => engine.state.familyHousehold?.parents ?? const [],
   readCurrentSiblings: () => engine.state.familyHousehold?.siblings ?? const [],
 ),
@@ -976,7 +1063,7 @@ class _GameScreenState extends State<GameScreen> {
                         SizedBox(width: s(7)),
                         Expanded(
                           child: Text(
-                            'Age $eventAge • $year',
+                            'Age $eventAge',
                             style: Theme.of(
                               context,
                             )
@@ -1216,10 +1303,26 @@ class _GameScreenState extends State<GameScreen> {
     BuildContext context,
     double zoom,
   ) {
+    final age = engine.state.player.ageAt(engine.state.clock.currentYear);
+
+    // Ages 0-5 show the player's info, 6-17 school, 18+ the occupation.
+    final firstItem = age < 6
+        ? const _NavSlot(label: 'Infant', icon: Icons.child_care_rounded)
+        : age < 18
+            ? const _NavSlot(label: 'School', icon: Icons.school_rounded)
+            : const _NavSlot(label: 'Occupation', icon: Icons.work_rounded);
+
     return _BottomNavigation(
       zoom: zoom,
       isProcessing: _isProcessingTurn,
-      onCareerTap: _openCareerPage,
+      firstSlot: firstItem,
+      onCareerTap: () {
+        if (age < 6) {
+          _openInfantInfo();
+        } else {
+          _openCareerPage();
+        }
+      },
       onAssetsTap: _openAssetsTab,
       onAgeUpTap: _ageUp,
       onLifeTap: _openLifePage,
@@ -1412,6 +1515,7 @@ class _BottomNavigation
   const _BottomNavigation({
     required this.zoom,
     required this.isProcessing,
+    required this.firstSlot,
     required this.onCareerTap,
     required this.onAssetsTap,
     required this.onAgeUpTap,
@@ -1421,6 +1525,7 @@ class _BottomNavigation
 
   final double zoom;
   final bool isProcessing;
+  final _NavSlot firstSlot;
   final VoidCallback onCareerTap;
   final VoidCallback onAssetsTap;
   final Future<void> Function() onAgeUpTap;
@@ -1473,8 +1578,8 @@ class _BottomNavigation
                   children: [
                     Expanded(
                       child: _NavigationItem(
-                        assetPath: 'assets/icons/career.svg',
-                        label: 'Career',
+                        icon: firstSlot.icon,
+                        label: firstSlot.label,
                         zoom: zoom,
                         enabled: !isProcessing,
                         onTap: onCareerTap,
@@ -1482,7 +1587,7 @@ class _BottomNavigation
                     ),
                     Expanded(
                       child: _NavigationItem(
-                        assetPath: 'assets/icons/assets.svg',
+                        icon: Icons.account_balance_wallet_rounded,
                         label: 'Assets',
                         zoom: zoom,
                         enabled: !isProcessing,
@@ -1492,7 +1597,7 @@ class _BottomNavigation
                     SizedBox(width: s(68)),
                     Expanded(
                       child: _NavigationItem(
-                        assetPath: 'assets/icons/life.svg',
+                        icon: Icons.favorite_rounded,
                         label: 'Life',
                         zoom: zoom,
                         enabled: !isProcessing,
@@ -1501,7 +1606,7 @@ class _BottomNavigation
                     ),
                     Expanded(
                       child: _NavigationItem(
-                        assetPath: 'assets/icons/more.svg',
+                        icon: Icons.more_horiz_rounded,
                         label: 'More',
                         zoom: zoom,
                         enabled: !isProcessing,
@@ -1607,16 +1712,25 @@ class _AgeUpButton extends StatelessWidget {
   }
 }
 
+/// Icon and label of the first bottom tab. It changes with the player's age.
+class _NavSlot {
+  const _NavSlot({required this.label, required this.icon});
+
+  final String label;
+  final IconData icon;
+}
+
+/// One bottom tab: a white icon on a round green background, like BitLife.
 class _NavigationItem extends StatelessWidget {
   const _NavigationItem({
-    required this.assetPath,
+    required this.icon,
     required this.label,
     required this.zoom,
     required this.enabled,
     required this.onTap,
   });
 
-  final String assetPath;
+  final IconData icon;
   final String label;
   final double zoom;
   final bool enabled;
@@ -1630,7 +1744,7 @@ class _NavigationItem extends StatelessWidget {
 
     return InkWell(
       onTap: enabled ? onTap : null,
-      borderRadius: BorderRadius.zero,
+      customBorder: const StadiumBorder(),
       child: Padding(
         padding: EdgeInsets.symmetric(
           horizontal: s(2),
@@ -1639,28 +1753,22 @@ class _NavigationItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-Opacity(
-  opacity: enabled ? 1.0 : 0.38,
-  child: ColorFiltered(
-    colorFilter: theme.brightness == Brightness.dark
-        ? const ColorFilter.matrix(<double>[
-            -1, 0, 0, 0, 255,
-            0, -1, 0, 0, 255,
-            0, 0, -1, 0, 255,
-            0, 0, 0, 1, 0,
-          ])
-        : const ColorFilter.mode(
-            Colors.transparent,
-            BlendMode.dst,
-          ),
-    child: SvgPicture.asset(
-      assetPath,
-      width: s(23),
-      height: s(23),
-      fit: BoxFit.contain,
-    ),
-  ),
-),
+            Opacity(
+              opacity: enabled ? 1.0 : 0.38,
+              child: Container(
+                width: s(34),
+                height: s(34),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  size: s(20),
+                  color: Colors.white,
+                ),
+              ),
+            ),
             SizedBox(height: s(2)),
             Text(
               label,

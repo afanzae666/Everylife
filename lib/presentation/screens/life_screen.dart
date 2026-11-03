@@ -22,7 +22,14 @@ String _parentDetails(ParentNpc parent) {
     EmploymentStatus.unableToWork => 'Unable to work',
   };
   return '$employment · ${parent.countryCode}'
-      '${parent.isAlive ? '' : ' · Deceased${parent.deathYear == null ? '' : ' in ${parent.deathYear}'}'}';
+      '${parent.isAlive ? '' : ' · ${_deceasedLabel(parent.birthYear, parent.deathYear)}'}';
+}
+
+/// "Deceased · age 63". Years are never shown, only the age at death.
+String _deceasedLabel(int birthYear, int? deathYear) {
+  if (deathYear == null) return 'Deceased';
+
+  return 'Deceased · age ${(deathYear - birthYear).clamp(0, 150)}';
 }
 
 String _capitalizeRelationshipLabel(String value) => value.isEmpty
@@ -41,6 +48,7 @@ class LifeScreen extends StatefulWidget {
     this.currentYear = 2026,
     this.onNpcInteraction = _noNpcInteraction,
     this.readCurrentParents,
+    this.isNpcLocked,
     this.readCurrentSiblings,
     super.key,
   });
@@ -52,6 +60,10 @@ class LifeScreen extends StatefulWidget {
   final int currentYear;
   final Result<NpcInteractionOutcome> Function({required String npcId, required String action}) onNpcInteraction;
   final List<ParentNpc> Function()? readCurrentParents;
+
+  /// Returns true when the player already used this NPC's interaction for
+  /// the current age.
+  final bool Function(String npcId)? isNpcLocked;
   final List<SiblingNpc> Function()? readCurrentSiblings;
 
   @override
@@ -122,6 +134,7 @@ class _LifeScreenState extends State<LifeScreen> {
                                     currentYear: currentYear,
                                     zoom: zoom,
                                     onNpcInteraction: onNpcInteraction,
+                                    isNpcLocked: widget.isNpcLocked,
                                     onInteractionPageClosed: _refreshNpcData,
                                   ),
                               ],
@@ -142,6 +155,7 @@ class _LifeScreenState extends State<LifeScreen> {
                                     currentYear: currentYear,
                                     zoom: zoom,
                                     onNpcInteraction: onNpcInteraction,
+                                    isNpcLocked: widget.isNpcLocked,
                                     onInteractionPageClosed: _refreshNpcData,
                                   ),
                               ],
@@ -263,10 +277,12 @@ class _ParentNpcCard extends StatelessWidget {
     required this.zoom,
     required this.onNpcInteraction,
     required this.onInteractionPageClosed,
+    this.isNpcLocked,
     super.key,
   });
 
   final VoidCallback onInteractionPageClosed;
+  final bool Function(String npcId)? isNpcLocked;
   final ParentNpc parent;
   final int playerBirthYear;
   final int currentYear;
@@ -296,6 +312,7 @@ class _ParentNpcCard extends StatelessWidget {
               npcId: parent.id,
               name: parent.fullName,
               onInteraction: onNpcInteraction,
+              initiallyLocked: isNpcLocked?.call(parent.id) ?? false,
               relationship: _relationshipLabel(parent.role),
               relationshipPercent: parent.relationshipPercent,
               playerAge: currentYear - playerBirthYear,
@@ -353,8 +370,7 @@ class _ParentNpcCard extends StatelessWidget {
                   if (!parent.isAlive) ...[
                     SizedBox(height: s(2)),
                     Text(
-                      'Deceased'
-                      '${parent.deathYear == null ? '' : ' · ${parent.deathYear}'}',
+                      _deceasedLabel(parent.birthYear, parent.deathYear),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -407,10 +423,12 @@ class _SiblingNpcCard extends StatelessWidget {
     required this.zoom,
     required this.onNpcInteraction,
     required this.onInteractionPageClosed,
+    this.isNpcLocked,
     super.key,
   });
 
   final VoidCallback onInteractionPageClosed;
+  final bool Function(String npcId)? isNpcLocked;
   final SiblingNpc sibling;
   final int playerBirthYear;
   final int currentYear;
@@ -452,6 +470,7 @@ class _SiblingNpcCard extends StatelessWidget {
               npcId: sibling.id,
               name: sibling.fullName,
               onInteraction: onNpcInteraction,
+              initiallyLocked: isNpcLocked?.call(sibling.id) ?? false,
               relationship: '$ageLabel $siblingKind',
               relationshipPercent: sibling.relationshipPercent,
               playerAge: currentYear - playerBirthYear,
@@ -573,7 +592,7 @@ class _SiblingNpcCard extends StatelessWidget {
                   if (!sibling.isAlive) ...[
                     SizedBox(height: s(2)),
                     Text(
-                      'Deceased${sibling.deathYear == null ? '' : ' · ${sibling.deathYear}'}',
+                      _deceasedLabel(sibling.birthYear, sibling.deathYear),
                       style: theme.textTheme.bodySmall,
                     ),
                   ],

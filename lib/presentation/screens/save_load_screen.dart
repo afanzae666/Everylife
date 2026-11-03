@@ -600,8 +600,6 @@ class _SaveLoadScreenState
                     '${data.state.player.ageAt(
                       data.state.clock.currentYear,
                     )}'
-                    '  •  Year '
-                    '${data.state.clock.currentYear}'
                     '  •  Money '
                     '${_formatSavedMoney(data)}',
                     maxLines: 2,

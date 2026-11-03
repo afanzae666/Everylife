@@ -223,7 +223,7 @@ class CharacterProfileScreen extends StatelessWidget {
 
         SizedBox(height: s(2)),
         Text(
-          'Age $age • $currentYear',
+          'Age $age',
           style: Theme.of(context).textTheme.bodyMedium,
           textAlign: TextAlign.center,
         ),
@@ -343,12 +343,6 @@ class CharacterProfileScreen extends StatelessWidget {
 
         SizedBox(
           height: s(4),
-        ),
-
-        _CompactInfoRow(
-          label: 'Born',
-          value: '${character.birthYear}',
-          zoom: zoom,
         ),
 
         _CompactInfoRow(

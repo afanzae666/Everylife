@@ -88,10 +88,10 @@ class _CharacterCreationScreenState
   late String _countryCode;
 late String _cityId;
 
-  static const int _minimumBirthYear = 1900;
-  static const int _maximumBirthYear = 2026;
+  /// Lives start in a fixed hidden year. The game never shows years: only
+  /// the player's age matters.
+  static const int _birthYear = 2026;
 
-  int _birthYear = _maximumBirthYear;
 
   CharacterAppearance _appearance = const CharacterAppearance(
     base: 'default',
@@ -396,202 +396,6 @@ _firstNameController.text = randomFirstName;
 _lastNameController.text = randomLastName;
 
 });
-  }
-
-  void _showBirthYearPicker() {
-    int temporaryYear = _birthYear;
-
-    showDialog<void>(
-      context: context,
-      builder: (
-        BuildContext dialogContext,
-      ) {
-        return StatefulBuilder(
-          builder: (
-            BuildContext context,
-            StateSetter setDialogState,
-          ) {
-            final int initialItem =
-                _maximumBirthYear -
-                    temporaryYear;
-
-            return AlertDialog(
-              title: const Text(
-                'Birth Year',
-              ),
-              content: SizedBox(
-                width: 300,
-                height: 320,
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          tooltip:
-                              'Previous year',
-                          onPressed:
-                              temporaryYear >
-                                      _minimumBirthYear
-                                  ? () {
-                                      setDialogState(
-                                        () {
-                                          temporaryYear--;
-                                        },
-                                      );
-                                    }
-                                  : null,
-                          icon: const Icon(
-                            Icons.remove,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 110,
-                          child: Center(
-                            child: Text(
-                              '$temporaryYear',
-                              style: Theme.of(
-                                context,
-                              )
-                                  .textTheme
-                                  .headlineMedium,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          tooltip:
-                              'Next year',
-                          onPressed:
-                              temporaryYear <
-                                      _maximumBirthYear
-                                  ? () {
-                                      setDialogState(
-                                        () {
-                                          temporaryYear++;
-                                        },
-                                      );
-                                    }
-                                  : null,
-                          icon: const Icon(
-                            Icons.add,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 8,
-                    ),
-                    Expanded(
-                      child:
-                          ListWheelScrollView.useDelegate(
-                        controller:
-                            FixedExtentScrollController(
-                          initialItem:
-                              initialItem,
-                        ),
-                        itemExtent: 44,
-                        perspective: 0.003,
-                        diameterRatio: 1.4,
-                        physics:
-                            const FixedExtentScrollPhysics(),
-                        onSelectedItemChanged:
-                            (
-                          int index,
-                        ) {
-                          final int year =
-                              _maximumBirthYear -
-                                  index;
-
-                          setDialogState(
-                            () {
-                              temporaryYear =
-                                  year;
-                            },
-                          );
-                        },
-                        childDelegate:
-                            ListWheelChildBuilderDelegate(
-                          childCount:
-                              _maximumBirthYear -
-                                  _minimumBirthYear +
-                                  1,
-                          builder: (
-                            BuildContext context,
-                            int index,
-                          ) {
-                            final int year =
-                                _maximumBirthYear -
-                                    index;
-
-                            final bool selected =
-                                year ==
-                                    temporaryYear;
-
-                            return Center(
-                              child: Text(
-                                '$year',
-                                style:
-                                    TextStyle(
-                                  fontSize:
-                                      selected
-                                          ? 22
-                                          : 17,
-                                  fontWeight:
-                                      selected
-                                          ? FontWeight
-                                              .w600
-                                          : FontWeight
-                                              .normal,
-                                  color: selected
-                                      ? Theme.of(
-                                          context,
-                                        )
-                                          .colorScheme
-                                          .primary
-                                      : null,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(
-                      dialogContext,
-                    ).pop();
-                  },
-                  child: const Text(
-                    'CANCEL',
-                  ),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    setState(() {
-                      _birthYear =
-                          temporaryYear;
-                    });
-
-                    Navigator.of(
-                      dialogContext,
-                    ).pop();
-                  },
-                  child: const Text(
-                    'DONE',
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
   }
 
   void _showAppearanceDialog() {
@@ -2083,26 +1887,9 @@ Widget fixedImage({
         SizedBox(
           height: s(8),
         ),
-        Row(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: _buildGenderField(
-                context,
-                zoom,
-              ),
-            ),
-            SizedBox(
-              width: s(8),
-            ),
-            Expanded(
-              child: _buildBirthYearField(
-                context,
-                zoom,
-              ),
-            ),
-          ],
+        _buildGenderField(
+          context,
+          zoom,
         ),
                 SizedBox(
           height: s(8),
@@ -2167,37 +1954,6 @@ Widget fixedImage({
     );
   }
 
-  Widget _buildBirthYearField(
-    BuildContext context,
-    double zoom,
-  ) {
-    return InkWell(
-      borderRadius:
-          BorderRadius.circular(
-        8 * zoom,
-      ),
-      onTap:
-          _showBirthYearPicker,
-      child: InputDecorator(
-        decoration:
-            const InputDecoration(
-          labelText: 'Birth Year',
-          border:
-              OutlineInputBorder(),
-          isDense: true,
-          suffixIcon:
-              Icon(
-            Icons.arrow_drop_down,
-          ),
-        ),
-        child: Text(
-          '$_birthYear',
-        ),
-      ),
-    );
-  }
-
-  
   Widget _buildCountryField(
     BuildContext context,
     double zoom,
