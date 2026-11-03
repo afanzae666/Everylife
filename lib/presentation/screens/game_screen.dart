@@ -13,7 +13,9 @@ import '../../domain/world/country_catalog.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
 import '../../domain/event/life_event.dart';
+import '../../domain/character/character_stats.dart';
 import '../widgets/character_avatar.dart';
+import '../widgets/core_stat_bars.dart';
 import '../widgets/life_event_dialogs.dart';
 import 'assets_screen.dart';
 import 'career_screen.dart';
@@ -1151,151 +1153,45 @@ class _GameScreenState extends State<GameScreen> {
     double zoom,
     dynamic player,
   ) {
-    double s(double value) => value * zoom;
-
     return _ResponsiveCard(
-      padding: EdgeInsets.fromLTRB(
-        s(4),
-        s(3),
-        s(4),
-        s(3),
+      padding: EdgeInsets.zero,
+      child: CoreStatBars(
+        stats: player.stats as CharacterStats,
+        zoom: zoom,
+        onTap: _openOtherTraits,
       ),
-      child: LayoutBuilder(
-        builder: (
-          context,
-          constraints,
-        ) {
-          final crossAxisCount =
-              _getStatColumnCount(
-            constraints.maxWidth,
-            zoom,
-          );
+    );
+  }
 
-          final spacing = 0.0;
+  /// The traits that are not on the main screen. Luck stays hidden on
+  /// purpose, so lucky and unlucky moments keep their mystery.
+  Future<void> _openOtherTraits() async {
+    final stats = engine.state.player.stats;
+    final theme = Theme.of(context);
 
-          return GridView.builder(
-            shrinkWrap: true,
-            physics:
-                const NeverScrollableScrollPhysics(),
-            gridDelegate:
-                SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount:
-                  crossAxisCount,
-              crossAxisSpacing: spacing,
-              mainAxisSpacing: spacing,
-              mainAxisExtent: s(50),
-            ),
-            itemCount: 8,
-            itemBuilder: (
-              context,
-              index,
-            ) {
-              switch (index) {
-                case 0:
-                  return _StatCard(
-                    key: const Key(
-                      'core-stat-health',
-                    ),
-                    label: 'Health',
-                    value:
-                        player.stats.health,
-                    icon: Icons.favorite,
-                    zoom: zoom,
-                  );
+    Widget row(String label, int value) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              Expanded(child: Text(label)),
+              Text('$value%', style: theme.textTheme.bodyLarge),
+            ],
+          ),
+        );
 
-                case 1:
-                  return _StatCard(
-                    key: const Key(
-                      'core-stat-intelligence',
-                    ),
-                    label: 'Intelligence',
-                    value: player
-                        .stats.intelligence,
-                    icon: Icons.psychology,
-                    zoom: zoom,
-                  );
-
-                case 2:
-                  return _StatCard(
-                    key: const Key(
-                      'core-stat-fitness',
-                    ),
-                    label: 'Fitness',
-                    value:
-                        player.stats.fitness,
-                    icon:
-                        Icons.fitness_center,
-                    zoom: zoom,
-                  );
-
-                case 3:
-                  return _StatCard(
-                    key: const Key(
-                      'core-stat-happiness',
-                    ),
-                    label: 'Happiness',
-                    value:
-                        player.stats.happiness,
-                    icon: Icons
-                        .sentiment_satisfied,
-                    zoom: zoom,
-                  );
-
-                case 4:
-                  return _StatCard(
-                    key: const Key(
-                      'core-stat-willpower',
-                    ),
-                    label: 'Willpower',
-                    value:
-                        player.stats.willpower,
-                    icon:
-                        Icons.shield_outlined,
-                    zoom: zoom,
-                  );
-
-                case 5:
-                  return _StatCard(
-                    key: const Key(
-                      'core-stat-charisma',
-                    ),
-                    label: 'Charisma',
-                    value:
-                        player.stats.charisma,
-                    icon: Icons.groups,
-                    zoom: zoom,
-                  );
-
-                case 6:
-                  return _StatCard(
-                    key: const Key(
-                      'core-stat-creativity',
-                    ),
-                    label: 'Creativity',
-                    value:
-                        player.stats.creativity,
-                    icon: Icons.palette,
-                    zoom: zoom,
-                  );
-
-                case 7:
-                  return _StatCard(
-                    key: const Key(
-                      'core-stat-luck',
-                    ),
-                    label: 'Luck',
-                    value: player.stats.luck,
-                    icon:
-                        Icons.auto_awesome,
-                    zoom: zoom,
-                  );
-
-                default:
-                  return const SizedBox.shrink();
-              }
-            },
-          );
-        },
+    await showTapToCloseOverlay(
+      context,
+      title: 'My Traits',
+      text: '',
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          row('Fitness', stats.fitness),
+          row('Willpower', stats.willpower),
+          row('Charisma', stats.charisma),
+          row('Creativity', stats.creativity),
+        ],
       ),
     );
   }
@@ -1331,20 +1227,6 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  int _getStatColumnCount(
-    double availableWidth,
-    double zoom,
-  ) {
-    if (zoom <= 1.15) {
-      return 4;
-    }
-
-    if (zoom <= 1.3) {
-      return 3;
-    }
-
-    return 2;
-  }
 
   String _formatLifeStage(
     LifeStage stage,
@@ -1404,108 +1286,6 @@ class _ResponsiveCard extends StatelessWidget {
       child: Padding(
         padding: padding,
         child: child,
-      ),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.zoom,
-    super.key,
-  });
-
-  final String label;
-  final int value;
-  final IconData icon;
-  final double zoom;
-
-  @override
-  Widget build(BuildContext context) {
-    double s(double value) => value * zoom;
-
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-
-    final progress =
-        value.clamp(0, 100).toDouble();
-
-    return _ResponsiveCard(
-      padding: EdgeInsets.fromLTRB(
-        s(4),
-        s(3),
-        s(4),
-        s(3),
-      ),
-      child: Column(
-        mainAxisAlignment:
-            MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            height: s(19),
-            width: double.infinity,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    icon,
-                    size: s(15),
-                    color: primary,
-                  ),
-                  SizedBox(width: s(3)),
-                  Text(
-                    label,
-                    maxLines: 1,
-                    softWrap: false,
-                    style: theme
-                        .textTheme
-                        .bodySmall!
-                        .copyWith(
-                          fontSize: 11,
-                        ),
-                  ),
-                  SizedBox(width: s(4)),
-                  Text(
-                    value.toString(),
-                    maxLines: 1,
-                    softWrap: false,
-                    style: theme
-                        .textTheme
-                        .bodySmall!
-                        .copyWith(
-                          fontSize: 11,
-                          fontWeight:
-                              FontWeight.w600,
-                        ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(height: s(3)),
-          ClipRRect(
-            borderRadius:
-                BorderRadius.circular(s(4)),
-            child: LinearProgressIndicator(
-              value: progress / 100,
-              minHeight: s(3),
-              backgroundColor:
-                  primary.withValues(
-                alpha: 0.12,
-              ),
-              valueColor:
-                  AlwaysStoppedAnimation<Color>(
-                primary,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
