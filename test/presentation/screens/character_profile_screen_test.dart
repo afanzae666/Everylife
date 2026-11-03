@@ -38,7 +38,7 @@ void main() {
       );
 
       expect(
-        find.text('Age 7 • 2033'),
+        find.text('Age 7'),
         findsOneWidget,
       );
 
