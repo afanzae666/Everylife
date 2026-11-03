@@ -1756,15 +1756,15 @@ class _NavigationItem extends StatelessWidget {
             Opacity(
               opacity: enabled ? 1.0 : 0.38,
               child: Container(
-                width: s(34),
-                height: s(34),
+                width: s(28),
+                height: s(28),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   icon,
-                  size: s(20),
+                  size: s(17),
                   color: Colors.white,
                 ),
               ),
