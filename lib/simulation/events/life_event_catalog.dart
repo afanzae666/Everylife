@@ -1,6 +1,7 @@
 import '../../domain/event/life_event.dart';
 import '../../domain/world/world_state.dart';
 import 'life_event_catalog_more.dart';
+import 'scripted_events.dart';
 
 /// The built-in life events (all player-facing text is English).
 ///
@@ -33,7 +34,8 @@ abstract final class LifeEventCatalog {
 
     return [
       for (final event in all)
-        if (age >= event.minAge &&
+        if (!event.scripted &&
+            age >= event.minAge &&
             age <= event.maxAge &&
             !(event.oncePerLife &&
                 progress.lastSeenYear.containsKey(event.id)) &&
@@ -61,6 +63,7 @@ abstract final class LifeEventCatalog {
   static const List<LifeEventDefinition> all = [
     ..._core,
     ...LifeEventCatalogMore.all,
+    ...ScriptedEvents.all,
   ];
 
   static const List<LifeEventDefinition> _core = [
@@ -457,6 +460,7 @@ abstract final class LifeEventCatalog {
         LifeChoice(
           id: 'dont_ask',
           label: 'Do not ask. Save my allowance instead',
+          narration: 'I did not ask. I saved my allowance instead.',
           outcomes: [
             LifeOutcome(
               text: 'I learned patience, and found a nice stray cat to feed outside.',
@@ -1615,6 +1619,7 @@ abstract final class LifeEventCatalog {
         LifeChoice(
           id: 'relax',
           label: 'Do nothing. I earned it',
+          narration: 'I did nothing, because I earned it.',
           outcomes: [
             LifeOutcome(
               text: 'A quiet porch, a warm cup of tea, and no schedule.',

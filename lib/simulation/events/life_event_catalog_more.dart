@@ -579,6 +579,7 @@ abstract final class LifeEventCatalogMore {
         LifeChoice(
           id: 'coffee',
           label: 'Coffee and panic',
+          narration: 'I fueled up on coffee and panic.',
           outcomes: [
             LifeOutcome(
               weight: 3,
