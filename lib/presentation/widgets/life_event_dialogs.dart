@@ -7,10 +7,15 @@ import '../../domain/event/life_progress.dart';
 ///
 /// The dialog cannot be dismissed: the player must decide, because the
 /// next year cannot start while a decision is pending.
+///
+/// [description] is the scene text with placeholders already filled in, and
+/// [costLabel] returns the price to show under a choice (or null).
 Future<String?> showLifeDecisionDialog(
   BuildContext context, {
   required LifeEventDefinition event,
   required bool Function(LifeChoice choice) canAfford,
+  String? description,
+  String? Function(LifeChoice choice)? costLabel,
 }) {
   return showDialog<String>(
     context: context,
@@ -26,7 +31,7 @@ Future<String?> showLifeDecisionDialog(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(event.description),
+                Text(description ?? event.description),
                 const SizedBox(height: 16),
                 for (final choice in event.choices) ...[
                   FilledButton.tonal(
@@ -37,9 +42,11 @@ Future<String?> showLifeDecisionDialog(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       child: Text(
-                        canAfford(choice)
-                            ? choice.label
-                            : '${choice.label} (not enough money)',
+                        _choiceText(
+                          choice,
+                          affordable: canAfford(choice),
+                          cost: costLabel?.call(choice),
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -55,24 +62,87 @@ Future<String?> showLifeDecisionDialog(
   );
 }
 
-/// Shows what happened after a decision.
+String _choiceText(
+  LifeChoice choice, {
+  required bool affordable,
+  String? cost,
+}) {
+  final priced = cost == null ? choice.label : '${choice.label}\n$cost';
+
+  return affordable ? priced : '$priced\n(not enough money)';
+}
+
+/// Shows what happened after a decision. Tapping anywhere closes it.
 Future<void> showLifeResultDialog(
   BuildContext context,
   LifeChoiceResult result,
 ) {
-  return showDialog<void>(
+  return showTapToCloseOverlay(
+    context,
+    dialogKey: const Key('life-result-dialog'),
+    title: result.eventTitle,
+    text: result.resultText,
+  );
+}
+
+/// A small overlay that closes when the player taps anywhere on the screen.
+Future<void> showTapToCloseOverlay(
+  BuildContext context, {
+  required String text,
+  String? title,
+  Key? dialogKey,
+  Widget? body,
+}) {
+  return showGeneralDialog<void>(
     context: context,
-    builder: (dialogContext) {
-      return AlertDialog(
-        key: const Key('life-result-dialog'),
-        title: Text(result.eventTitle),
-        content: Text(result.resultText),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('CONTINUE'),
+    barrierDismissible: true,
+    barrierLabel: 'Close',
+    barrierColor: Colors.black54,
+    transitionDuration: const Duration(milliseconds: 120),
+    pageBuilder: (dialogContext, _, __) {
+      final theme = Theme.of(dialogContext);
+
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.of(dialogContext).pop(),
+        child: Material(
+          color: Colors.transparent,
+          child: Center(
+            child: Dialog(
+              key: dialogKey,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 28,
+                  vertical: 28,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (title != null) ...[
+                      Text(
+                        title,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    body ?? Text(text, style: theme.textTheme.bodyLarge),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Tap anywhere to close',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ],
+        ),
       );
     },
   );
@@ -100,7 +170,7 @@ Future<bool> showLifeEndedDialog(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '$name died in ${ending.year} at age ${ending.age}.',
+                '$name died at age ${ending.age}.',
               ),
               const SizedBox(height: 8),
               Text('Cause: ${ending.cause}.'),
