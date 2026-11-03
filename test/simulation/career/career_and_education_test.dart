@@ -55,7 +55,7 @@ void main() {
     const state = EducationState(
       initialized: true,
       stage: SchoolStage.university,
-      highest: EducationLevel.secondary,
+      highest: EducationLevel.highSchool,
       grades: 77,
       yearsInStage: 2,
       lastUniversityApplicationYear: 2018,
@@ -64,7 +64,7 @@ void main() {
     final copy = EducationState.fromJson(state.toJson());
 
     expect(copy.stage, SchoolStage.university);
-    expect(copy.highest, EducationLevel.secondary);
+    expect(copy.highest, EducationLevel.highSchool);
     expect(copy.grades, 77);
     expect(copy.yearsInStage, 2);
     expect(copy.lastUniversityApplicationYear, 2018);
@@ -88,7 +88,7 @@ void main() {
     expect(CareerState.fromJson('bad').hasJob, isFalse);
   });
 
-  test('a third interaction with the same NPC in one year is refused', () {
+  test('a second interaction with the same NPC at the same age is refused', () {
     final engine = _newEngine(3, gameplay: false);
 
     for (var i = 0; i < 10; i++) {
@@ -100,8 +100,6 @@ void main() {
 
     final npcId = household!.parents.first.id;
 
-    expect(engine.interactWithNpc(npcId: npcId, action: 'Talk').isSuccess,
-        isTrue);
     expect(engine.interactWithNpc(npcId: npcId, action: 'Talk').isSuccess,
         isTrue);
     expect(engine.interactWithNpc(npcId: npcId, action: 'Talk').isFailure,
@@ -182,7 +180,7 @@ void main() {
           !progress.flags.contains('dropout')) {
         expect(
           progress.education.highest.index,
-          greaterThanOrEqualTo(EducationLevel.secondary.index),
+          greaterThanOrEqualTo(EducationLevel.highSchool.index),
           reason: 'Life $seed',
         );
         graduates++;
