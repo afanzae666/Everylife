@@ -63,8 +63,19 @@ class SimulationEngine {
     }
   }
 
-  /// How many times the player may interact with one family member a year.
-  static const int maxInteractionsPerNpcPerYear = 2;
+  /// How many times the player may interact with one family member between
+  /// two birthdays. After that, the interaction is switched off until the
+  /// next age-up.
+  static const int maxInteractionsPerNpcPerYear = 1;
+
+  /// Whether the player already used this family member's interaction slot
+  /// for the current age.
+  bool hasInteractedThisYear(String npcId) {
+    final key = '${_state.clock.currentYear}:$npcId';
+    final used = _state.lifeProgress.interactionCounts[key] ?? 0;
+
+    return used >= maxInteractionsPerNpcPerYear;
+  }
 
   WorldState _state;
 
@@ -154,6 +165,18 @@ class SimulationEngine {
     return LifeEventCatalog.byId(pending.eventId);
   }
 
+  /// Who the pending scripted event is about (for example "my father, Alex").
+  String? get pendingSubject => _state.lifeProgress.pending?.subject;
+
+  /// Scene text of the pending event with its placeholders filled in.
+  String get pendingDescription {
+    final event = pendingLifeEvent;
+
+    if (event == null) return '';
+
+    return LifeText.fill(event.description, pendingSubject);
+  }
+
   /// Whether the player can afford [choice] right now.
   bool canAffordChoice(LifeChoice choice) {
     final required = LifeEffectApplier.scaleMoney(
@@ -216,15 +239,18 @@ class SimulationEngine {
       clearPending: true,
     );
 
+    // One flowing paragraph: the scene, what I did, and what happened.
+    final story = LifeText.fill(choice.story, pending.subject);
+    final result = LifeText.fill(outcome.text, pending.subject);
+    final scene = LifeText.fill(definition.description, pending.subject);
+
     final nextState = applied.copyWith(lifeProgress: progress).addEvent(
           SimulationEvent(
             id: 'life-choice-${pending.year}-${definition.id}',
             type: SimulationEventType.lifeChoice,
             year: pending.year,
             title: definition.title,
-            description:
-                '${definition.description} I chose to: ${choice.label}. '
-                '${outcome.text}',
+            description: '$scene $story $result',
           ),
         );
 
@@ -238,7 +264,7 @@ class SimulationEngine {
       LifeChoiceResult(
         eventTitle: definition.title,
         choiceLabel: choice.label,
-        resultText: outcome.text,
+        resultText: '$story $result',
       ),
     );
   }
@@ -339,8 +365,8 @@ class SimulationEngine {
     final timesThisYear = _state.lifeProgress.interactionCounts[interactionKey] ?? 0;
     if (timesThisYear >= maxInteractionsPerNpcPerYear) {
       return const Failure(
-        'I have already spent enough time with them this year. '
-        'Maybe next year.',
+        'I already spent time with them. '
+        'Maybe after my next birthday.',
       );
     }
     final nextScore = (currentScore + change).clamp(-100, 100).toInt();
