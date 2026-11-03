@@ -61,7 +61,7 @@ class StartingLifeEventGenerator {
     required SeededRandom random,
   }) {
     final conception = _conceptionNarrative(household, random);
-    return 'I was born in ${player.birthYear}. $conception';
+    return 'I was born. $conception';
   }
 
   static String _familyNarrative(
@@ -178,11 +178,8 @@ class StartingLifeEventGenerator {
       final ageText = 'age ${_parentAgeAtChildBirth(parent, household)}';
 
       if (!parent.isAlive) {
-        final death = parent.deathYear == null
-            ? ''
-            : ' in ${parent.deathYear}';
         descriptions.add(
-          'My $role, $name, is deceased$death ($ageText).',
+          'My $role, $name, is deceased ($ageText).',
         );
         continue;
       }
