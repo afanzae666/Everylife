@@ -68,14 +68,15 @@ void main() {
         );
       }
 
+      // The game never shows years.
       expect(
         find.text('Born'),
-        findsOneWidget,
+        findsNothing,
       );
 
       expect(
         find.text('2026'),
-        findsOneWidget,
+        findsNothing,
       );
 
       expect(

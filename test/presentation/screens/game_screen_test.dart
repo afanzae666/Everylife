@@ -214,7 +214,7 @@ expect(
 
         expect(
           find.text('Born'),
-          findsOneWidget,
+          findsNothing,
         );
       },
     );

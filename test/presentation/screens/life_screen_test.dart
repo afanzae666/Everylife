@@ -121,7 +121,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Deceased · 2026'), findsOneWidget);
+    expect(find.text('Deceased · age 46'), findsOneWidget);
     expect(find.byIcon(Icons.chevron_right), findsNothing);
   });
 

@@ -114,14 +114,15 @@ void main() {
           findsOneWidget,
         );
 
+        // Years are not part of the game: there is no birth year field.
         expect(
           find.text('Birth Year'),
-          findsOneWidget,
+          findsNothing,
         );
 
         expect(
           find.text('2026'),
-          findsOneWidget,
+          findsNothing,
         );
 
         expect(
@@ -257,7 +258,7 @@ void main() {
     );
 
     testWidgets(
-      'allows birth year to be changed to 1900',
+      'always starts a newborn and never asks for a birth year',
       (tester) async {
         int? createdBirthYear;
 
@@ -272,66 +273,8 @@ void main() {
           tester,
         );
 
-        await tester.tap(
-          find.text('2026'),
-        );
-
-        await tester.pumpAndSettle();
-
         expect(
           find.text('Birth Year'),
-          findsWidgets,
-        );
-
-        expect(
-          find.byType(
-            ListWheelScrollView,
-          ),
-          findsOneWidget,
-        );
-
-        final previousYearButton = find.byTooltip(
-          'Previous year',
-        );
-
-        expect(
-          previousYearButton,
-          findsOneWidget,
-        );
-
-        for (int i = 0; i < 126; i++) {
-          await tester.tap(
-            previousYearButton,
-          );
-          await tester.pump();
-        }
-
-        expect(
-          find.text('1900'),
-          findsOneWidget,
-        );
-
-        await tester.tap(
-          find.text('1900'),
-        );
-
-        await tester.pumpAndSettle();
-
-        expect(
-          find.text('1900'),
-          findsOneWidget,
-        );
-
-        await tester.tap(
-          find.text('DONE'),
-        );
-
-        await tester.pumpAndSettle();
-
-        expect(
-          find.byType(
-            ListWheelScrollView,
-          ),
           findsNothing,
         );
 
@@ -341,12 +284,7 @@ void main() {
 
         expect(
           createdBirthYear,
-          1900,
-        );
-
-        expect(
-          2026 - createdBirthYear!,
-          126,
+          2026,
         );
       },
     );
