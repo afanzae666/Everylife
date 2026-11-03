@@ -22,6 +22,15 @@ class CharacterStats {
   final int creativity;
   final int luck;
 
+  /// Appearance, from 0 to 100. It is not stored: it follows from how fit,
+  /// charming, and healthy the character is, so events that change those
+  /// stats change looks too.
+  int get looks {
+    final score = (fitness * 4 + charisma * 4 + health * 2) / 10;
+
+    return _clamp(score.round());
+  }
+
   CharacterStats copyWith({
     int? health,
     int? intelligence,
