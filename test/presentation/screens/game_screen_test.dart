@@ -87,9 +87,10 @@ void main() {
           findsOneWidget,
         );
 
+        // Once as the life stage, once as the first bottom tab (ages 0-5).
         expect(
           find.text('Infant'),
-          findsOneWidget,
+          findsNWidgets(2),
         );
 
         expect(
