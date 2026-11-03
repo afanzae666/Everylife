@@ -190,7 +190,7 @@ void main() {
     expect(
       economy,
       contains(
-        'My mother, Sari Santoso, is deceased in 2026 (age 23).',
+        'My mother, Sari Santoso, is deceased (age 23).',
       ),
     );
     expect(
@@ -255,7 +255,7 @@ void main() {
 
     expect(
       description,
-      'I was born in 2026. I was conceived during an affair between my '
+      'I was born. I was conceived during an affair between my '
       'mother and a married man.',
     );
     expect(description, isNot(contains('Ayu Santoso was born')));
@@ -276,7 +276,7 @@ void main() {
       random: SeededRandom(123),
     );
 
-    expect(description, startsWith('I was born in 2026. '));
+    expect(description, startsWith('I was born. '));
     expect(description, isNot(contains('affair')));
   });
 
