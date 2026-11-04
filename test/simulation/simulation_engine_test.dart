@@ -498,7 +498,7 @@ class _StubSaveRepository implements SaveRepository {
     WorldState state, {
     required int randomState,
     required int nextTickId,
-    SaveSlot slot = SaveSlot.autosave,
+    SaveSlot slot = SaveSlot.slot1,
   }) async {
     data = SaveData(
       state: state,
@@ -509,14 +509,14 @@ class _StubSaveRepository implements SaveRepository {
 
   @override
   Future<SaveData?> load({
-    SaveSlot slot = SaveSlot.autosave,
+    SaveSlot slot = SaveSlot.slot1,
   }) async {
     return data;
   }
 
   @override
   Future<void> delete({
-    SaveSlot slot = SaveSlot.autosave,
+    SaveSlot slot = SaveSlot.slot1,
   }) async {
     data = null;
   }
