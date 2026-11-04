@@ -239,6 +239,13 @@ class _LifeSimulationAppState
     // untouched so it can still be inspected or recovered.
     if (latest != null) {
       _startupSaveProblems.clear();
+    } else if (_startupSaveProblems.length > 1) {
+      // Keep the error screen short when many slots are damaged.
+      final count = _startupSaveProblems.length;
+      final first = _startupSaveProblems.first;
+      _startupSaveProblems
+        ..clear()
+        ..add('$count stored lives could not be read. First problem: $first');
     }
 
     _startupSlot = latestSlot;
@@ -510,7 +517,7 @@ class _LifeSimulationAppState
           title: const Text('Startup Error'),
         ),
         body: Center(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
