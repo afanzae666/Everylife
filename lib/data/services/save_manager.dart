@@ -13,7 +13,7 @@ class SaveManager implements SaveRepository {
     WorldState state, {
     required int randomState,
     required int nextTickId,
-    SaveSlot slot = SaveSlot.autosave,
+    SaveSlot slot = SaveSlot.slot1,
   }) {
     return _repository.save(
       state,
@@ -25,7 +25,7 @@ class SaveManager implements SaveRepository {
 
   @override
   Future<SaveData?> load({
-    SaveSlot slot = SaveSlot.autosave,
+    SaveSlot slot = SaveSlot.slot1,
   }) {
     return _repository.load(
       slot: slot,
@@ -34,38 +34,9 @@ class SaveManager implements SaveRepository {
 
   @override
   Future<void> delete({
-    SaveSlot slot = SaveSlot.autosave,
+    SaveSlot slot = SaveSlot.slot1,
   }) {
     return _repository.delete(
-      slot: slot,
-    );
-  }
-
-  Future<void> saveAutosave(
-    WorldState state, {
-    required int randomState,
-    required int nextTickId,
-  }) {
-    return save(
-      state,
-      randomState: randomState,
-      nextTickId: nextTickId,
-      slot: SaveSlot.autosave,
-    );
-  }
-
-  Future<void> saveManual(
-    SaveSlot slot,
-    WorldState state, {
-    required int randomState,
-    required int nextTickId,
-  }) {
-    _validateManualSlot(slot);
-
-    return save(
-      state,
-      randomState: randomState,
-      nextTickId: nextTickId,
       slot: slot,
     );
   }
@@ -94,22 +65,5 @@ class SaveManager implements SaveRepository {
     );
 
     return data != null;
-  }
-
-  void _validateManualSlot(
-    SaveSlot slot,
-  ) {
-    switch (slot) {
-      case SaveSlot.autosave:
-        throw ArgumentError(
-          'saveManual() cannot use the autosave slot.',
-        );
-
-      case SaveSlot.manual1:
-      case SaveSlot.manual2:
-      case SaveSlot.manual3:
-      case SaveSlot.manual4:
-        return;
-    }
   }
 }
