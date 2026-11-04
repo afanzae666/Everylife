@@ -160,6 +160,7 @@ class _LifeSimulationAppState
       );
 
       engine.registerGameplaySystems();
+      engine.activeSlot = _startupSlot;
 
       setState(() {
         _engine = engine;
@@ -198,53 +199,51 @@ class _LifeSimulationAppState
     await _uiSettingsRepository.saveUiScale(value);
   }
 
+  /// The slot the startup save was read from.
+  SaveSlot? _startupSlot;
+
+  /// Opens the life that was played most recently. Every life lives in its
+  /// own Life Storage slot, so all slots are checked.
   Future<SaveData?> _loadStartupSave() async {
     _startupSaveProblems.clear();
+    _startupSlot = null;
 
-    final autosave = await _tryLoadSlot(SaveSlot.autosave);
+    SaveData? latest;
+    SaveSlot? latestSlot;
 
-    if (autosave != null) {
-      return autosave;
-    }
-
-    const manualSlots = [
-      SaveSlot.manual1,
-      SaveSlot.manual2,
-      SaveSlot.manual3,
-      SaveSlot.manual4,
-    ];
-
-    SaveData? latestManualSave;
-
-    for (final slot in manualSlots) {
+    for (final slot in SaveSlot.values) {
       final saveData = await _tryLoadSlot(slot);
 
       if (saveData == null) {
         continue;
       }
 
-      if (latestManualSave == null) {
-        latestManualSave = saveData;
+      if (latest == null) {
+        latest = saveData;
+        latestSlot = slot;
         continue;
       }
 
       final currentSavedAt = saveData.savedAt;
-      final latestSavedAt = latestManualSave.savedAt;
+      final latestSavedAt = latest.savedAt;
 
       if (currentSavedAt != null &&
           (latestSavedAt == null ||
               currentSavedAt.isAfter(latestSavedAt))) {
-        latestManualSave = saveData;
+        latest = saveData;
+        latestSlot = slot;
       }
     }
 
-    // A readable manual save is enough to start; the damaged slot stays on
-    // disk untouched so it can still be inspected or recovered.
-    if (latestManualSave != null) {
+    // A readable life is enough to start; a damaged slot stays on disk
+    // untouched so it can still be inspected or recovered.
+    if (latest != null) {
       _startupSaveProblems.clear();
     }
 
-    return latestManualSave;
+    _startupSlot = latestSlot;
+
+    return latest;
   }
 
   Future<SaveData?> _tryLoadSlot(SaveSlot slot) async {
@@ -301,58 +300,6 @@ class _LifeSimulationAppState
       _engine = engine;
       _isCreatingCharacter = false;
     });
-  }
-
-  Future<NewLifeRequestAction?> _requestNewLife() {
-    final navigatorContext = _navigatorKey.currentContext;
-
-    if (navigatorContext == null) {
-      return Future<NewLifeRequestAction?>.value(null);
-    }
-
-    return showDialog<NewLifeRequestAction>(
-      context: navigatorContext,
-      barrierDismissible: false,
-      barrierColor: Colors.black.withValues(alpha: 0.30),
-      builder: (dialogContext) {
-        return AlertDialog(
-          backgroundColor: Theme.of(dialogContext)
-              .colorScheme
-              .surface
-              .withValues(alpha: 0.90),
-          title: const Text('Start a New Life?'),
-          content: const Text(
-            'What would you like to do with your current life?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(
-                  NewLifeRequestAction.cancel,
-                );
-              },
-              child: const Text('CANCEL'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(
-                  NewLifeRequestAction.startWithoutSaving,
-                );
-              },
-              child: const Text('START WITHOUT SAVING'),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(
-                  NewLifeRequestAction.saveCurrentLife,
-                );
-              },
-              child: const Text('SAVE MY LIFE'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   void _startNewLifeCreation() {
@@ -645,7 +592,6 @@ class _LifeSimulationAppState
         engine: _engine!,
         uiScaleController: _uiScaleController,
         onUiScaleChanged: _saveUiScale,
-        onNewLifeRequested: _requestNewLife,
         onNewLifeCreationRequested: _startNewLifeCreation,
       ),
     );
