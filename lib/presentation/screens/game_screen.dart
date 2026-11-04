@@ -741,6 +741,9 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  /// Height of the bottom navigation bar (before zoom).
+  static const double _navigationHeight = 64;
+
   Widget _buildScaffold(
     BuildContext context,
     double zoom,
@@ -798,23 +801,40 @@ class _GameScreenState extends State<GameScreen> {
             ),
             SizedBox(height: 0),
             Expanded(
-              child: _buildLifeEventsCard(
-                context,
-                zoom,
-                player,
-                events,
+              child: Padding(
+                // The life log floats a little above the navigation bar.
+                padding: EdgeInsets.only(bottom: 4 * zoom),
+                child: _buildLifeEventsCard(
+                  context,
+                  zoom,
+                  player,
+                  events,
+                ),
               ),
             ),
-            SizedBox(height: 0),
-            _buildCoreStatsCard(
-              context,
-              zoom,
-              player,
-            ),
-            SizedBox(height: s(6)),
-            _buildBottomNavigation(
-              context,
-              zoom,
+            // The navigation bar sits on top of the stat card. A Stack lets
+            // the big Age Up button overlap the card below it.
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(top: _navigationHeight * zoom),
+                  child: _buildCoreStatsCard(
+                    context,
+                    zoom,
+                    player,
+                  ),
+                ),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: _buildBottomNavigation(
+                    context,
+                    zoom,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -1313,101 +1333,89 @@ class _BottomNavigation
   final VoidCallback onLifeTap;
   final VoidCallback onMoreTap;
 
-    @override
+  @override
   Widget build(BuildContext context) {
     double s(double value) => value * zoom;
+
     final theme = Theme.of(context);
+    final lineColor = theme.colorScheme.outlineVariant;
+
+    Widget divider() => SizedBox(
+          width: 1,
+          child: ColoredBox(color: lineColor),
+        );
+
+    Widget item({
+      required IconData icon,
+      required String label,
+      required VoidCallback onTap,
+    }) {
+      return Expanded(
+        child: _NavigationItem(
+          icon: icon,
+          label: label,
+          zoom: zoom,
+          enabled: !isProcessing,
+          onTap: onTap,
+        ),
+      );
+    }
 
     return SizedBox(
-      height: s(68),
+      height: s(_GameScreenState._navigationHeight),
       child: Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
-          // Latar dan garis atas diperluas ke atas.
-          Positioned(
-  top: -s(4),
-  left: 0,
-  right: 0,
-  bottom: 0,
-  child: Container(
-    decoration: BoxDecoration(
-      color: theme.colorScheme.surface,
-      border: Border(
-        top: BorderSide(
-          color: theme.colorScheme.outlineVariant,
-          width: 1,
-        ),
-      ),
-    ),
-  ),
-),
-
-          // Isi navigasi tetap pada posisi vertikal semula.
-          Positioned(
-            top: s(6),
-            left: 0,
-            right: 0,
-            child: SizedBox(
-              height: s(56),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: s(4),
-                  vertical: s(2),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _NavigationItem(
-                        icon: firstSlot.icon,
-                        label: firstSlot.label,
-                        zoom: zoom,
-                        enabled: !isProcessing,
-                        onTap: onCareerTap,
-                      ),
-                    ),
-                    Expanded(
-                      child: _NavigationItem(
-                        icon: Icons.account_balance_wallet_rounded,
-                        label: 'Assets',
-                        zoom: zoom,
-                        enabled: !isProcessing,
-                        onTap: onAssetsTap,
-                      ),
-                    ),
-                    SizedBox(width: s(68)),
-                    Expanded(
-                      child: _NavigationItem(
-                        icon: Icons.favorite_rounded,
-                        label: 'Life',
-                        zoom: zoom,
-                        enabled: !isProcessing,
-                        onTap: onLifeTap,
-                      ),
-                    ),
-                    Expanded(
-                      child: _NavigationItem(
-                        icon: Icons.more_horiz_rounded,
-                        label: 'More',
-                        zoom: zoom,
-                        enabled: !isProcessing,
-                        onTap: onMoreTap,
-                      ),
-                    ),
-                  ],
+          // The bar, with lines above and below it.
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                border: Border.symmetric(
+                  horizontal: BorderSide(color: lineColor),
                 ),
               ),
             ),
           ),
 
-          // Posisi Age Up tetap sama.
-          Positioned(
-            top: -s(20),
-            child: _AgeUpButton(
-              zoom: zoom,
-              enabled: !isProcessing,
-              onTap: onAgeUpTap,
-            ),
+          // Icons with a line between each of them.
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              item(
+                icon: firstSlot.icon,
+                label: firstSlot.label,
+                onTap: onCareerTap,
+              ),
+              divider(),
+              item(
+                icon: Icons.account_balance_wallet_rounded,
+                label: 'Assets',
+                onTap: onAssetsTap,
+              ),
+              divider(),
+              SizedBox(width: s(88)),
+              divider(),
+              item(
+                icon: Icons.favorite_rounded,
+                label: 'Life',
+                onTap: onLifeTap,
+              ),
+              divider(),
+              item(
+                icon: Icons.more_horiz_rounded,
+                label: 'More',
+                onTap: onMoreTap,
+              ),
+            ],
+          ),
+
+          // Age Up sits in the middle of the bar and may spill outside it.
+          _AgeUpButton(
+            zoom: zoom,
+            enabled: !isProcessing,
+            onTap: onAgeUpTap,
           ),
         ],
       ),
@@ -1445,8 +1453,8 @@ class _AgeUpButton extends StatelessWidget {
         child: Opacity(
           opacity: enabled ? 1.0 : 0.38,
           child: Container(
-            width: s(70),
-            height: s(70),
+            width: s(80),
+            height: s(80),
             decoration: BoxDecoration(
               color: theme.colorScheme.surface,
               shape: BoxShape.circle,
