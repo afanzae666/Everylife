@@ -1,3 +1,4 @@
+import 'package:everylife/presentation/widgets/page_top_bar.dart';
 import 'package:flutter/material.dart';
 
 class MoreScreen extends StatelessWidget {
@@ -21,14 +22,15 @@ class MoreScreen extends StatelessWidget {
         textScaler: TextScaler.linear(zoom),
       ),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('More'),
-        ),
         body: SafeArea(
-          child: ListView(
-            padding: EdgeInsets.zero,
+          child: Column(
             children: [
               if (headerBuilder != null) headerBuilder!(context),
+              PageTopBar(title: 'More', zoom: zoom),
+              Expanded(
+                child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
               Card(
                 margin: EdgeInsets.zero,
                 child: Padding(
@@ -99,6 +101,9 @@ class MoreScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+              ),
+            ],
+          ),
               ),
             ],
           ),

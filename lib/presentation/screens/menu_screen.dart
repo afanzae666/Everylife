@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 enum MenuScreenAction {
   newLife,
+  lifeStorage,
   settings,
 }
 
@@ -34,6 +35,18 @@ class MenuScreen extends StatelessWidget {
               onTap: () {
                 Navigator.of(context).pop(
                   MenuScreenAction.newLife,
+                );
+              },
+            ),
+            SizedBox(height: s(10)),
+            _MenuOption(
+              icon: Icons.inventory_2_outlined,
+              title: 'Life Storage',
+              description:
+                  'Every life saves automatically. Switch between lives.',
+              onTap: () {
+                Navigator.of(context).pop(
+                  MenuScreenAction.lifeStorage,
                 );
               },
             ),

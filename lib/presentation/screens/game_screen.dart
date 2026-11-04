@@ -7,7 +7,7 @@ import 'package:everylife/core/money/money.dart';
 import '../../core/money/currency_formatter.dart';
 import '../../core/result/result.dart';
 import '../../data/services/character_palette_service.dart';
-import '../../data/settings/auto_save_settings.dart';
+import '../../data/repositories/save_repository.dart';
 import '../../domain/character/life_stage.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../simulation/engine/simulation_engine.dart';
@@ -23,23 +23,16 @@ import 'character_profile_screen.dart';
 import 'life_screen.dart';
 import 'more_screen.dart';
 import 'menu_screen.dart';
-import 'save_load_screen.dart';
+import 'life_storage_screen.dart';
 import 'settings_screen.dart';
 
 Future<void> _defaultUiScaleChanged(double value) async {}
-
-enum NewLifeRequestAction {
-  saveCurrentLife,
-  startWithoutSaving,
-  cancel,
-}
 
 class GameScreen extends StatefulWidget {
   const GameScreen({
     required this.engine,
     this.onUiScaleChanged = _defaultUiScaleChanged,
     this.uiScaleController,
-    this.onNewLifeRequested,
     this.onNewLifeCreationRequested,
     super.key,
   });
@@ -47,9 +40,6 @@ class GameScreen extends StatefulWidget {
   final SimulationEngine engine;
   final Future<void> Function(double value) onUiScaleChanged;
   final ValueNotifier<double>? uiScaleController;
-
-  final Future<NewLifeRequestAction?> Function()?
-      onNewLifeRequested;
 
   final VoidCallback? onNewLifeCreationRequested;
 
@@ -62,12 +52,9 @@ class _GameScreenState extends State<GameScreen> {
 
   late final ValueNotifier<double> _uiScaleController;
   late final bool _ownsUiScaleController;
-  late final ValueNotifier<bool> _autoSaveController;
-  late final AutoSaveSettings _autoSaveSettings;
   late final Future<CharacterPaletteService>
       _characterPaletteFuture;
 
-  bool _autoSaveSettingReady = false;
   bool _isProcessingTurn = false;
   bool _isShowingLifeDialog = false;
 
@@ -89,16 +76,6 @@ class _GameScreenState extends State<GameScreen> {
       _ownsUiScaleController = true;
     }
 
-    _autoSaveController = ValueNotifier<bool>(true);
-
-    _autoSaveSettings = AutoSaveSettings();
-
-    _autoSaveController.addListener(
-      _handleAutoSaveSettingChanged,
-    );
-
-    _loadAutoSaveSetting();
-
     _scrollLifeEventsToBottom(jump: true);
 
     // A loaded save may be waiting on a decision or already be over.
@@ -113,36 +90,9 @@ class _GameScreenState extends State<GameScreen> {
       _uiScaleController.dispose();
     }
 
-    _autoSaveController.removeListener(
-      _handleAutoSaveSettingChanged,
-    );
-
-    _autoSaveController.dispose();
     _lifeEventsScrollController.dispose();
 
     super.dispose();
-  }
-
-  Future<void> _loadAutoSaveSetting() async {
-    final enabled = await _autoSaveSettings.load();
-
-    if (!mounted) {
-      return;
-    }
-
-    _autoSaveSettingReady = true;
-
-    _autoSaveController.value = enabled;
-  }
-
-  void _handleAutoSaveSettingChanged() {
-    if (!_autoSaveSettingReady) {
-      return;
-    }
-
-    _autoSaveSettings.save(
-      _autoSaveController.value,
-    );
   }
 
   void _scrollLifeEventsToBottom({
@@ -209,7 +159,7 @@ class _GameScreenState extends State<GameScreen> {
           );
 
           if (startNew && mounted) {
-            widget.onNewLifeCreationRequested?.call();
+            await _startNewLife();
           }
 
           return;
@@ -258,12 +208,10 @@ class _GameScreenState extends State<GameScreen> {
           return;
         }
 
-        if (_autoSaveController.value) {
-          final saveResult = await engine.save();
+        final saveResult = await engine.save();
 
-          if (saveResult case Failure<void>(:final message)) {
-            _showTurnMessage('Auto-save failed: $message');
-          }
+        if (saveResult case Failure<void>(:final message)) {
+          _showTurnMessage('Auto-save failed: $message');
         }
       }
     } finally {
@@ -305,16 +253,14 @@ class _GameScreenState extends State<GameScreen> {
 
     _scrollLifeEventsToBottom();
 
-    if (_autoSaveController.value) {
-      final saveResult = await engine.save();
+    final saveResult = await engine.save();
 
-      if (!mounted) {
-        return;
-      }
+    if (!mounted) {
+      return;
+    }
 
-      if (saveResult case Failure<void>(:final message)) {
-        _showTurnMessage('Auto-save failed: $message');
-      }
+    if (saveResult case Failure<void>(:final message)) {
+      _showTurnMessage('Auto-save failed: $message');
     }
 
     if (!mounted) {
@@ -328,57 +274,92 @@ class _GameScreenState extends State<GameScreen> {
     await _handleLifeFlow();
   }
 
-  Future<bool> _openSaveManager({
-    bool isNewLifeFlow = false,
+  /// Opens Life Storage. Returns true when a different life was loaded.
+  Future<bool> _openLifeStorage({
+    bool isFull = false,
   }) async {
     if (_isProcessingTurn) {
       return false;
     }
 
-    final screenSize = MediaQuery.sizeOf(context);
+    final loaded = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => LifeStorageScreen(
+          zoom: _uiScaleController.value,
+          activeSlot: engine.activeSlot,
+          isFull: isFull,
+          onRead: engine.readSaveSlot,
+          onLoad: engine.loadFromSlot,
+          onDelete: engine.deleteSave,
+          onGameStateChanged: () {
+            if (!mounted) {
+              return;
+            }
 
-    final saved = await showDialog<bool>(
-      context: context,
-      barrierColor: Colors.black.withValues(
-        alpha: 0.32,
+            setState(() {});
+            _scrollLifeEventsToBottom();
+            _handleLifeFlow();
+          },
+        ),
       ),
-      builder: (dialogContext) {
-        final dialogWidth = screenSize.width * 0.92;
-        final dialogHeight = screenSize.height * 0.82;
-
-        return Dialog(
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 24,
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: SizedBox(
-            width: dialogWidth,
-            height: dialogHeight,
-            child: SaveLoadScreen(
-              zoom: _uiScaleController.value,
-              autoSaveController: _autoSaveController,
-              onRead: engine.readSaveSlot,
-              onSave: engine.saveToSlot,
-              onLoad: engine.loadFromSlot,
-              onDelete: engine.deleteSave,
-              onGameStateChanged: () {
-                if (!mounted) {
-                  return;
-                }
-
-                setState(() {});
-                _scrollLifeEventsToBottom();
-                _handleLifeFlow();
-              },
-              isNewLifeFlow: isNewLifeFlow,
-            ),
-          ),
-        );
-      },
     );
 
-    return saved == true;
+    return loaded == true;
+  }
+
+  /// Starts creating a new life. Every life needs its own storage slot, so
+  /// when Life Storage is full the player must delete one first.
+  Future<void> _startNewLife() async {
+    var freeSlot = await engine.firstFreeSlot();
+
+    if (!mounted) {
+      return;
+    }
+
+    if (freeSlot == null) {
+      final openStorage = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            key: const Key('life-storage-full-dialog'),
+            title: const Text('Life Storage is full'),
+            content: const Text(
+              'Every life needs its own slot. Delete a life to make room '
+              'for a new one.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('CANCEL'),
+              ),
+              FilledButton(
+                key: const Key('open-life-storage'),
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('OPEN LIFE STORAGE'),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (!mounted || openStorage != true) {
+        return;
+      }
+
+      await _openLifeStorage(isFull: true);
+
+      if (!mounted) {
+        return;
+      }
+
+      freeSlot = await engine.firstFreeSlot();
+
+      if (!mounted || freeSlot == null) {
+        return;
+      }
+    }
+
+    widget.onNewLifeCreationRequested?.call();
   }
 
   Future<void> _openCharacterProfile() async {
@@ -458,37 +439,12 @@ class _GameScreenState extends State<GameScreen> {
         _openSettings();
         break;
 
+      case MenuScreenAction.lifeStorage:
+        await _openLifeStorage();
+        break;
+
       case MenuScreenAction.newLife:
-        final requestAction =
-            await widget.onNewLifeRequested?.call();
-
-        if (!mounted) {
-          return;
-        }
-
-        switch (requestAction) {
-          case NewLifeRequestAction.saveCurrentLife:
-            final saved = await _openSaveManager(
-              isNewLifeFlow: true,
-            );
-
-            if (!mounted) {
-              return;
-            }
-
-            if (saved) {
-              widget.onNewLifeCreationRequested?.call();
-            }
-            break;
-
-          case NewLifeRequestAction.startWithoutSaving:
-            widget.onNewLifeCreationRequested?.call();
-            break;
-
-          case NewLifeRequestAction.cancel:
-          case null:
-            break;
-        }
+        await _startNewLife();
         break;
 
       case null:
@@ -643,9 +599,7 @@ class _GameScreenState extends State<GameScreen> {
               setState(() {});
             }
 
-            if (_autoSaveController.value) {
-              await engine.save();
-            }
+            await engine.save();
           },
         ),
       ),
@@ -776,18 +730,6 @@ class _GameScreenState extends State<GameScreen> {
           fit: BoxFit.contain,
         ),
         actions: [
-          IconButton(
-            tooltip: 'Save / Load',
-            onPressed: _isProcessingTurn
-                ? null
-                : () {
-                    _openSaveManager();
-                  },
-            icon: Icon(
-              Icons.folder_copy_outlined,
-              size: s(24),
-            ),
-          ),
           IconButton(
             tooltip: 'Menu',
             onPressed: _isProcessingTurn
@@ -952,14 +894,26 @@ class _GameScreenState extends State<GameScreen> {
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      player.name,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium,
-                      maxLines: 1,
-                      overflow:
-                          TextOverflow.ellipsis,
+                    // Long names shrink to fit instead of being cut off.
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        player.name,
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium!
+                            .copyWith(
+                              fontSize: (Theme.of(context)
+                                          .textTheme
+                                          .titleMedium!
+                                          .fontSize ??
+                                      16) *
+                                  0.85,
+                            ),
+                        maxLines: 1,
+                        softWrap: false,
+                      ),
                     ),
                     SizedBox(height: s(1)),
                     Text(
@@ -999,7 +953,7 @@ class _GameScreenState extends State<GameScreen> {
                                             .bodyLarge!
                                             .fontSize ??
                                         14) *
-                                    1.25,
+                                    0.95,
                             fontWeight: FontWeight.w600,
                           ),
                     ),
@@ -1050,8 +1004,8 @@ class _GameScreenState extends State<GameScreen> {
           : ListView.separated(
               controller:
                   _lifeEventsScrollController,
-              // Only the text floats: 8px of air above the navigation bar.
-              padding: EdgeInsets.only(bottom: s(8)),
+              // Only the text floats: 11px of air above the navigation bar.
+              padding: EdgeInsets.only(bottom: s(11)),
               itemCount:
                   groupedEvents.length,
               separatorBuilder: (_, __) =>

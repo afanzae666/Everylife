@@ -1,4 +1,5 @@
 
+import 'package:everylife/presentation/widgets/page_top_bar.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/services/character_palette_service.dart';
@@ -114,6 +115,11 @@ class _LifeScreenState extends State<LifeScreen> {
             children: [
               // The character card stays fixed at the top of the page.
               if (widget.headerBuilder != null) widget.headerBuilder!(context),
+              PageTopBar(
+                title: 'Life',
+                zoom: zoom,
+                backKey: const Key('life-back-button'),
+              ),
               Expanded(
                 child: LayoutBuilder(
             builder: (context, constraints) {
@@ -127,7 +133,6 @@ class _LifeScreenState extends State<LifeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _LifeHeader(zoom: zoom),
                         if (parents.isNotEmpty)
                           _CategoryCard(
                             title: 'Parents',
@@ -182,48 +187,6 @@ class _LifeScreenState extends State<LifeScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _LifeHeader extends StatelessWidget {
-  const _LifeHeader({
-    required this.zoom,
-  });
-
-  final double zoom;
-
-  @override
-  Widget build(BuildContext context) {
-    double s(double value) => value * zoom;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: s(4),
-        vertical: s(2),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            key: const Key('life-back-button'),
-            onPressed: () {
-              Navigator.of(context).maybePop();
-            },
-            icon: const Icon(Icons.arrow_back),
-            tooltip: 'Back',
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(
-              minWidth: 40,
-              minHeight: 40,
-            ),
-          ),
-          SizedBox(width: s(4)),
-          Text(
-            'Life',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-        ],
       ),
     );
   }

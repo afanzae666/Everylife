@@ -1,3 +1,4 @@
+import 'package:everylife/presentation/widgets/page_top_bar.dart';
 import 'package:everylife/core/money/game_currency.dart';
 import 'package:flutter/material.dart';
 
@@ -109,24 +110,20 @@ return MediaQuery(
     textScaler: TextScaler.linear(zoom),
   ),
   child: Scaffold(
-    appBar: AppBar(
-      title: const Text('Assets'),
-    ),
     body: SafeArea(
-      child: ListView(
-        padding: EdgeInsets.zero,
+      child: Column(
         children: [
           if (headerBuilder != null) headerBuilder!(context),
+          PageTopBar(title: 'Assets', zoom: zoom),
+          Expanded(
+            child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
           Padding(
             padding: EdgeInsets.all(s(8)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Assets',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                SizedBox(height: s(1)),
                 Text(
                   'Everything your character owns.',
                   style: Theme.of(context).textTheme.bodySmall,
@@ -236,6 +233,9 @@ return MediaQuery(
           ),
         ],
       ),
+    ),
+    ],
+    ),
     ),
   ),
 );

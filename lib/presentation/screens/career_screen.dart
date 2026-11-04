@@ -1,3 +1,4 @@
+import 'package:everylife/presentation/widgets/page_top_bar.dart';
 import 'package:everylife/core/money/game_currency.dart';
 import 'package:flutter/material.dart';
 
@@ -121,11 +122,14 @@ class _CareerScreenState extends State<CareerScreen> {
         textScaler: TextScaler.linear(widget.zoom),
       ),
       child: Scaffold(
-        appBar: AppBar(title: Text(isSchoolAge ? 'School' : 'Occupation')),
         body: SafeArea(
           child: Column(
             children: [
               if (widget.headerBuilder != null) widget.headerBuilder!(context),
+              PageTopBar(
+                title: isSchoolAge ? 'School' : 'Occupation',
+                zoom: widget.zoom,
+              ),
               Expanded(
                 child: ListView(
                   padding: EdgeInsets.zero,
