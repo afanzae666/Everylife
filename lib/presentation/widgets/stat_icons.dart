@@ -281,54 +281,74 @@ class StatIconPainter extends CustomPainter {
     final base = mood == StatMood.awful || mood == StatMood.poor
         ? kindColor.withValues(alpha: 0.7)
         : kindColor;
+    final fill = _fill(base);
 
-    // Two brain halves and a small stem.
-    canvas.drawOval(const Rect.fromLTRB(0.06, 0.2, 0.55, 0.78), _fill(base));
-    canvas.drawOval(const Rect.fromLTRB(0.45, 0.2, 0.94, 0.78), _fill(base));
+    // The brain is a cloud of rounded lobes (seen from the side) ...
+    for (final lobe in const [
+      Rect.fromLTRB(0.10, 0.22, 0.46, 0.58), // upper left
+      Rect.fromLTRB(0.32, 0.12, 0.68, 0.48), // top
+      Rect.fromLTRB(0.54, 0.22, 0.90, 0.58), // upper right
+      Rect.fromLTRB(0.04, 0.38, 0.38, 0.72), // left
+      Rect.fromLTRB(0.62, 0.38, 0.96, 0.72), // right
+      Rect.fromLTRB(0.18, 0.50, 0.52, 0.84), // lower left
+      Rect.fromLTRB(0.48, 0.50, 0.82, 0.84), // lower right
+    ]) {
+      canvas.drawOval(lobe, fill);
+    }
+
+    // ... with a little stem under it.
     canvas.drawRRect(
-      RRect.fromLTRBR(0.43, 0.66, 0.57, 0.92, const Radius.circular(0.05)),
-      _fill(base),
+      RRect.fromLTRBR(0.42, 0.74, 0.58, 0.94, const Radius.circular(0.06)),
+      fill,
     );
 
-    // Folds.
+    // Wrinkles: a centre line and wiggly folds on both sides.
     final fold = _stroke(cutout, 0.04);
 
     canvas.drawPath(
       Path()
-        ..moveTo(0.5, 0.24)
-        ..quadraticBezierTo(0.44, 0.4, 0.5, 0.5)
-        ..quadraticBezierTo(0.56, 0.6, 0.5, 0.74),
-      fold,
-    );
-    canvas.drawArc(
-      const Rect.fromLTRB(0.16, 0.32, 0.4, 0.52),
-      math.pi * 0.9,
-      math.pi * 1.2,
-      false,
-      fold,
-    );
-    canvas.drawArc(
-      const Rect.fromLTRB(0.6, 0.32, 0.84, 0.52),
-      -math.pi * 0.1,
-      -math.pi * 1.2,
-      false,
+        ..moveTo(0.5, 0.16)
+        ..cubicTo(0.42, 0.3, 0.58, 0.42, 0.5, 0.55)
+        ..cubicTo(0.44, 0.64, 0.54, 0.72, 0.5, 0.82),
       fold,
     );
 
+    for (final side in [1.0, -1.0]) {
+      double x(double v) => side > 0 ? v : 1 - v;
+
+      canvas.drawPath(
+        Path()
+          ..moveTo(x(0.16), 0.44)
+          ..cubicTo(x(0.24), 0.36, x(0.30), 0.52, x(0.40), 0.44),
+        fold,
+      );
+      canvas.drawPath(
+        Path()
+          ..moveTo(x(0.14), 0.62)
+          ..cubicTo(x(0.24), 0.54, x(0.30), 0.70, x(0.42), 0.62),
+        fold,
+      );
+      canvas.drawPath(
+        Path()
+          ..moveTo(x(0.28), 0.30)
+          ..cubicTo(x(0.34), 0.24, x(0.38), 0.34, x(0.44), 0.28),
+        fold,
+      );
+    }
+
     switch (mood) {
       case StatMood.great:
-        _sparkle(canvas, const Offset(0.16, 0.14), 0.12, _fill(const Color(0xFFFFE066)));
-        _sparkle(canvas, const Offset(0.86, 0.12), 0.09, _fill(const Color(0xFFFFE066)));
-        _sparkle(canvas, const Offset(0.5, 0.1), 0.07, _fill(const Color(0xFFFFE066)));
+        _sparkle(canvas, const Offset(0.12, 0.12), 0.1, _fill(const Color(0xFFFFE066)));
+        _sparkle(canvas, const Offset(0.88, 0.1), 0.08, _fill(const Color(0xFFFFE066)));
       case StatMood.good:
-        _sparkle(canvas, const Offset(0.84, 0.14), 0.1, _fill(const Color(0xFFFFE066)));
+        _sparkle(canvas, const Offset(0.88, 0.12), 0.09, _fill(const Color(0xFFFFE066)));
       case StatMood.okay:
         break;
       case StatMood.poor:
-        _sleepyZ(canvas, 0.78, 0.16, 0.14);
+        _sleepyZ(canvas, 0.82, 0.14, 0.11);
       case StatMood.awful:
-        _sleepyZ(canvas, 0.7, 0.2, 0.14);
-        _sleepyZ(canvas, 0.86, 0.06, 0.09);
+        _sleepyZ(canvas, 0.74, 0.18, 0.11);
+        _sleepyZ(canvas, 0.9, 0.06, 0.07);
     }
   }
 
