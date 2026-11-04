@@ -1,12 +1,21 @@
 import '../../domain/world/world_state.dart';
 
+/// One place in Life Storage. Every life autosaves into its own slot.
 enum SaveSlot {
-  autosave,
-  manual1,
-  manual2,
-  manual3,
-  manual4,
+  slot1,
+  slot2,
+  slot3,
+  slot4,
+  slot5,
+  slot6,
+  slot7,
+  slot8,
+  slot9,
+  slot10,
 }
+
+/// How many lives Life Storage can hold.
+final int lifeStorageCapacity = SaveSlot.values.length;
 
 class SaveData {
   const SaveData({
@@ -27,15 +36,15 @@ abstract interface class SaveRepository {
     WorldState state, {
     required int randomState,
     required int nextTickId,
-    SaveSlot slot = SaveSlot.autosave,
+    SaveSlot slot = SaveSlot.slot1,
   });
 
   Future<SaveData?> load({
-    SaveSlot slot = SaveSlot.autosave,
+    SaveSlot slot = SaveSlot.slot1,
   });
 
   Future<void> delete({
-    SaveSlot slot = SaveSlot.autosave,
+    SaveSlot slot = SaveSlot.slot1,
   });
 }
 
@@ -47,7 +56,7 @@ class InMemorySaveRepository implements SaveRepository {
     WorldState state, {
     required int randomState,
     required int nextTickId,
-    SaveSlot slot = SaveSlot.autosave,
+    SaveSlot slot = SaveSlot.slot1,
   }) async {
     _data[slot] = SaveData(
       state: state,
@@ -59,14 +68,14 @@ class InMemorySaveRepository implements SaveRepository {
 
   @override
   Future<SaveData?> load({
-    SaveSlot slot = SaveSlot.autosave,
+    SaveSlot slot = SaveSlot.slot1,
   }) async {
     return _data[slot];
   }
 
   @override
   Future<void> delete({
-    SaveSlot slot = SaveSlot.autosave,
+    SaveSlot slot = SaveSlot.slot1,
   }) async {
     _data.remove(slot);
   }

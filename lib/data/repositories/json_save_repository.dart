@@ -19,7 +19,7 @@ class JsonSaveRepository
     WorldState state, {
     required int randomState,
     required int nextTickId,
-    SaveSlot slot = SaveSlot.autosave,
+    SaveSlot slot = SaveSlot.slot1,
   }) async {
     final snapshot =
         SimulationSaveSnapshot(
@@ -44,7 +44,7 @@ class JsonSaveRepository
 
   @override
   Future<SaveData?> load({
-    SaveSlot slot = SaveSlot.autosave,
+    SaveSlot slot = SaveSlot.slot1,
   }) async {
     final json = await _storage.read(
       slotKey: _slotKey(slot),
@@ -81,31 +81,48 @@ class JsonSaveRepository
 
   @override
   Future<void> delete({
-    SaveSlot slot = SaveSlot.autosave,
+    SaveSlot slot = SaveSlot.slot1,
   }) async {
     await _storage.delete(
       slotKey: _slotKey(slot),
     );
   }
 
+  /// Slot 1 keeps the old 'autosave' key and slots 2-5 keep the old
+  /// 'manual_N' keys, so lives saved by earlier versions are not lost.
   String _slotKey(
     SaveSlot slot,
   ) {
     switch (slot) {
-      case SaveSlot.autosave:
+      case SaveSlot.slot1:
         return 'autosave';
 
-      case SaveSlot.manual1:
+      case SaveSlot.slot2:
         return 'manual_1';
 
-      case SaveSlot.manual2:
+      case SaveSlot.slot3:
         return 'manual_2';
 
-      case SaveSlot.manual3:
+      case SaveSlot.slot4:
         return 'manual_3';
 
-      case SaveSlot.manual4:
+      case SaveSlot.slot5:
         return 'manual_4';
+
+      case SaveSlot.slot6:
+        return 'life_6';
+
+      case SaveSlot.slot7:
+        return 'life_7';
+
+      case SaveSlot.slot8:
+        return 'life_8';
+
+      case SaveSlot.slot9:
+        return 'life_9';
+
+      case SaveSlot.slot10:
+        return 'life_10';
     }
   }
 }
