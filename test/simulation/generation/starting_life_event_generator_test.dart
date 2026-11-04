@@ -253,11 +253,15 @@ void main() {
       random: SeededRandom(123),
     );
 
+    expect(description, contains('born'));
     expect(
       description,
-      'I was born. I was conceived during an affair between my '
-      'mother and a married man.',
+      endsWith(
+        'I was conceived during an affair between my '
+        'mother and a married man.',
+      ),
     );
+    expect(description, isNot(contains('2026')));
     expect(description, isNot(contains('Ayu Santoso was born')));
   });
 
@@ -276,7 +280,8 @@ void main() {
       random: SeededRandom(123),
     );
 
-    expect(description, startsWith('I was born. '));
+    expect(description, contains('born'));
+    expect(description, isNot(contains('2026')));
     expect(description, isNot(contains('affair')));
   });
 
