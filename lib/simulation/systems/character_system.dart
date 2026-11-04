@@ -82,9 +82,12 @@ class CharacterSystem implements SimulationSystem {
             : sameBirth.every((candidate) => candidate.gender.name != 'male')
                 ? 'sisters'
                 : 'siblings';
-        final description = sameBirth.length > 1
-            ? 'My twin $relation, ${names.join(' and ')}, were born in $currentYear.'
-            : 'My ${relation == 'brothers' ? 'brother' : relation == 'sisters' ? 'sister' : 'sibling'}, ${sibling.fullName}, was born in $currentYear.';
+        final description = _siblingBirthText(
+          names: names.toList(growable: false),
+          relation: relation,
+          isTwin: sameBirth.length > 1,
+          variant: currentYear + sibling.fullName.length,
+        );
         nextState = nextState.addEvent(
           SimulationEvent(
             id: 'siblings-born-$currentYear',
@@ -108,6 +111,46 @@ class CharacterSystem implements SimulationSystem {
     );
 
     return nextState.addEvent(event);
+  }
+
+  /// A short, varied birth scene for a new brother or sister (no years).
+  static String _siblingBirthText({
+    required List<String> names,
+    required String relation,
+    required bool isTwin,
+    required int variant,
+  }) {
+    if (isTwin) {
+      final both = names.join(' and ');
+      final templates = <String>[
+        'Double trouble! My twin $relation, $both, arrived together, and '
+            'the whole house ran out of sleep in one night.',
+        'Mom came home with two bundles instead of one. Meet my twin '
+            '$relation, $both. Our home just got twice as loud.',
+        'The doctors said "congratulations" twice. My twin $relation, '
+            '$both, were born today, and nobody in the family can stop '
+            'smiling (or yawning).',
+      ];
+      return templates[variant % templates.length];
+    }
+
+    final noun = relation == 'brothers'
+        ? 'brother'
+        : relation == 'sisters'
+            ? 'sister'
+            : 'sibling';
+    final name = names.first;
+    final templates = <String>[
+      'Big news at home: my new little $noun, $name, just arrived! '
+          'I am officially not the baby of the family anymore.',
+      'Mom and Dad came home carrying a tiny blanket. Inside was my new '
+          '$noun, $name. The house has never been so noisy.',
+      'I got a new $noun today! $name has a very small face and a very '
+          'loud cry, and everyone is already in love.',
+      'The whole family crowded around the hospital bed to meet $name, my '
+          'new little $noun. I promised to teach them everything.',
+    ];
+    return templates[variant % templates.length];
   }
 
   static String _stageLabel(LifeStage stage) {
