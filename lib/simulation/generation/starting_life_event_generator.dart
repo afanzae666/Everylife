@@ -5,6 +5,8 @@ import '../../domain/character/starting_background.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/family/family_household.dart';
 import '../../domain/family/parent_npc.dart';
+import '../../domain/world/city_catalog.dart';
+import '../../domain/world/country_catalog.dart';
 
 class StartingLifeEventGenerator {
   const StartingLifeEventGenerator._();
@@ -61,7 +63,36 @@ class StartingLifeEventGenerator {
     required SeededRandom random,
   }) {
     final conception = _conceptionNarrative(household, random);
-    return 'I was born. $conception';
+
+    return '${_birthScene(player)} $conception';
+  }
+
+  /// A short birth scene. The wording is picked from the birthday, so the
+  /// same character always gets the same story (and no random numbers are
+  /// used up).
+  static String _birthScene(Character player) {
+    final location = player.location;
+    final city = location == null ? null : CityCatalog.findById(location.cityId);
+    final country =
+        location == null ? null : CountryCatalog.findByCode(location.countryCode);
+
+    final place = city != null && country != null
+        ? '${city.name}, ${country.name}'
+        : (country?.name ?? city?.name);
+    final where = place == null ? 'into this world' : 'in $place';
+
+    final scenes = <String>[
+      'I was born $where, and my first cry filled the whole delivery room. '
+          'The nurse laughed, and my family cried happy tears.',
+      'After a long night of waiting, I was born $where. '
+          'The doctor said I had a strong pair of lungs, and I used them right away.',
+      'I was born safely $where, wrapped in a warm blanket and welcomed with '
+          'more love than the room could hold.',
+      'The world got a little louder when I was born $where. '
+          'Everyone argued about who would hold me first.',
+    ];
+
+    return scenes[(player.birthMonth + player.birthDay) % scenes.length];
   }
 
   static String _familyNarrative(
