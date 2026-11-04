@@ -332,7 +332,7 @@ void main() {
     );
 
     testWidgets(
-      'loads a manual save when no autosave exists',
+      'loads a life stored in a later slot when slot 1 is empty',
       (tester) async {
         final repository =
             InMemorySaveRepository();
@@ -355,19 +355,19 @@ void main() {
           manualState,
           randomState: 246810,
           nextTickId: 50,
-          slot: SaveSlot.manual1,
+          slot: SaveSlot.slot2,
         );
 
         expect(
           await repository.load(
-            slot: SaveSlot.autosave,
+            slot: SaveSlot.slot1,
           ),
           isNull,
         );
 
         expect(
           await repository.load(
-            slot: SaveSlot.manual1,
+            slot: SaveSlot.slot2,
           ),
           isNotNull,
         );

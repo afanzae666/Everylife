@@ -9,7 +9,7 @@ import 'package:everylife/presentation/screens/character_creation_screen.dart';
 /// A repository whose every slot is unreadable, like a damaged save file.
 class _UnreadableSaveRepository implements SaveRepository {
   @override
-  Future<SaveData?> load({SaveSlot slot = SaveSlot.autosave}) {
+  Future<SaveData?> load({SaveSlot slot = SaveSlot.slot1}) {
     throw const FormatException('damaged save data');
   }
 
@@ -18,11 +18,11 @@ class _UnreadableSaveRepository implements SaveRepository {
     WorldState state, {
     required int randomState,
     required int nextTickId,
-    SaveSlot slot = SaveSlot.autosave,
+    SaveSlot slot = SaveSlot.slot1,
   }) async {}
 
   @override
-  Future<void> delete({SaveSlot slot = SaveSlot.autosave}) async {}
+  Future<void> delete({SaveSlot slot = SaveSlot.slot1}) async {}
 }
 
 void main() {
