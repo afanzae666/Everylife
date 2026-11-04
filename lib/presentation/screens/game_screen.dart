@@ -511,6 +511,22 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  /// The character profile card shown at the top of every page.
+  Widget _pageHeader(BuildContext context) {
+    final state = engine.state;
+    final player = state.player;
+    final age = player.ageAt(state.clock.currentYear);
+
+    return _buildCharacterCard(
+      context,
+      _uiScaleController.value,
+      state,
+      player,
+      age,
+      _formatLifeStage(LifeStageAge.fromAge(age)),
+    );
+  }
+
   void _openAssetsTab() {
     if (_isProcessingTurn) {
       return;
@@ -521,6 +537,7 @@ class _GameScreenState extends State<GameScreen> {
         builder: (_) => AssetsScreen(
           player: engine.state.player,
           zoom: _uiScaleController.value,
+          headerBuilder: _pageHeader,
         ),
       ),
     );
@@ -620,6 +637,7 @@ class _GameScreenState extends State<GameScreen> {
         builder: (_) => CareerScreen(
           engine: engine,
           zoom: _uiScaleController.value,
+          headerBuilder: _pageHeader,
           onChanged: () async {
             if (mounted) {
               setState(() {});
@@ -642,6 +660,7 @@ class _GameScreenState extends State<GameScreen> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => LifeScreen(
+  headerBuilder: _pageHeader,
   zoom: _uiScaleController.value,
   parents: engine.state.familyHousehold?.parents ?? const [],
   siblings: engine.state.familyHousehold?.siblings ?? const [],
@@ -670,6 +689,7 @@ class _GameScreenState extends State<GameScreen> {
       MaterialPageRoute<void>(
         builder: (_) => MoreScreen(
           zoom: _uiScaleController.value,
+          headerBuilder: _pageHeader,
         ),
       ),
     );
@@ -801,15 +821,11 @@ class _GameScreenState extends State<GameScreen> {
             ),
             SizedBox(height: 0),
             Expanded(
-              child: Padding(
-                // The life log floats a little above the navigation bar.
-                padding: EdgeInsets.only(bottom: 4 * zoom),
-                child: _buildLifeEventsCard(
-                  context,
-                  zoom,
-                  player,
-                  events,
-                ),
+              child: _buildLifeEventsCard(
+                context,
+                zoom,
+                player,
+                events,
               ),
             ),
             // The navigation bar sits on top of the stat card. A Stack lets
@@ -1030,7 +1046,7 @@ class _GameScreenState extends State<GameScreen> {
         s(4),
         s(3),
         s(4),
-        s(3),
+        0,
       ),
       child: groupedEvents.isEmpty
           ? const Center(
@@ -1042,7 +1058,8 @@ class _GameScreenState extends State<GameScreen> {
           : ListView.separated(
               controller:
                   _lifeEventsScrollController,
-              padding: EdgeInsets.zero,
+              // Only the text floats: 8px of air above the navigation bar.
+              padding: EdgeInsets.only(bottom: s(8)),
               itemCount:
                   groupedEvents.length,
               separatorBuilder: (_, __) =>

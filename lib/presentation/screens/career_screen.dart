@@ -6,7 +6,6 @@ import 'package:everylife/core/money/money.dart';
 import '../../core/result/result.dart';
 import '../../domain/career/education_state.dart';
 import '../../domain/career/job_catalog.dart';
-import '../../domain/event/simulation_event.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
@@ -21,6 +20,7 @@ class CareerScreen extends StatefulWidget {
     required this.engine,
     required this.zoom,
     this.onChanged,
+    this.headerBuilder,
     super.key,
   });
 
@@ -29,6 +29,9 @@ class CareerScreen extends StatefulWidget {
 
   /// Called after an action changed the game (the caller can auto-save).
   final Future<void> Function()? onChanged;
+
+  /// Builds the character profile card shown at the top of the page.
+  final WidgetBuilder? headerBuilder;
 
   @override
   State<CareerScreen> createState() => _CareerScreenState();
@@ -124,38 +127,23 @@ class _CareerScreenState extends State<CareerScreen> {
       child: Scaffold(
         appBar: AppBar(title: Text(isSchoolAge ? 'School' : 'Occupation')),
         body: SafeArea(
-          child: ListView(
-            padding: EdgeInsets.fromLTRB(s(8), s(6), s(8), s(12)),
+          child: Column(
             children: [
-              if (!isSchoolAge) ...[
-                _buildFinances(player.money, player.debt),
-                SizedBox(height: s(6)),
-              ],
-              _buildEducation(progress.education, state.clock.currentYear),
-              if (!isSchoolAge) ...[
-                SizedBox(height: s(6)),
-                _buildWork(),
-              ],
-              SizedBox(height: s(6)),
-              _buildHistory(state.events),
+              if (widget.headerBuilder != null) widget.headerBuilder!(context),
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    _buildEducation(
+                      progress.education,
+                      state.clock.currentYear,
+                    ),
+                    if (!isSchoolAge) _buildWork(),
+                  ],
+                ),
+              ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFinances(Money cash, Money debt) {
-    return Card(
-      margin: EdgeInsets.zero,
-      child: ListTile(
-        key: const Key('career-finances'),
-        leading: const Icon(Icons.account_balance_wallet_outlined),
-        title: Text('Cash: ${_formatMoney(cash)}'),
-        subtitle: Text(
-          debt.minorUnits > 0
-              ? 'Debt: ${_formatMoney(debt)}'
-              : 'No debt',
         ),
       ),
     );
@@ -333,46 +321,4 @@ class _CareerScreenState extends State<CareerScreen> {
     );
   }
 
-  Widget _buildHistory(List<SimulationEvent> events) {
-    final history = events
-        .where(
-          (event) =>
-              event.type == SimulationEventType.career ||
-              event.type == SimulationEventType.education,
-        )
-        .toList()
-        .reversed
-        .take(10)
-        .toList();
-    final birthYear = engine.state.player.birthYear;
-
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: EdgeInsets.all(s(8)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.history),
-                SizedBox(width: s(6)),
-                Text('History', style: Theme.of(context).textTheme.titleMedium),
-              ],
-            ),
-            SizedBox(height: s(4)),
-            if (history.isEmpty) const Text('Nothing yet.'),
-            for (final event in history)
-              Padding(
-                padding: EdgeInsets.only(bottom: s(2)),
-                child: Text(
-                  'Age ${(event.year - birthYear).clamp(0, 150)}: '
-                  '${event.description}',
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
 }

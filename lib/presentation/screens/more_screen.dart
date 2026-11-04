@@ -3,10 +3,14 @@ import 'package:flutter/material.dart';
 class MoreScreen extends StatelessWidget {
   const MoreScreen({
     required this.zoom,
+    this.headerBuilder,
     super.key,
   });
 
   final double zoom;
+
+  /// Builds the character card shown at the top of the page.
+  final WidgetBuilder? headerBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -22,13 +26,9 @@ class MoreScreen extends StatelessWidget {
         ),
         body: SafeArea(
           child: ListView(
-            padding: EdgeInsets.fromLTRB(
-              s(8),
-              s(6),
-              s(8),
-              s(12),
-            ),
+            padding: EdgeInsets.zero,
             children: [
+              if (headerBuilder != null) headerBuilder!(context),
               Card(
                 margin: EdgeInsets.zero,
                 child: Padding(

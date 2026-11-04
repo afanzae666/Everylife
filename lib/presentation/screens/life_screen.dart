@@ -50,6 +50,7 @@ class LifeScreen extends StatefulWidget {
     this.readCurrentParents,
     this.isNpcLocked,
     this.readCurrentSiblings,
+    this.headerBuilder,
     super.key,
   });
 
@@ -65,6 +66,9 @@ class LifeScreen extends StatefulWidget {
   /// the current age.
   final bool Function(String npcId)? isNpcLocked;
   final List<SiblingNpc> Function()? readCurrentSiblings;
+
+  /// Builds the character card shown at the top of the page.
+  final WidgetBuilder? headerBuilder;
 
   @override
   State<LifeScreen> createState() => _LifeScreenState();
@@ -106,7 +110,12 @@ class _LifeScreenState extends State<LifeScreen> {
       ),
       child: Scaffold(
         body: SafeArea(
-          child: LayoutBuilder(
+          child: Column(
+            children: [
+              // The character card stays fixed at the top of the page.
+              if (widget.headerBuilder != null) widget.headerBuilder!(context),
+              Expanded(
+                child: LayoutBuilder(
             builder: (context, constraints) {
               return SingleChildScrollView(
                 padding: EdgeInsets.zero,
@@ -168,6 +177,9 @@ class _LifeScreenState extends State<LifeScreen> {
                 ),
               );
             },
+          ),
+              ),
+            ],
           ),
         ),
       ),

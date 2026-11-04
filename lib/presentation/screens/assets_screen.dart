@@ -10,11 +10,15 @@ class AssetsScreen extends StatelessWidget {
 const AssetsScreen({
 required this.player,
 required this.zoom,
+this.headerBuilder,
 super.key,
 });
 
 final Character player;
 final double zoom;
+
+/// Builds the character card shown at the top of the page.
+final WidgetBuilder? headerBuilder;
 
 static const List<PlayerAssetType> _assetTypes = [
 PlayerAssetType.property,
@@ -109,23 +113,26 @@ return MediaQuery(
     ),
     body: SafeArea(
       child: ListView(
-        padding: EdgeInsets.fromLTRB(
-          s(8),
-          s(6),
-          s(8),
-          s(12),
-        ),
+        padding: EdgeInsets.zero,
         children: [
-          Text(
-            'Assets',
-            style: Theme.of(context).textTheme.titleLarge,
+          if (headerBuilder != null) headerBuilder!(context),
+          Padding(
+            padding: EdgeInsets.all(s(8)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Assets',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                SizedBox(height: s(1)),
+                Text(
+                  'Everything your character owns.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
           ),
-          SizedBox(height: s(1)),
-          Text(
-            'Everything your character owns.',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          SizedBox(height: s(4)),
           Card(
             margin: EdgeInsets.zero,
             child: Padding(
