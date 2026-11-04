@@ -1,9 +1,9 @@
+import 'package:everylife/core/money/game_currency.dart';
 import 'package:flutter/material.dart';
 import 'package:everylife/core/money/money.dart';
 
 import '../../data/services/character_palette_service.dart';
 import '../../core/money/currency_formatter.dart';
-import '../../core/money/fixed_exchange_rates.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../domain/world/city_catalog.dart';
 import '../../domain/character/character.dart';
@@ -27,13 +27,7 @@ class CharacterProfileScreen extends StatelessWidget {
   String _getCurrencyCode() {
     final countryCode = character.location?.countryCode ?? '';
     final country = CountryCatalog.findByCode(countryCode);
-    final currencyCode = country?.currencyCode ?? 'USD';
-
-    if (FixedExchangeRates.snapshot.rateFor(currencyCode) == null) {
-      return 'USD';
-    }
-
-    return currencyCode;
+    return GameCurrency.forCountryCurrency(country?.currencyCode);
   }
 
   String _formatMoney(Money amount) {

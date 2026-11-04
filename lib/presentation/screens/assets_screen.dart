@@ -1,3 +1,4 @@
+import 'package:everylife/core/money/game_currency.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/money/currency_formatter.dart';
@@ -33,7 +34,7 @@ String _getCurrencyCode() {
 final countryCode = player.location?.countryCode ?? '';
 final country = CountryCatalog.findByCode(countryCode);
 
-return country?.currencyCode ?? 'USD';
+return GameCurrency.forCountryCurrency(country?.currencyCode);
 
 }
 

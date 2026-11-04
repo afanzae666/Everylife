@@ -1,8 +1,8 @@
+import 'package:everylife/core/money/game_currency.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/result/result.dart';
 import '../../core/money/currency_formatter.dart';
-import '../../core/money/fixed_exchange_rates.dart';
 import '../../data/repositories/save_repository.dart';
 import '../../domain/world/country_catalog.dart';
 
@@ -61,10 +61,7 @@ class _SaveLoadScreenState
   String _formatSavedMoney(SaveData data) {
     final countryCode = data.state.player.location?.countryCode ?? '';
     final country = CountryCatalog.findByCode(countryCode);
-    var currencyCode = country?.currencyCode ?? 'USD';
-    if (FixedExchangeRates.snapshot.rateFor(currencyCode) == null) {
-      currencyCode = 'USD';
-    }
+    final currencyCode = GameCurrency.forCountryCurrency(country?.currencyCode);
     return CurrencyFormatter.format(
       data.state.player.money,
       currencyCode: currencyCode,

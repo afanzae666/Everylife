@@ -1,10 +1,10 @@
+import 'package:everylife/core/money/game_currency.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:everylife/core/money/money.dart';
 
 import '../../core/money/currency_formatter.dart';
-import '../../core/money/fixed_exchange_rates.dart';
 import '../../core/result/result.dart';
 import '../../data/services/character_palette_service.dart';
 import '../../data/settings/auto_save_settings.dart';
@@ -698,15 +698,7 @@ class _GameScreenState extends State<GameScreen> {
     String _getCurrencyCode(dynamic player) {
     final countryCode = player.location?.countryCode ?? '';
     final country = CountryCatalog.findByCode(countryCode);
-    final currencyCode = country?.currencyCode ?? 'USD';
-
-    // Jangan meminta konversi dengan kurs yang belum tersedia.
-    // Gunakan USD sebagai fallback agar layar tidak crash.
-    if (FixedExchangeRates.snapshot.rateFor(currencyCode) == null) {
-      return 'USD';
-    }
-
-    return currencyCode;
+    return GameCurrency.forCountryCurrency(country?.currencyCode);
   }
 
   String _formatMoney(

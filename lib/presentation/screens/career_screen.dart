@@ -1,7 +1,7 @@
+import 'package:everylife/core/money/game_currency.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/money/currency_formatter.dart';
-import '../../core/money/fixed_exchange_rates.dart';
 import 'package:everylife/core/money/money.dart';
 import '../../core/result/result.dart';
 import '../../domain/career/education_state.dart';
@@ -44,13 +44,9 @@ class _CareerScreenState extends State<CareerScreen> {
 
   String _currencyCode() {
     final countryCode = engine.state.player.location?.countryCode ?? '';
-    final code = CountryCatalog.findByCode(countryCode)?.currencyCode ?? 'USD';
-
-    if (FixedExchangeRates.snapshot.rateFor(code) == null) {
-      return 'USD';
-    }
-
-    return code;
+    return GameCurrency.forCountryCurrency(
+      CountryCatalog.findByCode(countryCode)?.currencyCode,
+    );
   }
 
   String _formatMoney(Money amount) {

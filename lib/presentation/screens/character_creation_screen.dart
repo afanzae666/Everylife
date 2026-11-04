@@ -1,3 +1,4 @@
+import 'package:everylife/core/money/game_currency.dart';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -2021,7 +2022,9 @@ Widget fixedImage({
 
                 return ListTile(
                   title: Text(country.name),
-                  subtitle: Text(country.currencyCode),
+                  subtitle: Text(
+                    GameCurrency.forCountryCurrency(country.currencyCode),
+                  ),
                   trailing: selected
                       ? const Icon(Icons.check)
                       : null,
