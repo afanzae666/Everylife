@@ -584,10 +584,53 @@ class SimulationEngine {
     return result;
   }
 
-  Future<Result<void>> save() {
-    return saveToSlot(
-      SaveSlot.autosave,
-    );
+  /// The Life Storage slot this life autosaves into (null until the first
+  /// save picks a free slot).
+  SaveSlot? get activeSlot => _activeSlot;
+
+  set activeSlot(SaveSlot? slot) {
+    _activeSlot = slot;
+  }
+
+  SaveSlot? _activeSlot;
+
+  /// The first empty Life Storage slot, or null when storage is full.
+  /// A slot that cannot be read counts as taken, so it is never overwritten.
+  Future<SaveSlot?> firstFreeSlot() async {
+    for (final slot in SaveSlot.values) {
+      try {
+        if (!await hasSave(slot)) {
+          return slot;
+        }
+      } catch (_) {
+        continue;
+      }
+    }
+
+    return null;
+  }
+
+  /// Autosaves this life into its own slot.
+  Future<Result<void>> save() async {
+    var slot = _activeSlot;
+
+    if (slot == null) {
+      slot = await firstFreeSlot();
+
+      if (slot == null) {
+        return const Failure(
+          'Life Storage is full. Delete a life to make room.',
+        );
+      }
+    }
+
+    final result = await saveToSlot(slot);
+
+    if (result.isSuccess) {
+      _activeSlot = slot;
+    }
+
+    return result;
   }
 
   Future<Result<void>> saveToSlot(
@@ -634,21 +677,9 @@ class SimulationEngine {
     }
   }
 
-  Future<Result<void>> saveManual(
-    SaveSlot slot,
-  ) async {
-    if (slot == SaveSlot.autosave) {
-      return const Failure(
-        'Manual save cannot use the autosave slot.',
-      );
-    }
-
-    return saveToSlot(slot);
-  }
-
   Future<Result<void>> load() {
     return loadFromSlot(
-      SaveSlot.autosave,
+      _activeSlot ?? SaveSlot.slot1,
     );
   }
 
@@ -703,6 +734,7 @@ class SimulationEngine {
 
       _state = data.state;
       _nextTickId = data.nextTickId;
+      _activeSlot = slot;
 
       return const Success(null);
     } catch (error) {
@@ -719,6 +751,10 @@ class SimulationEngine {
       await _saveManager.deleteSlot(
         slot,
       );
+
+      if (_activeSlot == slot) {
+        _activeSlot = null;
+      }
 
       return const Success(null);
     } catch (error) {
