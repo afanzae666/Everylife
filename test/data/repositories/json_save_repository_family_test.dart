@@ -245,12 +245,12 @@ void main() {
           secondState,
           randomState: 20,
           nextTickId: 10,
-          slot: SaveSlot.manual1,
+          slot: SaveSlot.slot2,
         );
 
         final autosave = await repository.load();
         final manualSave = await repository.load(
-          slot: SaveSlot.manual1,
+          slot: SaveSlot.slot2,
         );
 
         expect(autosave, isNotNull);
