@@ -59,7 +59,7 @@ class CharacterSystem implements SimulationSystem {
           year: currentYear,
           title: 'A new life stage begins',
           description:
-              '${state.player.name} entered ${_stageLabel(currentStage)}.',
+              'I entered ${_stageLabel(currentStage)}.',
         ),
       );
     }
@@ -106,7 +106,7 @@ class CharacterSystem implements SimulationSystem {
       year: currentYear,
       title: 'Another year passes',
       description:
-          '${state.player.name} is now $age '
+          'I am now $age '
           '${age == 1 ? 'year' : 'years'} old.',
     );
 
