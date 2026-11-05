@@ -155,15 +155,10 @@ class _MoreItem extends StatelessWidget {
   const _MoreItem({
     required this.icon,
     required this.title,
-    this.subtitle = 'Future feature',
-    this.onTap,
-    super.key,
   });
 
   final IconData icon;
   final String title;
-  final String subtitle;
-  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -172,9 +167,7 @@ class _MoreItem extends StatelessWidget {
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon),
       title: Text(title),
-      subtitle: Text(subtitle),
-      trailing: onTap == null ? null : const Icon(Icons.chevron_right),
-      onTap: onTap,
+      subtitle: const Text('Future feature'),
     );
   }
 }
