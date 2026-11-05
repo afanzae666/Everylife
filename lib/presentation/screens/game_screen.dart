@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:everylife/core/money/game_currency.dart';
 import 'dart:math' as math;
 
@@ -370,40 +371,56 @@ class _GameScreenState extends State<GameScreen> {
 
     final screenSize = MediaQuery.sizeOf(context);
 
-    await showDialog<void>(
+    await showGeneralDialog<void>(
       context: context,
-      barrierColor: Colors.black.withValues(
-        alpha: 0.32,
-      ),
-      builder: (dialogContext) {
-        final dialogWidth = screenSize.width * 0.92;
-        final dialogHeight = screenSize.height * 0.82;
+      barrierDismissible: true,
+      barrierLabel: 'Close',
+      barrierColor: Colors.black.withValues(alpha: 0.55),
+      transitionDuration: const Duration(milliseconds: 260),
+      transitionBuilder: (context, animation, _, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutBack,
+          reverseCurve: Curves.easeIn,
+        );
 
-        return Dialog(
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 24,
+        return BackdropFilter(
+          filter: ui.ImageFilter.blur(
+            sigmaX: 4 * animation.value,
+            sigmaY: 4 * animation.value,
           ),
-          clipBehavior: Clip.antiAlias,
-          child: SizedBox(
-            width: dialogWidth,
-            height: dialogHeight,
-            child: CharacterProfileScreen(
-              character: engine.state.player,
-              currentYear: engine.state.clock.currentYear,
-              uiScaleController: _uiScaleController,
-              occupation: occupationLabel(engine.state),
-              onViewAssets: () {
-                Navigator.of(dialogContext).pop();
+          child: FadeTransition(
+            opacity: animation,
+            child: ScaleTransition(scale: curved, child: child),
+          ),
+        );
+      },
+      pageBuilder: (dialogContext, _, __) {
+        return SafeArea(
+          child: Center(
+            child: Material(
+              type: MaterialType.transparency,
+              child: SizedBox(
+                width: screenSize.width * 0.92,
+                height: screenSize.height * 0.82,
+                child: CharacterProfileScreen(
+                  character: engine.state.player,
+                  currentYear: engine.state.clock.currentYear,
+                  uiScaleController: _uiScaleController,
+                  occupation: occupationLabel(engine.state),
+                  onViewAssets: () {
+                    Navigator.of(dialogContext).pop();
 
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (!mounted || _isProcessingTurn) {
-                    return;
-                  }
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (!mounted || _isProcessingTurn) {
+                        return;
+                      }
 
-                  _openAssetsTab();
-                });
-              },
+                      _openAssetsTab();
+                    });
+                  },
+                ),
+              ),
             ),
           ),
         );
@@ -592,6 +609,7 @@ class _GameScreenState extends State<GameScreen> {
           onChanged: () async {
             if (mounted) {
               setState(() {});
+              _scrollLifeEventsToBottom();
             }
 
             await engine.save();
@@ -617,7 +635,10 @@ class _GameScreenState extends State<GameScreen> {
   currentYear: engine.state.clock.currentYear,
   onNpcInteraction: ({required npcId, required action}) {
     final result = engine.interactWithNpc(npcId: npcId, action: action);
-    if (result.isSuccess && mounted) setState(() {});
+    if (result.isSuccess && mounted) {
+      setState(() {});
+      _scrollLifeEventsToBottom();
+    }
     return result;
   },
   readCurrentParents: () => engine.state.familyHousehold?.parents ?? const [],

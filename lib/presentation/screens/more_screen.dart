@@ -36,6 +36,40 @@ class MoreScreen extends StatelessWidget {
             padding: EdgeInsets.zero,
             children: [
               Card(
+                key: const Key('time-machine-card'),
+                margin: EdgeInsets.zero,
+                child: InkWell(
+                  onTap: onTimeMachine,
+                  child: Padding(
+                    padding: EdgeInsets.all(s(6)),
+                    child: Row(
+                      children: [
+                        Text('⏳', style: TextStyle(fontSize: s(28))),
+                        SizedBox(width: s(6)),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Time Machine',
+                                key: const Key('more-time-machine'),
+                                style:
+                                    Theme.of(context).textTheme.titleMedium,
+                              ),
+                              Text(
+                                'Go back to an earlier age',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.chevron_right),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Card(
                 margin: EdgeInsets.zero,
                 child: Padding(
                   padding: EdgeInsets.all(s(4)),
@@ -57,13 +91,6 @@ class MoreScreen extends StatelessWidget {
                             .bodySmall,
                       ),
                       SizedBox(height: s(4)),
-                      _MoreItem(
-                        key: const Key('more-time-machine'),
-                        icon: Icons.history_toggle_off,
-                        title: 'Time Machine',
-                        subtitle: 'Go back to an earlier age',
-                        onTap: onTimeMachine,
-                      ),
                       const _MoreItem(
                         icon: Icons.sports_esports_outlined,
                         title: 'Activities',

@@ -9,6 +9,7 @@ import '../../domain/career/education_state.dart';
 import '../../domain/career/job_catalog.dart';
 import '../../domain/world/country_catalog.dart';
 import 'jobs_screen.dart';
+import 'school_screen.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
 import '../../simulation/systems/education_system.dart';
@@ -150,7 +151,36 @@ class _CareerScreenState extends State<CareerScreen> {
     );
   }
 
+  void _openSchool() {
+    Navigator.of(context)
+        .push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => SchoolScreen(
+              engine: engine,
+              zoom: widget.zoom,
+              onChanged: widget.onChanged,
+              headerBuilder: widget.headerBuilder,
+            ),
+          ),
+        )
+        .then((_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
   Widget _buildEducation(EducationState education, int year) {
+    if (education.isStudent) {
+      engine.ensureSchool();
+
+      return SchoolSummaryCard(
+        education: engine.state.lifeProgress.education,
+        zoom: widget.zoom,
+        onTap: _openSchool,
+      );
+    }
+
     final age = engine.state.player.ageAt(year);
     final hasJob = engine.state.lifeProgress.career.hasJob;
     final canApply = !education.isStudent &&

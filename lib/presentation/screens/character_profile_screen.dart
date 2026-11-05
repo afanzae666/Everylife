@@ -10,6 +10,7 @@ import '../../domain/character/character.dart';
 import '../../domain/character/gender.dart';
 import '../widgets/character_avatar.dart';
 import '../widgets/info_line.dart';
+import '../widgets/life_labels.dart' show countryFlag;
 
 class CharacterProfileScreen extends StatelessWidget {
   const CharacterProfileScreen({
@@ -81,215 +82,312 @@ class CharacterProfileScreen extends StatelessWidget {
     BuildContext context,
     double zoom,
   ) {
+    final scheme = Theme.of(context).colorScheme;
+    double s(double value) => value * zoom;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Character Information',
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: scheme.primary.withValues(alpha: 0.55),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: scheme.primary.withValues(alpha: 0.28),
+              blurRadius: 28,
+              spreadRadius: 1,
+            ),
+          ],
         ),
-      ),
-      body: SafeArea(
-        child: _buildContent(
-          context,
-          zoom,
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          children: [
+            _buildHeader(context, zoom),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.fromLTRB(s(6), s(6), s(6), s(8)),
+                children: [
+                  _buildBasicInformation(context, zoom),
+                  SizedBox(height: s(5)),
+                  _buildWealth(context, zoom),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildContent(
-    BuildContext context,
-    double zoom,
-  ) {
+  /// Green gradient banner: title, close button, avatar in a glowing ring,
+  /// name with flag and an occupation chip.
+  Widget _buildHeader(BuildContext context, double zoom) {
     double s(double value) => value * zoom;
 
-    return ListView(
-      padding: EdgeInsets.fromLTRB(
-        s(8),
-        s(4),
-        s(8),
-        s(8),
+    final scheme = Theme.of(context).colorScheme;
+    final location = character.location;
+    final flag = countryFlag(location?.countryCode);
+    final job = occupation;
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color.alphaBlend(Colors.black.withValues(alpha: 0.35), scheme.primary),
+            scheme.primary,
+          ],
+        ),
       ),
-      children: [
-        SizedBox(
-          height: s(2),
-        ),
-
-        // Avatar tetap berada di luar card.
-        Center(
-          child: FutureBuilder<CharacterPaletteService>(
-            future: CharacterPaletteService.load(),
-            builder: (
-              context,
-              snapshot,
-            ) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return SizedBox(
-                  width: s(144),
-                  height: s(180),
-                  child: const Center(
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
+      padding: EdgeInsets.fromLTRB(s(6), s(4), s(6), s(6)),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              SizedBox(width: s(22)),
+              Expanded(
+                child: Text(
+                  'Character Information',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.6,
                       ),
-                    ),
-                  ),
-                );
-              }
-
-              if (snapshot.hasError || snapshot.data == null) {
-                return SizedBox(
-                  width: s(144),
-                  height: s(180),
-                );
-              }
-
-              final palette = snapshot.data!;
-
-              final skinColor = palette.skinColor(
-                character.appearance.skinTone,
-              );
-
-              final eyeColor = palette.eyeColor(
-                character.appearance.eyeColor,
-              );
-
-              final hairColor = palette.hairColor(
-                character.appearance.hairColor,
-              );
-
-              if (skinColor == null ||
-                  eyeColor == null ||
-                  hairColor == null) {
-                return SizedBox(
-                  width: s(84),
-                  height: s(84),
-                );
-              }
-
-              return CharacterAvatar(
-                character: character,
-                currentYear: currentYear,
-                size: s(144),
-                skinColor: skinColor,
-                eyeColor: eyeColor,
-                hairColor: hairColor,
-              );
-            },
-          ),
-        ),
-
-        SizedBox(
-          height: s(5),
-        ),
-
-        Text(
-          character.fullName,
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge!
-              .copyWith(
-                fontWeight: FontWeight.w700,
+                ),
               ),
-          textAlign: TextAlign.center,
-          softWrap: true,
-        ),
-
-        SizedBox(
-          height: s(2),
-        ),
-
-        SizedBox(
-          height: s(5),
-        ),
-
-        // =========================================================
-        // CARD 1 — CHARACTER INFORMATION
-        // =========================================================
-        _ResponsiveCard(
-          padding: EdgeInsets.fromLTRB(
-            s(4),
-            s(3),
-            s(4),
-            s(3),
+              InkWell(
+                key: const Key('profile-close'),
+                customBorder: const CircleBorder(),
+                onTap: () => Navigator.of(context).maybePop(),
+                child: Container(
+                  width: s(22),
+                  height: s(22),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.22),
+                  ),
+                  child: Icon(Icons.close, size: s(14), color: Colors.white),
+                ),
+              ),
+            ],
           ),
-          child: _buildBasicInformation(
-            context,
-            zoom,
+          SizedBox(height: s(3)),
+          Container(
+            padding: EdgeInsets.all(s(3)),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.16),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.85),
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.white.withValues(alpha: 0.35),
+                  blurRadius: 22,
+                ),
+              ],
+            ),
+            child: ClipOval(child: _buildAvatar(zoom)),
           ),
-        ),
+          SizedBox(height: s(4)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (flag.isNotEmpty) ...[
+                Text(flag, style: TextStyle(fontSize: s(20))),
+                SizedBox(width: s(4)),
+              ],
+              Flexible(
+                child: Text(
+                  character.fullName,
+                  textAlign: TextAlign.center,
+                  softWrap: true,
+                  style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          if (job != null && job.isNotEmpty) ...[
+            SizedBox(height: s(3)),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: s(8), vertical: s(2)),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
+              ),
+              child: Text(
+                job,
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 
-        SizedBox(
-          height: 0,
-        ),
+  Widget _buildAvatar(double zoom) {
+    double s(double value) => value * zoom;
 
-        // =========================================================
-        // CARD 2 — WEALTH
-        // =========================================================
-        _ResponsiveCard(
-          padding: EdgeInsets.fromLTRB(
-            s(4),
-            s(3),
-            s(4),
-            s(3),
+    return FutureBuilder<CharacterPaletteService>(
+      future: CharacterPaletteService.load(),
+      builder: (context, snapshot) {
+        final box = s(104);
+
+        if (snapshot.connectionState != ConnectionState.done) {
+          return SizedBox(
+            width: box,
+            height: box,
+            child: const Center(
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          );
+        }
+
+        final palette = snapshot.data;
+
+        if (snapshot.hasError || palette == null) {
+          return SizedBox(width: box, height: box);
+        }
+
+        final skinColor = palette.skinColor(character.appearance.skinTone);
+        final eyeColor = palette.eyeColor(character.appearance.eyeColor);
+        final hairColor = palette.hairColor(character.appearance.hairColor);
+
+        if (skinColor == null || eyeColor == null || hairColor == null) {
+          return SizedBox(width: box, height: box);
+        }
+
+        return SizedBox(
+          width: box,
+          height: box,
+          child: FittedBox(
+            fit: BoxFit.cover,
+            alignment: Alignment.topCenter,
+            child: CharacterAvatar(
+              character: character,
+              currentYear: currentYear,
+              size: s(144),
+              skinColor: skinColor,
+              eyeColor: eyeColor,
+              hairColor: hairColor,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _section(BuildContext context, double zoom, String title, Widget child) {
+    double s(double value) => value * zoom;
+
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(s(5)),
+      decoration: BoxDecoration(
+        color: scheme.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: scheme.primary.withValues(alpha: 0.28)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                  color: scheme.primary,
+                ),
+          ),
+          SizedBox(height: s(3)),
+          child,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWealth(BuildContext context, double zoom) {
+    double s(double value) => value * zoom;
+
+    Widget tile(String emoji, String label, String value) {
+      return Expanded(
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: s(4), horizontal: s(2)),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.6),
+            ),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'WEALTH',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall!
-                    .copyWith(
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.4,
-                    ),
-              ),
-
-              SizedBox(
-                height: s(4),
-              ),
-
-              _WealthRow(
-                label: 'Total Assets',
-                value: _formatMoney(character.totalAssets),
-                zoom: zoom,
-              ),
-
-              _WealthRow(
-                label: 'Debt',
-                value: _formatMoney(character.debt),
-                zoom: zoom,
-              ),
-
-              _WealthRow(
-                label: 'Net Worth',
-                value: _formatMoney(character.netWorth),
-                zoom: zoom,
-              ),
-
-              SizedBox(
-                height: s(5),
-              ),
-
-              SizedBox(
-                width: double.infinity,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: onViewAssets,
-                    child: const Text(
-                      'View Assets →',
-                    ),
-                  ),
+              Text(emoji, style: TextStyle(fontSize: s(18))),
+              SizedBox(height: s(1)),
+              Text(label, style: Theme.of(context).textTheme.bodySmall),
+              SizedBox(height: s(1)),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  value,
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
               ),
             ],
           ),
         ),
-      ],
+      );
+    }
+
+    return _section(
+      context,
+      zoom,
+      'WEALTH',
+      Column(
+        children: [
+          Row(
+            children: [
+              tile('💰', 'Total Assets', _formatMoney(character.totalAssets)),
+              SizedBox(width: s(3)),
+              tile('💳', 'Debt', _formatMoney(character.debt)),
+              SizedBox(width: s(3)),
+              tile('📈', 'Net Worth', _formatMoney(character.netWorth)),
+            ],
+          ),
+          SizedBox(height: s(4)),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.tonal(
+              onPressed: onViewAssets,
+              child: const Text('View Assets →'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -297,8 +395,6 @@ class CharacterProfileScreen extends StatelessWidget {
     BuildContext context,
     double zoom,
   ) {
-    double s(double value) => value * zoom;
-
     final location = character.location;
     final country = location == null
         ? null
@@ -313,106 +409,19 @@ class CharacterProfileScreen extends StatelessWidget {
             ? country.name
             : '${country.name}, ${city.name}';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Basic Information',
-          style: Theme.of(context)
-              .textTheme
-              .titleSmall!
-              .copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-        ),
-
-        SizedBox(
-          height: s(4),
-        ),
-
-        InfoLine(label: 'Age', value: '$age'),
-        InfoLine(label: 'Gender', value: character.gender.label),
-        if (occupation != null && occupation!.isNotEmpty)
-          InfoLine(label: 'Occupation', value: occupation!),
-        if (locationLabel != null)
-          InfoLine(label: 'Location', value: locationLabel),
-      ],
-    );
-  }
-
-}
-
-class _ResponsiveCard extends StatelessWidget {
-  const _ResponsiveCard({
-    required this.padding,
-    required this.child,
-  });
-
-  final EdgeInsets padding;
-  final Widget child;
-
-  @override
-  Widget build(
-    BuildContext context,
-  ) {
-    return SizedBox(
-      width: double.infinity,
-      child: Card(
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: padding,
-          child: child,
-        ),
-      ),
-    );
-  }
-}
-
-class _WealthRow extends StatelessWidget {
-  const _WealthRow({
-    required this.label,
-    required this.value,
-    required this.zoom,
-  });
-
-  final String label;
-  final String value;
-  final double zoom;
-
-  @override
-  Widget build(
-    BuildContext context,
-  ) {
-    double s(double value) => value * zoom;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: s(2),
-      ),
-      child: Row(
+    return _section(
+      context,
+      zoom,
+      'Basic Information',
+      Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
-
-          SizedBox(
-            width: s(8),
-          ),
-
-          Text(
-            value,
-            textAlign: TextAlign.end,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall!
-                .copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
+          InfoLine(label: 'Age', value: '$age'),
+          InfoLine(label: 'Gender', value: character.gender.label),
+          if (occupation != null && occupation!.isNotEmpty)
+            InfoLine(label: 'Occupation', value: occupation!),
+          if (locationLabel != null)
+            InfoLine(label: 'Location', value: locationLabel),
         ],
       ),
     );
