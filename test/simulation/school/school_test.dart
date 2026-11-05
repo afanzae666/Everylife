@@ -44,12 +44,29 @@ void _playYear(SimulationEngine engine, Random random) {
   expect(engine.ageUp().isSuccess, isTrue);
 }
 
+void _clearPending(SimulationEngine engine, Random random) {
+  var guard = 0;
+
+  while (engine.state.lifeProgress.pending != null && guard++ < 10) {
+    final pending = engine.pendingLifeEvent;
+
+    if (pending == null) break;
+
+    final options = pending.choices.where(engine.canAffordChoice).toList();
+    engine.resolveLifeChoice(options[random.nextInt(options.length)].id);
+  }
+}
+
 SimulationEngine _studentEngine(SchoolStage stage) {
   final engine = _newEngine();
   final random = Random(3);
 
   for (var i = 0; i < 40; i++) {
-    if (engine.state.lifeProgress.education.stage == stage) return engine;
+    if (engine.state.lifeProgress.education.stage == stage) {
+      _clearPending(engine, random);
+
+      return engine;
+    }
     if (engine.state.lifeProgress.ending != null) break;
 
     _playYear(engine, random);
