@@ -368,15 +368,6 @@ abstract final class JobCatalog {
       requiredEducation: EducationLevel.highSchool,
     ),
     JobDefinition(
-      id: 'soldier',
-      title: 'Soldier',
-      rankTitles: ['Private', 'Sergeant', 'Lieutenant', 'Colonel'],
-      baseSalary: 2500000,
-      emoji: '🪖',
-      sector: JobSector.public,
-      requiredEducation: EducationLevel.highSchool,
-    ),
-    JobDefinition(
       id: 'chef',
       title: 'Chef',
       rankTitles: ['Line Cook', 'Sous Chef', 'Head Chef', 'Restaurant Owner'],
