@@ -14,6 +14,7 @@ import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
 import '../../domain/event/life_event.dart';
 import '../../domain/character/character_stats.dart';
+import '../widgets/slide_up_route.dart';
 import '../widgets/character_avatar.dart';
 import '../widgets/core_stat_bars.dart';
 import '../widgets/life_event_dialogs.dart';
@@ -401,8 +402,7 @@ class _GameScreenState extends State<GameScreen> {
             child: Material(
               type: MaterialType.transparency,
               child: SizedBox(
-                width: screenSize.width * 0.92,
-                height: screenSize.height * 0.82,
+                width: screenSize.width * 0.94,
                 child: CharacterProfileScreen(
                   character: engine.state.player,
                   currentYear: engine.state.clock.currentYear,
@@ -501,8 +501,8 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => AssetsScreen(
+      slideUpRoute<void>(
+        (_) => AssetsScreen(
           player: engine.state.player,
           zoom: _uiScaleController.value,
           headerBuilder: _pageHeader,
@@ -601,8 +601,8 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => CareerScreen(
+      slideUpRoute<void>(
+        (_) => CareerScreen(
           engine: engine,
           zoom: _uiScaleController.value,
           headerBuilder: _pageHeader,
@@ -625,8 +625,8 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => LifeScreen(
+      slideUpRoute<void>(
+        (_) => LifeScreen(
   headerBuilder: _pageHeader,
   zoom: _uiScaleController.value,
   parents: engine.state.familyHousehold?.parents ?? const [],
@@ -694,8 +694,8 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => MoreScreen(
+      slideUpRoute<void>(
+        (_) => MoreScreen(
           zoom: _uiScaleController.value,
           headerBuilder: _pageHeader,
           onTimeMachine: _openTimeMachine,
@@ -763,7 +763,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   /// Height of the bottom navigation bar (before zoom).
-  static const double _navigationHeight = 64;
+  static const double _navigationHeight = 74;
 
   Widget _buildScaffold(
     BuildContext context,
@@ -1426,7 +1426,7 @@ class _BottomNavigation
                 onTap: onAssetsTap,
               ),
               divider(),
-              SizedBox(width: s(88)),
+              SizedBox(width: s(104)),
               divider(),
               item(
                 icon: Icons.favorite_rounded,
@@ -1484,8 +1484,8 @@ class _AgeUpButton extends StatelessWidget {
         child: Opacity(
           opacity: enabled ? 1.0 : 0.38,
           child: Container(
-            width: s(80),
-            height: s(80),
+            width: s(94),
+            height: s(94),
             decoration: BoxDecoration(
               color: theme.colorScheme.surface,
               shape: BoxShape.circle,
@@ -1633,15 +1633,15 @@ class _NavigationItem extends StatelessWidget {
             Opacity(
               opacity: enabled ? 1.0 : 0.38,
               child: Container(
-                width: s(28),
-                height: s(28),
+                width: s(36),
+                height: s(36),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   icon,
-                  size: s(17),
+                  size: s(22),
                   color: Colors.white,
                 ),
               ),
@@ -1651,7 +1651,7 @@ class _NavigationItem extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelSmall?.copyWith(
+              style: theme.textTheme.labelMedium?.copyWith(
                 color: theme.colorScheme.onSurface,
               ),
             ),

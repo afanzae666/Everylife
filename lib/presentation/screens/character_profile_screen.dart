@@ -85,160 +85,173 @@ class CharacterProfileScreen extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     double s(double value) => value * zoom;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        decoration: BoxDecoration(
-          color: scheme.surface,
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(
-            color: scheme.primary.withValues(alpha: 0.55),
-            width: 1.5,
+    final location = character.location;
+    final flag = countryFlag(location?.countryCode);
+    final job = occupation;
+
+    return Material(
+      type: MaterialType.transparency,
+      child: Center(
+        child: SingleChildScrollView(
+          child: Container(
+            margin: EdgeInsets.symmetric(horizontal: s(6)),
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: scheme.primary, width: 2),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // ID strip: title and close button.
+                Container(
+                  color: scheme.primary,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: s(6),
+                    vertical: s(3),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Character Information',
+                          style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.8,
+                              ),
+                        ),
+                      ),
+                      InkWell(
+                        key: const Key('profile-close'),
+                        customBorder: const CircleBorder(),
+                        onTap: () => Navigator.of(context).maybePop(),
+                        child: Padding(
+                          padding: EdgeInsets.all(s(2)),
+                          child: Icon(
+                            Icons.close,
+                            size: s(18),
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(s(6)),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // The whole avatar, never cropped.
+                      Container(
+                        padding: EdgeInsets.all(s(3)),
+                        decoration: BoxDecoration(
+                          color: scheme.primary.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: scheme.primary.withValues(alpha: 0.45),
+                          ),
+                        ),
+                        child: _buildAvatar(zoom),
+                      ),
+                      SizedBox(width: s(7)),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (flag.isNotEmpty) ...[
+                                  Text(flag, style: TextStyle(fontSize: s(18))),
+                                  SizedBox(width: s(3)),
+                                ],
+                                Expanded(
+                                  child: Text(
+                                    character.fullName,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium!
+                                        .copyWith(fontWeight: FontWeight.w800),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: s(3)),
+                            Text(
+                              'Basic Information',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall!
+                                  .copyWith(
+                                    color: scheme.primary,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.6,
+                                  ),
+                            ),
+                            SizedBox(height: s(1)),
+                            ..._infoLines(job),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                _dashedDivider(context),
+                Padding(
+                  padding: EdgeInsets.all(s(6)),
+                  child: _buildWealth(context, zoom),
+                ),
+              ],
+            ),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: scheme.primary.withValues(alpha: 0.28),
-              blurRadius: 28,
-              spreadRadius: 1,
-            ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          children: [
-            _buildHeader(context, zoom),
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.fromLTRB(s(6), s(6), s(6), s(8)),
-                children: [
-                  _buildBasicInformation(context, zoom),
-                  SizedBox(height: s(5)),
-                  _buildWealth(context, zoom),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     );
   }
 
-  /// Green gradient banner: title, close button, avatar in a glowing ring,
-  /// name with flag and an occupation chip.
-  Widget _buildHeader(BuildContext context, double zoom) {
-    double s(double value) => value * zoom;
+  Widget _dashedDivider(BuildContext context) {
+    final color = Theme.of(context).dividerColor;
 
-    final scheme = Theme.of(context).colorScheme;
-    final location = character.location;
-    final flag = countryFlag(location?.countryCode);
-    final job = occupation;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final count = (constraints.maxWidth / 8).floor();
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color.alphaBlend(Colors.black.withValues(alpha: 0.35), scheme.primary),
-            scheme.primary,
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            for (var i = 0; i < count; i++)
+              SizedBox(width: 4, height: 1.5, child: ColoredBox(color: color)),
           ],
-        ),
-      ),
-      padding: EdgeInsets.fromLTRB(s(6), s(4), s(6), s(6)),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              SizedBox(width: s(22)),
-              Expanded(
-                child: Text(
-                  'Character Information',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.6,
-                      ),
-                ),
-              ),
-              InkWell(
-                key: const Key('profile-close'),
-                customBorder: const CircleBorder(),
-                onTap: () => Navigator.of(context).maybePop(),
-                child: Container(
-                  width: s(22),
-                  height: s(22),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.22),
-                  ),
-                  child: Icon(Icons.close, size: s(14), color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: s(3)),
-          Container(
-            padding: EdgeInsets.all(s(3)),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.16),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.85),
-                width: 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.35),
-                  blurRadius: 22,
-                ),
-              ],
-            ),
-            child: ClipOval(child: _buildAvatar(zoom)),
-          ),
-          SizedBox(height: s(4)),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (flag.isNotEmpty) ...[
-                Text(flag, style: TextStyle(fontSize: s(20))),
-                SizedBox(width: s(4)),
-              ],
-              Flexible(
-                child: Text(
-                  character.fullName,
-                  textAlign: TextAlign.center,
-                  softWrap: true,
-                  style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-              ),
-            ],
-          ),
-          if (job != null && job.isNotEmpty) ...[
-            SizedBox(height: s(3)),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: s(8), vertical: s(2)),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
-              ),
-              child: Text(
-                job,
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-            ),
-          ],
-        ],
-      ),
+        );
+      },
     );
+  }
+
+  List<Widget> _infoLines(String? job) {
+    final location = character.location;
+    final country = location == null
+        ? null
+        : CountryCatalog.findByCode(location.countryCode);
+    final city = location == null ? null : CityCatalog.findById(location.cityId);
+
+    // "Turkey, Ankara": the city is joined to the country.
+    final locationLabel = country == null
+        ? null
+        : city == null
+            ? country.name
+            : '${country.name}, ${city.name}';
+
+    return [
+      InfoLine(label: 'Age', value: '${character.ageAt(currentYear)}'),
+      InfoLine(label: 'Gender', value: character.gender.label),
+      if (job != null && job.isNotEmpty)
+        InfoLine(label: 'Occupation', value: job),
+      if (locationLabel != null)
+        InfoLine(label: 'Location', value: locationLabel),
+    ];
   }
 
   Widget _buildAvatar(double zoom) {
@@ -247,12 +260,13 @@ class CharacterProfileScreen extends StatelessWidget {
     return FutureBuilder<CharacterPaletteService>(
       future: CharacterPaletteService.load(),
       builder: (context, snapshot) {
-        final box = s(104);
+        final size = s(96);
+        final box = SizedBox(width: size, height: size * 1.25);
 
         if (snapshot.connectionState != ConnectionState.done) {
           return SizedBox(
-            width: box,
-            height: box,
+            width: size,
+            height: size * 1.25,
             child: const Center(
               child: SizedBox(
                 width: 20,
@@ -266,7 +280,7 @@ class CharacterProfileScreen extends StatelessWidget {
         final palette = snapshot.data;
 
         if (snapshot.hasError || palette == null) {
-          return SizedBox(width: box, height: box);
+          return box;
         }
 
         final skinColor = palette.skinColor(character.appearance.skinTone);
@@ -274,156 +288,73 @@ class CharacterProfileScreen extends StatelessWidget {
         final hairColor = palette.hairColor(character.appearance.hairColor);
 
         if (skinColor == null || eyeColor == null || hairColor == null) {
-          return SizedBox(width: box, height: box);
+          return box;
         }
 
-        return SizedBox(
-          width: box,
-          height: box,
-          child: FittedBox(
-            fit: BoxFit.cover,
-            alignment: Alignment.topCenter,
-            child: CharacterAvatar(
-              character: character,
-              currentYear: currentYear,
-              size: s(144),
-              skinColor: skinColor,
-              eyeColor: eyeColor,
-              hairColor: hairColor,
-            ),
-          ),
+        return CharacterAvatar(
+          character: character,
+          currentYear: currentYear,
+          size: size,
+          skinColor: skinColor,
+          eyeColor: eyeColor,
+          hairColor: hairColor,
         );
       },
-    );
-  }
-
-  Widget _section(BuildContext context, double zoom, String title, Widget child) {
-    double s(double value) => value * zoom;
-
-    final scheme = Theme.of(context).colorScheme;
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(s(5)),
-      decoration: BoxDecoration(
-        color: scheme.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: scheme.primary.withValues(alpha: 0.28)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.4,
-                  color: scheme.primary,
-                ),
-          ),
-          SizedBox(height: s(3)),
-          child,
-        ],
-      ),
     );
   }
 
   Widget _buildWealth(BuildContext context, double zoom) {
     double s(double value) => value * zoom;
 
-    Widget tile(String emoji, String label, String value) {
+    final scheme = Theme.of(context).colorScheme;
+
+    Widget cell(String label, String value) {
       return Expanded(
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: s(4), horizontal: s(2)),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: Theme.of(context).dividerColor.withValues(alpha: 0.6),
-            ),
-          ),
-          child: Column(
-            children: [
-              Text(emoji, style: TextStyle(fontSize: s(18))),
-              SizedBox(height: s(1)),
-              Text(label, style: Theme.of(context).textTheme.bodySmall),
-              SizedBox(height: s(1)),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  value,
-                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
+        child: Column(
+          children: [
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                value,
+                style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
-            ],
-          ),
+            ),
+            Text(label, style: Theme.of(context).textTheme.bodySmall),
+          ],
         ),
       );
     }
 
-    return _section(
-      context,
-      zoom,
-      'WEALTH',
-      Column(
-        children: [
-          Row(
-            children: [
-              tile('💰', 'Total Assets', _formatMoney(character.totalAssets)),
-              SizedBox(width: s(3)),
-              tile('💳', 'Debt', _formatMoney(character.debt)),
-              SizedBox(width: s(3)),
-              tile('📈', 'Net Worth', _formatMoney(character.netWorth)),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'WEALTH',
+          style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                color: scheme.primary,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.6,
+              ),
+        ),
+        SizedBox(height: s(3)),
+        Row(
+          children: [
+            cell('Total Assets', _formatMoney(character.totalAssets)),
+            cell('Debt', _formatMoney(character.debt)),
+            cell('Net Worth', _formatMoney(character.netWorth)),
+          ],
+        ),
+        SizedBox(height: s(5)),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.tonal(
+            onPressed: onViewAssets,
+            child: const Text('View Assets →'),
           ),
-          SizedBox(height: s(4)),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.tonal(
-              onPressed: onViewAssets,
-              child: const Text('View Assets →'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBasicInformation(
-    BuildContext context,
-    double zoom,
-  ) {
-    final location = character.location;
-    final country = location == null
-        ? null
-        : CountryCatalog.findByCode(location.countryCode);
-    final city = location == null ? null : CityCatalog.findById(location.cityId);
-    final age = character.ageAt(currentYear);
-
-    // "Turkey, Ankara": the city is joined to the country.
-    final locationLabel = country == null
-        ? null
-        : city == null
-            ? country.name
-            : '${country.name}, ${city.name}';
-
-    return _section(
-      context,
-      zoom,
-      'Basic Information',
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          InfoLine(label: 'Age', value: '$age'),
-          InfoLine(label: 'Gender', value: character.gender.label),
-          if (occupation != null && occupation!.isNotEmpty)
-            InfoLine(label: 'Occupation', value: occupation!),
-          if (locationLabel != null)
-            InfoLine(label: 'Location', value: locationLabel),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

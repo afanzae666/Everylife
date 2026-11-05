@@ -9,6 +9,10 @@ import '../../domain/world/country_catalog.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/career/school_actions.dart';
 import '../../simulation/systems/education_system.dart';
+import '../../domain/world/city_catalog.dart';
+import '../../simulation/school/school_appearance.dart';
+import '../widgets/info_line.dart';
+import '../widgets/npc_avatar.dart';
 import 'npc_interaction_screen.dart';
 
 String schoolStageTitle(SchoolStage stage) => switch (stage) {
@@ -51,12 +55,14 @@ class SchoolSummaryCard extends StatelessWidget {
     required this.education,
     required this.zoom,
     this.onTap,
+    this.showChevron = true,
     super.key,
   });
 
   final EducationState education;
   final double zoom;
   final VoidCallback? onTap;
+  final bool showChevron;
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +94,7 @@ class SchoolSummaryCard extends StatelessWidget {
                       style: theme.textTheme.titleMedium,
                     ),
                   ),
-                  if (onTap != null) const Icon(Icons.chevron_right),
+                  if (onTap != null && showChevron) const Icon(Icons.chevron_right),
                 ],
               ),
               if (education.schoolName != null)
@@ -179,6 +185,94 @@ class _SchoolScreenState extends State<SchoolScreen> {
     if (result.isSuccess) {
       widget.onChanged?.call();
     }
+  }
+
+  void _showSchoolInfo() {
+    final state = engine.state;
+    final education = state.lifeProgress.education;
+    final stage = education.stage;
+    final location = state.player.location;
+    final country =
+        location == null ? null : CountryCatalog.findByCode(location.countryCode);
+    final city =
+        location == null ? null : CityCatalog.findById(location.cityId);
+    final head = education.faculty
+        .where((npc) => npc.role == SchoolRole.principal || npc.role == SchoolRole.dean)
+        .toList();
+    final year = state.clock.currentYear;
+    final theme = Theme.of(context);
+
+    final place = country == null
+        ? null
+        : city == null
+            ? country.name
+            : '${country.name}, ${city.name}';
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        key: const Key('school-info'),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(schoolStageEmoji(stage),
+                      style: const TextStyle(fontSize: 30)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      education.schoolName ?? schoolStageTitle(stage),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const Divider(height: 16),
+              InfoLine(label: 'Type', value: schoolStageTitle(stage)),
+              if (place != null) InfoLine(label: 'Location', value: place),
+              InfoLine(
+                label: stage == SchoolStage.university ? 'Year' : 'Grade',
+                value: schoolProgressLabel(education)
+                    .replaceFirst(RegExp(r'^(Grade|Year) '), ''),
+              ),
+              InfoLine(label: 'Grades', value: '${education.grades}/100'),
+              if (head.isNotEmpty)
+                InfoLine(
+                  label: head.first.role == SchoolRole.dean ? 'Dean' : 'Principal',
+                  value: head.first.fullName,
+                ),
+              InfoLine(
+                label: stage == SchoolStage.university ? 'Professors' : 'Teachers',
+                value: '${education.faculty.where((n) => n.role != SchoolRole.principal && n.role != SchoolRole.dean).length}',
+              ),
+              InfoLine(label: 'Classmates', value: '${education.classmates.length}'),
+              if (SchoolActions.hasClubs(stage))
+                InfoLine(
+                  label: 'Extracurricular',
+                  value: education.club != null && education.lastClubYear == year
+                      ? education.club!
+                      : 'None',
+                ),
+              const SizedBox(height: 6),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('CLOSE'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _pickClub() async {
@@ -350,6 +444,8 @@ class _SchoolScreenState extends State<SchoolScreen> {
                       SchoolSummaryCard(
                         education: education,
                         zoom: widget.zoom,
+                        onTap: _showSchoolInfo,
+                        showChevron: false,
                       ),
                       _activity(
                         key: const Key('activity-study'),
@@ -461,8 +557,10 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
                 MapEntry('Occupation', _occupationOf(npc)),
                 MapEntry('Location', country?.name ?? npc.countryCode),
               ],
-              avatar: Center(
-                child: Text(npc.role.emoji, style: const TextStyle(fontSize: 64)),
+              avatar: NpcAvatar(
+                character: SchoolAppearance.characterFor(npc),
+                currentYear: state.clock.currentYear,
+                size: 112,
               ),
               onInteraction: ({required npcId, required action}) {
                 final result = engine.interactWithNpc(
@@ -526,11 +624,14 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
                             child: Row(
                               children: [
                                 SizedBox(
-                                  width: s(40),
+                                  width: s(44),
                                   child: Center(
-                                    child: Text(
-                                      npc.role.emoji,
-                                      style: TextStyle(fontSize: s(28)),
+                                    child: NpcAvatar(
+                                      character:
+                                          SchoolAppearance.characterFor(npc),
+                                      currentYear:
+                                          engine.state.clock.currentYear,
+                                      size: s(40),
                                     ),
                                   ),
                                 ),
