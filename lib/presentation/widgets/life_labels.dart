@@ -60,3 +60,36 @@ String occupationLabel(WorldState state) {
 
   return 'Unemployed';
 }
+
+/// The emoji shown in front of [occupationLabel]: the job's own picture,
+/// a school bag for students, a baby bottle for infants, and so on.
+String occupationEmoji(WorldState state) {
+  final age = state.player.ageAt(state.clock.currentYear);
+  final progress = state.lifeProgress;
+  final career = progress.career;
+  final education = progress.education;
+
+  if (career.retired) {
+    return '🏖️';
+  }
+
+  final job = career.jobId == null ? null : JobCatalog.byId(career.jobId!);
+
+  if (job != null) {
+    return job.emoji;
+  }
+
+  if (education.isStudent) {
+    return education.stage == SchoolStage.university ? '🎓' : '🎒';
+  }
+
+  if (age <= 2) {
+    return '🍼';
+  }
+
+  if (age <= 5) {
+    return '🧸';
+  }
+
+  return '🔍';
+}
