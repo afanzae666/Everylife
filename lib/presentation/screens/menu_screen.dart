@@ -17,7 +17,6 @@ class MenuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double s(double value) => value * zoom;
 
     return Scaffold(
       appBar: AppBar(
@@ -25,7 +24,7 @@ class MenuScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: ListView(
-          padding: EdgeInsets.all(s(16)),
+          padding: EdgeInsets.zero,
           children: [
             _MenuOption(
               icon: Icons.add_circle_outline,
@@ -38,7 +37,6 @@ class MenuScreen extends StatelessWidget {
                 );
               },
             ),
-            SizedBox(height: s(10)),
             _MenuOption(
               icon: Icons.inventory_2_outlined,
               title: 'Life Storage',
@@ -50,7 +48,6 @@ class MenuScreen extends StatelessWidget {
                 );
               },
             ),
-            SizedBox(height: s(10)),
             _MenuOption(
               icon: Icons.settings_outlined,
               title: 'Settings',
@@ -84,8 +81,17 @@ class _MenuOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Card(
       margin: EdgeInsets.zero,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+        side: BorderSide(
+          color: theme.dividerColor.withValues(alpha: 0.55),
+        ),
+      ),
       clipBehavior: Clip.antiAlias,
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(

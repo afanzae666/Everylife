@@ -17,7 +17,7 @@ class NpcInteractionScreen extends StatefulWidget {
     this.currentYear,
     this.playerAge = 18,
     this.isAlive = true,
-    this.initiallyLocked = false,
+    this.details = const <MapEntry<String, String>>[],
     super.key,
   });
 
@@ -36,9 +36,8 @@ class NpcInteractionScreen extends StatefulWidget {
   final int playerAge;
   final bool isAlive;
 
-  /// True when the player already used this person's interaction for the
-  /// current age. Every family member allows one interaction per age.
-  final bool initiallyLocked;
+  /// Extra facts shown in the information overlay (label, value).
+  final List<MapEntry<String, String>> details;
 
   @override
   State<NpcInteractionScreen> createState() => _NpcInteractionScreenState();
@@ -48,10 +47,9 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
   late int _score = widget.relationshipPercent.clamp(-100, 100).toInt();
   bool _hadArgument = false;
   bool _showingNarrative = false;
-  late bool _locked = widget.initiallyLocked;
 
   void _interact(String action) {
-    if (!widget.isAlive || _showingNarrative || _locked) return;
+    if (!widget.isAlive || _showingNarrative) return;
     final result = widget.onInteraction(npcId: widget.npcId, action: action);
     switch (result) {
       case Success<NpcInteractionOutcome>(:final value):
@@ -60,15 +58,14 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
           if (action == 'Argue') _hadArgument = true;
           if (action == 'Apologize') _hadArgument = false;
           _showingNarrative = true;
-          _locked = true;
         });
-        _showNarrative(value.narrative);
+        _showNarrative(value.narrative, progressed: value.progressed);
       case Failure<NpcInteractionOutcome>(:final message):
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
-  Future<void> _showNarrative(String narrative) async {
+  Future<void> _showNarrative(String narrative, {bool progressed = true}) async {
     await showGeneralDialog<void>(
       context: context,
       barrierDismissible: true,
@@ -93,6 +90,15 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(narrative, style: Theme.of(context).textTheme.bodyLarge),
+                      if (!progressed) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          'We already did this recently, so our bond '
+                          "didn't change.",
+                          key: const Key('interaction-no-progress-note'),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
                       const SizedBox(height: 24),
                       const Text('Tap anywhere to close', textAlign: TextAlign.center),
                     ],
@@ -107,11 +113,27 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
     if (mounted) setState(() => _showingNarrative = false);
   }
 
+  static String _bondLabel(int score) {
+    if (score >= 75) return 'Very close';
+    if (score >= 50) return 'Close';
+    if (score >= 25) return 'Friendly';
+    if (score >= 0) return 'Distant';
+    if (score >= -50) return 'Strained';
+
+    return 'Hostile';
+  }
+
   void _showDetails() {
     if (!widget.isAlive) return;
+    final theme = Theme.of(context);
+    final score = _score.clamp(-100, 100).toInt();
+    final barColor =
+        score >= 0 ? const Color(0xFF32CD62) : const Color(0xFFFF4545);
+
     showDialog<void>(
       context: context,
       builder: (dialogContext) => Dialog(
+        key: const Key('npc-details-dialog'),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -122,17 +144,67 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
               children: [
                 Center(child: SizedBox(width: 112, height: 140, child: widget.avatar ?? const Icon(Icons.person_outline, size: 64))),
                 const SizedBox(height: 8),
-                Text(widget.name, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 4),
-                if (widget.birthYear != null && widget.currentYear != null)
-                  Text('Age ${(widget.currentYear! - widget.birthYear!).clamp(0, 150)}', textAlign: TextAlign.center),
-                if (widget.subtitle != null) ...[const SizedBox(height: 12), Text(widget.subtitle!)],
+                Text(widget.name, textAlign: TextAlign.center, style: theme.textTheme.titleLarge),
+                const SizedBox(height: 2),
+                Text(
+                  widget.relationship,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium,
+                ),
                 const SizedBox(height: 12),
-                Text('Relationship · $_score%'),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Relationship', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    ),
+                    Text('${_bondLabel(score)} · $score%', style: theme.textTheme.bodyMedium),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    key: const Key('npc-details-relationship-bar'),
+                    minHeight: 10,
+                    value: score.abs() / 100,
+                    color: barColor,
+                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (widget.birthYear != null && widget.currentYear != null)
+                  _detailRow(theme, 'Age', '${(widget.currentYear! - widget.birthYear!).clamp(0, 150)}'),
+                for (final entry in widget.details)
+                  _detailRow(theme, entry.key, entry.value),
+                if (widget.subtitle != null && widget.details.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(widget.subtitle!),
+                  ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _detailRow(ThemeData theme, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(flex: 4, child: Text(label, style: theme.textTheme.bodySmall)),
+          Expanded(
+            flex: 6,
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -204,27 +276,16 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
           ),
           if (_availableActions.isNotEmpty) ...[
             const Padding(padding: EdgeInsets.all(8), child: Text('Interactions')),
-            if (_locked && widget.isAlive)
-              const Padding(
-                padding: EdgeInsets.fromLTRB(8, 0, 8, 8),
-                child: Text(
-                  'I already spent time with them. '
-                  'Maybe after my next birthday.',
-                  key: Key('interaction-locked-note'),
-                ),
-              ),
             for (final action in _availableActions)
               _ActionRow(
                 title: action,
-                onPressed:
-                    widget.isAlive && !_locked ? () => _interact(action) : null,
+                onPressed: widget.isAlive ? () => _interact(action) : null,
               ),
             if (_hadArgument && widget.playerAge >= 13)
               _ActionRow(
                 title: 'Apologize',
-                onPressed: widget.isAlive && !_locked
-                    ? () => _interact('Apologize')
-                    : null,
+                onPressed:
+                    widget.isAlive ? () => _interact('Apologize') : null,
               ),
           ],
         ],

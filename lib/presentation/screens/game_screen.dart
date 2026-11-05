@@ -16,6 +16,7 @@ import '../../domain/character/character_stats.dart';
 import '../widgets/character_avatar.dart';
 import '../widgets/core_stat_bars.dart';
 import '../widgets/life_event_dialogs.dart';
+import '../widgets/life_labels.dart';
 import 'assets_screen.dart';
 import 'career_screen.dart';
 import 'character_profile_screen.dart';
@@ -390,6 +391,7 @@ class _GameScreenState extends State<GameScreen> {
               character: engine.state.player,
               currentYear: engine.state.clock.currentYear,
               uiScaleController: _uiScaleController,
+              occupation: occupationLabel(engine.state),
               onViewAssets: () {
                 Navigator.of(dialogContext).pop();
 
@@ -624,7 +626,6 @@ class _GameScreenState extends State<GameScreen> {
     if (result.isSuccess && mounted) setState(() {});
     return result;
   },
-  isNpcLocked: engine.hasInteractedThisYear,
   readCurrentParents: () => engine.state.familyHousehold?.parents ?? const [],
   readCurrentSiblings: () => engine.state.familyHousehold?.siblings ?? const [],
 ),
@@ -791,6 +792,20 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  /// A line of text with the country flag in front, at the same size.
+  Widget _flagLine(String text, String flag, TextStyle style) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (flag.isNotEmpty) ...[
+          Text(flag, style: style),
+          SizedBox(width: (style.fontSize ?? 14) * 0.3),
+        ],
+        Text(text, style: style, maxLines: 1, softWrap: false),
+      ],
+    );
+  }
+
   Widget _buildCharacterCard(
     BuildContext context,
     double zoom,
@@ -800,6 +815,8 @@ class _GameScreenState extends State<GameScreen> {
     String lifeStageLabel,
   ) {
     double s(double value) => value * zoom;
+
+    final flag = countryFlag(player.location?.countryCode as String?);
 
     return Material(
       color: Colors.transparent,
@@ -897,12 +914,10 @@ class _GameScreenState extends State<GameScreen> {
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerLeft,
-                      child: Text(
+                      child: _flagLine(
                         player.name,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium!
-                            .copyWith(
+                        flag,
+                        Theme.of(context).textTheme.titleMedium!.copyWith(
                               fontSize: (Theme.of(context)
                                           .textTheme
                                           .titleMedium!
@@ -910,19 +925,17 @@ class _GameScreenState extends State<GameScreen> {
                                       16) *
                                   0.85,
                             ),
-                        maxLines: 1,
-                        softWrap: false,
                       ),
                     ),
                     SizedBox(height: s(1)),
-                    Text(
-                      lifeStageLabel,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall,
-                      maxLines: 1,
-                      overflow:
-                          TextOverflow.ellipsis,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: _flagLine(
+                        occupationLabel(state),
+                        flag,
+                        Theme.of(context).textTheme.bodySmall!,
+                      ),
                     ),
                   ],
                 ),

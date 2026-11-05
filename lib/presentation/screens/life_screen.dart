@@ -1,4 +1,5 @@
 
+import '../widgets/life_labels.dart';
 import 'package:everylife/presentation/widgets/page_top_bar.dart';
 import 'package:flutter/material.dart';
 
@@ -8,6 +9,7 @@ import '../../domain/character/gender.dart';
 import '../../core/result/result.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
 import '../../domain/family/parent_npc.dart';
+import '../../domain/world/country_catalog.dart';
 import '../../domain/family/sibling_npc.dart';
 import '../widgets/character_avatar.dart';
 import 'npc_interaction_screen.dart';
@@ -24,6 +26,64 @@ String _parentDetails(ParentNpc parent) {
   };
   return '$employment · ${parent.countryCode}'
       '${parent.isAlive ? '' : ' · ${_deceasedLabel(parent.birthYear, parent.deathYear)}'}';
+}
+
+String _genderLabel(Gender gender) => gender == Gender.male ? 'Male' : 'Female';
+
+String _countryLabel(String countryCode) {
+  final country = CountryCatalog.findByCode(countryCode);
+  final flag = countryFlag(countryCode);
+  final name = country?.name ?? countryCode;
+
+  return flag.isEmpty ? name : '$flag $name';
+}
+
+/// Facts shown in the parent information overlay.
+List<MapEntry<String, String>> _parentDetailList(ParentNpc parent) {
+  final employment = switch (parent.employmentStatus) {
+    EmploymentStatus.employed => 'Employed',
+    EmploymentStatus.selfEmployed => 'Self-employed',
+    EmploymentStatus.unemployed => 'Unemployed',
+    EmploymentStatus.retired => 'Retired',
+    EmploymentStatus.homemaker => 'Homemaker',
+    EmploymentStatus.unableToWork => 'Unable to work',
+  };
+  final income = switch (parent.incomeStability) {
+    IncomeStability.stable => 'Stable',
+    IncomeStability.variable => 'Up and down',
+    IncomeStability.seasonal => 'Seasonal',
+    IncomeStability.none => 'No income',
+  };
+
+  return [
+    MapEntry('Gender', _genderLabel(parent.gender)),
+    MapEntry('Country', _countryLabel(parent.countryCode)),
+    if (parent.occupation != null && parent.occupation!.isNotEmpty)
+      MapEntry('Job', parent.occupation!),
+    MapEntry('Work status', employment),
+    MapEntry('Income', income),
+    if (parent.siblingCount > 0)
+      MapEntry('Their siblings', '${parent.siblingCount}'),
+  ];
+}
+
+/// Facts shown in the sibling information overlay.
+List<MapEntry<String, String>> _siblingDetailList(
+  SiblingNpc sibling,
+  String kind,
+) {
+  final bond = switch (sibling.relationship) {
+    SiblingRelationship.fullSibling => 'Same parents',
+    SiblingRelationship.halfSibling => 'One shared parent',
+    SiblingRelationship.stepSibling => 'Step family',
+  };
+
+  return [
+    MapEntry('Gender', _genderLabel(sibling.gender)),
+    MapEntry('Country', _countryLabel(sibling.countryCode)),
+    MapEntry('Family tie', bond),
+    if (sibling.isTwin) const MapEntry('Twin', 'Yes'),
+  ];
 }
 
 /// "Deceased · age 63". Years are never shown, only the age at death.
@@ -49,7 +109,6 @@ class LifeScreen extends StatefulWidget {
     this.currentYear = 2026,
     this.onNpcInteraction = _noNpcInteraction,
     this.readCurrentParents,
-    this.isNpcLocked,
     this.readCurrentSiblings,
     this.headerBuilder,
     super.key,
@@ -63,9 +122,6 @@ class LifeScreen extends StatefulWidget {
   final Result<NpcInteractionOutcome> Function({required String npcId, required String action}) onNpcInteraction;
   final List<ParentNpc> Function()? readCurrentParents;
 
-  /// Returns true when the player already used this NPC's interaction for
-  /// the current age.
-  final bool Function(String npcId)? isNpcLocked;
   final List<SiblingNpc> Function()? readCurrentSiblings;
 
   /// Builds the character card shown at the top of the page.
@@ -148,7 +204,6 @@ class _LifeScreenState extends State<LifeScreen> {
                                     currentYear: currentYear,
                                     zoom: zoom,
                                     onNpcInteraction: onNpcInteraction,
-                                    isNpcLocked: widget.isNpcLocked,
                                     onInteractionPageClosed: _refreshNpcData,
                                   ),
                               ],
@@ -169,7 +224,6 @@ class _LifeScreenState extends State<LifeScreen> {
                                     currentYear: currentYear,
                                     zoom: zoom,
                                     onNpcInteraction: onNpcInteraction,
-                                    isNpcLocked: widget.isNpcLocked,
                                     onInteractionPageClosed: _refreshNpcData,
                                   ),
                               ],
@@ -252,12 +306,10 @@ class _ParentNpcCard extends StatelessWidget {
     required this.zoom,
     required this.onNpcInteraction,
     required this.onInteractionPageClosed,
-    this.isNpcLocked,
     super.key,
   });
 
   final VoidCallback onInteractionPageClosed;
-  final bool Function(String npcId)? isNpcLocked;
   final ParentNpc parent;
   final int playerBirthYear;
   final int currentYear;
@@ -287,13 +339,13 @@ class _ParentNpcCard extends StatelessWidget {
               npcId: parent.id,
               name: parent.fullName,
               onInteraction: onNpcInteraction,
-              initiallyLocked: isNpcLocked?.call(parent.id) ?? false,
               relationship: _relationshipLabel(parent.role),
               relationshipPercent: parent.relationshipPercent,
               playerAge: currentYear - playerBirthYear,
               currentYear: currentYear,
               birthYear: parent.birthYear,
               subtitle: _parentDetails(parent),
+              details: _parentDetailList(parent),
               avatar: _ParentAvatar(
                 parent: parent,
                 currentYear: currentYear,
@@ -398,12 +450,10 @@ class _SiblingNpcCard extends StatelessWidget {
     required this.zoom,
     required this.onNpcInteraction,
     required this.onInteractionPageClosed,
-    this.isNpcLocked,
     super.key,
   });
 
   final VoidCallback onInteractionPageClosed;
-  final bool Function(String npcId)? isNpcLocked;
   final SiblingNpc sibling;
   final int playerBirthYear;
   final int currentYear;
@@ -445,13 +495,13 @@ class _SiblingNpcCard extends StatelessWidget {
               npcId: sibling.id,
               name: sibling.fullName,
               onInteraction: onNpcInteraction,
-              initiallyLocked: isNpcLocked?.call(sibling.id) ?? false,
               relationship: '$ageLabel $siblingKind',
               relationshipPercent: sibling.relationshipPercent,
               playerAge: currentYear - playerBirthYear,
               currentYear: currentYear,
               birthYear: sibling.birthYear,
               subtitle: 'Sibling · ${sibling.relationship.name}',
+              details: _siblingDetailList(sibling, siblingKind),
               avatar: SizedBox(
                 width: 112,
                 height: 140,

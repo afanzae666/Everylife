@@ -8,7 +8,9 @@ import '../../domain/world/country_catalog.dart';
 import '../../domain/world/city_catalog.dart';
 import '../../domain/character/character.dart';
 import '../../domain/character/gender.dart';
+import '../../domain/character/life_stage.dart';
 import '../widgets/character_avatar.dart';
+import '../widgets/life_labels.dart';
 
 class CharacterProfileScreen extends StatelessWidget {
   const CharacterProfileScreen({
@@ -16,6 +18,7 @@ class CharacterProfileScreen extends StatelessWidget {
     required this.currentYear,
     this.uiScaleController,
     this.onViewAssets,
+    this.occupation,
     super.key,
   });
 
@@ -23,6 +26,9 @@ class CharacterProfileScreen extends StatelessWidget {
   final int currentYear;
   final ValueNotifier<double>? uiScaleController;
   final VoidCallback? onViewAssets;
+
+  /// What the character does (job, school stage, ...), when known.
+  final String? occupation;
 
   String _getCurrencyCode() {
     final countryCode = character.location?.countryCode ?? '';
@@ -35,25 +41,6 @@ class CharacterProfileScreen extends StatelessWidget {
       amount,
       currencyCode: _getCurrencyCode(),
     );
-  }
-
-  String? _getLocationLabel() {
-    final location = character.location;
-
-    if (location == null || !location.isValid) {
-      return null;
-    }
-
-    final city = CityCatalog.findById(location.cityId);
-    final country = CountryCatalog.findByCode(
-      location.countryCode,
-    );
-
-    if (city == null || country == null) {
-      return null;
-    }
-
-    return '${country.name}, ${city.name}';
   }
 
   @override
@@ -314,13 +301,62 @@ class CharacterProfileScreen extends StatelessWidget {
     );
   }
 
+  static const List<String> _months = [
+    'January', 'February', 'March', 'April', 'May', 'June', 'July',
+    'August', 'September', 'October', 'November', 'December',
+  ];
+
+  String _birthdayLabel() {
+    final month = character.birthMonth.clamp(1, 12).toInt();
+
+    return '${_months[month - 1]} ${character.birthDay}';
+  }
+
+  static String _zodiacSign(int month, int day) {
+    const signs = [
+      'Capricorn', 'Aquarius', 'Pisces', 'Aries', 'Taurus', 'Gemini',
+      'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius',
+    ];
+    // Day of the month when the next sign starts.
+    const cutoffs = [20, 19, 21, 20, 21, 21, 23, 23, 23, 23, 22, 22];
+    final m = month.clamp(1, 12).toInt();
+    final index = day >= cutoffs[m - 1] ? m % 12 : m - 1;
+
+    return signs[index];
+  }
+
+  String _stageLabel(LifeStage stage) => switch (stage) {
+        LifeStage.infant => 'Infant',
+        LifeStage.toddler => 'Toddler',
+        LifeStage.child => 'Child',
+        LifeStage.teen => 'Teen',
+        LifeStage.youngAdult => 'Young Adult',
+        LifeStage.adult => 'Adult',
+        LifeStage.senior => 'Senior',
+      };
+
   Widget _buildBasicInformation(
     BuildContext context,
     double zoom,
   ) {
     double s(double value) => value * zoom;
 
-    final locationLabel = _getLocationLabel();
+    final location = character.location;
+    final country = location == null
+        ? null
+        : CountryCatalog.findByCode(location.countryCode);
+    final city = location == null ? null : CityCatalog.findById(location.cityId);
+    final flag = countryFlag(location?.countryCode);
+    final age = character.ageAt(currentYear);
+    final stage = _stageLabel(LifeStageAge.fromAge(age));
+    final birthday = _birthdayLabel();
+    final zodiac = _zodiacSign(character.birthMonth, character.birthDay);
+
+    Widget row(String label, String value) => _CompactInfoRow(
+          label: label,
+          value: value,
+          zoom: zoom,
+        );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -339,19 +375,15 @@ class CharacterProfileScreen extends StatelessWidget {
           height: s(4),
         ),
 
-        _CompactInfoRow(
-          label: 'Gender',
-          value: character.gender.label,
-          zoom: zoom,
-        ),
-
-        if (locationLabel != null)
-          _CompactInfoRow(
-            label: 'Location',
-            value: locationLabel,
-            zoom: zoom,
-          ),
-
+        row('Gender', character.gender.label),
+        row('Life stage', stage),
+        row('Birthday', birthday),
+        row('Zodiac', zodiac),
+        if (occupation != null && occupation!.isNotEmpty)
+          row('Occupation', occupation!),
+        if (country != null)
+          row('Country', flag.isEmpty ? country.name : '$flag ${country.name}'),
+        if (city != null) row('City', city.name),
       ],
     );
   }

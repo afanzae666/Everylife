@@ -119,18 +119,6 @@ return MediaQuery(
             child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          Padding(
-            padding: EdgeInsets.all(s(8)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Everything your character owns.',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-            ),
-          ),
           Card(
             margin: EdgeInsets.zero,
             child: Padding(
