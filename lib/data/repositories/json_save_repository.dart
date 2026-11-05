@@ -5,9 +5,10 @@ import '../models/simulation_save_snapshot.dart';
 import '../models/world_state_snapshot.dart';
 import '../storage/json_save_storage.dart';
 import 'save_repository.dart';
+import 'timeline_store.dart';
 
 class JsonSaveRepository
-    implements SaveRepository {
+    implements SaveRepository, TimelineStore {
   const JsonSaveRepository({
     required JsonSaveStorage storage,
   }) : _storage = storage;
@@ -85,6 +86,76 @@ class JsonSaveRepository
   }) async {
     await _storage.delete(
       slotKey: _slotKey(slot),
+    );
+  }
+
+  @override
+  Future<void> saveTimeline(
+    List<TimelineEntry> entries, {
+    required SaveSlot slot,
+  }) async {
+    final json = jsonEncode(<String, Object?>{
+      'entries': [
+        for (final entry in entries)
+          <String, Object?>{
+            'age': entry.age,
+            'randomState': entry.randomState,
+            'nextTickId': entry.nextTickId,
+            'world': WorldStateSnapshot.fromWorldState(entry.state).toJson(),
+          },
+      ],
+    });
+
+    await _storage.write(
+      json,
+      slotKey: '${_slotKey(slot)}_timeline',
+    );
+  }
+
+  @override
+  Future<List<TimelineEntry>> loadTimeline({
+    required SaveSlot slot,
+  }) async {
+    final json = await _storage.read(
+      slotKey: '${_slotKey(slot)}_timeline',
+    );
+
+    if (json == null) {
+      return const <TimelineEntry>[];
+    }
+
+    final decoded = jsonDecode(json);
+
+    if (decoded is! Map<String, dynamic>) {
+      return const <TimelineEntry>[];
+    }
+
+    final raw = decoded['entries'];
+
+    if (raw is! List) {
+      return const <TimelineEntry>[];
+    }
+
+    return [
+      for (final item in raw)
+        if (item is Map<String, dynamic>)
+          TimelineEntry(
+            age: item['age'] as int,
+            randomState: item['randomState'] as int,
+            nextTickId: item['nextTickId'] as int,
+            state: WorldStateSnapshot.fromJson(
+              item['world'] as Map<String, dynamic>,
+            ).toWorldState(),
+          ),
+    ];
+  }
+
+  @override
+  Future<void> deleteTimeline({
+    required SaveSlot slot,
+  }) async {
+    await _storage.delete(
+      slotKey: '${_slotKey(slot)}_timeline',
     );
   }
 

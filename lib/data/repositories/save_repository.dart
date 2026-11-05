@@ -1,4 +1,5 @@
 import '../../domain/world/world_state.dart';
+import 'timeline_store.dart';
 
 /// One place in Life Storage. Every life autosaves into its own slot.
 enum SaveSlot {
@@ -48,8 +49,33 @@ abstract interface class SaveRepository {
   });
 }
 
-class InMemorySaveRepository implements SaveRepository {
+class InMemorySaveRepository implements SaveRepository, TimelineStore {
   final Map<SaveSlot, SaveData> _data = {};
+  final Map<SaveSlot, List<TimelineEntry>> _timelines = {};
+
+  @override
+  Future<void> saveTimeline(
+    List<TimelineEntry> entries, {
+    required SaveSlot slot,
+  }) async {
+    _timelines[slot] = List<TimelineEntry>.of(entries);
+  }
+
+  @override
+  Future<List<TimelineEntry>> loadTimeline({
+    required SaveSlot slot,
+  }) async {
+    return List<TimelineEntry>.of(
+      _timelines[slot] ?? const <TimelineEntry>[],
+    );
+  }
+
+  @override
+  Future<void> deleteTimeline({
+    required SaveSlot slot,
+  }) async {
+    _timelines.remove(slot);
+  }
 
   @override
   Future<void> save(
