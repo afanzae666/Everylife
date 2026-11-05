@@ -1,4 +1,5 @@
 
+import '../../data/repositories/timeline_store.dart';
 import '../../core/random/seeded_random.dart';
 import '../../core/result/result.dart';
 import '../../data/repositories/save_repository.dart';
@@ -14,6 +15,8 @@ import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
 import '../career/career_actions.dart';
+import '../career/school_actions.dart';
+import '../school/school_setup.dart';
 import '../events/life_effect_applier.dart';
 import '../events/life_event_catalog.dart';
 import '../generation/family_household_generator.dart';
@@ -133,6 +136,28 @@ class SimulationEngine {
   Result<String> applyForUniversity() => _commitAction(
         CareerActions.applyForUniversity(state: _state, random: _random),
       );
+
+  /// Makes sure the school for the current stage exists (name, classmates,
+  /// faculty). Safe to call at any time.
+  void ensureSchool() {
+    _state = SchoolSetup.ensure(_state);
+  }
+
+  Result<String> studyHarder() {
+    ensureSchool();
+
+    return _commitAction(
+      SchoolActions.studyHarder(state: _state, random: _random),
+    );
+  }
+
+  Result<String> joinClub(String clubId) {
+    ensureSchool();
+
+    return _commitAction(
+      SchoolActions.joinClub(state: _state, clubId: clubId),
+    );
+  }
 
   Result<String> dropOutOfSchool() =>
       _commitAction(CareerActions.dropOutOfSchool(_state));
@@ -328,25 +353,35 @@ class SimulationEngine {
     }
 
     final household = _state.familyHousehold;
-    if (household == null) {
-      return const Failure('No NPC household is available.');
-    }
+    final education = _state.lifeProgress.education;
+    final parentIndex =
+        household?.parents.indexWhere((npc) => npc.id == npcId) ?? -1;
+    final siblingIndex =
+        household?.siblings.indexWhere((npc) => npc.id == npcId) ?? -1;
+    final schoolIndex = education.npcs.indexWhere((npc) => npc.id == npcId);
 
-    final parentIndex = household.parents.indexWhere((npc) => npc.id == npcId);
-    final siblingIndex = household.siblings.indexWhere((npc) => npc.id == npcId);
-    if (parentIndex < 0 && siblingIndex < 0) {
-      return const Failure('NPC could not be found.');
+    if (parentIndex < 0 && siblingIndex < 0 && schoolIndex < 0) {
+      return Failure(
+        household == null && education.npcs.isEmpty
+            ? 'No NPC household is available.'
+            : 'NPC could not be found.',
+      );
     }
 
     final isParent = parentIndex >= 0;
+    final isSibling = siblingIndex >= 0;
     final alive = isParent
-        ? household.parents[parentIndex].isAlive
-        : household.siblings[siblingIndex].isAlive;
+        ? household!.parents[parentIndex].isAlive
+        : isSibling
+            ? household!.siblings[siblingIndex].isAlive
+            : true;
     if (!alive) return const Failure('A deceased NPC cannot be interacted with.');
 
     final currentScore = isParent
-        ? household.parents[parentIndex].relationshipPercent
-        : household.siblings[siblingIndex].relationshipPercent;
+        ? household!.parents[parentIndex].relationshipPercent
+        : isSibling
+            ? household!.siblings[siblingIndex].relationshipPercent
+            : education.npcs[schoolIndex].relationshipPercent;
     final change = switch (action) {
       'Talk' => 2,
       'Spend Time' => 5,
@@ -365,25 +400,36 @@ class SimulationEngine {
         ? (currentScore + change).clamp(-100, 100).toInt()
         : currentScore;
     final npcName = isParent
-        ? household.parents[parentIndex].fullName
-        : household.siblings[siblingIndex].fullName;
+        ? household!.parents[parentIndex].fullName
+        : isSibling
+            ? household!.siblings[siblingIndex].fullName
+            : education.npcs[schoolIndex].fullName;
     final narrative = _interactionNarrative(
       action: action,
       npcName: npcName,
       stage: playerStage,
     );
 
-    final parents = List.of(household.parents);
-    final siblings = List.of(household.siblings);
-    if (isParent) {
-      parents[parentIndex] = parents[parentIndex].copyWith(relationshipPercent: nextScore);
+    var nextHousehold = household;
+    var nextEducation = education;
+
+    if (isParent || isSibling) {
+      final parents = List.of(household!.parents);
+      final siblings = List.of(household.siblings);
+      if (isParent) {
+        parents[parentIndex] = parents[parentIndex].copyWith(relationshipPercent: nextScore);
+      } else {
+        siblings[siblingIndex] = siblings[siblingIndex].copyWith(relationshipPercent: nextScore);
+      }
+      nextHousehold = household.copyWith(
+        parents: parents,
+        siblings: siblings,
+      );
     } else {
-      siblings[siblingIndex] = siblings[siblingIndex].copyWith(relationshipPercent: nextScore);
+      final npcs = List.of(education.npcs);
+      npcs[schoolIndex] = npcs[schoolIndex].copyWith(relationshipPercent: nextScore);
+      nextEducation = education.copyWith(npcs: npcs);
     }
-    final nextHousehold = household.copyWith(
-      parents: parents,
-      siblings: siblings,
-    );
     final event = SimulationEvent(
       id: 'npc-interaction-${_state.events.length + 1}-${_state.clock.currentYear}-$npcId',
       type: SimulationEventType.npcInteraction,
@@ -416,6 +462,7 @@ class SimulationEngine {
       familyHousehold: nextHousehold,
       events: [..._state.events, event],
       lifeProgress: _state.lifeProgress.copyWith(
+        education: nextEducation,
         interactionCounts: {
           // Only this year's counts matter; older keys are dropped.
           for (final entry in _state.lifeProgress.interactionCounts.entries)
@@ -576,6 +623,7 @@ class SimulationEngine {
 
     if (result case Success<void>()) {
       _nextTickId++;
+      ensureSchool();
       _recordCheckpoint();
     }
 
@@ -640,6 +688,61 @@ class SimulationEngine {
     _checkpoints.removeRange(index + 1, _checkpoints.length);
 
     return const Success(null);
+  }
+
+  static const int _maxStoredAges = 20;
+
+  Future<void> _persistTimeline(SaveSlot slot) async {
+    try {
+      final start = _checkpoints.length > _maxStoredAges
+          ? _checkpoints.length - _maxStoredAges
+          : 0;
+
+      await _saveManager.saveTimeline(
+        [
+          for (final checkpoint in _checkpoints.skip(start))
+            TimelineEntry(
+              age: checkpoint.age,
+              state: checkpoint.state,
+              randomState: checkpoint.randomState,
+              nextTickId: checkpoint.nextTickId,
+            ),
+        ],
+        slot: slot,
+      );
+    } catch (_) {
+      // The Time Machine is a bonus; never fail a save because of it.
+    }
+  }
+
+  Future<void> _restoreTimelineFrom(SaveSlot slot) async {
+    try {
+      final entries = await _saveManager.loadTimeline(slot);
+
+      _checkpoints
+        ..clear()
+        ..addAll([
+          for (final entry in entries)
+            _AgeCheckpoint(
+              age: entry.age,
+              state: entry.state,
+              randomState: entry.randomState,
+              nextTickId: entry.nextTickId,
+            ),
+        ]);
+    } catch (_) {
+      _checkpoints.clear();
+    }
+  }
+
+  /// Loads the saved Time Machine timeline of the active life (used right
+  /// after the app opens a life without going through [loadFromSlot]).
+  Future<void> restoreTimeline() async {
+    final slot = _activeSlot;
+
+    if (slot != null) {
+      await _restoreTimelineFrom(slot);
+    }
   }
 
   /// The Life Storage slot this life autosaves into (null until the first
@@ -727,6 +830,8 @@ class SimulationEngine {
         slot: slot,
       );
 
+      await _persistTimeline(slot);
+
       return const Success(null);
     } catch (error) {
       return Failure(
@@ -794,6 +899,7 @@ class SimulationEngine {
       _nextTickId = data.nextTickId;
       _activeSlot = slot;
       _checkpoints.clear();
+      await _restoreTimelineFrom(slot);
 
       return const Success(null);
     } catch (error) {
@@ -810,6 +916,12 @@ class SimulationEngine {
       await _saveManager.deleteSlot(
         slot,
       );
+
+      try {
+        await _saveManager.deleteTimeline(slot);
+      } catch (_) {
+        // A missing timeline is not worth failing the delete.
+      }
 
       if (_activeSlot == slot) {
         _activeSlot = null;
