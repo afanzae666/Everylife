@@ -94,6 +94,8 @@ void main() {
         findsNothing,
       );
 
+      expect(find.text('Birthday'), findsOneWidget);
+
       expect(find.text('Life Stage'), findsNothing);
       expect(find.text('Occupation'), findsNothing);
       expect(find.text('Relationship'), findsNothing);
@@ -257,7 +259,7 @@ void main() {
   );
 
   testWidgets(
-    'displays character location when location is valid',
+    'displays country, city, birthday and occupation',
     (tester) async {
       final character = Character.create(
         id: 'profile-location-test',
@@ -275,21 +277,23 @@ void main() {
           home: CharacterProfileScreen(
             character: character,
             currentYear: 2026,
+            occupation: 'High School Student',
           ),
         ),
       );
 
       await tester.pumpAndSettle();
 
-      expect(
-        find.text('Location'),
-        findsOneWidget,
-      );
-
-      expect(
-        find.text('Indonesia, Jakarta'),
-        findsOneWidget,
-      );
+      expect(find.text('Country'), findsOneWidget);
+      expect(find.textContaining('Indonesia'), findsOneWidget);
+      expect(find.text('City'), findsOneWidget);
+      expect(find.text('Jakarta'), findsOneWidget);
+      expect(find.text('Birthday'), findsOneWidget);
+      expect(find.text('January 1'), findsOneWidget);
+      expect(find.text('Zodiac'), findsOneWidget);
+      expect(find.text('Capricorn'), findsOneWidget);
+      expect(find.text('Occupation'), findsOneWidget);
+      expect(find.text('High School Student'), findsOneWidget);
     },
   );
 
