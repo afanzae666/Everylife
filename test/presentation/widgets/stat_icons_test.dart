@@ -38,6 +38,32 @@ void main() {
     );
   });
 
+  test('looks uses the weather emoji scale', () {
+    expect(statEmojiFor(CoreStatKind.looks, 1), '⛈️');
+    expect(statEmojiFor(CoreStatKind.looks, 20), '⛈️');
+    expect(statEmojiFor(CoreStatKind.looks, 21), '☁️');
+    expect(statEmojiFor(CoreStatKind.looks, 40), '☁️');
+    expect(statEmojiFor(CoreStatKind.looks, 41), '⛅');
+    expect(statEmojiFor(CoreStatKind.looks, 60), '⛅');
+    expect(statEmojiFor(CoreStatKind.looks, 61), '☀️');
+    expect(statEmojiFor(CoreStatKind.looks, 80), '☀️');
+    expect(statEmojiFor(CoreStatKind.looks, 81), '🔥');
+    expect(statEmojiFor(CoreStatKind.looks, 100), '🔥');
+  });
+
+  test('other stats change their face with the value', () {
+    for (final kind in [
+      CoreStatKind.happiness,
+      CoreStatKind.health,
+      CoreStatKind.smarts,
+    ]) {
+      final faces = {
+        for (final value in [5, 30, 50, 70, 90]) statEmojiFor(kind, value),
+      };
+      expect(faces, hasLength(5));
+    }
+  });
+
   testWidgets('every icon draws at every mood without errors', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
