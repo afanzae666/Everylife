@@ -161,6 +161,7 @@ class _LifeSimulationAppState
 
       engine.registerGameplaySystems();
       engine.activeSlot = _startupSlot;
+      await engine.restoreTimeline();
 
       setState(() {
         _engine = engine;
