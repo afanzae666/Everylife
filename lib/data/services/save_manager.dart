@@ -76,7 +76,7 @@ class SaveManager implements SaveRepository {
     final repository = _repository;
 
     if (repository is TimelineStore) {
-      await repository.saveTimeline(entries, slot: slot);
+      await (repository as TimelineStore).saveTimeline(entries, slot: slot);
     }
   }
 
@@ -84,7 +84,7 @@ class SaveManager implements SaveRepository {
     final repository = _repository;
 
     if (repository is TimelineStore) {
-      return repository.loadTimeline(slot: slot);
+      return (repository as TimelineStore).loadTimeline(slot: slot);
     }
 
     return const <TimelineEntry>[];
@@ -94,7 +94,7 @@ class SaveManager implements SaveRepository {
     final repository = _repository;
 
     if (repository is TimelineStore) {
-      await repository.deleteTimeline(slot: slot);
+      await (repository as TimelineStore).deleteTimeline(slot: slot);
     }
   }
 }
