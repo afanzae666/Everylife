@@ -1,4 +1,5 @@
 
+import '../../domain/career/job_catalog.dart';
 import 'dart:math' as math;
 
 import 'package:everylife/core/money/money.dart';
@@ -737,31 +738,16 @@ class FamilyHouseholdGenerator {
     SeededRandom random,
     EmploymentStatus status,
   ) {
-    const employedOccupations = [
-      'Teacher',
-      'Office worker',
-      'Technician',
-      'Nurse',
-      'Driver',
-      'Sales worker',
-      'Engineer',
-      'Administrator',
-    ];
-
-    const selfEmployedOccupations = [
-      'Shop owner',
-      'Freelancer',
-      'Food seller',
-      'Contractor',
-      'Small business owner',
-    ];
+    // Parents only have jobs that exist in the game's job list.
+    final selfEmployedIds = JobCatalog.selfEmployedJobIds;
 
     return switch (status) {
       EmploymentStatus.employed =>
-        employedOccupations[random.nextInt(employedOccupations.length)],
-      EmploymentStatus.selfEmployed => selfEmployedOccupations[
-          random.nextInt(selfEmployedOccupations.length)
-        ],
+        JobCatalog.all[random.nextInt(JobCatalog.all.length)].title,
+      EmploymentStatus.selfEmployed => JobCatalog.byId(
+          selfEmployedIds[random.nextInt(selfEmployedIds.length)],
+        )!
+            .title,
       _ => null,
     };
   }
