@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:everylife/presentation/screens/character_profile_screen.dart';
 
 import '../../../lib/core/random/seeded_random.dart';
 import '../../../lib/data/repositories/save_repository.dart';
 import '../../../lib/domain/character/character.dart';
 import '../../../lib/domain/time/simulation_clock.dart';
 import '../../../lib/domain/world/world_state.dart';
+import '../../../lib/presentation/screens/character_profile_screen.dart';
 import '../../../lib/presentation/screens/game_screen.dart';
 import '../../../lib/simulation/engine/simulation_engine.dart';
 
