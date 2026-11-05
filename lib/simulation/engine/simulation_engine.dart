@@ -576,9 +576,70 @@ class SimulationEngine {
 
     if (result case Success<void>()) {
       _nextTickId++;
+      _recordCheckpoint();
     }
 
     return result;
+  }
+
+  // ---------------------------------------------------------------------
+  // Time Machine: go back to an earlier age of this life.
+  // ---------------------------------------------------------------------
+
+  final List<_AgeCheckpoint> _checkpoints = <_AgeCheckpoint>[];
+  int _rewindCount = 0;
+
+  int get _currentAge => _state.player.ageAt(_state.clock.currentYear);
+
+  /// Remembers the start of the age the player just reached.
+  void _recordCheckpoint() {
+    final age = _currentAge;
+
+    _checkpoints.removeWhere((checkpoint) => checkpoint.age >= age);
+    _checkpoints.add(
+      _AgeCheckpoint(
+        age: age,
+        state: _state,
+        randomState: _random.state,
+        nextTickId: _nextTickId,
+      ),
+    );
+  }
+
+  /// Ages the player can travel back to, newest first. Only ages lived in
+  /// this play session are remembered, and never the current one.
+  List<int> get rewindableAges => [
+        for (final checkpoint in _checkpoints.reversed)
+          if (checkpoint.age < _currentAge) checkpoint.age,
+      ];
+
+  /// Goes back to the start of [age]. Everything that happened after it is
+  /// undone. The dice are re-rolled so the same year can play out
+  /// differently.
+  Result<void> rewindToAge(int age) {
+    if (age >= _currentAge) {
+      return const Failure('The time machine only travels to the past.');
+    }
+
+    final index = _checkpoints.lastIndexWhere(
+      (checkpoint) => checkpoint.age == age,
+    );
+
+    if (index < 0) {
+      return const Failure('I cannot remember that age.');
+    }
+
+    final checkpoint = _checkpoints[index];
+
+    _rewindCount++;
+    _state = checkpoint.state;
+    _nextTickId = checkpoint.nextTickId;
+    _random.restoreState(
+      (checkpoint.randomState + 104729 * _rewindCount) & 0x7fffffff,
+    );
+    _checkpoints.removeRange(index + 1, _checkpoints.length);
+
+    return const Success(null);
   }
 
   /// The Life Storage slot this life autosaves into (null until the first
@@ -732,6 +793,7 @@ class SimulationEngine {
       _state = data.state;
       _nextTickId = data.nextTickId;
       _activeSlot = slot;
+      _checkpoints.clear();
 
       return const Success(null);
     } catch (error) {
@@ -836,4 +898,19 @@ class SimulationEngine {
       saveRepository: saveRepository,
     );
   }
+}
+
+/// The state of a life at the start of an age, kept for the Time Machine.
+class _AgeCheckpoint {
+  const _AgeCheckpoint({
+    required this.age,
+    required this.state,
+    required this.randomState,
+    required this.nextTickId,
+  });
+
+  final int age;
+  final WorldState state;
+  final int randomState;
+  final int nextTickId;
 }
