@@ -4,35 +4,15 @@ import '../../domain/career/education_state.dart';
 import '../../domain/career/school_npc.dart';
 import '../../domain/character/cultural_randomizer_catalog.dart';
 import '../../domain/character/gender.dart';
+import '../../domain/world/city_catalog.dart';
+import '../../domain/world/country_catalog.dart';
+import '../../domain/world/school_names.dart';
 import '../../domain/world/world_state.dart';
 
 /// Makes the school (its name, classmates and faculty) for the stage the
 /// player is in. The result only depends on the player and the stage, so it
 /// never uses the game's dice and a life always gets the same school.
 abstract final class SchoolSetup {
-  static const List<String> _names = [
-    'Oakridge',
-    'Maple Hill',
-    'Riverside',
-    'Sunrise',
-    'Greenfield',
-    'Lakeside',
-    'Cedar Grove',
-    'Willow Creek',
-    'Harborview',
-    'Pinecrest',
-    'Silver Brook',
-    'Brightwater',
-  ];
-
-  static String _suffix(SchoolStage stage) => switch (stage) {
-        SchoolStage.elementary => 'Elementary School',
-        SchoolStage.middle => 'Middle School',
-        SchoolStage.high => 'High School',
-        SchoolStage.university => 'University',
-        SchoolStage.none => 'School',
-      };
-
   /// Returns [state] with a school filled in when the player studies and the
   /// school for the current stage does not exist yet.
   static WorldState ensure(WorldState state) {
@@ -59,7 +39,17 @@ abstract final class SchoolSetup {
 
     final random = math.Random(seed);
     final countryCode = _supported(player.location?.countryCode);
-    final name = '${_names[random.nextInt(_names.length)]} ${_suffix(stage)}';
+    final location = player.location;
+    final city = location == null ? null : CityCatalog.findById(location.cityId);
+    final country = location == null
+        ? null
+        : CountryCatalog.findByCode(location.countryCode);
+    final name = SchoolNames.generate(
+      countryCode: location?.countryCode ?? 'US',
+      stage: stage,
+      cityName: city?.name ?? country?.name ?? 'Springfield',
+      random: random,
+    );
     final playerAge = player.ageAt(state.clock.currentYear);
     final isUniversity = stage == SchoolStage.university;
 
