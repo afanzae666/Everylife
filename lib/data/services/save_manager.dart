@@ -1,4 +1,5 @@
 import '../repositories/save_repository.dart';
+import '../repositories/timeline_store.dart';
 import '../../domain/world/world_state.dart';
 
 class SaveManager implements SaveRepository {
@@ -65,5 +66,35 @@ class SaveManager implements SaveRepository {
     );
 
     return data != null;
+  }
+
+  /// Time Machine timelines are only kept when the repository supports it.
+  Future<void> saveTimeline(
+    List<TimelineEntry> entries, {
+    required SaveSlot slot,
+  }) async {
+    final repository = _repository;
+
+    if (repository is TimelineStore) {
+      await repository.saveTimeline(entries, slot: slot);
+    }
+  }
+
+  Future<List<TimelineEntry>> loadTimeline(SaveSlot slot) async {
+    final repository = _repository;
+
+    if (repository is TimelineStore) {
+      return repository.loadTimeline(slot: slot);
+    }
+
+    return const <TimelineEntry>[];
+  }
+
+  Future<void> deleteTimeline(SaveSlot slot) async {
+    final repository = _repository;
+
+    if (repository is TimelineStore) {
+      await repository.deleteTimeline(slot: slot);
+    }
   }
 }
