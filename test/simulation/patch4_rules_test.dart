@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:everylife/core/money/money.dart';
 import 'package:everylife/core/random/seeded_random.dart';
+import 'package:everylife/core/result/result.dart';
+import 'package:everylife/domain/event/npc_interaction_outcome.dart';
 import 'package:everylife/data/repositories/save_repository.dart';
 import 'package:everylife/domain/career/career_state.dart';
 import 'package:everylife/domain/career/education_state.dart';
@@ -184,7 +186,7 @@ void main() {
   });
 
   group('interactions', () {
-    test('each family member allows one interaction per age', () {
+    test('interactions repeat, but each only moves the relationship once a year', () {
       final base = _engineAtAge(12);
       final household = FamilyHousehold(
         id: 'household-1',
@@ -201,19 +203,38 @@ void main() {
         saveRepository: InMemorySaveRepository(),
       );
 
-      expect(engine.hasInteractedThisYear(_mother.id), isFalse);
+      int score() =>
+          engine.state.familyHousehold!.parents.first.relationshipPercent;
+
+      final start = score();
+      final first = engine.interactWithNpc(npcId: _mother.id, action: 'Talk');
+      expect(first.isSuccess, isTrue);
+      final afterFirst = score();
+      expect(afterFirst, greaterThan(start));
+
+      // Talking again still works but the relationship does not move.
+      final second = engine.interactWithNpc(npcId: _mother.id, action: 'Talk');
+      expect(second.isSuccess, isTrue);
+      expect(score(), afterFirst);
       expect(
-        engine.interactWithNpc(npcId: _mother.id, action: 'Talk').isSuccess,
-        isTrue,
-      );
-      expect(engine.hasInteractedThisYear(_mother.id), isTrue);
-      expect(
-        engine.interactWithNpc(npcId: _mother.id, action: 'Talk').isFailure,
-        isTrue,
+        (second as Success<NpcInteractionOutcome>).value.progressed,
+        isFalse,
       );
 
+      // A different interaction moves it once.
+      expect(
+        engine.interactWithNpc(npcId: _mother.id, action: 'Spend Time').isSuccess,
+        isTrue,
+      );
+      final afterSpend = score();
+      expect(afterSpend, greaterThan(afterFirst));
+      engine.interactWithNpc(npcId: _mother.id, action: 'Spend Time');
+      expect(score(), afterSpend);
+
+      // After a birthday the same interaction counts again.
       expect(engine.ageUp().isSuccess, isTrue);
-      expect(engine.hasInteractedThisYear(_mother.id), isFalse);
+      engine.interactWithNpc(npcId: _mother.id, action: 'Talk');
+      expect(score(), greaterThan(afterSpend));
     });
   });
 
