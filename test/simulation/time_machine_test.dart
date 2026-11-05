@@ -20,6 +20,8 @@ SimulationEngine _engine() {
 }
 
 void main() {
+  persistenceTests();
+
   group('Time Machine', () {
     test('lists only past ages, newest first', () {
       final engine = _engine();
@@ -65,6 +67,43 @@ void main() {
       expect(engine.rewindToAge(2).isFailure, isTrue);
       expect(engine.rewindToAge(5).isFailure, isTrue);
       expect(engine.rewindToAge(0).isFailure, isTrue);
+    });
+  });
+}
+
+void persistenceTests() {
+  group('Time Machine persistence', () {
+    test('the timeline survives leaving and re-entering the game', () async {
+      final repository = InMemorySaveRepository();
+
+      SimulationEngine build() => SimulationEngine(
+            initialState: WorldState(
+              clock: const SimulationClock(currentYear: 2026),
+              player: Character.create(
+                id: 'tm',
+                name: 'Time Traveler',
+                birthYear: 2026,
+              ),
+              events: const [],
+            ),
+            random: SeededRandom(99),
+            saveRepository: repository,
+          );
+
+      final first = build();
+
+      for (var i = 0; i < 4; i++) {
+        first.ageUp();
+      }
+
+      expect((await first.save()).isSuccess, isTrue);
+
+      final second = build();
+      final slot = first.activeSlot!;
+
+      expect((await second.loadFromSlot(slot)).isSuccess, isTrue);
+      expect(second.rewindableAges, [3, 2, 1]);
+      expect(second.rewindToAge(2).isSuccess, isTrue);
     });
   });
 }
