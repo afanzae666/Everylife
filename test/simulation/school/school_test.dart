@@ -8,7 +8,9 @@ import 'package:everylife/domain/career/job_catalog.dart';
 import 'package:everylife/domain/career/school_npc.dart';
 import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/character/gender.dart';
+import 'package:everylife/domain/world/school_names.dart';
 import 'package:everylife/simulation/career/school_actions.dart';
+import 'package:everylife/simulation/school/school_appearance.dart';
 import 'package:everylife/simulation/engine/simulation_engine.dart';
 
 SimulationEngine _newEngine() {
@@ -165,5 +167,40 @@ void main() {
 
   test('the soldier job is gone from the catalog', () {
     expect(JobCatalog.all.any((job) => job.id == 'soldier'), isFalse);
+  });
+
+  test('school names follow the country', () {
+    String name(String code, SchoolStage stage) => SchoolNames.generate(
+          countryCode: code,
+          stage: stage,
+          cityName: 'Testville',
+          random: Random(1),
+        );
+
+    expect(name('ID', SchoolStage.elementary), startsWith('SD Negeri'));
+    expect(name('ID', SchoolStage.high), startsWith('SMA Negeri'));
+    expect(name('DE', SchoolStage.elementary), startsWith('Grundschule'));
+    expect(name('JP', SchoolStage.middle), contains('Junior High School'));
+    expect(name('GB', SchoolStage.university), 'University of Testville');
+    expect(name('US', SchoolStage.high), endsWith('High School'));
+  });
+
+  test('school NPCs get a stable avatar look from the game assets', () {
+    const npc = SchoolNpc(
+      id: 'sc-9',
+      firstName: 'Budi',
+      lastName: 'Santoso',
+      gender: Gender.male,
+      birthYear: 2001,
+      role: SchoolRole.classmate,
+    );
+
+    final a = SchoolAppearance.forNpc(npc);
+    final b = SchoolAppearance.forNpc(npc);
+
+    expect(a.skinTone, b.skinTone);
+    expect(a.hair, b.hair);
+    expect(a.hairColor, b.hairColor);
+    expect(SchoolAppearance.characterFor(npc).id, 'sc-9');
   });
 }
