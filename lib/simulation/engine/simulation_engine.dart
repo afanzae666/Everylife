@@ -63,18 +63,14 @@ class SimulationEngine {
     }
   }
 
-  /// How many times the player may interact with one family member between
-  /// two birthdays. After that, the interaction is switched off until the
-  /// next age-up.
-  static const int maxInteractionsPerNpcPerYear = 1;
+  /// The player may interact with a family member as often as they like.
+  /// Each kind of interaction (Talk, Spend Time, ...) only moves the
+  /// relationship the first time it is used with that person in a year; after
+  /// that it still plays out, but the relationship stays where it is.
+  bool hasInteractionProgressedThisYear(String npcId, String action) {
+    final key = '${_state.clock.currentYear}:$npcId:$action';
 
-  /// Whether the player already used this family member's interaction slot
-  /// for the current age.
-  bool hasInteractedThisYear(String npcId) {
-    final key = '${_state.clock.currentYear}:$npcId';
-    final used = _state.lifeProgress.interactionCounts[key] ?? 0;
-
-    return used >= maxInteractionsPerNpcPerYear;
+    return (_state.lifeProgress.interactionCounts[key] ?? 0) > 0;
   }
 
   WorldState _state;
@@ -361,15 +357,13 @@ class SimulationEngine {
       _ => null,
     };
     if (change == null) return const Failure('Unknown NPC interaction.');
-    final interactionKey = '${_state.clock.currentYear}:$npcId';
+    final interactionKey = '${_state.clock.currentYear}:$npcId:$action';
     final timesThisYear = _state.lifeProgress.interactionCounts[interactionKey] ?? 0;
-    if (timesThisYear >= maxInteractionsPerNpcPerYear) {
-      return const Failure(
-        'I already spent time with them. '
-        'Maybe after my next birthday.',
-      );
-    }
-    final nextScore = (currentScore + change).clamp(-100, 100).toInt();
+    // Only the first use of each interaction per year moves the relationship.
+    final progressed = timesThisYear == 0;
+    final nextScore = progressed
+        ? (currentScore + change).clamp(-100, 100).toInt()
+        : currentScore;
     final npcName = isParent
         ? household.parents[parentIndex].fullName
         : household.siblings[siblingIndex].fullName;
@@ -397,7 +391,9 @@ class SimulationEngine {
       title: action,
       description: narrative,
     );
-    final statEffect = switch (action) {
+    final statEffect = !progressed
+        ? null
+        : switch (action) {
       'Spend Time' => const StatEffect(StatKey.happiness, 1),
       'Apologize' => const StatEffect(StatKey.happiness, 1),
       'Compliment' => const StatEffect(StatKey.charisma, 1),
@@ -437,6 +433,7 @@ class SimulationEngine {
       action: action,
       narrative: narrative,
       relationshipPercent: nextScore,
+      progressed: progressed,
       year: _state.clock.currentYear,
       age: (_state.clock.currentYear - _state.player.birthYear).clamp(0, 150),
     ));
