@@ -70,7 +70,7 @@ void main() {
       relationshipPercent: 55,
     );
 
-    final copy = SchoolNpc.fromJson(npc.toJson());
+    final copy = SchoolNpc.fromJson(npc.toJson())!;
 
     expect(copy.id, 'sc-1');
     expect(copy.role, SchoolRole.teacher);
