@@ -1,5 +1,4 @@
 
-import '../widgets/life_labels.dart';
 import 'package:everylife/presentation/widgets/page_top_bar.dart';
 import 'package:flutter/material.dart';
 
@@ -31,58 +30,35 @@ String _parentDetails(ParentNpc parent) {
 String _genderLabel(Gender gender) => gender == Gender.male ? 'Male' : 'Female';
 
 String _countryLabel(String countryCode) {
-  final country = CountryCatalog.findByCode(countryCode);
-  final flag = countryFlag(countryCode);
-  final name = country?.name ?? countryCode;
-
-  return flag.isEmpty ? name : '$flag $name';
+  return CountryCatalog.findByCode(countryCode)?.name ?? countryCode;
 }
 
-/// Facts shown in the parent information overlay.
+/// Facts shown in the parent information overlay (after Age).
 List<MapEntry<String, String>> _parentDetailList(ParentNpc parent) {
-  final employment = switch (parent.employmentStatus) {
-    EmploymentStatus.employed => 'Employed',
-    EmploymentStatus.selfEmployed => 'Self-employed',
+  final occupation = switch (parent.employmentStatus) {
+    EmploymentStatus.employed => parent.occupation ?? 'Employed',
+    EmploymentStatus.selfEmployed => parent.occupation ?? 'Self-employed',
     EmploymentStatus.unemployed => 'Unemployed',
     EmploymentStatus.retired => 'Retired',
     EmploymentStatus.homemaker => 'Homemaker',
     EmploymentStatus.unableToWork => 'Unable to work',
   };
-  final income = switch (parent.incomeStability) {
-    IncomeStability.stable => 'Stable',
-    IncomeStability.variable => 'Up and down',
-    IncomeStability.seasonal => 'Seasonal',
-    IncomeStability.none => 'No income',
-  };
 
   return [
     MapEntry('Gender', _genderLabel(parent.gender)),
-    MapEntry('Country', _countryLabel(parent.countryCode)),
-    if (parent.occupation != null && parent.occupation!.isNotEmpty)
-      MapEntry('Job', parent.occupation!),
-    MapEntry('Work status', employment),
-    MapEntry('Income', income),
-    if (parent.siblingCount > 0)
-      MapEntry('Their siblings', '${parent.siblingCount}'),
+    MapEntry('Occupation', occupation),
+    MapEntry('Location', _countryLabel(parent.countryCode)),
   ];
 }
 
-/// Facts shown in the sibling information overlay.
+/// Facts shown in the sibling information overlay (after Age).
 List<MapEntry<String, String>> _siblingDetailList(
   SiblingNpc sibling,
   String kind,
 ) {
-  final bond = switch (sibling.relationship) {
-    SiblingRelationship.fullSibling => 'Same parents',
-    SiblingRelationship.halfSibling => 'One shared parent',
-    SiblingRelationship.stepSibling => 'Step family',
-  };
-
   return [
     MapEntry('Gender', _genderLabel(sibling.gender)),
-    MapEntry('Country', _countryLabel(sibling.countryCode)),
-    MapEntry('Family tie', bond),
-    if (sibling.isTwin) const MapEntry('Twin', 'Yes'),
+    MapEntry('Location', _countryLabel(sibling.countryCode)),
   ];
 }
 

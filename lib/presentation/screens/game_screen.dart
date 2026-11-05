@@ -25,6 +25,7 @@ import 'more_screen.dart';
 import 'menu_screen.dart';
 import 'life_storage_screen.dart';
 import 'settings_screen.dart';
+import 'time_machine_screen.dart';
 
 Future<void> _defaultUiScaleChanged(double value) async {}
 
@@ -400,14 +401,7 @@ class _GameScreenState extends State<GameScreen> {
                     return;
                   }
 
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => AssetsScreen(
-                        player: engine.state.player,
-                        zoom: _uiScaleController.value,
-                      ),
-                    ),
-                  );
+                  _openAssetsTab();
                 });
               },
             ),
@@ -634,6 +628,45 @@ class _GameScreenState extends State<GameScreen> {
   }
 
 
+  Future<void> _openTimeMachine() async {
+    if (_isProcessingTurn) {
+      return;
+    }
+
+    final travelled = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
+        builder: (_) => TimeMachineScreen(
+          zoom: _uiScaleController.value,
+          headerBuilder: _pageHeader,
+          readAges: () => engine.rewindableAges,
+          onRewind: engine.rewindToAge,
+        ),
+      ),
+    );
+
+    if (!mounted || travelled != true) {
+      return;
+    }
+
+    // Leave the More page too, so the player lands back on the life log.
+    Navigator.of(context).popUntil((route) => route.isFirst);
+
+    setState(() {});
+    _scrollLifeEventsToBottom();
+
+    final saveResult = await engine.save();
+
+    if (!mounted) {
+      return;
+    }
+
+    if (saveResult case Failure<void>(:final message)) {
+      _showTurnMessage('Auto-save failed: $message');
+    }
+
+    await _handleLifeFlow();
+  }
+
   void _openMorePage() {
     if (_isProcessingTurn) {
       return;
@@ -644,6 +677,7 @@ class _GameScreenState extends State<GameScreen> {
         builder: (_) => MoreScreen(
           zoom: _uiScaleController.value,
           headerBuilder: _pageHeader,
+          onTimeMachine: _openTimeMachine,
         ),
       ),
     );
@@ -792,7 +826,8 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  /// A line of text with the country flag in front, at the same size.
+  /// A line of text with a small emoji in front (a country flag or a job
+  /// picture), at the same size as the text.
   Widget _flagLine(String text, String flag, TextStyle style) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -933,7 +968,7 @@ class _GameScreenState extends State<GameScreen> {
                       alignment: Alignment.centerLeft,
                       child: _flagLine(
                         occupationLabel(state),
-                        flag,
+                        occupationEmoji(state),
                         Theme.of(context).textTheme.bodySmall!,
                       ),
                     ),

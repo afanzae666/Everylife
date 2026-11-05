@@ -8,6 +8,7 @@ import '../../core/result/result.dart';
 import '../../domain/career/education_state.dart';
 import '../../domain/career/job_catalog.dart';
 import '../../domain/world/country_catalog.dart';
+import 'jobs_screen.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
 import '../../simulation/systems/education_system.dart';
@@ -219,6 +220,25 @@ class _CareerScreenState extends State<CareerScreen> {
     );
   }
 
+  void _openJobs() {
+    Navigator.of(context)
+        .push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => JobsScreen(
+              engine: engine,
+              zoom: widget.zoom,
+              onChanged: widget.onChanged,
+              headerBuilder: widget.headerBuilder,
+            ),
+          ),
+        )
+        .then((_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
   Widget _buildWork() {
     final state = engine.state;
     final year = state.clock.currentYear;
@@ -231,7 +251,10 @@ class _CareerScreenState extends State<CareerScreen> {
         children: [
           const Icon(Icons.work_outline),
           SizedBox(width: s(6)),
-          Text('Work', style: Theme.of(context).textTheme.titleMedium),
+          Expanded(
+            child: Text('Job', style: Theme.of(context).textTheme.titleMedium),
+          ),
+          const Icon(Icons.chevron_right),
         ],
       ),
       SizedBox(height: s(4)),
@@ -244,7 +267,7 @@ class _CareerScreenState extends State<CareerScreen> {
       ]);
     } else if (job != null) {
       children.addAll([
-        Text(job.titleAt(career.rank)),
+        Text('${job.emoji} ${job.titleAt(career.rank)}'),
         Text('Salary: ${_formatBase(career.salaryBase)} per year'),
         Text('Performance: ${career.performance}/100'),
         SizedBox(height: s(2)),
@@ -279,43 +302,23 @@ class _CareerScreenState extends State<CareerScreen> {
         ),
       ]);
     } else {
-      children.add(const Text('Unemployed'));
-
-      final appliedThisYear = career.lastApplicationYear == year;
-
-      for (final available in engine.availableJobs) {
-        children.add(
-          ListTile(
-            key: Key('job-${available.id}'),
-            dense: true,
-            contentPadding: EdgeInsets.zero,
-            title: Text(available.title),
-            subtitle: Text(
-              'Starts at ${_formatBase(available.baseSalary)} per year '
-              '· ${engine.hiringChance(available)}% chance',
-            ),
-            trailing: FilledButton.tonal(
-              onPressed: appliedThisYear
-                  ? null
-                  : () => _run(engine.applyForJob(available.id)),
-              child: const Text('APPLY'),
-            ),
-          ),
-        );
-      }
-
-      if (appliedThisYear) {
-        children.add(const Text('I already applied this year.'));
-      }
+      children.addAll([
+        const Text('Unemployed'),
+        const Text('Tap to see every job.'),
+      ]);
     }
 
     return Card(
+      key: const Key('job-card'),
       margin: EdgeInsets.zero,
-      child: Padding(
-        padding: EdgeInsets.all(s(8)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: children,
+      child: InkWell(
+        onTap: _openJobs,
+        child: Padding(
+          padding: EdgeInsets.all(s(8)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: children,
+          ),
         ),
       ),
     );

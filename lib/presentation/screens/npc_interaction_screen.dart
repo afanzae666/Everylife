@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/result/result.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
 import '../../domain/character/life_stage.dart';
+import '../widgets/info_line.dart';
 
 class NpcInteractionScreen extends StatefulWidget {
   const NpcInteractionScreen({
@@ -173,9 +174,12 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                 ),
                 const SizedBox(height: 12),
                 if (widget.birthYear != null && widget.currentYear != null)
-                  _detailRow(theme, 'Age', '${(widget.currentYear! - widget.birthYear!).clamp(0, 150)}'),
+                  InfoLine(
+                    label: 'Age',
+                    value: '${(widget.currentYear! - widget.birthYear!).clamp(0, 150)}',
+                  ),
                 for (final entry in widget.details)
-                  _detailRow(theme, entry.key, entry.value),
+                  InfoLine(label: entry.key, value: entry.value),
                 if (widget.subtitle != null && widget.details.isEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
@@ -185,26 +189,6 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _detailRow(ThemeData theme, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(flex: 4, child: Text(label, style: theme.textTheme.bodySmall)),
-          Expanded(
-            flex: 6,
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
       ),
     );
   }

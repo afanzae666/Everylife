@@ -5,6 +5,7 @@ class MoreScreen extends StatelessWidget {
   const MoreScreen({
     required this.zoom,
     this.headerBuilder,
+    this.onTimeMachine,
     super.key,
   });
 
@@ -12,6 +13,9 @@ class MoreScreen extends StatelessWidget {
 
   /// Builds the character card shown at the top of the page.
   final WidgetBuilder? headerBuilder;
+
+  /// Opens the Time Machine (go back to an earlier age).
+  final VoidCallback? onTimeMachine;
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +57,13 @@ class MoreScreen extends StatelessWidget {
                             .bodySmall,
                       ),
                       SizedBox(height: s(4)),
+                      _MoreItem(
+                        key: const Key('more-time-machine'),
+                        icon: Icons.history_toggle_off,
+                        title: 'Time Machine',
+                        subtitle: 'Go back to an earlier age',
+                        onTap: onTimeMachine,
+                      ),
                       const _MoreItem(
                         icon: Icons.sports_esports_outlined,
                         title: 'Activities',
@@ -117,10 +128,15 @@ class _MoreItem extends StatelessWidget {
   const _MoreItem({
     required this.icon,
     required this.title,
+    this.subtitle = 'Future feature',
+    this.onTap,
+    super.key,
   });
 
   final IconData icon;
   final String title;
+  final String subtitle;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -129,9 +145,9 @@ class _MoreItem extends StatelessWidget {
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon),
       title: Text(title),
-      subtitle: const Text(
-        'Future feature',
-      ),
+      subtitle: Text(subtitle),
+      trailing: onTap == null ? null : const Icon(Icons.chevron_right),
+      onTap: onTap,
     );
   }
 }
