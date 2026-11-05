@@ -88,7 +88,7 @@ void main() {
     expect(CareerState.fromJson('bad').hasJob, isFalse);
   });
 
-  test('a second interaction with the same NPC at the same age is refused', () {
+  test('repeating an interaction works but only moves the bond once a year', () {
     final engine = _newEngine(3, gameplay: false);
 
     for (var i = 0; i < 10; i++) {
@@ -100,14 +100,24 @@ void main() {
 
     final npcId = household!.parents.first.id;
 
+    int bond() => engine.state.familyHousehold!.parents
+        .firstWhere((npc) => npc.id == npcId)
+        .relationshipPercent;
+
+    final start = bond();
     expect(engine.interactWithNpc(npcId: npcId, action: 'Talk').isSuccess,
         isTrue);
-    expect(engine.interactWithNpc(npcId: npcId, action: 'Talk').isFailure,
+    final afterFirst = bond();
+    expect(afterFirst, greaterThan(start));
+
+    expect(engine.interactWithNpc(npcId: npcId, action: 'Talk').isSuccess,
         isTrue);
+    expect(bond(), afterFirst);
 
     expect(engine.ageUp().isSuccess, isTrue);
     expect(engine.interactWithNpc(npcId: npcId, action: 'Talk').isSuccess,
         isTrue);
+    expect(bond(), greaterThan(afterFirst));
   });
 
   test('a job can be applied for once a year, held, and quit', () {
