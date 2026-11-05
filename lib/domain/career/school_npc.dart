@@ -15,6 +15,8 @@ enum SchoolRole {
   final String label;
   final String emoji;
 
+  bool get isStudent => this == SchoolRole.classmate;
+
   bool get isFaculty => this != SchoolRole.classmate;
 }
 
