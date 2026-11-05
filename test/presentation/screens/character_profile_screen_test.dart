@@ -38,7 +38,7 @@ void main() {
       );
 
       expect(
-        find.text('Age 7'),
+        find.text('Age: 7'),
         findsOneWidget,
       );
 
@@ -80,12 +80,7 @@ void main() {
       );
 
       expect(
-        find.text('Gender'),
-        findsOneWidget,
-      );
-
-      expect(
-        find.text('Male'),
+        find.text('Gender: Male'),
         findsOneWidget,
       );
 
@@ -94,7 +89,8 @@ void main() {
         findsNothing,
       );
 
-      expect(find.text('Birthday'), findsOneWidget);
+      expect(find.textContaining('Zodiac'), findsNothing);
+      expect(find.textContaining('Birthday'), findsNothing);
 
       expect(find.text('Life Stage'), findsNothing);
       expect(find.text('Occupation'), findsNothing);
@@ -259,7 +255,7 @@ void main() {
   );
 
   testWidgets(
-    'displays country, city, birthday and occupation',
+    'shows location (country, city) and occupation on compact lines',
     (tester) async {
       final character = Character.create(
         id: 'profile-location-test',
@@ -284,16 +280,9 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('Country'), findsOneWidget);
-      expect(find.textContaining('Indonesia'), findsOneWidget);
-      expect(find.text('City'), findsOneWidget);
-      expect(find.text('Jakarta'), findsOneWidget);
-      expect(find.text('Birthday'), findsOneWidget);
-      expect(find.text('January 1'), findsOneWidget);
-      expect(find.text('Zodiac'), findsOneWidget);
-      expect(find.text('Capricorn'), findsOneWidget);
-      expect(find.text('Occupation'), findsOneWidget);
-      expect(find.text('High School Student'), findsOneWidget);
+      expect(find.text('Location: Indonesia, Jakarta'), findsOneWidget);
+      expect(find.textContaining('City'), findsNothing);
+      expect(find.text('Occupation: High School Student'), findsOneWidget);
     },
   );
 
