@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:everylife/presentation/screens/character_profile_screen.dart';
 
 import '../../../lib/core/random/seeded_random.dart';
 import '../../../lib/data/repositories/save_repository.dart';
@@ -197,7 +198,7 @@ void main() {
         );
 
         final profileName = find.descendant(
-  of: find.byType(Dialog),
+  of: find.byType(CharacterProfileScreen),
   matching: find.text('Test Player'),
 );
 
