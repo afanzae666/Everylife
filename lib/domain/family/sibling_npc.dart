@@ -1,6 +1,7 @@
 import '../character/appearance.dart';
 import '../character/cultural_name_catalog.dart';
 import '../character/gender.dart';
+import 'npc_finance.dart';
 
 /// Relationship of a sibling NPC to the player character.
 enum SiblingRelationship {
@@ -24,6 +25,7 @@ class SiblingNpc {
     this.isTwin = false,
     this.isAlive = true,
     this.deathYear,
+    this.finance,
   });
 
   final String id;
@@ -47,6 +49,9 @@ class SiblingNpc {
   /// Calendar year of death, when known.
   final int? deathYear;
 
+  /// Real job and savings once this sibling is an adult (null until then).
+  final NpcFinance? finance;
+
   String get fullName => CulturalNameCatalog.formatFullName(
         countryCode,
         firstName,
@@ -57,6 +62,7 @@ class SiblingNpc {
     int? relationshipPercent,
     bool? isAlive,
     int? deathYear,
+    NpcFinance? finance,
   }) =>
       SiblingNpc(
         id: id,
@@ -71,6 +77,7 @@ class SiblingNpc {
         isTwin: isTwin,
         isAlive: isAlive ?? this.isAlive,
         deathYear: deathYear ?? this.deathYear,
+        finance: finance ?? this.finance,
       );
 
   bool isOlderThan(int playerBirthYear) => birthYear < playerBirthYear;
