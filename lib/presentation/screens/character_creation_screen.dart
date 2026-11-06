@@ -16,6 +16,7 @@ import '../../domain/world/city_catalog.dart';
 import '../../domain/world/country.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../domain/character/cultural_randomizer_catalog.dart';
+import '../widgets/animated_dialog.dart';
 
 class CharacterCreationScreen extends StatefulWidget {
   const CharacterCreationScreen({
@@ -407,7 +408,7 @@ _lastNameController.text = randomLastName;
     CharacterAppearance temporaryAppearance =
         _appearance;
 
-    showDialog<void>(
+    showAnimatedDialog<void>(
       context: context,
       barrierDismissible: true,
       builder: (
@@ -2007,7 +2008,7 @@ Widget fixedImage({
   }
 
   void _showCountryPicker() {
-    showDialog<void>(
+    showAnimatedDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
@@ -2068,7 +2069,7 @@ Widget fixedImage({
     final List<City> cities =
         CityCatalog.citiesForCountry(_countryCode);
 
-    showDialog<void>(
+    showAnimatedDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
@@ -2112,7 +2113,7 @@ Widget fixedImage({
   }
 
   void _showGenderPicker() {
-    showDialog<void>(
+    showAnimatedDialog<void>(
       context: context,
       builder: (
         BuildContext dialogContext,

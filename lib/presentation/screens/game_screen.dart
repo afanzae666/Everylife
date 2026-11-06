@@ -28,6 +28,7 @@ import 'menu_screen.dart';
 import 'life_storage_screen.dart';
 import 'settings_screen.dart';
 import 'time_machine_screen.dart';
+import '../widgets/animated_dialog.dart';
 
 Future<void> _defaultUiScaleChanged(double value) async {}
 
@@ -320,7 +321,7 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     if (freeSlot == null) {
-      final openStorage = await showDialog<bool>(
+      final openStorage = await showAnimatedDialog<bool>(
         context: context,
         builder: (dialogContext) {
           return AlertDialog(

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/theme/everylife_theme_mode_controller.dart';
+import '../widgets/animated_dialog.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({
@@ -115,7 +116,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   Future<void> _showUiZoomDialog(BuildContext context) async {
-    await showDialog<void>(
+    await showAnimatedDialog<void>(
       context: context,
       builder: (dialogContext) {
         return ValueListenableBuilder<double>(

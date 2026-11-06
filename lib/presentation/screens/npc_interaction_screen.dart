@@ -4,6 +4,8 @@ import '../../core/result/result.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
 import '../../domain/character/life_stage.dart';
 import '../widgets/info_line.dart';
+import '../widgets/animated_dialog.dart';
+import '../widgets/game_bar.dart';
 
 class NpcInteractionScreen extends StatefulWidget {
   const NpcInteractionScreen({
@@ -19,6 +21,7 @@ class NpcInteractionScreen extends StatefulWidget {
     this.playerAge = 18,
     this.isAlive = true,
     this.details = const <MapEntry<String, String>>[],
+    this.netWorth,
     super.key,
   });
 
@@ -39,6 +42,9 @@ class NpcInteractionScreen extends StatefulWidget {
 
   /// Extra facts shown in the information overlay (label, value).
   final List<MapEntry<String, String>> details;
+
+  /// Formatted net worth; only shown for NPCs aged 18 or more.
+  final String? netWorth;
 
   @override
   State<NpcInteractionScreen> createState() => _NpcInteractionScreenState();
@@ -72,7 +78,8 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
       barrierDismissible: true,
       barrierLabel: 'Dismiss interaction narrative',
       barrierColor: Colors.black54,
-      transitionDuration: const Duration(milliseconds: 120),
+      transitionDuration: const Duration(milliseconds: 260),
+    transitionBuilder: animatedDialogTransition,
       pageBuilder: (dialogContext, _, __) => GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => Navigator.of(dialogContext).pop(),
@@ -127,65 +134,134 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
   void _showDetails() {
     if (!widget.isAlive) return;
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final score = _score.clamp(-100, 100).toInt();
-    final barColor =
-        score >= 0 ? const Color(0xFF32CD62) : const Color(0xFFFF4545);
+    final age = widget.birthYear != null && widget.currentYear != null
+        ? (widget.currentYear! - widget.birthYear!).clamp(0, 150).toInt()
+        : null;
 
-    showDialog<void>(
+    showAnimatedDialog<void>(
       context: context,
-      builder: (dialogContext) => Dialog(
-        key: const Key('npc-details-dialog'),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(child: SizedBox(width: 112, height: 140, child: widget.avatar ?? const Icon(Icons.person_outline, size: 64))),
-                const SizedBox(height: 8),
-                Text(widget.name, textAlign: TextAlign.center, style: theme.textTheme.titleLarge),
-                const SizedBox(height: 2),
-                Text(
-                  widget.relationship,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text('Relationship', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
+      builder: (dialogContext) => Center(
+        child: SingleChildScrollView(
+          child: Container(
+            key: const Key('npc-details-dialog'),
+            width: double.infinity,
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: scheme.surface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: scheme.primary, width: 2),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Material(
+              color: Colors.transparent,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    color: scheme.primary,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
                     ),
-                    Text('${_bondLabel(score)} · $score%', style: theme.textTheme.bodyMedium),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(
-                    key: const Key('npc-details-relationship-bar'),
-                    minHeight: 10,
-                    value: score.abs() / 100,
-                    color: barColor,
-                    backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            widget.relationship.toUpperCase(),
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                        InkWell(
+                          key: const Key('npc-details-close'),
+                          customBorder: const CircleBorder(),
+                          onTap: () => Navigator.of(dialogContext).pop(),
+                          child: const Padding(
+                            padding: EdgeInsets.all(2),
+                            child: Icon(Icons.close, size: 18, color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                if (widget.birthYear != null && widget.currentYear != null)
-                  InfoLine(
-                    label: 'Age',
-                    value: '${(widget.currentYear! - widget.birthYear!).clamp(0, 150)}',
-                  ),
-                for (final entry in widget.details)
-                  InfoLine(label: entry.key, value: entry.value),
-                if (widget.subtitle != null && widget.details.isEmpty)
                   Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(widget.subtitle!),
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: scheme.primary.withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: scheme.primary.withValues(alpha: 0.45),
+                            ),
+                          ),
+                          child: SizedBox(
+                            width: 96,
+                            height: 120,
+                            child: widget.avatar ??
+                                const Icon(Icons.person_outline, size: 56),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.name,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Relationship · ${_bondLabel(score)} · $score%',
+                                style: theme.textTheme.bodySmall,
+                              ),
+                              const SizedBox(height: 2),
+                              GameBar(
+                                barKey: const Key('npc-details-relationship-bar'),
+                                value: score.abs() / 100,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Basic Information',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: scheme.primary,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.6,
+                                ),
+                              ),
+                              if (age != null)
+                                InfoLine(label: 'Age', value: '$age'),
+                              for (final entry in widget.details)
+                                InfoLine(label: entry.key, value: entry.value),
+                              if (widget.netWorth != null &&
+                                  age != null &&
+                                  age >= 18)
+                                InfoLine(
+                                  label: 'Net Worth',
+                                  value: widget.netWorth!,
+                                ),
+                              if (widget.subtitle != null &&
+                                  widget.details.isEmpty)
+                                Text(widget.subtitle!),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -207,8 +283,6 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
   @override
   Widget build(BuildContext context) {
     final score = _score.clamp(-100, 100).toInt();
-    final color = score >= 0 ? const Color(0xFF32CD62) : const Color(0xFFFF4545);
-
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -247,7 +321,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 3),
-                        ClipRRect(borderRadius: BorderRadius.zero, child: LinearProgressIndicator(minHeight: 7, value: score.abs() / 100, color: color, backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest)),
+                        GameBar(value: score.abs() / 100),
                         const SizedBox(height: 3),
                         Text('Relationship · $score%'),
                       ],

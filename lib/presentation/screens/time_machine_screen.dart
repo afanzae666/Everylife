@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:everylife/presentation/widgets/page_top_bar.dart';
 
 import '../../core/result/result.dart';
+import '../widgets/animated_dialog.dart';
 
 /// Go back to an earlier age of the current life. Only the past can be
 /// visited, and everything after the chosen age is undone.
@@ -31,7 +32,7 @@ class _TimeMachineScreenState extends State<TimeMachineScreen> {
   double s(double value) => value * widget.zoom;
 
   Future<void> _travel(int age) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAnimatedDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         key: const Key('time-machine-dialog'),

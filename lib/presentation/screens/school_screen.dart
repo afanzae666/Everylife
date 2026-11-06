@@ -14,6 +14,11 @@ import '../../simulation/school/school_appearance.dart';
 import '../widgets/info_line.dart';
 import '../widgets/npc_avatar.dart';
 import 'npc_interaction_screen.dart';
+import '../widgets/animated_dialog.dart';
+import '../widgets/game_bar.dart';
+import '../widgets/id_card_frame.dart';
+import '../../simulation/generation/npc_wealth.dart';
+import '../widgets/npc_money.dart';
 
 String schoolStageTitle(SchoolStage stage) => switch (stage) {
       SchoolStage.elementary => 'Elementary School',
@@ -123,13 +128,9 @@ class SchoolSummaryCard extends StatelessWidget {
                 ],
               ),
               SizedBox(height: s(2)),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(s(6)),
-                child: LinearProgressIndicator(
-                  key: const Key('grades-bar'),
-                  minHeight: s(8),
-                  value: education.grades / 100,
-                ),
+              GameBar(
+                barKey: const Key('grades-bar'),
+                value: education.grades / 100,
               ),
             ],
           ),
@@ -208,14 +209,13 @@ class _SchoolScreenState extends State<SchoolScreen> {
             ? country.name
             : '${country.name}, ${city.name}';
 
-    showDialog<void>(
+    showAnimatedDialog<void>(
       context: context,
-      builder: (dialogContext) => Dialog(
+      builder: (dialogContext) => IdCardFrame(
         key: const Key('school-info'),
-        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-          child: Column(
+        title: 'SCHOOL INFORMATION',
+        onClose: () => Navigator.of(dialogContext).pop(),
+        child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -260,17 +260,8 @@ class _SchoolScreenState extends State<SchoolScreen> {
                       ? education.club!
                       : 'None',
                 ),
-              const SizedBox(height: 6),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('CLOSE'),
-                ),
-              ),
             ],
           ),
-        ),
       ),
     );
   }
@@ -310,7 +301,7 @@ class _SchoolScreenState extends State<SchoolScreen> {
   }
 
   Future<void> _leaveSchool() async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAnimatedDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Leave school?'),
@@ -552,6 +543,21 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
               playerAge: state.player.ageAt(state.clock.currentYear),
               currentYear: state.clock.currentYear,
               birthYear: npc.birthYear,
+              netWorth: npcMoneyLabel(
+                NpcWealth.estimate(
+                  id: npc.id,
+                  age: state.clock.currentYear - npc.birthYear,
+                  countryCode: npc.countryCode,
+                  multiplier: switch (npc.role) {
+                    SchoolRole.classmate => 1,
+                    SchoolRole.teacher => 3,
+                    SchoolRole.professor => 4,
+                    SchoolRole.principal => 6,
+                    SchoolRole.dean => 8,
+                  },
+                ),
+                npc.countryCode,
+              ),
               details: [
                 MapEntry('Gender', npc.gender.name == 'male' ? 'Male' : 'Female'),
                 MapEntry('Occupation', _occupationOf(npc)),
@@ -653,17 +659,8 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
                                         style: theme.textTheme.bodySmall,
                                       ),
                                       SizedBox(height: s(2)),
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(4),
-                                        child: LinearProgressIndicator(
-                                          minHeight: s(6),
-                                          value: npc.relationshipPercent.abs() / 100,
-                                          color: npc.relationshipPercent >= 0
-                                              ? const Color(0xFF32CD62)
-                                              : const Color(0xFFFF4545),
-                                          backgroundColor: theme
-                                              .colorScheme.surfaceContainerHighest,
-                                        ),
+                                      GameBar(
+                                        value: npc.relationshipPercent.abs() / 100,
                                       ),
                                     ],
                                   ),

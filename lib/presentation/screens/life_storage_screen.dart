@@ -7,6 +7,7 @@ import '../../data/repositories/save_repository.dart';
 import '../../data/services/character_palette_service.dart';
 import '../../domain/world/country_catalog.dart';
 import '../widgets/character_avatar.dart';
+import '../widgets/animated_dialog.dart';
 
 /// Life Storage: every life autosaves into its own slot, and this page lists
 /// them. Tapping a life asks whether to continue it.
@@ -93,7 +94,7 @@ class _LifeStorageScreenState extends State<LifeStorageScreen> {
       return;
     }
 
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAnimatedDialog<bool>(
       context: context,
       builder: (dialogContext) {
         final player = data.state.player;
@@ -150,7 +151,7 @@ class _LifeStorageScreenState extends State<LifeStorageScreen> {
 
     final name = data?.state.player.fullName ?? 'this life';
 
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showAnimatedDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(

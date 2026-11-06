@@ -11,7 +11,10 @@ import '../../domain/family/parent_npc.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../domain/family/sibling_npc.dart';
 import '../widgets/character_avatar.dart';
+import '../widgets/game_bar.dart';
 import 'npc_interaction_screen.dart';
+import '../../simulation/generation/npc_wealth.dart';
+import '../widgets/npc_money.dart';
 
 
 String _parentDetails(ParentNpc parent) {
@@ -322,6 +325,10 @@ class _ParentNpcCard extends StatelessWidget {
               birthYear: parent.birthYear,
               subtitle: _parentDetails(parent),
               details: _parentDetailList(parent),
+              netWorth: npcMoneyLabel(
+                NpcWealth.forParent(parent),
+                parent.countryCode,
+              ),
               avatar: _ParentAvatar(
                 parent: parent,
                 currentYear: currentYear,
@@ -478,6 +485,14 @@ class _SiblingNpcCard extends StatelessWidget {
               birthYear: sibling.birthYear,
               subtitle: 'Sibling · ${sibling.relationship.name}',
               details: _siblingDetailList(sibling, siblingKind),
+              netWorth: npcMoneyLabel(
+                NpcWealth.estimate(
+                  id: sibling.id,
+                  age: currentYear - sibling.birthYear,
+                  countryCode: sibling.countryCode,
+                ),
+                sibling.countryCode,
+              ),
               avatar: SizedBox(
                 width: 112,
                 height: 140,
@@ -630,20 +645,10 @@ class _RelationshipBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final score = value.clamp(-100, 100).toInt();
-    final positive = score > 0;
-    final color = positive ? const Color(0xFF32CD62) : const Color(0xFFFF4545);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8 * zoom),
-          child: LinearProgressIndicator(
-            minHeight: 5 * zoom,
-            value: score.abs() / 100.0,
-            color: color,
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-          ),
-        ),
+        GameBar(value: score.abs() / 100.0),
         SizedBox(height: 1 * zoom),
         Text(
           'Relationship · $score%',

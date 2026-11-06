@@ -13,6 +13,7 @@ import 'school_screen.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
 import '../../simulation/systems/education_system.dart';
+import '../widgets/game_bar.dart';
 
 /// School (ages 6-17) or occupation (18+): status, actions, and history.
 ///
@@ -214,7 +215,7 @@ class _CareerScreenState extends State<CareerScreen> {
               SizedBox(height: s(4)),
               Text('Grades: ${education.grades}/100'),
               SizedBox(height: s(2)),
-              LinearProgressIndicator(value: education.grades / 100),
+              GameBar(value: education.grades / 100),
             ],
             if (canApply || canDropOut) SizedBox(height: s(6)),
             if (canApply && hasJob)
@@ -301,7 +302,7 @@ class _CareerScreenState extends State<CareerScreen> {
         Text('Salary: ${_formatBase(career.salaryBase)} per year'),
         Text('Performance: ${career.performance}/100'),
         SizedBox(height: s(2)),
-        LinearProgressIndicator(value: career.performance / 100),
+        GameBar(value: career.performance / 100),
         SizedBox(height: s(6)),
         Wrap(
           spacing: s(8),
