@@ -12,6 +12,7 @@ import '../../domain/family/family_asset.dart';
 import '../../domain/family/family_household.dart';
 import '../../domain/family/parent_npc.dart';
 import '../../domain/family/sibling_npc.dart';
+import '../../domain/family/npc_finance.dart';
 import '../../domain/time/simulation_clock.dart';
 import '../../domain/world/character_location.dart';
 import '../../domain/world/world_state.dart';
@@ -513,6 +514,7 @@ parent.incomeStability.name,
   'deathYear': sibling.deathYear,
   'relationship': sibling.relationship.name,
   'countryCode': sibling.countryCode,
+  if (sibling.finance != null) 'finance': sibling.finance!.toJson(),
   'appearance': {
     'base': sibling.appearance.base,
     'skinTone': sibling.appearance.skinTone,
@@ -714,6 +716,7 @@ final siblings = siblingsJson is List
           appearance: sibling['appearance'] == null
               ? const CharacterAppearance()
               : _parseAppearance(sibling['appearance']),
+          finance: NpcFinance.fromJson(sibling['finance']),
         );
       }).toList(growable: false)
     : const <SiblingNpc>[];
