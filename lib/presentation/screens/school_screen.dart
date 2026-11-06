@@ -557,6 +557,7 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
                 NpcWealth.forSchoolNpc(npc),
                 npc.countryCode,
               ),
+              countryCode: npc.countryCode,
               details: [
                 MapEntry('Gender', npc.gender.name == 'male' ? 'Male' : 'Female'),
                 MapEntry('Occupation', _occupationOf(npc)),

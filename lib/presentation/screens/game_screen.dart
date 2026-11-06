@@ -1427,7 +1427,7 @@ class _BottomNavigation
                 onTap: onAssetsTap,
               ),
               divider(),
-              SizedBox(width: s(104)),
+              SizedBox(width: s(84)),
               divider(),
               item(
                 icon: Icons.favorite_rounded,
@@ -1648,12 +1648,14 @@ class _NavigationItem extends StatelessWidget {
               ),
             ),
             SizedBox(height: s(2)),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.onSurface,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                maxLines: 1,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                ),
               ),
             ),
           ],

@@ -335,6 +335,7 @@ class _ParentNpcCard extends StatelessWidget {
                 NpcWealth.forParent(parent),
                 parent.countryCode,
               ),
+              countryCode: parent.countryCode,
               avatar: _ParentAvatar(
                 parent: parent,
                 currentYear: currentYear,
@@ -495,6 +496,7 @@ class _SiblingNpcCard extends StatelessWidget {
                 NpcWealth.forSibling(sibling),
                 sibling.countryCode,
               ),
+              countryCode: sibling.countryCode,
               avatar: SizedBox(
                 width: 112,
                 height: 140,
