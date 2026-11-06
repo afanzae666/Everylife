@@ -15,6 +15,7 @@ import '../simulation/engine/simulation_engine.dart';
 import 'app_dependencies.dart';
 import 'theme/everylife_theme.dart';
 import 'theme/everylife_theme_mode_controller.dart';
+import '../presentation/widgets/animated_dialog.dart';
 
 class LifeSimulationApp extends StatefulWidget {
   const LifeSimulationApp({
@@ -457,7 +458,7 @@ class _LifeSimulationAppState
       return;
     }
 
-    final shouldExit = await showDialog<bool>(
+    final shouldExit = await showAnimatedDialog<bool>(
       context: navigatorContext,
       builder: (dialogContext) {
         return AlertDialog(
