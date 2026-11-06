@@ -8,7 +8,7 @@ import '../widgets/animated_dialog.dart';
 import '../widgets/game_bar.dart';
 import '../widgets/id_card_frame.dart';
 import '../widgets/life_labels.dart' show countryFlag;
-import '../widgets/story_card.dart';
+import '../widgets/journal_card.dart';
 
 class NpcInteractionScreen extends StatefulWidget {
   const NpcInteractionScreen({
@@ -92,8 +92,8 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
         onTap: () => Navigator.of(dialogContext).pop(),
         child: Material(
           color: Colors.transparent,
-          child: StoryCard(
-            emoji: '💬',
+          child: JournalCard(
+            title: 'Dear Diary,',
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -146,6 +146,38 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
         key: const Key('npc-details-dialog'),
         title: widget.relationship.toUpperCase(),
         onClose: () => Navigator.of(dialogContext).pop(),
+        footer: widget.netWorth != null && age != null && age >= 18
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'WEALTH',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Center(
+                    child: Column(
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            widget.netWorth!,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        Text('Net Worth', style: theme.textTheme.bodySmall),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+            : null,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -227,34 +259,6 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                 ),
               ],
             ),
-            if (widget.netWorth != null && age != null && age >= 18) ...[
-              const SizedBox(height: 10),
-              Text(
-                'WEALTH',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: scheme.primary,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.6,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Center(
-                child: Column(
-                  children: [
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        widget.netWorth!,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                    Text('Net Worth', style: theme.textTheme.bodySmall),
-                  ],
-                ),
-              ),
-            ],
           ],
         ),
       ),
@@ -291,7 +295,13 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
           Card(
             margin: EdgeInsets.zero,
             elevation: 0,
-            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+            color: Theme.of(context).colorScheme.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.zero,
+              side: BorderSide(
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.55),
+              ),
+            ),
             child: InkWell(
               onTap: widget.isAlive ? _showDetails : null,
               child: Padding(
@@ -325,18 +335,50 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
             ),
           ),
           if (_availableActions.isNotEmpty) ...[
-            const Padding(padding: EdgeInsets.all(8), child: Text('Interactions')),
-            for (final action in _availableActions)
-              _ActionRow(
-                title: action,
-                onPressed: widget.isAlive ? () => _interact(action) : null,
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Center(
+                child: Text(
+                  'INTERACTIONS',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.8,
+                      ),
+                ),
               ),
-            if (_hadArgument && widget.playerAge >= 13)
-              _ActionRow(
-                title: 'Apologize',
-                onPressed:
-                    widget.isAlive ? () => _interact('Apologize') : null,
+            ),
+            Card(
+              margin: EdgeInsets.zero,
+              elevation: 0,
+              color: Theme.of(context).colorScheme.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.zero,
+                side: BorderSide(
+                  color: Theme.of(context).dividerColor.withValues(alpha: 0.55),
+                ),
               ),
+              child: Column(
+                children: [
+                  for (var i = 0; i < _availableActions.length; i++) ...[
+                    if (i > 0) const Divider(height: 1),
+                    _ActionRow(
+                      title: _availableActions[i],
+                      onPressed: widget.isAlive
+                          ? () => _interact(_availableActions[i])
+                          : null,
+                    ),
+                  ],
+                  if (_hadArgument && widget.playerAge >= 13) ...[
+                    const Divider(height: 1),
+                    _ActionRow(
+                      title: 'Apologize',
+                      onPressed:
+                          widget.isAlive ? () => _interact('Apologize') : null,
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ],
         ],
       ),
@@ -350,15 +392,10 @@ class _ActionRow extends StatelessWidget {
   final VoidCallback? onPressed;
 
   @override
-  Widget build(BuildContext context) => Card(
-    margin: EdgeInsets.zero,
-    elevation: 0,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-    child: ListTile(
-      title: Text(title),
-      trailing: const Text('•••'),
-      onTap: onPressed,
-      enabled: onPressed != null,
-    ),
-  );
+  Widget build(BuildContext context) => ListTile(
+        title: Text(title),
+        trailing: const Text('•••'),
+        onTap: onPressed,
+        enabled: onPressed != null,
+      );
 }

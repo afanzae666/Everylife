@@ -78,10 +78,6 @@ String _deceasedLabel(int birthYear, int? deathYear) {
   return 'Deceased · age ${(deathYear - birthYear).clamp(0, 150)}';
 }
 
-String _capitalizeRelationshipLabel(String value) => value.isEmpty
-    ? value
-    : '${value[0].toUpperCase()}${value.substring(1)}';
-
 Result<NpcInteractionOutcome> _noNpcInteraction({required String npcId, required String action}) =>
     const Failure('NPC interaction is unavailable outside the active simulation.');
 
@@ -310,11 +306,11 @@ class _ParentNpcCard extends StatelessWidget {
     final card = Card(
       margin: EdgeInsets.zero,
       elevation: 0,
-      color: theme.colorScheme.surfaceContainerLow,
+      color: theme.colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.zero,
         side: BorderSide(
-          color: theme.dividerColor.withValues(alpha: 0.45),
+          color: theme.dividerColor.withValues(alpha: 0.55),
         ),
       ),
       child: InkWell(
@@ -362,7 +358,7 @@ class _ParentNpcCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Expanded(
+                      Flexible(
                         child: Text(
                           parent.fullName,
                           maxLines: 1,
@@ -374,7 +370,7 @@ class _ParentNpcCard extends StatelessWidget {
                       ),
                       SizedBox(width: s(4)),
                       Text(
-                        '(${_capitalizeRelationshipLabel(_relationshipLabel(parent.role))})',
+                        '(${_relationshipLabel(parent.role).toUpperCase()})',
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.primary,
                           fontWeight: FontWeight.w600,
@@ -471,11 +467,11 @@ class _SiblingNpcCard extends StatelessWidget {
     final card = Card(
       margin: EdgeInsets.zero,
       elevation: 0,
-      color: theme.colorScheme.surfaceContainerLow,
+      color: theme.colorScheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.zero,
         side: BorderSide(
-          color: theme.dividerColor.withValues(alpha: 0.45),
+          color: theme.dividerColor.withValues(alpha: 0.55),
         ),
       ),
       child: InkWell(
@@ -587,7 +583,7 @@ class _SiblingNpcCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Expanded(
+                      Flexible(
                         child: Text(
                           sibling.fullName,
                           maxLines: 1,
@@ -599,7 +595,7 @@ class _SiblingNpcCard extends StatelessWidget {
                       ),
                       SizedBox(width: s(4)),
                       Text(
-                        '(${_capitalizeRelationshipLabel('$ageLabel $siblingKind')})',
+                        '(${'$ageLabel $siblingKind'.toUpperCase()})',
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.primary,
                           fontWeight: FontWeight.w600,
