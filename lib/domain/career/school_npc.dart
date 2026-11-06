@@ -1,5 +1,6 @@
 import '../character/cultural_name_catalog.dart';
 import '../character/gender.dart';
+import '../family/npc_finance.dart';
 
 /// Who someone is at school or university.
 enum SchoolRole {
@@ -32,6 +33,7 @@ class SchoolNpc {
     required this.role,
     this.countryCode = 'ID',
     this.relationshipPercent = 40,
+    this.finance,
   });
 
   final String id;
@@ -43,13 +45,16 @@ class SchoolNpc {
   final String countryCode;
   final int relationshipPercent;
 
+  /// Real job and savings of faculty (null for students).
+  final NpcFinance? finance;
+
   String get fullName => CulturalNameCatalog.formatFullName(
         countryCode,
         firstName,
         lastName,
       );
 
-  SchoolNpc copyWith({int? relationshipPercent}) => SchoolNpc(
+  SchoolNpc copyWith({int? relationshipPercent, NpcFinance? finance}) => SchoolNpc(
         id: id,
         firstName: firstName,
         lastName: lastName,
@@ -58,6 +63,7 @@ class SchoolNpc {
         role: role,
         countryCode: countryCode,
         relationshipPercent: relationshipPercent ?? this.relationshipPercent,
+        finance: finance ?? this.finance,
       );
 
   Map<String, dynamic> toJson() => {
@@ -69,6 +75,7 @@ class SchoolNpc {
         'role': role.name,
         'countryCode': countryCode,
         'relationshipPercent': relationshipPercent,
+        if (finance != null) 'finance': finance!.toJson(),
       };
 
   static SchoolNpc? fromJson(Object? json) {
@@ -102,6 +109,7 @@ class SchoolNpc {
       role: role,
       countryCode: country is String ? country : 'ID',
       relationshipPercent: score is int ? score.clamp(-100, 100).toInt() : 40,
+      finance: NpcFinance.fromJson(json['finance']),
     );
   }
 }
