@@ -28,6 +28,7 @@ import '../systems/education_system.dart';
 import '../systems/family_mortality_system.dart';
 import '../systems/event_system.dart';
 import '../systems/mortality_system.dart';
+import '../systems/npc_economy_system.dart';
 import '../systems/parent_economy_system.dart';
 import '../systems/simulation_system.dart';
 import '../systems/time_system.dart';
@@ -52,6 +53,7 @@ class SimulationEngine {
           systems: [
             TimeSystem(),
             ParentEconomySystem(),
+            NpcEconomySystem(),
             CharacterSystem(),
           ],
         ),
