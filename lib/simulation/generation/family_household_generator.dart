@@ -1,5 +1,6 @@
 
 import '../../domain/career/job_catalog.dart';
+import '../economy/npc_economy.dart';
 import 'dart:math' as math;
 
 import 'package:everylife/core/money/money.dart';
@@ -374,6 +375,23 @@ class FamilyHouseholdGenerator {
         );
       }
     }
+
+    // Adult older siblings already have a job (or not) and savings.
+    for (var i = 0; i < siblings.length; i++) {
+      final sibling = siblings[i];
+      final age = birthYear - sibling.birthYear;
+
+      if (age >= 18) {
+        siblings[i] = sibling.copyWith(
+          finance: NpcEconomy.forSibling(
+            id: sibling.id,
+            age: age,
+            countryCode: sibling.countryCode,
+          ),
+        );
+      }
+    }
+
     return siblings;
   }
 
