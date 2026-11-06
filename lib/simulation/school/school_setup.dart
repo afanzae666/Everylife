@@ -8,6 +8,7 @@ import '../../domain/world/city_catalog.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../domain/world/school_names.dart';
 import '../../domain/world/world_state.dart';
+import '../economy/npc_economy.dart';
 
 /// Makes the school (its name, classmates and faculty) for the stage the
 /// player is in. The result only depends on the player and the stage, so it
@@ -99,12 +100,26 @@ abstract final class SchoolSetup {
       ),
     ];
 
+    // Faculty are paid for real: their salary and savings come from the job
+    // list, and the economy system keeps them going every year.
+    final funded = [
+      for (final npc in npcs)
+        npc.role.isFaculty
+            ? npc.copyWith(
+                finance: NpcEconomy.forFaculty(
+                  npc: npc,
+                  age: year - npc.birthYear,
+                ),
+              )
+            : npc,
+    ];
+
     return state.copyWith(
       lifeProgress: state.lifeProgress.copyWith(
         education: education.copyWith(
           schoolName: name,
           schoolStage: stage,
-          npcs: npcs,
+          npcs: funded,
           clearClub: true,
         ),
       ),
