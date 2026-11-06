@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// The game's standard progress bar (the one on the Education card), used by
-/// every bar except the character stat bars: default thickness and colors,
+/// every bar except the character stat bars: the Education thickness (8) and default colors,
 /// square corners, and half the width of the space it is given.
 class GameBar extends StatelessWidget {
   const GameBar({
@@ -25,6 +25,7 @@ class GameBar extends StatelessWidget {
         borderRadius: BorderRadius.zero,
         child: LinearProgressIndicator(
           key: barKey,
+          minHeight: 8,
           value: value.clamp(0.0, 1.0).toDouble(),
         ),
       ),

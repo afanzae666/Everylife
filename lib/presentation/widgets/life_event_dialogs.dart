@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../domain/event/life_event.dart';
 import '../../domain/event/life_progress.dart';
 import 'animated_dialog.dart';
+import 'story_card.dart';
 
 /// Shows an event and returns the id of the choice the player picked.
 ///
@@ -24,38 +25,35 @@ Future<String?> showLifeDecisionDialog(
     builder: (dialogContext) {
       return PopScope<String>(
         canPop: false,
-        child: AlertDialog(
+        child: StoryCard(
           key: const Key('life-decision-dialog'),
-          title: Text(event.title),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(description ?? event.description),
-                const SizedBox(height: 16),
-                for (final choice in event.choices) ...[
-                  FilledButton.tonal(
-                    key: Key('life-choice-${choice.id}'),
-                    onPressed: canAfford(choice)
-                        ? () => Navigator.of(dialogContext).pop(choice.id)
-                        : null,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Text(
-                        _choiceText(
-                          choice,
-                          affordable: canAfford(choice),
-                          cost: costLabel?.call(choice),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
+          emoji: '🎲',
+          title: event.title,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                description ?? event.description,
+                style: Theme.of(dialogContext).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 14),
+              for (var i = 0; i < event.choices.length; i++) ...[
+                StoryChoiceButton(
+                  key: Key('life-choice-${event.choices[i].id}'),
+                  letter: String.fromCharCode(65 + i),
+                  text: _choiceText(
+                    event.choices[i],
+                    affordable: canAfford(event.choices[i]),
+                    cost: costLabel?.call(event.choices[i]),
                   ),
-                  const SizedBox(height: 8),
-                ],
+                  onPressed: canAfford(event.choices[i])
+                      ? () => Navigator.of(dialogContext).pop(event.choices[i].id)
+                      : null,
+                ),
+                const SizedBox(height: 8),
               ],
-            ),
+            ],
           ),
         ),
       );
@@ -109,39 +107,22 @@ Future<void> showTapToCloseOverlay(
         onTap: () => Navigator.of(dialogContext).pop(),
         child: Material(
           color: Colors.transparent,
-          child: Center(
-            child: Dialog(
-              key: dialogKey,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 28,
-                  vertical: 28,
+          child: StoryCard(
+            key: dialogKey,
+            emoji: title == null ? '💭' : '✨',
+            title: title,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                body ?? Text(text, style: theme.textTheme.bodyLarge),
+                const SizedBox(height: 14),
+                Text(
+                  'Tap anywhere to close',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall,
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (title != null) ...[
-                      Text(
-                        title,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    body ?? Text(text, style: theme.textTheme.bodyLarge),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Tap anywhere to close',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
+              ],
             ),
           ),
         ),
@@ -164,32 +145,31 @@ Future<bool> showLifeEndedDialog(
     builder: (dialogContext) {
       return PopScope<bool>(
         canPop: false,
-        child: AlertDialog(
+        child: StoryCard(
           key: const Key('life-ended-dialog'),
-          title: const Text('Rest in Peace'),
-          content: Column(
+          emoji: '🕊️',
+          title: 'Rest in Peace',
+          child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                '$name died at age ${ending.age}.',
-              ),
-              const SizedBox(height: 8),
+              Text('$name died at age ${ending.age}.'),
+              const SizedBox(height: 6),
               Text('Cause: ${ending.cause}.'),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text('Net worth: $netWorthText'),
+              const SizedBox(height: 14),
+              OutlinedButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('VIEW MY LIFE'),
+              ),
+              const SizedBox(height: 6),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('START A NEW LIFE'),
+              ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('VIEW MY LIFE'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('START A NEW LIFE'),
-            ),
-          ],
         ),
       );
     },
