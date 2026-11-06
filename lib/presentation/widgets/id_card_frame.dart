@@ -7,12 +7,16 @@ class IdCardFrame extends StatelessWidget {
     required this.title,
     required this.child,
     required this.onClose,
+    this.footer,
     super.key,
   });
 
   final String title;
   final Widget child;
   final VoidCallback onClose;
+
+  /// Shown under a dashed tear line (for example the wealth block).
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -68,11 +72,42 @@ class IdCardFrame extends StatelessWidget {
                   padding: const EdgeInsets.all(10),
                   child: child,
                 ),
+                if (footer != null) ...[
+                  const DashedDivider(),
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: footer,
+                  ),
+                ],
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A dashed tear line across the full width.
+class DashedDivider extends StatelessWidget {
+  const DashedDivider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).dividerColor;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final count = (constraints.maxWidth / 8).floor();
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            for (var i = 0; i < count; i++)
+              SizedBox(width: 4, height: 1.5, child: ColoredBox(color: color)),
+          ],
+        );
+      },
     );
   }
 }

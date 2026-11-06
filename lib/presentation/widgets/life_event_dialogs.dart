@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../domain/event/life_event.dart';
 import '../../domain/event/life_progress.dart';
 import 'animated_dialog.dart';
-import 'story_card.dart';
+import 'journal_card.dart';
 
 /// Shows an event and returns the id of the choice the player picked.
 ///
@@ -25,9 +25,9 @@ Future<String?> showLifeDecisionDialog(
     builder: (dialogContext) {
       return PopScope<String>(
         canPop: false,
-        child: StoryCard(
+        child: JournalCard(
           key: const Key('life-decision-dialog'),
-          emoji: '🎲',
+          stamp: 'EVENT',
           title: event.title,
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -39,9 +39,8 @@ Future<String?> showLifeDecisionDialog(
               ),
               const SizedBox(height: 14),
               for (var i = 0; i < event.choices.length; i++) ...[
-                StoryChoiceButton(
+                JournalChoice(
                   key: Key('life-choice-${event.choices[i].id}'),
-                  letter: String.fromCharCode(65 + i),
                   text: _choiceText(
                     event.choices[i],
                     affordable: canAfford(event.choices[i]),
@@ -51,7 +50,6 @@ Future<String?> showLifeDecisionDialog(
                       ? () => Navigator.of(dialogContext).pop(event.choices[i].id)
                       : null,
                 ),
-                const SizedBox(height: 8),
               ],
             ],
           ),
@@ -107,9 +105,9 @@ Future<void> showTapToCloseOverlay(
         onTap: () => Navigator.of(dialogContext).pop(),
         child: Material(
           color: Colors.transparent,
-          child: StoryCard(
+          child: JournalCard(
             key: dialogKey,
-            emoji: title == null ? '💭' : '✨',
+            stamp: title == null ? null : 'RESULT',
             title: title,
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -145,9 +143,9 @@ Future<bool> showLifeEndedDialog(
     builder: (dialogContext) {
       return PopScope<bool>(
         canPop: false,
-        child: StoryCard(
+        child: JournalCard(
           key: const Key('life-ended-dialog'),
-          emoji: '🕊️',
+          stamp: 'THE END',
           title: 'Rest in Peace',
           child: Column(
             mainAxisSize: MainAxisSize.min,
