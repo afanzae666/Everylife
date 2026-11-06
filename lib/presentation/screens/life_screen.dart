@@ -7,6 +7,7 @@ import '../../domain/character/character.dart';
 import '../../domain/character/gender.dart';
 import '../../core/result/result.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
+import '../../domain/career/job_catalog.dart';
 import '../../domain/family/parent_npc.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../domain/family/sibling_npc.dart';
@@ -59,8 +60,13 @@ List<MapEntry<String, String>> _siblingDetailList(
   SiblingNpc sibling,
   String kind,
 ) {
+  final finance = sibling.finance;
+  final job = finance?.jobId == null ? null : JobCatalog.byId(finance!.jobId!);
+
   return [
     MapEntry('Gender', _genderLabel(sibling.gender)),
+    if (finance != null)
+      MapEntry('Occupation', job?.titleAt(finance.rank) ?? 'Unemployed'),
     MapEntry('Location', _countryLabel(sibling.countryCode)),
   ];
 }
@@ -486,11 +492,7 @@ class _SiblingNpcCard extends StatelessWidget {
               subtitle: 'Sibling · ${sibling.relationship.name}',
               details: _siblingDetailList(sibling, siblingKind),
               netWorth: npcMoneyLabel(
-                NpcWealth.estimate(
-                  id: sibling.id,
-                  age: currentYear - sibling.birthYear,
-                  countryCode: sibling.countryCode,
-                ),
+                NpcWealth.forSibling(sibling),
                 sibling.countryCode,
               ),
               avatar: SizedBox(

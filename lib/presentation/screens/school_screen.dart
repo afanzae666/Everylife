@@ -4,6 +4,7 @@ import 'package:everylife/presentation/widgets/page_top_bar.dart';
 
 import '../../core/result/result.dart';
 import '../../domain/career/education_state.dart';
+import '../../domain/career/job_catalog.dart';
 import '../../domain/career/school_npc.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../simulation/engine/simulation_engine.dart';
@@ -520,13 +521,22 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
 
   double s(double value) => value * widget.zoom;
 
-  static String _occupationOf(SchoolNpc npc) => switch (npc.role) {
-        SchoolRole.classmate => 'Student',
-        SchoolRole.teacher => 'Teacher',
-        SchoolRole.principal => 'Principal',
-        SchoolRole.professor => 'Professor',
-        SchoolRole.dean => 'Dean',
-      };
+  static String _occupationOf(SchoolNpc npc) {
+    final finance = npc.finance;
+    final job = finance?.jobId == null ? null : JobCatalog.byId(finance!.jobId!);
+
+    if (job != null) {
+      return job.titleAt(finance!.rank);
+    }
+
+    return switch (npc.role) {
+      SchoolRole.classmate => 'Student',
+      SchoolRole.teacher => 'Teacher',
+      SchoolRole.principal => 'Principal',
+      SchoolRole.professor => 'Professor',
+      SchoolRole.dean => 'Dean',
+    };
+  }
 
   void _open(SchoolNpc npc) {
     final state = engine.state;
@@ -544,18 +554,7 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
               currentYear: state.clock.currentYear,
               birthYear: npc.birthYear,
               netWorth: npcMoneyLabel(
-                NpcWealth.estimate(
-                  id: npc.id,
-                  age: state.clock.currentYear - npc.birthYear,
-                  countryCode: npc.countryCode,
-                  multiplier: switch (npc.role) {
-                    SchoolRole.classmate => 1,
-                    SchoolRole.teacher => 3,
-                    SchoolRole.professor => 4,
-                    SchoolRole.principal => 6,
-                    SchoolRole.dean => 8,
-                  },
-                ),
+                NpcWealth.forSchoolNpc(npc),
                 npc.countryCode,
               ),
               details: [
