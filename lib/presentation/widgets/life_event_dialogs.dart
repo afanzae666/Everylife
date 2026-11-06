@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../domain/event/life_event.dart';
 import '../../domain/event/life_progress.dart';
+import 'animated_dialog.dart';
 
 /// Shows an event and returns the id of the choice the player picked.
 ///
@@ -17,7 +18,7 @@ Future<String?> showLifeDecisionDialog(
   String? description,
   String? Function(LifeChoice choice)? costLabel,
 }) {
-  return showDialog<String>(
+  return showAnimatedDialog<String>(
     context: context,
     barrierDismissible: false,
     builder: (dialogContext) {
@@ -98,7 +99,8 @@ Future<void> showTapToCloseOverlay(
     barrierDismissible: true,
     barrierLabel: 'Close',
     barrierColor: Colors.black54,
-    transitionDuration: const Duration(milliseconds: 120),
+    transitionDuration: const Duration(milliseconds: 260),
+    transitionBuilder: animatedDialogTransition,
     pageBuilder: (dialogContext, _, __) {
       final theme = Theme.of(dialogContext);
 
@@ -156,7 +158,7 @@ Future<bool> showLifeEndedDialog(
   required LifeEnding ending,
   required String netWorthText,
 }) async {
-  final startNew = await showDialog<bool>(
+  final startNew = await showAnimatedDialog<bool>(
     context: context,
     barrierDismissible: false,
     builder: (dialogContext) {
