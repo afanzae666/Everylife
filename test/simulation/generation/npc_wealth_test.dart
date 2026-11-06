@@ -1,33 +1,63 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:everylife/domain/career/school_npc.dart';
+import 'package:everylife/domain/character/gender.dart';
+import 'package:everylife/domain/family/npc_finance.dart';
+import 'package:everylife/domain/family/sibling_npc.dart';
 import 'package:everylife/simulation/generation/npc_wealth.dart';
 
 void main() {
-  test('minors have no net worth', () {
-    final money = NpcWealth.estimate(id: 'x', age: 12, countryCode: 'ID');
-
-    expect(money.minorUnits, 0);
-  });
-
-  test('an adult estimate is stable and grows with age', () {
-    final a = NpcWealth.estimate(id: 'npc-1', age: 30, countryCode: 'US');
-    final b = NpcWealth.estimate(id: 'npc-1', age: 30, countryCode: 'US');
-    final older = NpcWealth.estimate(id: 'npc-1', age: 50, countryCode: 'US');
-
-    expect(a.minorUnits, b.minorUnits);
-    expect(a.minorUnits, greaterThan(0));
-    expect(older.minorUnits, greaterThan(a.minorUnits));
-  });
-
-  test('a bigger multiplier means more money', () {
-    final teacher = NpcWealth.estimate(
-      id: 'npc-2',
-      age: 40,
-      countryCode: 'US',
-      multiplier: 3,
+  test('NPCs without finance are exactly zero', () {
+    const sibling = SiblingNpc(
+      id: 's',
+      firstName: 'A',
+      lastName: 'B',
+      gender: Gender.male,
+      birthYear: 2010,
+      relationship: SiblingRelationship.fullSibling,
     );
-    final student = NpcWealth.estimate(id: 'npc-2', age: 40, countryCode: 'US');
+    const student = SchoolNpc(
+      id: 'c',
+      firstName: 'A',
+      lastName: 'B',
+      gender: Gender.female,
+      birthYear: 2008,
+      role: SchoolRole.classmate,
+    );
 
-    expect(teacher.minorUnits, closeTo(student.minorUnits * 3, 3));
+    expect(NpcWealth.forSibling(sibling).minorUnits, 0);
+    expect(NpcWealth.forSchoolNpc(student).minorUnits, 0);
+  });
+
+  test('net worth is the savings of the NPC', () {
+    const teacher = SchoolNpc(
+      id: 't',
+      firstName: 'A',
+      lastName: 'B',
+      gender: Gender.female,
+      birthYear: 1980,
+      role: SchoolRole.teacher,
+      finance: NpcFinance(jobId: 'teacher', cashMinor: 123456),
+    );
+
+    expect(NpcWealth.forSchoolNpc(teacher).minorUnits, 123456);
+  });
+
+  test('finance survives JSON', () {
+    const finance = NpcFinance(
+      jobId: 'nurse',
+      rank: 2,
+      startAge: 24,
+      annualIncomeMinor: 5000,
+      cashMinor: 9000,
+    );
+
+    final copy = NpcFinance.fromJson(finance.toJson())!;
+
+    expect(copy.jobId, 'nurse');
+    expect(copy.rank, 2);
+    expect(copy.startAge, 24);
+    expect(copy.annualIncomeMinor, 5000);
+    expect(copy.cashMinor, 9000);
   });
 }
