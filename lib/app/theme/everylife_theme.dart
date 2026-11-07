@@ -272,15 +272,6 @@ abstract final class EveryLifeTheme {
           ),
         ),
       ),
-      dialogTheme: DialogThemeData(
-        backgroundColor: surface,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(
-            EveryLifeDimensions.radiusLarge,
-          ),
-        ),
-      ),
     );
   }
 }
