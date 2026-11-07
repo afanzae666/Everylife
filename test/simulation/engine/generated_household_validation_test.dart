@@ -40,7 +40,6 @@ void main() {
             result.isSuccess,
             isTrue,
             reason: 'Seed $seed generated an invalid world state: '
-                'background=${state.startingBackground?.tier.name}, '
                 'housing=${household!.housingStatus.name}, '
                 'parents=${household.parents.length}, '
                 'assets=${household.assets.length}.',
