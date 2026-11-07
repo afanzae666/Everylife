@@ -2,7 +2,7 @@ import 'package:everylife/core/money/money.dart';
 import '../../core/random/seeded_random.dart';
 import '../../domain/career/education_state.dart';
 import '../../domain/career/job_catalog.dart';
-import '../../domain/character/starting_background.dart';
+import '../generation/country_economic_profile.dart';
 import '../../domain/event/life_progress.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/world/world_state.dart';
@@ -260,14 +260,20 @@ class CareerSystem implements SimulationSystem {
     return state.familyHousehold?.parents.any((parent) => parent.isAlive) ?? false;
   }
 
-  /// Wealthy families pay for university while a parent is alive.
+  /// Well-off parents (a high income for their country) pay for university
+  /// while they are alive.
   bool _parentsCoverTuition(WorldState state) {
-    final tier = state.startingBackground?.tier;
+    final household = state.familyHousehold;
+    if (household == null) return false;
 
-    final wealthy = tier == StartingBackgroundTier.upperMiddleClass ||
-        tier == StartingBackgroundTier.wealthy ||
-        tier == StartingBackgroundTier.veryWealthy;
+    final countryCode =
+        state.player.location?.countryCode ?? 'ID';
+    final threshold = CountryEconomicProfile.forCountryCode(countryCode)
+        .scaleAmount(12000000);
 
-    return wealthy && _hasLivingParent(state);
+    return household.parents.any(
+      (parent) =>
+          parent.isAlive && parent.annualIncome.minorUnits >= threshold,
+    );
   }
 }
