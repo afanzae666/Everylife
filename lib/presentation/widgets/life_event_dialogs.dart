@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../domain/event/life_event.dart';
 import '../../domain/event/life_progress.dart';
 import 'animated_dialog.dart';
+import 'event_icons.dart';
 import 'modal_cards.dart';
 
 /// Shows an event and returns the id of the choice the player picked.
@@ -28,6 +29,7 @@ Future<String?> showLifeDecisionDialog(
         child: EventCard(
           key: const Key('life-decision-dialog'),
           title: event.title,
+          emoji: lifeEventEmoji(id: event.id, title: event.title),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -88,6 +90,7 @@ Future<void> showTapToCloseOverlay(
   String? title,
   Key? dialogKey,
   Widget? body,
+  String? emoji,
 }) {
   return showGeneralDialog<void>(
     context: context,
@@ -107,6 +110,7 @@ Future<void> showTapToCloseOverlay(
           child: EventCard(
             key: dialogKey,
             title: title ?? 'Life Story',
+            emoji: emoji ?? lifeEventEmoji(title: title),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -144,6 +148,7 @@ Future<bool> showLifeEndedDialog(
         child: EventCard(
           key: const Key('life-ended-dialog'),
           title: 'Rest in Peace',
+          emoji: '🕊️',
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -70,11 +70,15 @@ class EventCard extends StatelessWidget {
   const EventCard({
     required this.title,
     required this.child,
+    this.emoji = '📖',
     super.key,
   });
 
   final String title;
   final Widget child;
+
+  /// The small icon in the banner; each event picks one that fits it.
+  final String emoji;
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +110,7 @@ class EventCard extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      const Text('📖', style: TextStyle(fontSize: 18)),
+                      Text(emoji, style: const TextStyle(fontSize: 18)),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
