@@ -5,7 +5,6 @@ import '../../domain/character/character.dart';
 import '../../domain/character/character_stats.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/player_asset.dart';
-import '../../domain/character/starting_background.dart';
 import '../../domain/event/life_progress.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/family/family_asset.dart';
@@ -41,7 +40,6 @@ this.playerAssets = const <PlayerAsset>[],
 this.playerDebtMinorUnits = 0,
 required this.playerAppearance,
 this.playerLocation,
-this.playerStartingBackgroundTier,
 this.familyHousehold,
 required this.events,
 this.lifeProgress = const LifeProgress(),
@@ -84,9 +82,6 @@ final CharacterAppearance playerAppearance;
 /// The player's country and city, or null for an unset location.
 final CharacterLocation? playerLocation;
 
-/// The player's starting background tier, or null for a legacy save.
-final StartingBackgroundTier? playerStartingBackgroundTier;
-
 /// Family data, null for legacy saves without a household.
 final FamilyHousehold? familyHousehold;
 
@@ -125,8 +120,6 @@ return WorldStateSnapshot(
   playerDebtMinorUnits: player.debt.minorUnits,
   playerAppearance: player.appearance,
   playerLocation: player.location,
-  playerStartingBackgroundTier:
-      state.startingBackground?.tier,
   familyHousehold: state.familyHousehold,
   events: List.unmodifiable(state.events),
   lifeProgress: state.lifeProgress,
@@ -169,12 +162,6 @@ appearance: playerAppearance,
 location: playerLocation,
 ),
 events: List.unmodifiable(events),
-startingBackground:
-playerStartingBackgroundTier == null
-? null
-: StartingBackground(
-tier: playerStartingBackgroundTier!,
-),
 familyHousehold: familyHousehold,
 lifeProgress: lifeProgress,
 );
@@ -234,8 +221,6 @@ return {
 'cityId': playerLocation!.cityId,
 },
 },
-'startingBackground':
-playerStartingBackgroundTier?.name,
 'familyHousehold': familyHousehold == null
 ? null
 : _familyHouseholdToJson(familyHousehold!),
@@ -271,8 +256,6 @@ final appearanceJson = player['appearance'];
 final locationJson = player['location'];
 final playerAssetsJson = player['assets'];
 final playerDebtJson = player['debtMinorUnits'];
-final startingBackgroundJson =
-    json['startingBackground'];
 final familyHouseholdJson = json['familyHousehold'];
 final eventsJson = json['events'];
 
@@ -365,12 +348,6 @@ return WorldStateSnapshot(
       : _parseLocation(
           locationJson,
         ),
-  playerStartingBackgroundTier:
-      startingBackgroundJson == null
-          ? null
-          : _parseStartingBackgroundTier(
-              startingBackgroundJson,
-            ),
   familyHousehold: familyHouseholdJson == null
       ? null
       : _parseFamilyHousehold(
@@ -762,28 +739,6 @@ return FamilyHousehold(
       'familyHousehold.totalDebtMinorUnits',
     ),
   ),
-);
-
-}
-
-static StartingBackgroundTier
-_parseStartingBackgroundTier(
-Object? value,
-) {
-if (value is! String) {
-throw const FormatException(
-'Field "startingBackground" must be a string.',
-);
-}
-
-for (final tier in StartingBackgroundTier.values) {
-  if (tier.name == value) {
-    return tier;
-  }
-}
-
-throw FormatException(
-  'Unknown starting background tier: $value',
 );
 
 }
