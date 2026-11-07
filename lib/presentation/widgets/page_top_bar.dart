@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// A themed title pill used under the character card on navigation pages:
-/// a green round X button on the left and the page title centered in
+/// a green round X button on the right and the page title centered in
 /// capital letters between two small diamonds.
 class PageTopBar extends StatelessWidget {
   const PageTopBar({
@@ -41,9 +41,9 @@ class PageTopBar extends StatelessWidget {
           alignment: Alignment.center,
           children: [
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: Alignment.centerRight,
               child: Padding(
-                padding: EdgeInsets.only(left: s(4)),
+                padding: EdgeInsets.only(right: s(4)),
                 child: Tooltip(
                   message: 'Close',
                   child: InkResponse(
