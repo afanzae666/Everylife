@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/everylife_theme_mode_controller.dart';
 import '../widgets/animated_dialog.dart';
+import '../widgets/themed_app_bar.dart';
+import '../widgets/themed_cards.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({
@@ -45,8 +47,10 @@ class SettingsScreen extends StatelessWidget {
     double s(double value) => value * zoom;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
+      appBar: ThemedAppBar(
+        title: 'Settings',
+        zoom: zoom,
+        onClose: () => Navigator.of(context).maybePop(),
       ),
       body: ListView(
         padding: EdgeInsets.fromLTRB(
@@ -56,13 +60,18 @@ class SettingsScreen extends StatelessWidget {
           s(12),
         ),
         children: [
-          Text(
-            'Appearance',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          SizedBox(height: s(2)),
-          Card(
-            margin: EdgeInsets.zero,
+          const SectionTitle('Appearance'),
+          SizedBox(height: s(4)),
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary,
+                width: 1.5,
+              ),
+            ),
+            clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
                 ValueListenableBuilder<ThemeMode>(
@@ -92,7 +101,13 @@ class SettingsScreen extends StatelessWidget {
                     );
                   },
                 ),
-                Divider(height: s(1)),
+                Container(
+                  height: 1,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.25),
+                ),
                 ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.symmetric(
@@ -104,7 +119,7 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   title: const Text('UI Zoom'),
                   subtitle: Text('${(zoom * 100).round()}%'),
-                  trailing: const Icon(Icons.chevron_right),
+                  trailing: const ChevronBadge(),
                   onTap: () => _showUiZoomDialog(context),
                 ),
               ],

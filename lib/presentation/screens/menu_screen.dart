@@ -1,6 +1,9 @@
 
 import 'package:flutter/material.dart';
 
+import '../widgets/themed_app_bar.dart';
+import '../widgets/themed_cards.dart';
+
 enum MenuScreenAction {
   newLife,
   lifeStorage,
@@ -19,8 +22,10 @@ class MenuScreen extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Menu'),
+      appBar: ThemedAppBar(
+        title: 'Menu',
+        zoom: zoom,
+        onClose: () => Navigator.of(context).maybePop(),
       ),
       body: SafeArea(
         child: ListView(
@@ -83,29 +88,44 @@ class _MenuOption extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-        side: BorderSide(
-          color: theme.dividerColor.withValues(alpha: 0.55),
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 8,
-          vertical: 4,
-        ),
-        leading: Icon(icon, size: 28),
-        title: Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        subtitle: Text(description),
-        trailing: const Icon(Icons.chevron_right),
+    final primary = theme.colorScheme.primary;
+
+    return AccentCard(
+      child: InkWell(
         onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: primary, width: 1.5),
+                ),
+                child: Icon(icon, size: 26, color: primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(description, style: theme.textTheme.bodySmall),
+                  ],
+                ),
+              ),
+              const ChevronBadge(),
+            ],
+          ),
+        ),
       ),
     );
   }

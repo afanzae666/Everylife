@@ -14,6 +14,7 @@ import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
 import '../../domain/event/life_event.dart';
 import '../../domain/character/character_stats.dart';
+import '../widgets/themed_app_bar.dart';
 import '../widgets/themed_cards.dart';
 import '../widgets/slide_up_route.dart';
 import '../widgets/character_avatar.dart';
@@ -153,11 +154,8 @@ class _GameScreenState extends State<GameScreen> {
 
         if (progress.ending != null) {
           final player = engine.state.player;
-          final dialogAvatar = await _dialogAvatar();
-          if (!mounted) return;
           final startNew = await showLifeEndedDialog(
             context,
-            avatar: dialogAvatar,
             name: player.fullName,
             ending: progress.ending!,
             netWorthText: _formatMoney(
@@ -186,12 +184,8 @@ class _GameScreenState extends State<GameScreen> {
           continue;
         }
 
-        final dialogAvatar = await _dialogAvatar();
-        if (!mounted) return;
-
         final choiceId = await showLifeDecisionDialog(
           context,
-          avatar: dialogAvatar,
           event: event,
           description: engine.pendingDescription,
           canAfford: engine.canAffordChoice,
@@ -213,7 +207,7 @@ class _GameScreenState extends State<GameScreen> {
         _scrollLifeEventsToBottom();
 
         if (result case Success<LifeChoiceResult>(:final value)) {
-          await showLifeResultDialog(context, value, avatar: dialogAvatar);
+          await showLifeResultDialog(context, value);
         }
 
         if (!mounted) {
@@ -788,22 +782,35 @@ class _GameScreenState extends State<GameScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Image.asset(
+      appBar: ThemedAppBar(
+        zoom: zoom,
+        leading: BarIconButton(
+          zoom: zoom,
+          icon: Icons.emoji_events_rounded,
+          tooltip: 'Achievements',
+          onPressed: () {
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                const SnackBar(
+                  content: Text('Achievements are coming soon.'),
+                ),
+              );
+          },
+        ),
+        titleWidget: Image.asset(
           'assets/images/everylife_logo.png',
           height: s(38),
           fit: BoxFit.contain,
         ),
         actions: [
-          IconButton(
+          BarIconButton(
+            zoom: zoom,
+            icon: Icons.menu,
             tooltip: 'Menu',
-            onPressed: _isProcessingTurn
-                ? null
-                : _openMenu,
-            icon: Icon(
-              Icons.menu,
-              size: s(24),
-            ),
+            onPressed: () {
+              if (!_isProcessingTurn) _openMenu();
+            },
           ),
         ],
       ),
@@ -1256,31 +1263,6 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  /// The player's avatar for event overlays, or null while it cannot be
-  /// built (the overlay then falls back to its emoji).
-  Future<Widget?> _dialogAvatar() async {
-    try {
-      final palette = await _characterPaletteFuture;
-      final player = engine.state.player;
-      final skin = palette.skinColor(player.appearance.skinTone);
-      final eyes = palette.eyeColor(player.appearance.eyeColor);
-      final hair = palette.hairColor(player.appearance.hairColor);
-
-      if (skin == null || eyes == null || hair == null) return null;
-
-      return CharacterAvatar(
-        character: player,
-        currentYear: engine.state.clock.currentYear,
-        size: 112,
-        skinColor: skin,
-        eyeColor: eyes,
-        hairColor: hair,
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-
   Widget _buildBottomNavigation(
     BuildContext context,
     double zoom,
@@ -1679,7 +1661,8 @@ class _AgeUpButtonState extends State<_AgeUpButton>
           onTap: widget.enabled ? _handleTap : null,
           customBorder: const CircleBorder(),
           child: Opacity(
-            opacity: widget.enabled ? 1.0 : 0.38,
+            // No dimming while a year is processing: that made the bar flicker.
+            opacity: 1.0,
             child: Container(
               width: s(94),
               height: s(94),
@@ -1796,7 +1779,7 @@ class _NavSlot {
 }
 
 /// One bottom tab: a white icon on a green key-shaped tile.
-class _NavigationItem extends StatelessWidget {
+class _NavigationItem extends StatefulWidget {
   const _NavigationItem({
     required this.icon,
     required this.label,
@@ -1812,13 +1795,42 @@ class _NavigationItem extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_NavigationItem> createState() => _NavigationItemState();
+}
+
+class _NavigationItemState extends State<_NavigationItem>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 380),
+  );
+
+  /// The tile squeezes, then pops out and settles.
+  late final Animation<double> _scale = TweenSequence<double>([
+    TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.82), weight: 25),
+    TweenSequenceItem(tween: Tween(begin: 0.82, end: 1.14), weight: 40),
+    TweenSequenceItem(tween: Tween(begin: 1.14, end: 1.0), weight: 35),
+  ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() {
+    _controller.forward(from: 0);
+    widget.onTap();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    double s(double value) => value * zoom;
+    double s(double value) => value * widget.zoom;
 
     final theme = Theme.of(context);
 
     return InkWell(
-      onTap: enabled ? onTap : null,
+      onTap: widget.enabled ? _handleTap : null,
       customBorder: const StadiumBorder(),
       child: Padding(
         padding: EdgeInsets.symmetric(
@@ -1828,8 +1840,8 @@ class _NavigationItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Opacity(
-              opacity: enabled ? 1.0 : 0.38,
+            ScaleTransition(
+              scale: _scale,
               child: Container(
                 width: s(38),
                 height: s(34),
@@ -1847,7 +1859,7 @@ class _NavigationItem extends StatelessWidget {
                   ],
                 ),
                 child: Icon(
-                  icon,
+                  widget.icon,
                   size: s(22),
                   color: Colors.white,
                 ),
@@ -1857,7 +1869,7 @@ class _NavigationItem extends StatelessWidget {
             FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
-                label,
+                widget.label,
                 maxLines: 1,
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: theme.colorScheme.onSurface,

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/themed_app_bar.dart';
+import '../widgets/themed_cards.dart';
+
 import '../../core/money/currency_formatter.dart';
 import '../../core/money/game_currency.dart';
 import '../../core/result/result.dart';
@@ -220,7 +223,11 @@ class _LifeStorageScreenState extends State<LifeStorageScreen> {
         textScaler: TextScaler.linear(zoom),
       ),
       child: Scaffold(
-        appBar: AppBar(title: const Text('Life Storage')),
+        appBar: ThemedAppBar(
+          title: 'Life Storage',
+          zoom: zoom,
+          onClose: () => Navigator.of(context).maybePop(),
+        ),
         body: SafeArea(
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
@@ -420,20 +427,9 @@ class _SlotShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     // Cards touch each other: no gaps between slots.
-    return Card(
-      margin: EdgeInsets.zero,
-      color: theme.colorScheme.surface,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-        side: BorderSide(
-          color: theme.dividerColor.withValues(alpha: 0.55),
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
+    return AccentCard(
+      zoom: zoom,
       child: InkWell(
         onTap: onTap,
         child: Padding(

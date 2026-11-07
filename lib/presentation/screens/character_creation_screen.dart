@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../widgets/themed_app_bar.dart';
 import '../widgets/themed_cards.dart';
 import 'package:flutter/services.dart';
 
@@ -505,23 +506,10 @@ _lastNameController.text = randomLastName;
                                       .titleLarge,
                                 ),
                               ),
-                              IconButton(
-                                tooltip: 'Close',
-                                visualDensity:
-                                    availableHeight <
-                                            560
-                                        ? VisualDensity
-                                            .compact
-                                        : null,
-                                onPressed: () {
-                                  Navigator.of(
-                                    dialogContext,
-                                  ).pop();
+                              CloseCircleButton(
+                                onTap: () {
+                                  Navigator.of(dialogContext).pop();
                                 },
-                                icon:
-                                    const Icon(
-                                  Icons.close,
-                                ),
                               ),
                             ],
                           ),
@@ -1042,43 +1030,10 @@ final double previewContainerSize =
       resizeToAvoidBottomInset: false,       
       appBar: widget.isOverlay
           ? null
-          : AppBar(
-              automaticallyImplyLeading: false,
-              centerTitle: true,
-              leading: widget.onCancel == null
-                  ? null
-                  : Center(
-                      child: InkResponse(
-                        onTap: widget.onCancel,
-                        child: Container(
-                          width: s(28),
-                          height: s(28),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.close,
-                            size: s(17),
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-              title: Text(
-                'Create Character',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2,
-                    ),
-              ),
-              bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(2),
-                child: Container(
-                  height: 2,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
+          : ThemedAppBar(
+              title: 'Create Character',
+              zoom: zoom,
+              onClose: widget.onCancel,
             ),
       
       body: SafeArea(
@@ -1862,6 +1817,12 @@ Widget fixedImage({
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        _FieldCard(
+          title: 'Identity',
+          zoom: zoom,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
         Row(
           crossAxisAlignment:
               CrossAxisAlignment.start,
@@ -1881,8 +1842,6 @@ Widget fixedImage({
                     const InputDecoration(
                   labelText: 'First Name',
                   hintText: 'First name',
-                  border:
-                      OutlineInputBorder(),
                   isDense: true,
                 ),
               ),
@@ -1905,8 +1864,6 @@ Widget fixedImage({
                     const InputDecoration(
                   labelText: 'Last Name',
                   hintText: 'Last name',
-                  border:
-                      OutlineInputBorder(),
                   isDense: true,
                 ),
               ),
@@ -1920,10 +1877,14 @@ Widget fixedImage({
           context,
           zoom,
         ),
-                SizedBox(
-          height: s(8),
+            ],
+          ),
         ),
-        Row(
+        SizedBox(height: s(4)),
+        _FieldCard(
+          title: 'Origin',
+          zoom: zoom,
+          child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
@@ -1942,6 +1903,7 @@ Widget fixedImage({
               ),
             ),
           ],
+        ),
         ),
       ],
     );
@@ -1966,8 +1928,6 @@ Widget fixedImage({
         decoration:
             const InputDecoration(
           labelText: 'Gender',
-          border:
-              OutlineInputBorder(),
           isDense: true,
           suffixIcon:
               Icon(
@@ -1996,7 +1956,6 @@ Widget fixedImage({
       child: InputDecorator(
         decoration: const InputDecoration(
           labelText: 'Country',
-          border: OutlineInputBorder(),
           isDense: true,
           suffixIcon: Icon(Icons.arrow_drop_down),
         ),
@@ -2021,7 +1980,6 @@ Widget fixedImage({
       child: InputDecorator(
         decoration: const InputDecoration(
           labelText: 'City',
-          border: OutlineInputBorder(),
           isDense: true,
           suffixIcon: Icon(Icons.arrow_drop_down),
         ),
@@ -2809,6 +2767,42 @@ class _CreationPillButton extends StatelessWidget {
             Text(label, maxLines: 1),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// A rounded green-outlined group of fields with a small diamond title.
+class _FieldCard extends StatelessWidget {
+  const _FieldCard({
+    required this.title,
+    required this.zoom,
+    required this.child,
+  });
+
+  final String title;
+  final double zoom;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(zoom * 7, zoom * 5, zoom * 7, zoom * 7),
+      decoration: BoxDecoration(
+        color: primary.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(zoom * 12),
+        border: Border.all(color: primary.withValues(alpha: 0.55)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SectionTitle(title),
+          SizedBox(height: zoom * 6),
+          child,
+        ],
       ),
     );
   }
