@@ -14,6 +14,7 @@ import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
 import '../../domain/event/life_event.dart';
 import '../../domain/character/character_stats.dart';
+import '../widgets/themed_cards.dart';
 import '../widgets/slide_up_route.dart';
 import '../widgets/character_avatar.dart';
 import '../widgets/core_stat_bars.dart';
@@ -1076,7 +1077,11 @@ class _GameScreenState extends State<GameScreen> {
         s(4),
         0,
       ),
-      child: groupedEvents.isEmpty
+      child: Column(
+        children: [
+          SectionDivider(title: 'LIFE LOG', zoom: zoom),
+          Expanded(
+            child: groupedEvents.isEmpty
           ? const Center(
               child: Text(
                 'No events yet.',
@@ -1110,45 +1115,24 @@ class _GameScreenState extends State<GameScreen> {
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(
-                            top: s(5),
-                          ),
-                          child: Icon(
-                            Icons.circle,
-                            size: s(6),
-                            color: Theme.of(
-                              context,
-                            )
-                                .colorScheme
-                                .primary,
-                          ),
-                        ),
-                        SizedBox(width: s(7)),
-                        Expanded(
-                          child: Text(
-                            'Age $eventAge',
-                            style: Theme.of(
-                              context,
-                            )
-                                .textTheme
-                                .bodyMedium!
-                                .copyWith(
-                                  fontWeight:
-                                      FontWeight.w600,
-                                ),
-                          ),
-                        ),
-                      ],
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: AgePill(text: 'Age $eventAge', zoom: zoom),
                     ),
                     SizedBox(height: s(2)),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        left: s(13),
+                    Container(
+                      margin: EdgeInsets.only(left: s(12), top: s(2)),
+                      padding: EdgeInsets.only(left: s(8)),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          left: BorderSide(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withValues(alpha: 0.4),
+                            width: 2,
+                          ),
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment:
@@ -1210,6 +1194,9 @@ class _GameScreenState extends State<GameScreen> {
                 );
               },
             ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1268,12 +1255,16 @@ class _GameScreenState extends State<GameScreen> {
   ) {
     final age = engine.state.player.ageAt(engine.state.clock.currentYear);
 
-    // Ages 0-5 show the player's info, 6-17 school, 18+ the occupation.
-    final firstItem = age < 6
+    final stage = engine.state.player.lifeStageAt(engine.state.clock.currentYear);
+
+    // Infant and toddler show the player's info, then school, then work.
+    final firstItem = stage == LifeStage.infant
         ? const _NavSlot(label: 'Infant', icon: Icons.child_care_rounded)
-        : age < 18
-            ? const _NavSlot(label: 'School', icon: Icons.school_rounded)
-            : const _NavSlot(label: 'Occupation', icon: Icons.work_rounded);
+        : stage == LifeStage.toddler
+            ? const _NavSlot(label: 'Toddler', icon: Icons.stroller_rounded)
+            : age < 18
+                ? const _NavSlot(label: 'School', icon: Icons.school_rounded)
+                : const _NavSlot(label: 'Occupation', icon: Icons.work_rounded);
 
     return _BottomNavigation(
       zoom: zoom,
@@ -1489,12 +1480,6 @@ class _BottomNavigation
     double s(double value) => value * zoom;
 
     final theme = Theme.of(context);
-    final lineColor = theme.colorScheme.outlineVariant;
-
-    Widget divider() => SizedBox(
-          width: 1,
-          child: ColoredBox(color: lineColor),
-        );
 
     Widget item({
       required IconData icon,
@@ -1523,8 +1508,11 @@ class _BottomNavigation
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
-                border: Border.symmetric(
-                  horizontal: BorderSide(color: lineColor),
+                border: Border(
+                  top: BorderSide(
+                    color: theme.colorScheme.primary,
+                    width: 2,
+                  ),
                 ),
               ),
             ),
@@ -1539,21 +1527,17 @@ class _BottomNavigation
                 label: firstSlot.label,
                 onTap: onCareerTap,
               ),
-              divider(),
               item(
                 icon: Icons.account_balance_wallet_rounded,
                 label: 'Assets',
                 onTap: onAssetsTap,
               ),
-              divider(),
               SizedBox(width: s(84)),
-              divider(),
               item(
-                icon: Icons.favorite_rounded,
+                icon: Icons.family_restroom_rounded,
                 label: 'Life',
                 onTap: onLifeTap,
               ),
-              divider(),
               item(
                 icon: Icons.more_horiz_rounded,
                 label: 'More',
@@ -1717,7 +1701,7 @@ class _NavSlot {
   final IconData icon;
 }
 
-/// One bottom tab: a white icon on a round green background, like BitLife.
+/// One bottom tab: a white icon on a green key-shaped tile.
 class _NavigationItem extends StatelessWidget {
   const _NavigationItem({
     required this.icon,
@@ -1753,11 +1737,20 @@ class _NavigationItem extends StatelessWidget {
             Opacity(
               opacity: enabled ? 1.0 : 0.38,
               child: Container(
-                width: s(36),
-                height: s(36),
+                width: s(38),
+                height: s(34),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary,
-                  shape: BoxShape.circle,
+                  borderRadius: BorderRadius.circular(s(11)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color.alphaBlend(
+                        Colors.black.withValues(alpha: 0.35),
+                        theme.colorScheme.primary,
+                      ),
+                      offset: Offset(0, s(3)),
+                    ),
+                  ],
                 ),
                 child: Icon(
                   icon,
@@ -1774,6 +1767,7 @@ class _NavigationItem extends StatelessWidget {
                 maxLines: 1,
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),

@@ -180,19 +180,9 @@ class CharacterProfileScreen extends StatelessWidget {
                               ],
                             ),
                             SizedBox(height: s(3)),
-                            Text(
-                              'Basic Information',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelSmall!
-                                  .copyWith(
-                                    color: scheme.primary,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.6,
-                                  ),
-                            ),
-                            SizedBox(height: s(1)),
-                            ..._infoLines(job),
+                            _sectionTitle(context, 'Basic Information'),
+                            SizedBox(height: s(2)),
+                            ..._withLines(context, _infoLines(job)),
                           ],
                         ),
                       ),
@@ -210,6 +200,46 @@ class CharacterProfileScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// "◆ TITLE ———": a green diamond, the title, and a line to the edge.
+  Widget _sectionTitle(BuildContext context, String title) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Row(
+      children: [
+        Text('◆', style: TextStyle(fontSize: 8, color: scheme.primary)),
+        const SizedBox(width: 4),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                color: scheme.primary,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.6,
+              ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Container(
+            height: 1.5,
+            color: scheme.primary.withValues(alpha: 0.35),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Puts a thin faded line between the information lines.
+  List<Widget> _withLines(BuildContext context, List<Widget> lines) {
+    final color =
+        Theme.of(context).colorScheme.primary.withValues(alpha: 0.18);
+
+    return [
+      for (var i = 0; i < lines.length; i++) ...[
+        if (i > 0) Container(height: 1, color: color),
+        lines[i],
+      ],
+    ];
   }
 
   Widget _dashedDivider(BuildContext context) {
@@ -308,6 +338,12 @@ class CharacterProfileScreen extends StatelessWidget {
 
     final scheme = Theme.of(context).colorScheme;
 
+    Widget line() => Container(
+          width: 1,
+          height: s(26),
+          color: scheme.primary.withValues(alpha: 0.35),
+        );
+
     Widget cell(String label, String value) {
       return Expanded(
         child: Column(
@@ -330,21 +366,23 @@ class CharacterProfileScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'WEALTH',
-          style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                color: scheme.primary,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.6,
-              ),
-        ),
+        _sectionTitle(context, 'WEALTH'),
         SizedBox(height: s(3)),
-        Row(
-          children: [
-            cell('Total Assets', _formatMoney(character.totalAssets)),
-            cell('Debt', _formatMoney(character.debt)),
-            cell('Net Worth', _formatMoney(character.netWorth)),
-          ],
+        Container(
+          padding: EdgeInsets.symmetric(vertical: s(4)),
+          decoration: BoxDecoration(
+            color: scheme.primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            children: [
+              cell('Total Assets', _formatMoney(character.totalAssets)),
+              line(),
+              cell('Debt', _formatMoney(character.debt)),
+              line(),
+              cell('Net Worth', _formatMoney(character.netWorth)),
+            ],
+          ),
         ),
         SizedBox(height: s(5)),
         SizedBox(

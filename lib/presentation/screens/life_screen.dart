@@ -11,6 +11,7 @@ import '../../domain/career/job_catalog.dart';
 import '../../domain/family/parent_npc.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../domain/family/sibling_npc.dart';
+import '../widgets/themed_cards.dart';
 import '../widgets/character_avatar.dart';
 import '../widgets/game_bar.dart';
 import 'npc_interaction_screen.dart';
@@ -248,8 +249,6 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double s(double value) => value * zoom;
-
     final theme = Theme.of(context);
 
     return Card(
@@ -265,21 +264,7 @@ class _CategoryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Padding(
-            padding: EdgeInsets.only(
-              top: s(2),
-              bottom: s(2),
-            ),
-            child: Center(
-              child: Text(
-                title,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontSize: s(11),
-                ),
-              ),
-            ),
-          ),
+          SectionDivider(title: title, zoom: zoom),
           child,
         ],
       ),
@@ -313,16 +298,8 @@ class _ParentNpcCard extends StatelessWidget {
 
     final theme = Theme.of(context);
 
-    final card = Card(
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      color: theme.colorScheme.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-        side: BorderSide(
-          color: theme.dividerColor.withValues(alpha: 0.55),
-        ),
-      ),
+    final card = AccentCard(
+      zoom: zoom,
       child: InkWell(
         onTap: parent.isAlive ? () => Navigator.of(context).push<void>(
           MaterialPageRoute<void>(
@@ -404,7 +381,7 @@ class _ParentNpcCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (parent.isAlive) Icon(Icons.arrow_forward_ios, size: s(14)),
+            if (parent.isAlive) ChevronBadge(zoom: zoom),
           ],
         ),
       ),
@@ -468,16 +445,8 @@ class _SiblingNpcCard extends StatelessWidget {
 
     final ageLabel = older ? 'older' : 'younger';
 
-    final card = Card(
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      color: theme.colorScheme.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-        side: BorderSide(
-          color: theme.dividerColor.withValues(alpha: 0.55),
-        ),
-      ),
+    final card = AccentCard(
+      zoom: zoom,
       child: InkWell(
         onTap: sibling.isAlive ? () => Navigator.of(context).push<void>(
           MaterialPageRoute<void>(
@@ -623,7 +592,7 @@ class _SiblingNpcCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (sibling.isAlive) Icon(Icons.arrow_forward_ios, size: s(14)),
+            if (sibling.isAlive) ChevronBadge(zoom: zoom),
           ],
         ),
       ),
