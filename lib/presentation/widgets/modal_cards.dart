@@ -1,16 +1,32 @@
 import 'package:flutter/material.dart';
 
+/// Fits a whole avatar (never cropped) into a box of [width] x [height].
+Widget fitAvatar(Widget avatar, {required double width, required double height}) {
+  return SizedBox(
+    width: width,
+    height: height,
+    child: FittedBox(
+      fit: BoxFit.contain,
+      child: SizedBox(width: 112, height: 140, child: avatar),
+    ),
+  );
+}
+
 /// Modal for the result of an interaction with someone: a round emoji badge
 /// leads, then what happened, centered. Tap anywhere to close.
 class InteractionCard extends StatelessWidget {
   const InteractionCard({
     required this.emoji,
     required this.child,
+    this.avatar,
     super.key,
   });
 
   final String emoji;
   final Widget child;
+
+  /// Shown instead of the emoji when there is one (the person involved).
+  final Widget? avatar;
 
   @override
   Widget build(BuildContext context) {
@@ -36,18 +52,24 @@ class InteractionCard extends StatelessWidget {
               children: [
                 Center(
                   child: Container(
-                    width: 64,
-                    height: 64,
+                    width: avatar == null ? 64 : 70,
+                    height: avatar == null ? 64 : 84,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
+                      shape: avatar == null
+                          ? BoxShape.circle
+                          : BoxShape.rectangle,
+                      borderRadius:
+                          avatar == null ? null : BorderRadius.circular(16),
                       color: scheme.primary.withValues(alpha: 0.12),
                       border: Border.all(
                         color: scheme.primary.withValues(alpha: 0.5),
                         width: 2,
                       ),
                     ),
-                    child: Text(emoji, style: const TextStyle(fontSize: 32)),
+                    child: avatar == null
+                        ? Text(emoji, style: const TextStyle(fontSize: 32))
+                        : fitAvatar(avatar!, width: 58, height: 72),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -71,6 +93,7 @@ class EventCard extends StatelessWidget {
     required this.title,
     required this.child,
     this.emoji = '📖',
+    this.avatar,
     super.key,
   });
 
@@ -79,6 +102,9 @@ class EventCard extends StatelessWidget {
 
   /// The small icon in the banner; each event picks one that fits it.
   final String emoji;
+
+  /// Shown in the banner instead of the emoji when there is one.
+  final Widget? avatar;
 
   @override
   Widget build(BuildContext context) {
@@ -110,8 +136,18 @@ class EventCard extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      Text(emoji, style: const TextStyle(fontSize: 18)),
-                      const SizedBox(width: 8),
+                      if (avatar == null)
+                        Text(emoji, style: const TextStyle(fontSize: 18))
+                      else
+                        Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: scheme.surface,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: fitAvatar(avatar!, width: 34, height: 42),
+                        ),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           title,

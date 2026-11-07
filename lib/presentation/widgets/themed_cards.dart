@@ -126,3 +126,85 @@ class AgePill extends StatelessWidget {
     );
   }
 }
+
+/// "◆ TITLE ———": a green diamond, the title, and a line to the edge.
+class SectionTitle extends StatelessWidget {
+  const SectionTitle(this.title, {super.key});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Row(
+      children: [
+        Text('◆', style: TextStyle(fontSize: 8, color: scheme.primary)),
+        const SizedBox(width: 4),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                color: scheme.primary,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.6,
+              ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Container(
+            height: 1.5,
+            color: scheme.primary.withValues(alpha: 0.35),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Puts a thin faded line between the given widgets.
+List<Widget> withThinLines(BuildContext context, List<Widget> lines) {
+  final color = Theme.of(context).colorScheme.primary.withValues(alpha: 0.18);
+
+  return [
+    for (var i = 0; i < lines.length; i++) ...[
+      if (i > 0) Container(height: 1, color: color),
+      lines[i],
+    ],
+  ];
+}
+
+/// A tinted panel for one number, used for the Net Worth of an NPC.
+class WealthPanel extends StatelessWidget {
+  const WealthPanel({required this.label, required this.value, super.key});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          Text(label, style: theme.textTheme.bodySmall),
+        ],
+      ),
+    );
+  }
+}

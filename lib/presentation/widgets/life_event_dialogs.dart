@@ -19,6 +19,7 @@ Future<String?> showLifeDecisionDialog(
   required bool Function(LifeChoice choice) canAfford,
   String? description,
   String? Function(LifeChoice choice)? costLabel,
+  Widget? avatar,
 }) {
   return showAnimatedDialog<String>(
     context: context,
@@ -30,6 +31,7 @@ Future<String?> showLifeDecisionDialog(
           key: const Key('life-decision-dialog'),
           title: event.title,
           emoji: lifeEventEmoji(id: event.id, title: event.title),
+          avatar: avatar,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -73,10 +75,12 @@ String _choiceText(
 /// Shows what happened after a decision. Tapping anywhere closes it.
 Future<void> showLifeResultDialog(
   BuildContext context,
-  LifeChoiceResult result,
-) {
+  LifeChoiceResult result, {
+  Widget? avatar,
+}) {
   return showTapToCloseOverlay(
     context,
+    avatar: avatar,
     dialogKey: const Key('life-result-dialog'),
     title: result.eventTitle,
     text: result.resultText,
@@ -91,6 +95,7 @@ Future<void> showTapToCloseOverlay(
   Key? dialogKey,
   Widget? body,
   String? emoji,
+  Widget? avatar,
 }) {
   return showGeneralDialog<void>(
     context: context,
@@ -111,6 +116,7 @@ Future<void> showTapToCloseOverlay(
             key: dialogKey,
             title: title ?? 'Life Story',
             emoji: emoji ?? lifeEventEmoji(title: title),
+            avatar: avatar,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -138,6 +144,7 @@ Future<bool> showLifeEndedDialog(
   required String name,
   required LifeEnding ending,
   required String netWorthText,
+  Widget? avatar,
 }) async {
   final startNew = await showAnimatedDialog<bool>(
     context: context,
@@ -149,6 +156,7 @@ Future<bool> showLifeEndedDialog(
           key: const Key('life-ended-dialog'),
           title: 'Rest in Peace',
           emoji: '🕊️',
+          avatar: avatar,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
