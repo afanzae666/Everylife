@@ -5,7 +5,6 @@ import 'package:everylife/domain/character/appearance.dart';
 import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/character/character_stats.dart';
 import 'package:everylife/domain/character/gender.dart';
-import 'package:everylife/domain/character/starting_background.dart';
 import 'package:everylife/domain/event/simulation_event.dart';
 import 'package:everylife/domain/family/family_asset.dart';
 import 'package:everylife/domain/family/family_household.dart';
@@ -98,9 +97,6 @@ void main() {
             description: 'Andi Santoso was born in 2026.',
           ),
         ],
-        startingBackground: const StartingBackground(
-          tier: StartingBackgroundTier.middleClass,
-        ),
         familyHousehold: household,
       );
 
