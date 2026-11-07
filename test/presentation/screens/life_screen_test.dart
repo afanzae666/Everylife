@@ -41,7 +41,7 @@ void main() {
     await tester.pumpAndSettle();
 
     currentParent = currentParent.copyWith(relationshipPercent: 75);
-    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.tap(find.byIcon(Icons.close));
     await tester.pumpAndSettle();
 
     final relationshipBar = tester.widget<LinearProgressIndicator>(
