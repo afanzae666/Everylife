@@ -1,7 +1,6 @@
 
 import '../../core/random/seeded_random.dart';
 import '../../domain/character/character.dart';
-import '../../domain/character/starting_background.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/family/family_household.dart';
 import '../../domain/family/parent_npc.dart';
@@ -14,11 +13,10 @@ class StartingLifeEventGenerator {
   static List<SimulationEvent> generate({
     required SeededRandom random,
     required int year,
-    required StartingBackground background,
     FamilyHousehold? household,
     Character? player,
   }) {
-    final familyDescription = _familyNarrative(household, background);
+    final familyDescription = _familyNarrative(household);
 
     final events = <SimulationEvent>[
       SimulationEvent(
@@ -97,10 +95,9 @@ class StartingLifeEventGenerator {
 
   static String _familyNarrative(
     FamilyHousehold? household,
-    StartingBackground background,
   ) {
     if (household == null || household.parents.isEmpty) {
-      return 'I was born into a ${background.label.toLowerCase()} background. '
+      return 'I was born into a family. '
           'My family situation has not been recorded.';
     }
 

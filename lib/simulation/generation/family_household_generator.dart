@@ -10,7 +10,6 @@ import '../../domain/character/appearance.dart';
 import '../../domain/character/character_hair.dart';
 import '../../domain/character/cultural_randomizer_catalog.dart';
 import '../../domain/character/gender.dart';
-import '../../domain/character/starting_background.dart';
 import '../../domain/family/family_asset.dart';
 import '../../domain/family/family_household.dart';
 import '../../domain/family/parent_npc.dart';
@@ -20,15 +19,15 @@ import 'country_economic_profile.dart';
 class FamilyHouseholdGenerator {
   const FamilyHouseholdGenerator._();
 
+  /// A normal household: two living parents with random jobs and money,
+  /// a random home and 0-3 siblings. There are no starting backgrounds.
   static FamilyHousehold generate({
     required SeededRandom random,
     required int birthYear,
-    required StartingBackground background,
     required String familyName,
     String countryCode = 'ID',
     CharacterAppearance? childAppearance,
   }) {
-    final tier = background.tier;
     final householdId = 'family-household-$birthYear';
     final normalizedFamilyName = familyName.trim().isEmpty
         ? CulturalRandomizerCatalog.randomLastName(
@@ -42,66 +41,20 @@ class FamilyHouseholdGenerator {
       birthYear: birthYear,
       familyName: normalizedFamilyName,
       countryCode: countryCode,
-      tier: tier,
       childAppearance: childAppearance,
     );
 
-    final isOrphanagePlacement = parents.any(
-      (parent) => parent.role == FamilyRole.guardian,
-    );
-    final hasBothLivingParents = parents.any(
-          (parent) => parent.role == FamilyRole.father && parent.isAlive,
-        ) &&
-        parents.any(
-          (parent) => parent.role == FamilyRole.mother && parent.isAlive,
-        );
-    // Affair is an uncommon possibility only for a two-parent birth scenario.
-    final isAffairConception = hasBothLivingParents && random.nextInt(100) < 8;
-    final raisedByFather = isAffairConception && random.nextBool();
-    if (raisedByFather) {
-      parents.add(_generateParent(
-        random: random,
-        birthYear: birthYear,
-        familyName: normalizedFamilyName,
-        countryCode: countryCode,
-        tier: tier,
-        childAppearance: childAppearance,
-        gender: Gender.female,
-        role: FamilyRole.stepMother,
-        id: 'parent-step-mother-$birthYear',
-      ));
-    }
-    final motherDiedInChildbirth = parents.any(
-      (parent) =>
-          parent.role == FamilyRole.mother &&
-          !parent.isAlive &&
-          parent.deathYear == birthYear,
+    final siblings = _generateSiblings(
+      random: random,
+      birthYear: birthYear,
+      familyName: normalizedFamilyName,
+      countryCode: countryCode,
+      parents: parents,
+      hasStepParent: false,
+      childAppearance: childAppearance,
     );
 
-    // An orphanage guardian is not a biological or adoptive sibling's parent.
-    // Do not generate player siblings for an orphanage starting scenario.
-    final siblings = isOrphanagePlacement
-        ? <SiblingNpc>[]
-        : _generateSiblings(
-            random: random,
-            birthYear: birthYear,
-            familyName: normalizedFamilyName,
-            countryCode: countryCode,
-            parents: parents,
-            hasStepParent: parents.any((parent) =>
-                parent.role == FamilyRole.stepMother ||
-                parent.role == FamilyRole.stepFather),
-            childAppearance: childAppearance,
-            latestAllowedBirthYear:
-                motherDiedInChildbirth ? birthYear : null,
-          );
-
-    final housingStatus = isOrphanagePlacement
-        ? HousingStatus.providedByOthers
-        : _generateHousingStatus(
-            random: random,
-            tier: tier,
-          );
+    final housingStatus = _generateHousingStatus(random: random);
 
     // New lives begin without accumulated savings or modeled living costs.
     // Keep legacy fields at zero so older save schemas remain compatible.
@@ -114,7 +67,6 @@ class FamilyHouseholdGenerator {
     final assets = _generateAssets(
       random: random,
       householdId: householdId,
-      tier: tier,
       housingStatus: housingStatus,
       countryEconomicProfile: countryEconomicProfile,
     ).map((asset) => asset.ownerNpcId == null
@@ -135,9 +87,8 @@ class FamilyHouseholdGenerator {
         annualExpenses: Money.zero(),
         assets: personalAssets,
         countryCode: countryCode,
-        // Guardians are not inheritance parents; biological parents share
-        // their estate with the player's generated siblings.
-        siblingCount: parent.role == FamilyRole.guardian ? 0 : siblings.length,
+        // Parents share their estate with the player's siblings.
+        siblingCount: siblings.length,
       );
     }).toList(growable: false);
 
@@ -151,8 +102,6 @@ class FamilyHouseholdGenerator {
       housingStatus: housingStatus,
       annualLivingCosts: annualLivingCosts,
       totalDebt: totalDebt,
-      isAffairConception: isAffairConception,
-      raisedByFather: raisedByFather,
     );
   }
 
@@ -161,125 +110,30 @@ class FamilyHouseholdGenerator {
     required int birthYear,
     required String familyName,
     required String countryCode,
-    required StartingBackgroundTier tier,
     CharacterAppearance? childAppearance,
   }) {
-    // Starting family scenarios: intact 50%, single mother 20%,
-    // mother dies in childbirth 10%, orphanage guardian 20%.
-    final scenarioRoll = random.nextInt(100);
-
-    if (scenarioRoll < 50) {
-      return [
-        _generateParent(
-          random: random,
-          birthYear: birthYear,
-          familyName: familyName,
-          countryCode: countryCode,
-          tier: tier,
-          childAppearance: childAppearance,
-          gender: Gender.male,
-          role: FamilyRole.father,
-          id: 'parent-father-$birthYear',
-        ),
-        _generateParent(
-          random: random,
-          birthYear: birthYear,
-          familyName: familyName,
-          countryCode: countryCode,
-          tier: tier,
-          childAppearance: childAppearance,
-          gender: Gender.female,
-          role: FamilyRole.mother,
-          id: 'parent-mother-$birthYear',
-        ),
-      ];
-    }
-
-    if (scenarioRoll < 70) {
-      return [
-        _generateParent(
-          random: random,
-          birthYear: birthYear,
-          familyName: familyName,
-          countryCode: countryCode,
-          tier: tier,
-          childAppearance: childAppearance,
-          gender: Gender.female,
-          role: FamilyRole.mother,
-          id: 'parent-mother-$birthYear',
-        ),
-      ];
-    }
-
-    if (scenarioRoll < 80) {
-      final father = _generateParent(
-        random: random,
-        birthYear: birthYear,
-        familyName: familyName,
-        countryCode: countryCode,
-        tier: tier,
-        childAppearance: childAppearance,
-        gender: Gender.male,
-        role: FamilyRole.father,
-        id: 'parent-father-$birthYear',
-      );
-      final mother = _generateParent(
-        random: random,
-        birthYear: birthYear,
-        familyName: familyName,
-        countryCode: countryCode,
-        tier: tier,
-        childAppearance: childAppearance,
-        gender: Gender.female,
-        role: FamilyRole.mother,
-        id: 'parent-mother-$birthYear',
-      ).copyWith(isAlive: false, deathYear: birthYear);
-      return [father, mother];
-    }
-
-    final gender = random.nextBool() ? Gender.male : Gender.female;
-    final guardianFamilyName = _guardianFamilyName(
-      random: random,
-      countryCode: countryCode,
-      playerFamilyName: familyName,
-    );
-
     return [
       _generateParent(
         random: random,
         birthYear: birthYear,
-        familyName: guardianFamilyName,
+        familyName: familyName,
         countryCode: countryCode,
-        tier: tier,
         childAppearance: childAppearance,
-        gender: gender,
-        role: FamilyRole.guardian,
-        id: 'parent-guardian-$birthYear',
+        gender: Gender.male,
+        role: FamilyRole.father,
+        id: 'parent-father-$birthYear',
+      ),
+      _generateParent(
+        random: random,
+        birthYear: birthYear,
+        familyName: familyName,
+        countryCode: countryCode,
+        childAppearance: childAppearance,
+        gender: Gender.female,
+        role: FamilyRole.mother,
+        id: 'parent-mother-$birthYear',
       ),
     ];
-  }
-
-  static String _guardianFamilyName({
-    required SeededRandom random,
-    required String countryCode,
-    required String playerFamilyName,
-  }) {
-    // A guardian is a separate person, so do not reuse the player's surname.
-    // Retry with the country's surname pool until a different surname is found.
-    for (var attempt = 0; attempt < 20; attempt++) {
-      final candidate = CulturalRandomizerCatalog.randomLastName(
-        countryCode: countryCode,
-        random: math.Random(random.nextInt(0x7fffffff)),
-      );
-
-      if (candidate.trim().toLowerCase() !=
-          playerFamilyName.trim().toLowerCase()) {
-        return candidate;
-      }
-    }
-
-    // Defensive fallback for unusual/custom surnames or random sequences.
-    return '$playerFamilyName Guardian';
   }
 
   static List<SiblingNpc> _generateSiblings({
@@ -485,26 +339,22 @@ class FamilyHouseholdGenerator {
     required int birthYear,
     required String familyName,
     required String countryCode,
-    required StartingBackgroundTier tier,
     required Gender gender,
     required FamilyRole role,
     required String id,
     CharacterAppearance? childAppearance,
   }) {
     final ageAtChildBirth = 22 + random.nextInt(24);
-    final employmentStatus = _generateEmploymentStatus(
-      random: random,
-      tier: tier,
-    );
+    final employmentStatus = _generateEmploymentStatus(random);
 
     final hasIncome = employmentStatus == EmploymentStatus.employed ||
         employmentStatus == EmploymentStatus.selfEmployed;
 
     final countryIncomeRange = CountryEconomicProfile.forCountryCode(
       countryCode,
-    ).scaleRange(_annualIncomeRange(tier));
+    ).scaleRange(_annualIncomeRange);
     final annualIncome = hasIncome
-        ? _moneyBetween(
+        ? _wideMoney(
             random,
             countryIncomeRange.$1,
             countryIncomeRange.$2,
@@ -621,94 +471,30 @@ class FamilyHouseholdGenerator {
     );
   }
 
-  static EmploymentStatus _generateEmploymentStatus({
-    required SeededRandom random,
-    required StartingBackgroundTier tier,
-  }) {
+  static EmploymentStatus _generateEmploymentStatus(SeededRandom random) {
     final roll = random.nextInt(100);
 
-    return switch (tier) {
-      StartingBackgroundTier.struggling => roll < 35
-          ? EmploymentStatus.unemployed
-          : roll < 55
-              ? EmploymentStatus.selfEmployed
-              : roll < 90
-                  ? EmploymentStatus.employed
-                  : EmploymentStatus.homemaker,
-      StartingBackgroundTier.workingClass => roll < 15
-          ? EmploymentStatus.unemployed
-          : roll < 30
-              ? EmploymentStatus.selfEmployed
-              : roll < 90
-                  ? EmploymentStatus.employed
-                  : EmploymentStatus.homemaker,
-      StartingBackgroundTier.middleClass => roll < 8
-          ? EmploymentStatus.unemployed
-          : roll < 18
-              ? EmploymentStatus.selfEmployed
-              : roll < 85
-                  ? EmploymentStatus.employed
-                  : EmploymentStatus.homemaker,
-      StartingBackgroundTier.upperMiddleClass => roll < 5
-          ? EmploymentStatus.unemployed
-          : roll < 20
-              ? EmploymentStatus.selfEmployed
-              : roll < 90
-                  ? EmploymentStatus.employed
-                  : EmploymentStatus.homemaker,
-      StartingBackgroundTier.wealthy => roll < 5
-          ? EmploymentStatus.unemployed
-          : roll < 30
-              ? EmploymentStatus.selfEmployed
-              : roll < 85
-                  ? EmploymentStatus.employed
-                  : EmploymentStatus.homemaker,
-      StartingBackgroundTier.veryWealthy => roll < 5
-          ? EmploymentStatus.unemployed
-          : roll < 40
-              ? EmploymentStatus.selfEmployed
-              : roll < 90
-                  ? EmploymentStatus.employed
-                  : EmploymentStatus.homemaker,
-    };
+    if (roll < 10) return EmploymentStatus.unemployed;
+    if (roll < 30) return EmploymentStatus.selfEmployed;
+    if (roll < 90) return EmploymentStatus.employed;
+
+    return EmploymentStatus.homemaker;
   }
 
   static HousingStatus _generateHousingStatus({
     required SeededRandom random,
-    required StartingBackgroundTier tier,
   }) {
     final roll = random.nextInt(100);
-    return switch (tier) {
-      // Struggling through middle class: rent, mortgage, or owned outright.
-      StartingBackgroundTier.struggling => roll < 60
-          ? HousingStatus.rented
-          : roll < 75
-              ? HousingStatus.ownedWithMortgage
-              : HousingStatus.familyOwned,
-      StartingBackgroundTier.workingClass => roll < 55
-          ? HousingStatus.rented
-          : roll < 80
-              ? HousingStatus.ownedWithMortgage
-              : HousingStatus.familyOwned,
-      StartingBackgroundTier.middleClass => roll < 30
-          ? HousingStatus.rented
-          : roll < 65
-              ? HousingStatus.ownedWithMortgage
-              : HousingStatus.familyOwned,
-      // Upper middle class: mortgage or permanently owned home only.
-      StartingBackgroundTier.upperMiddleClass => roll < 40
-          ? HousingStatus.ownedWithMortgage
-          : HousingStatus.familyOwned,
-      // Wealthy and very wealthy families always own their home outright.
-      StartingBackgroundTier.wealthy => HousingStatus.familyOwned,
-      StartingBackgroundTier.veryWealthy => HousingStatus.familyOwned,
-    };
+
+    if (roll < 40) return HousingStatus.rented;
+    if (roll < 70) return HousingStatus.ownedWithMortgage;
+
+    return HousingStatus.familyOwned;
   }
 
   static List<FamilyAsset> _generateAssets({
     required SeededRandom random,
     required String householdId,
-    required StartingBackgroundTier tier,
     required HousingStatus housingStatus,
     required CountryEconomicProfile countryEconomicProfile,
   }) {
@@ -717,7 +503,7 @@ class FamilyHouseholdGenerator {
     if (housingStatus == HousingStatus.familyOwned ||
         housingStatus == HousingStatus.ownedWithMortgage) {
       final propertyRange = countryEconomicProfile.scaleRange(
-        _propertyValueRange(tier),
+        _propertyValueRange,
       );
 
       assets.add(
@@ -725,7 +511,7 @@ class FamilyHouseholdGenerator {
           id: '$householdId-property',
           name: 'Family home',
           type: FamilyAssetType.property,
-          value: _moneyBetween(
+          value: _wideMoney(
             random,
             propertyRange.$1,
             propertyRange.$2,
@@ -770,35 +556,22 @@ class FamilyHouseholdGenerator {
     };
   }
 
-  static (int, int) _annualIncomeRange(StartingBackgroundTier tier) {
-    return switch (tier) {
-      StartingBackgroundTier.struggling => (720000, 2160000),
-      StartingBackgroundTier.workingClass => (1200000, 3600000),
-      StartingBackgroundTier.middleClass => (2160000, 6000000),
-      StartingBackgroundTier.upperMiddleClass => (3600000, 9600000),
-      StartingBackgroundTier.wealthy => (6000000, 18000000),
-      StartingBackgroundTier.veryWealthy => (9600000, 36000000),
-    };
-  }
+  /// Yearly income of a working parent: anywhere from very poor to very rich.
+  static const (int, int) _annualIncomeRange = (720000, 36000000);
 
-  static (int, int) _propertyValueRange(StartingBackgroundTier tier) {
-    return switch (tier) {
-      StartingBackgroundTier.struggling => (5000000, 15000000),
-      StartingBackgroundTier.workingClass => (15000000, 40000000),
-      StartingBackgroundTier.middleClass => (40000000, 120000000),
-      StartingBackgroundTier.upperMiddleClass => (120000000, 350000000),
-      StartingBackgroundTier.wealthy => (350000000, 1500000000),
-      StartingBackgroundTier.veryWealthy => (1500000000, 8000000000),
-    };
-  }
+  /// Value of the family home: anywhere from a hut to a mansion.
+  static const (int, int) _propertyValueRange = (5000000, 2000000000);
 
-  static Money _moneyBetween(
+  /// A random amount between [minimum] and [maximum] on a log scale, so every
+  /// level from poor to rich is about equally likely.
+  static Money _wideMoney(
     SeededRandom random,
     int minimum,
     int maximum,
   ) {
-    return Money.fromMinorUnits(
-      minimum + random.nextInt(maximum - minimum + 1),
-    );
+    final u = random.nextInt(10001) / 10000;
+    final value = minimum * math.pow(maximum / minimum, u);
+
+    return Money.fromMinorUnits(value.round());
   }
 }
