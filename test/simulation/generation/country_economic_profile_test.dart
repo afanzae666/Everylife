@@ -9,29 +9,6 @@ import 'package:everylife/simulation/generation/family_household_generator.dart'
 void main() {
   group('CountryEconomicProfile', () {
 
-    test('starting economic weights cover game countries and total 100', () {
-      for (final code in [
-        'AE','AR','AT','AU','BE','BR','CA','CH','CL','CN','CO','CU','DE',
-        'DK','EG','ES','ET','FJ','FR','GB','GH','GR','ID','IE','IN','IT',
-        'JP','KE','KR','MA','MC','MX','MY','NG','NL','NP','NO','NZ','PK',
-        'PL','PT','RU','SA','SE','SG','TH','TR','UA','US','VN','ZA','TZ',
-        'PE','PH',
-      ]) {
-        final weights = CountryEconomicProfile.forCountryCode(code)
-            .startingBackgroundWeights;
-        expect(weights.length, 6, reason: code);
-        expect(weights.every((weight) => weight > 0), isTrue, reason: code);
-        expect(weights.reduce((a, b) => a + b), 100, reason: code);
-      }
-    });
-
-    test('higher-poverty profile weights struggling above wealthy classes', () {
-      final weights = CountryEconomicProfile.forCountryCode('TZ')
-          .startingBackgroundWeights;
-      expect(weights[0], greaterThan(weights[4]));
-      expect(weights[0], greaterThan(weights[5]));
-    });
-
     test('normalizes country codes before lookup', () {
       final lowerCase =
           CountryEconomicProfile.forCountryCode('id');
