@@ -564,6 +564,7 @@ class _GameScreenState extends State<GameScreen> {
     await showTapToCloseOverlay(
       context,
       title: player.fullName,
+      emoji: '🪪',
       text: '',
       body: Column(
         mainAxisSize: MainAxisSize.min,
@@ -883,13 +884,15 @@ class _GameScreenState extends State<GameScreen> {
             ? null
             : _openCharacterProfile,
         borderRadius: BorderRadius.zero,
-        child: _ResponsiveCard(
-          padding: EdgeInsets.all(s(3)),
+        child: _HeaderFrame(
+          zoom: zoom,
           child: Row(
             crossAxisAlignment:
                 CrossAxisAlignment.center,
             children: [
-              FutureBuilder<CharacterPaletteService>(
+              _AvatarPlate(
+                zoom: zoom,
+                child: FutureBuilder<CharacterPaletteService>(
                 future: _characterPaletteFuture,
                 builder: (
                   context,
@@ -961,7 +964,8 @@ class _GameScreenState extends State<GameScreen> {
                   );
                 },
               ),
-              SizedBox(width: s(6)),
+              ),
+              SizedBox(width: s(8)),
               Expanded(
                 child: Column(
                   crossAxisAlignment:
@@ -994,6 +998,11 @@ class _GameScreenState extends State<GameScreen> {
                         Theme.of(context).textTheme.bodySmall!,
                       ),
                     ),
+                    SizedBox(height: s(3)),
+                    _AgeChip(
+                      zoom: zoom,
+                      text: '${lifeStageLabel.toUpperCase()} · AGE $age',
+                    ),
                   ],
                 ),
               ),
@@ -1004,7 +1013,9 @@ class _GameScreenState extends State<GameScreen> {
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     alignment: Alignment.centerRight,
-                                        child: Text(
+                                        child: _MoneyPill(
+                      zoom: zoom,
+                      child: Text(
                       _formatMoney(
                         player.money,
                         currencyCode: _getCurrencyCode(player),
@@ -1023,8 +1034,10 @@ class _GameScreenState extends State<GameScreen> {
                                             .fontSize ??
                                         14) *
                                     0.95,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
+                            color: Theme.of(context).colorScheme.onPrimary,
                           ),
+                    ),
                     ),
                   ),
                 ),
@@ -1234,6 +1247,7 @@ class _GameScreenState extends State<GameScreen> {
     await showTapToCloseOverlay(
       context,
       title: 'My Traits',
+      emoji: '💪',
       text: '',
       body: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1305,6 +1319,111 @@ class _GameScreenState extends State<GameScreen> {
       case LifeStage.senior:
         return 'Senior';
     }
+  }
+}
+
+/// The frame of the character header: a surface with a thick green edge on
+/// the left and thin green lines on top and bottom.
+class _HeaderFrame extends StatelessWidget {
+  const _HeaderFrame({required this.child, required this.zoom});
+
+  final Widget child;
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    final surface = Theme.of(context).colorScheme.surface;
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(zoom * 8, zoom * 5, zoom * 6, zoom * 5),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [primary.withValues(alpha: 0.12), surface],
+        ),
+        border: Border(
+          left: BorderSide(color: primary, width: zoom * 6),
+          top: BorderSide(color: primary.withValues(alpha: 0.6)),
+          bottom: BorderSide(color: primary.withValues(alpha: 0.6)),
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+/// A small rounded plate behind the avatar.
+class _AvatarPlate extends StatelessWidget {
+  const _AvatarPlate({required this.child, required this.zoom});
+
+  final Widget child;
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
+    return Container(
+      padding: EdgeInsets.all(zoom * 2),
+      decoration: BoxDecoration(
+        color: primary.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(zoom * 10),
+        border: Border.all(color: primary, width: 1.5),
+      ),
+      child: child,
+    );
+  }
+}
+
+/// The player's money as a green pill.
+class _MoneyPill extends StatelessWidget {
+  const _MoneyPill({required this.child, required this.zoom});
+
+  final Widget child;
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: zoom * 8, vertical: zoom * 3),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: BorderRadius.circular(zoom * 12),
+      ),
+      child: child,
+    );
+  }
+}
+
+/// Life stage and age as a small tinted tag.
+class _AgeChip extends StatelessWidget {
+  const _AgeChip({required this.text, required this.zoom});
+
+  final String text;
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: zoom * 6, vertical: zoom * 1),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(zoom * 6),
+      ),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          text,
+          maxLines: 1,
+          style: theme.textTheme.labelSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.6,
+          ),
+        ),
+      ),
+    );
   }
 }
 
