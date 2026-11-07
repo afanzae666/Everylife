@@ -20,7 +20,6 @@ import '../school/school_setup.dart';
 import '../events/life_effect_applier.dart';
 import '../events/life_event_catalog.dart';
 import '../generation/family_household_generator.dart';
-import '../generation/starting_background_generator.dart';
 import '../generation/starting_life_event_generator.dart';
 import '../systems/career_system.dart';
 import '../systems/character_system.dart';
@@ -961,15 +960,9 @@ class SimulationEngine {
     final random = SeededRandom(seed);
 
     final countryCode = player.location?.countryCode ?? 'ID';
-    final startingBackground = StartingBackgroundGenerator.generate(
-      random,
-      countryCode: countryCode,
-    );
-
     final familyHousehold = FamilyHouseholdGenerator.generate(
       random: random,
       birthYear: player.birthYear,
-      background: startingBackground,
       familyName: player.resolvedLastName,
       countryCode: countryCode,
       childAppearance: player.appearance,
@@ -978,7 +971,6 @@ class SimulationEngine {
     final startingLifeEvents = StartingLifeEventGenerator.generate(
       random: random,
       year: player.birthYear,
-      background: startingBackground,
       household: familyHousehold,
       player: player,
     );
@@ -1002,7 +994,6 @@ class SimulationEngine {
         ),
         ...startingLifeEvents,
       ],
-      startingBackground: startingBackground,
       familyHousehold: familyHousehold,
     );
 
