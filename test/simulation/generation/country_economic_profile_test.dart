@@ -2,7 +2,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:everylife/core/random/seeded_random.dart';
-import 'package:everylife/domain/character/starting_background.dart';
 import 'package:everylife/domain/family/family_household.dart';
 import 'package:everylife/simulation/generation/country_economic_profile.dart';
 import 'package:everylife/simulation/generation/family_household_generator.dart';
@@ -124,12 +123,10 @@ void main() {
     test('same seed and country produce deterministic household generation', () {
       final first = FamilyHouseholdGenerator.generate(
         random: SeededRandom(42), birthYear: 2026,
-        background: const StartingBackground(tier: StartingBackgroundTier.middleClass),
         familyName: 'Santoso', countryCode: 'ID',
       );
       final second = FamilyHouseholdGenerator.generate(
         random: SeededRandom(42), birthYear: 2026,
-        background: const StartingBackground(tier: StartingBackgroundTier.middleClass),
         familyName: 'Santoso', countryCode: 'ID',
       );
       expect(first.parents.map((p) => p.id).toList(), second.parents.map((p) => p.id).toList());
@@ -139,31 +136,26 @@ void main() {
       expect(first.parents.every((p) => p.annualExpenses.minorUnits == 0), isTrue);
     });
 
-    test('home value scales by country and rises with economic tier', () {
-      FamilyHousehold ownedHome({required String countryCode, required StartingBackgroundTier tier}) {
+    test('home value scales by country', () {
+      FamilyHousehold ownedHome(String countryCode) {
         for (var seed = 0; seed < 1000; seed++) {
           final household = FamilyHouseholdGenerator.generate(
             random: SeededRandom(seed), birthYear: 2026,
-            background: StartingBackground(tier: tier),
             familyName: 'Test', countryCode: countryCode,
           );
           if (household.assets.any((asset) => asset.type.name == 'property')) return household;
         }
-        throw StateError('No owned home generated for $countryCode / $tier');
+        throw StateError('No owned home generated for $countryCode');
       }
-      final struggling = ownedHome(countryCode: 'ID', tier: StartingBackgroundTier.struggling);
-      final veryWealthy = ownedHome(countryCode: 'ID', tier: StartingBackgroundTier.veryWealthy);
-      final swissMiddle = ownedHome(countryCode: 'CH', tier: StartingBackgroundTier.middleClass);
-      final indoMiddle = ownedHome(countryCode: 'ID', tier: StartingBackgroundTier.middleClass);
-      expect(veryWealthy.assets.single.value.minorUnits, greaterThan(struggling.assets.single.value.minorUnits));
-      expect(swissMiddle.assets.single.value.minorUnits, greaterThan(indoMiddle.assets.single.value.minorUnits));
+      final swiss = ownedHome('CH');
+      final indo = ownedHome('ID');
+      expect(swiss.assets.single.value.minorUnits, greaterThan(indo.assets.single.value.minorUnits));
     });
 
     test('only creates a home asset and only for owned housing', () {
       for (var seed = 0; seed < 300; seed++) {
         final household = FamilyHouseholdGenerator.generate(
           random: SeededRandom(seed), birthYear: 2026,
-          background: const StartingBackground(tier: StartingBackgroundTier.workingClass),
           familyName: 'Test', countryCode: 'ID',
         );
         expect(household.assets.every((asset) => asset.type.name == 'property'), isTrue);

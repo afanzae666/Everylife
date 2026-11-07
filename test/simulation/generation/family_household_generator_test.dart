@@ -2,7 +2,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:everylife/core/random/seeded_random.dart';
 import 'package:everylife/domain/character/cultural_name_catalog.dart';
-import 'package:everylife/domain/character/starting_background.dart';
 import 'package:everylife/domain/family/family_household.dart';
 import 'package:everylife/domain/family/parent_npc.dart';
 import 'package:everylife/domain/family/sibling_npc.dart';
@@ -17,45 +16,9 @@ void main() {
       FamilyHouseholdGenerator.generate(
         random: SeededRandom(seed),
         birthYear: 2026,
-        background: const StartingBackground(
-          tier: StartingBackgroundTier.middleClass,
-        ),
         familyName: familyName,
         countryCode: countryCode,
       );
-
-  test(
-    'affair scenarios are marked and add a stepmother only when father raises the child',
-    () {
-      var foundAffair = false;
-      var foundFatherRaisedAffair = false;
-
-      for (var seed = 0; seed < 2000; seed++) {
-        final household = generate(seed: seed);
-        if (!household.isAffairConception) continue;
-        foundAffair = true;
-
-        final stepMothers = household.parents.where(
-          (parent) => parent.role == FamilyRole.stepMother,
-        );
-        if (household.raisedByFather) {
-          foundFatherRaisedAffair = true;
-          expect(stepMothers, hasLength(1));
-          expect(
-            household.parents.where(
-              (parent) => parent.role == FamilyRole.mother,
-            ),
-            hasLength(1),
-          );
-        } else {
-          expect(stepMothers, isEmpty);
-        }
-      }
-
-      expect(foundAffair, isTrue);
-      expect(foundFatherRaisedAffair, isTrue);
-    },
-  );
 
   test('generates stable parent identities and personal financial records',
       () {
@@ -148,39 +111,6 @@ void main() {
     );
   });
 
-  test('orphanage scenarios have one guardian and no siblings', () {
-    var orphanageScenariosFound = 0;
-
-    for (var seed = 0; seed < 300; seed++) {
-      final household = generate(seed: seed);
-      final guardians = household.parents
-          .where((parent) => parent.role == FamilyRole.guardian)
-          .toList();
-
-      if (guardians.isEmpty) {
-        continue;
-      }
-
-      orphanageScenariosFound++;
-
-      expect(household.parents, hasLength(1));
-      expect(household.parents.single.role, FamilyRole.guardian);
-      expect(household.siblings, isEmpty);
-      expect(household.parents.single.siblingCount, 0);
-      expect(household.housingStatus, HousingStatus.providedByOthers);
-      expect(
-        household.parents.single.lastName.toLowerCase(),
-        isNot('santoso'),
-      );
-    }
-
-    expect(
-      orphanageScenariosFound,
-      greaterThan(0),
-      reason: 'The seed range should include orphanage scenarios.',
-    );
-  });
-
   test('does not generate half or step siblings without a step-parent context',
       () {
     for (var seed = 0; seed < 100; seed++) {
@@ -202,36 +132,6 @@ void main() {
         );
       }
     }
-  });
-
-  test('mother who died in childbirth has no later-born siblings', () {
-    var foundScenario = false;
-
-    for (var seed = 0; seed < 1000; seed++) {
-      final household = generate(seed: seed);
-      final deceasedMother = household.parents.where(
-        (parent) =>
-            parent.role == FamilyRole.mother &&
-            !parent.isAlive &&
-            parent.deathYear == 2026,
-      );
-
-      if (deceasedMother.isEmpty) continue;
-      foundScenario = true;
-
-      expect(
-        household.siblings.every((sibling) => sibling.birthYear <= 2026),
-        isTrue,
-        reason: 'Seed $seed generated a sibling after the mother died: '
-            '${household.siblings.map((sibling) => sibling.birthYear).toList()}',
-      );
-    }
-
-    expect(
-      foundScenario,
-      isTrue,
-      reason: 'The seed range should include the mother-died scenario.',
-    );
   });
 
   test('uses family-name-first formatting for China and Japan', () {
@@ -257,6 +157,20 @@ void main() {
           ),
         );
       }
+    }
+  });
+
+  test('every household has two living biological parents, no backgrounds',
+      () {
+    for (var seed = 0; seed < 300; seed++) {
+      final household = generate(seed: seed);
+      final roles = household.parents.map((p) => p.role).toList();
+
+      expect(roles, [FamilyRole.father, FamilyRole.mother],
+          reason: 'seed $seed');
+      expect(household.parents.every((p) => p.isAlive), isTrue);
+      expect(household.isAffairConception, isFalse);
+      expect(household.raisedByFather, isFalse);
     }
   });
 

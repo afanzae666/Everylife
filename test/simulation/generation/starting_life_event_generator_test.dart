@@ -4,7 +4,6 @@ import 'package:everylife/core/money/money.dart';
 import 'package:everylife/core/random/seeded_random.dart';
 import 'package:everylife/domain/character/gender.dart';
 import 'package:everylife/domain/character/character.dart';
-import 'package:everylife/domain/character/starting_background.dart';
 import 'package:everylife/domain/event/simulation_event.dart';
 import 'package:everylife/domain/family/family_household.dart';
 import 'package:everylife/domain/family/parent_npc.dart';
@@ -57,9 +56,6 @@ void main() {
       StartingLifeEventGenerator.generate(
         random: SeededRandom(123),
         year: 2026,
-        background: const StartingBackground(
-          tier: StartingBackgroundTier.middleClass,
-        ),
         household: family,
       );
 
@@ -213,9 +209,6 @@ void main() {
       final events = StartingLifeEventGenerator.generate(
         random: SeededRandom(123),
         year: 2026,
-        background: const StartingBackground(
-          tier: StartingBackgroundTier.middleClass,
-        ),
         household: household(const [father, mother]),
         player: player,
       );
