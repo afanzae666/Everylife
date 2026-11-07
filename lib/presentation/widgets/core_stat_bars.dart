@@ -37,7 +37,7 @@ class CoreStatBars extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: s(10), vertical: s(8)),
+        padding: EdgeInsets.symmetric(horizontal: s(8), vertical: s(6)),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -45,16 +45,16 @@ class CoreStatBars extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 cell(CoreStatKind.happiness, stats.happiness, 'happiness'),
-                SizedBox(width: s(14)),
+                SizedBox(width: s(8)),
                 cell(CoreStatKind.health, stats.health, 'health'),
               ],
             ),
-            SizedBox(height: s(8)),
+            SizedBox(height: s(6)),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 cell(CoreStatKind.smarts, stats.intelligence, 'intelligence'),
-                SizedBox(width: s(14)),
+                SizedBox(width: s(8)),
                 cell(CoreStatKind.looks, stats.looks, 'looks'),
               ],
             ),
@@ -84,55 +84,63 @@ class _StatBarCell extends StatelessWidget {
     final theme = Theme.of(context);
     final percent = value.clamp(0, 100).toInt();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            StatIcon(kind: kind, value: percent, size: s(24)),
-            SizedBox(width: s(6)),
-            Expanded(
-              child: Text(
-                kind.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: kind.color,
-                  fontWeight: FontWeight.w700,
+    return Container(
+      padding: EdgeInsets.fromLTRB(s(7), s(5), s(7), s(6)),
+      decoration: BoxDecoration(
+        color: kind.color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(s(10)),
+        border: Border.all(color: kind.color.withValues(alpha: 0.65), width: 1.3),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              StatIcon(kind: kind, value: percent, size: s(24)),
+              SizedBox(width: s(6)),
+              Expanded(
+                child: Text(
+                  kind.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.6,
+                  ),
                 ),
               ),
-            ),
-            Text(
-              '$percent%',
-              maxLines: 1,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w700,
+              Text(
+                '$percent%',
+                maxLines: 1,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: kind.color,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: s(4)),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(s(6)),
+            child: SizedBox(
+              height: s(9),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(end: percent / 100),
+                duration: const Duration(milliseconds: 450),
+                curve: Curves.easeOutCubic,
+                builder: (context, fraction, _) {
+                  return LinearProgressIndicator(
+                    value: fraction,
+                    minHeight: s(9),
+                    color: kind.color,
+                    backgroundColor: kind.color.withValues(alpha: 0.18),
+                  );
+                },
               ),
             ),
-          ],
-        ),
-        SizedBox(height: s(4)),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(s(6)),
-          child: SizedBox(
-            height: s(9),
-            child: TweenAnimationBuilder<double>(
-              tween: Tween<double>(end: percent / 100),
-              duration: const Duration(milliseconds: 450),
-              curve: Curves.easeOutCubic,
-              builder: (context, fraction, _) {
-                return LinearProgressIndicator(
-                  value: fraction,
-                  minHeight: s(9),
-                  color: kind.color,
-                  backgroundColor:
-                      theme.colorScheme.onSurface.withValues(alpha: 0.12),
-                );
-              },
-            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -13,10 +13,10 @@ extension CoreStatKindStyle on CoreStatKind {
 
   /// The color of the label and the bar.
   Color get color => switch (this) {
-        CoreStatKind.happiness => const Color(0xFFFFC42E),
-        CoreStatKind.health => const Color(0xFF2ED8A3),
-        CoreStatKind.smarts => const Color(0xFF22D3EE),
-        CoreStatKind.looks => const Color(0xFFF472B6),
+        CoreStatKind.happiness => const Color(0xFFF59E0B),
+        CoreStatKind.health => const Color(0xFF34C77B),
+        CoreStatKind.smarts => const Color(0xFF5B8DEF),
+        CoreStatKind.looks => const Color(0xFFE879A9),
       };
 }
 
