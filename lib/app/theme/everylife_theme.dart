@@ -134,10 +134,8 @@ abstract final class EveryLifeTheme {
     );
 
     final inputBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(
-        EveryLifeDimensions.radiusSmall,
-      ),
-      borderSide: BorderSide(color: border),
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: primary.withValues(alpha: 0.55)),
     );
 
     return ThemeData(
@@ -156,6 +154,19 @@ abstract final class EveryLifeTheme {
         titleTextStyle: textTheme.titleLarge?.copyWith(
           fontSize: 19.8,
           fontWeight: FontWeight.w700,
+          color: text,
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: primary, width: 2),
+        ),
+        titleTextStyle: textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.4,
           color: text,
         ),
       ),
