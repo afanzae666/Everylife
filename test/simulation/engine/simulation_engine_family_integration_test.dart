@@ -242,10 +242,14 @@ void main() {
 
     for (var i = 0; i < before.length; i++) {
       if (before[i].isAlive) {
+        // Parents with no recorded expenses are assumed to spend 70% of
+        // their income.
+        final income = before[i].annualIncome.minorUnits;
+        final expenses = before[i].annualExpenses.minorUnits > 0
+            ? before[i].annualExpenses.minorUnits
+            : income * 70 ~/ 100;
         final expectedBalance =
-            before[i].cashBalance.minorUnits +
-                before[i].annualIncome.minorUnits -
-                before[i].annualExpenses.minorUnits;
+            before[i].cashBalance.minorUnits + income - expenses;
 
         expect(
           after[i].cashBalance.minorUnits,
