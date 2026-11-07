@@ -8,7 +8,8 @@ import '../widgets/animated_dialog.dart';
 import '../widgets/game_bar.dart';
 import '../widgets/id_card_frame.dart';
 import '../widgets/life_labels.dart' show countryFlag;
-import '../widgets/journal_card.dart';
+import '../widgets/modal_cards.dart';
+import '../widgets/page_top_bar.dart';
 
 class NpcInteractionScreen extends StatefulWidget {
   const NpcInteractionScreen({
@@ -26,6 +27,8 @@ class NpcInteractionScreen extends StatefulWidget {
     this.details = const <MapEntry<String, String>>[],
     this.netWorth,
     this.countryCode,
+    this.zoom = 1,
+    this.headerBuilder,
     super.key,
   });
 
@@ -53,6 +56,10 @@ class NpcInteractionScreen extends StatefulWidget {
   /// Country of the NPC; its flag is shown next to the name.
   final String? countryCode;
 
+  /// UI scale and the player's character card shown at the top of the page.
+  final double zoom;
+  final WidgetBuilder? headerBuilder;
+
   @override
   State<NpcInteractionScreen> createState() => _NpcInteractionScreenState();
 }
@@ -73,13 +80,21 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
           if (action == 'Apologize') _hadArgument = false;
           _showingNarrative = true;
         });
-        _showNarrative(value.narrative, progressed: value.progressed);
+        _showNarrative(
+          value.narrative,
+          progressed: value.progressed,
+          action: action,
+        );
       case Failure<NpcInteractionOutcome>(:final message):
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
-  Future<void> _showNarrative(String narrative, {bool progressed = true}) async {
+  Future<void> _showNarrative(
+    String narrative, {
+    bool progressed = true,
+    String action = '',
+  }) async {
     await showGeneralDialog<void>(
       context: context,
       barrierDismissible: true,
@@ -92,8 +107,8 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
         onTap: () => Navigator.of(dialogContext).pop(),
         child: Material(
           color: Colors.transparent,
-          child: JournalCard(
-            title: 'Dear Diary,',
+          child: InteractionCard(
+            emoji: _actionInfo[action]?.$1 ?? '💬',
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -109,7 +124,11 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                   ),
                 ],
                 const SizedBox(height: 14),
-                const Text('Tap anywhere to close', textAlign: TextAlign.center),
+                Text(
+                  'Tap anywhere to close',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             ),
           ),
@@ -118,6 +137,15 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
     );
     if (mounted) setState(() => _showingNarrative = false);
   }
+
+  static const Map<String, (String, String)> _actionInfo = {
+    'Talk': ('💬', 'Have a chat'),
+    'Spend Time': ('🎈', 'Do something together'),
+    'Compliment': ('💐', 'Say something kind'),
+    'Help': ('🤝', 'Lend a hand'),
+    'Argue': ('💢', 'Start a fight'),
+    'Apologize': ('🙏', 'Make things right'),
+  };
 
   static String _bondLabel(int score) {
     if (score >= 75) return 'Very close';
@@ -279,17 +307,18 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
   @override
   Widget build(BuildContext context) {
     final score = _score.clamp(-100, 100).toInt();
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.of(context).maybePop()),
-        title: Text(
-          widget.relationship.toUpperCase(),
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-        ),
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: TextScaler.linear(widget.zoom),
       ),
-      body: ListView(
+      child: Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              if (widget.headerBuilder != null) widget.headerBuilder!(context),
+              PageTopBar(title: widget.relationship, zoom: widget.zoom),
+              Expanded(
+                child: ListView(
         padding: EdgeInsets.zero,
         children: [
           Card(
@@ -363,6 +392,8 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                     if (i > 0) const Divider(height: 1),
                     _ActionRow(
                       title: _availableActions[i],
+                      emoji: _actionInfo[_availableActions[i]]?.$1 ?? '💬',
+                      description: _actionInfo[_availableActions[i]]?.$2 ?? '',
                       onPressed: widget.isAlive
                           ? () => _interact(_availableActions[i])
                           : null,
@@ -372,6 +403,8 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                     const Divider(height: 1),
                     _ActionRow(
                       title: 'Apologize',
+                      emoji: _actionInfo['Apologize']!.$1,
+                      description: _actionInfo['Apologize']!.$2,
                       onPressed:
                           widget.isAlive ? () => _interact('Apologize') : null,
                     ),
@@ -381,19 +414,34 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
             ),
           ],
         ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 }
 
 class _ActionRow extends StatelessWidget {
-  const _ActionRow({required this.title, required this.onPressed});
+  const _ActionRow({
+    required this.title,
+    required this.emoji,
+    required this.description,
+    required this.onPressed,
+  });
+
   final String title;
+  final String emoji;
+  final String description;
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) => ListTile(
+        leading: Text(emoji, style: const TextStyle(fontSize: 28)),
         title: Text(title),
+        subtitle: Text(description),
         trailing: const Text('•••'),
         onTap: onPressed,
         enabled: onPressed != null,

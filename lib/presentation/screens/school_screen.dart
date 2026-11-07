@@ -558,6 +558,8 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
                 npc.countryCode,
               ),
               countryCode: npc.countryCode,
+              zoom: widget.zoom,
+              headerBuilder: widget.headerBuilder,
               details: [
                 MapEntry('Gender', npc.gender.name == 'male' ? 'Male' : 'Female'),
                 MapEntry('Occupation', _occupationOf(npc)),

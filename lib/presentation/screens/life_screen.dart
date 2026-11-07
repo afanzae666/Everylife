@@ -72,6 +72,12 @@ List<MapEntry<String, String>> _siblingDetailList(
 }
 
 /// "Deceased · age 63". Years are never shown, only the age at death.
+String _passedAwayLabel(int birthYear, int? deathYear) {
+  if (deathYear == null) return '🕊️ Passed away';
+
+  return '🕊️ Passed away at age ${(deathYear - birthYear).clamp(0, 150)}';
+}
+
 String _deceasedLabel(int birthYear, int? deathYear) {
   if (deathYear == null) return 'Deceased';
 
@@ -186,6 +192,7 @@ class _LifeScreenState extends State<LifeScreen> {
                                     zoom: zoom,
                                     onNpcInteraction: onNpcInteraction,
                                     onInteractionPageClosed: _refreshNpcData,
+                                    headerBuilder: widget.headerBuilder,
                                   ),
                               ],
                             ),
@@ -206,6 +213,7 @@ class _LifeScreenState extends State<LifeScreen> {
                                     zoom: zoom,
                                     onNpcInteraction: onNpcInteraction,
                                     onInteractionPageClosed: _refreshNpcData,
+                                    headerBuilder: widget.headerBuilder,
                                   ),
                               ],
                             ),
@@ -287,9 +295,11 @@ class _ParentNpcCard extends StatelessWidget {
     required this.zoom,
     required this.onNpcInteraction,
     required this.onInteractionPageClosed,
+    this.headerBuilder,
     super.key,
   });
 
+  final WidgetBuilder? headerBuilder;
   final VoidCallback onInteractionPageClosed;
   final ParentNpc parent;
   final int playerBirthYear;
@@ -332,6 +342,8 @@ class _ParentNpcCard extends StatelessWidget {
                 parent.countryCode,
               ),
               countryCode: parent.countryCode,
+              zoom: zoom,
+              headerBuilder: headerBuilder,
               avatar: _ParentAvatar(
                 parent: parent,
                 currentYear: currentYear,
@@ -383,9 +395,9 @@ class _ParentNpcCard extends StatelessWidget {
                   if (!parent.isAlive) ...[
                     SizedBox(height: s(2)),
                     Text(
-                      _deceasedLabel(parent.birthYear, parent.deathYear),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                      _passedAwayLabel(parent.birthYear, parent.deathYear),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -399,17 +411,7 @@ class _ParentNpcCard extends StatelessWidget {
       ),
     );
 
-    if (parent.isAlive) return card;
-
-    return ColorFiltered(
-      colorFilter: const ColorFilter.matrix(<double>[
-        0.2126, 0.7152, 0.0722, 0, 18,
-        0.2126, 0.7152, 0.0722, 0, 18,
-        0.2126, 0.7152, 0.0722, 0, 18,
-        0, 0, 0, 1, 0,
-      ]),
-      child: card,
-    );
+    return parent.isAlive ? card : Opacity(opacity: 0.55, child: card);
   }
 
   String _relationshipLabel(FamilyRole role) {
@@ -436,9 +438,11 @@ class _SiblingNpcCard extends StatelessWidget {
     required this.zoom,
     required this.onNpcInteraction,
     required this.onInteractionPageClosed,
+    this.headerBuilder,
     super.key,
   });
 
+  final WidgetBuilder? headerBuilder;
   final VoidCallback onInteractionPageClosed;
   final SiblingNpc sibling;
   final int playerBirthYear;
@@ -493,6 +497,8 @@ class _SiblingNpcCard extends StatelessWidget {
                 sibling.countryCode,
               ),
               countryCode: sibling.countryCode,
+              zoom: zoom,
+              headerBuilder: headerBuilder,
               avatar: SizedBox(
                 width: 112,
                 height: 140,
@@ -608,8 +614,10 @@ class _SiblingNpcCard extends StatelessWidget {
                   if (!sibling.isAlive) ...[
                     SizedBox(height: s(2)),
                     Text(
-                      _deceasedLabel(sibling.birthYear, sibling.deathYear),
-                      style: theme.textTheme.bodySmall,
+                      _passedAwayLabel(sibling.birthYear, sibling.deathYear),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ],
@@ -622,16 +630,7 @@ class _SiblingNpcCard extends StatelessWidget {
       ),
     );
 
-    if (sibling.isAlive) return card;
-    return ColorFiltered(
-      colorFilter: const ColorFilter.matrix(<double>[
-        0.2126, 0.7152, 0.0722, 0, 18,
-        0.2126, 0.7152, 0.0722, 0, 18,
-        0.2126, 0.7152, 0.0722, 0, 18,
-        0, 0, 0, 1, 0,
-      ]),
-      child: card,
-    );
+    return sibling.isAlive ? card : Opacity(opacity: 0.55, child: card);
   }
 }
 
