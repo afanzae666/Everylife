@@ -8,7 +8,6 @@ import 'package:everylife/data/storage/json_save_storage.dart';
 import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/character/character_stats.dart';
 import 'package:everylife/domain/character/gender.dart';
-import 'package:everylife/domain/character/starting_background.dart';
 import 'package:everylife/domain/family/family_asset.dart';
 import 'package:everylife/domain/family/family_household.dart';
 import 'package:everylife/domain/family/parent_npc.dart';
@@ -95,9 +94,6 @@ void main() {
             money: const Money.zero(),
           ),
           events: const [],
-          startingBackground: const StartingBackground(
-            tier: StartingBackgroundTier.workingClass,
-          ),
           familyHousehold: household,
         );
 
@@ -187,10 +183,6 @@ void main() {
         expect(business.value, const Money.fromMinorUnits(3500000));
         expect(business.ownerNpcId, 'mother-save-load');
 
-        expect(
-          restoredState.startingBackground?.tier,
-          StartingBackgroundTier.workingClass,
-        );
         expect(restoredState.player.id, original.player.id);
         expect(
           restoredState.clock.currentYear,
