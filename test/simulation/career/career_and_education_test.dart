@@ -124,7 +124,12 @@ void main() {
     final engine = _newEngine(11);
     final random = Random(5);
 
-    while (engine.state.player.ageAt(engine.state.clock.currentYear) < 17) {
+    // Students cannot apply for jobs, so wait until school is over.
+    while (engine.state.player.ageAt(engine.state.clock.currentYear) < 17 ||
+        engine.availableJobs.isEmpty) {
+      if (engine.state.player.ageAt(engine.state.clock.currentYear) > 40) {
+        return;
+      }
       if (!_playYear(engine, random)) return;
     }
 
