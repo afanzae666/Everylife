@@ -4,6 +4,7 @@ import '../../core/result/result.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
 import '../../domain/character/life_stage.dart';
 import '../widgets/info_line.dart';
+import '../widgets/themed_cards.dart';
 import '../widgets/animated_dialog.dart';
 import '../widgets/game_bar.dart';
 import '../widgets/id_card_frame.dart';
@@ -108,6 +109,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
         child: Material(
           color: Colors.transparent,
           child: InteractionCard(
+            avatar: widget.avatar,
             emoji: _actionInfo[action]?.$1 ?? '💬',
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -178,31 +180,9 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'WEALTH',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: scheme.primary,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.6,
-                    ),
-                  ),
+                  const SectionTitle('WEALTH'),
                   const SizedBox(height: 3),
-                  Center(
-                    child: Column(
-                      children: [
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            widget.netWorth!,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                        Text('Net Worth', style: theme.textTheme.bodySmall),
-                      ],
-                    ),
-                  ),
+                  WealthPanel(label: 'Net Worth', value: widget.netWorth!),
                 ],
               )
             : null,
@@ -269,17 +249,13 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                         value: score.abs() / 100,
                       ),
                       const SizedBox(height: 6),
-                      Text(
-                        'Basic Information',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: scheme.primary,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.6,
-                        ),
-                      ),
-                      if (age != null) InfoLine(label: 'Age', value: '$age'),
-                      for (final entry in widget.details)
-                        InfoLine(label: entry.key, value: entry.value),
+                      const SectionTitle('Basic Information'),
+                      const SizedBox(height: 2),
+                      ...withThinLines(context, [
+                        if (age != null) InfoLine(label: 'Age', value: '$age'),
+                        for (final entry in widget.details)
+                          InfoLine(label: entry.key, value: entry.value),
+                      ]),
                       if (widget.subtitle != null && widget.details.isEmpty)
                         Text(widget.subtitle!),
                     ],
@@ -321,16 +297,8 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                 child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          Card(
-            margin: EdgeInsets.zero,
-            elevation: 0,
-            color: Theme.of(context).colorScheme.surface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.zero,
-              side: BorderSide(
-                color: Theme.of(context).dividerColor.withValues(alpha: 0.55),
-              ),
-            ),
+          AccentCard(
+            zoom: widget.zoom,
             child: InkWell(
               onTap: widget.isAlive ? _showDetails : null,
               child: Padding(
@@ -357,7 +325,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                         Text('Relationship · $score%'),
                       ],
                     )),
-                    IconButton(onPressed: widget.isAlive ? _showDetails : null, icon: const Text('•••')),
+                    ChevronBadge(zoom: widget.zoom),
                   ],
                 ),
               ),
@@ -365,31 +333,15 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
           ),
           if (_availableActions.isNotEmpty) ...[
             Padding(
-              padding: const EdgeInsets.all(8),
-              child: Center(
-                child: Text(
-                  'INTERACTIONS',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.8,
-                      ),
-                ),
-              ),
+              padding: const EdgeInsets.only(top: 6),
+              child: SectionDivider(title: 'INTERACTIONS', zoom: widget.zoom),
             ),
-            Card(
-              margin: EdgeInsets.zero,
-              elevation: 0,
-              color: Theme.of(context).colorScheme.surface,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.zero,
-                side: BorderSide(
-                  color: Theme.of(context).dividerColor.withValues(alpha: 0.55),
-                ),
-              ),
+            AccentCard(
+              zoom: widget.zoom,
               child: Column(
                 children: [
                   for (var i = 0; i < _availableActions.length; i++) ...[
-                    if (i > 0) const Divider(height: 1),
+                    if (i > 0) const _ThinLine(),
                     _ActionRow(
                       title: _availableActions[i],
                       emoji: _actionInfo[_availableActions[i]]?.$1 ?? '💬',
@@ -400,7 +352,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                     ),
                   ],
                   if (_hadArgument && widget.playerAge >= 13) ...[
-                    const Divider(height: 1),
+                    const _ThinLine(),
                     _ActionRow(
                       title: 'Apologize',
                       emoji: _actionInfo['Apologize']!.$1,
@@ -438,12 +390,60 @@ class _ActionRow extends StatelessWidget {
   final VoidCallback? onPressed;
 
   @override
-  Widget build(BuildContext context) => ListTile(
-        leading: Text(emoji, style: const TextStyle(fontSize: 28)),
-        title: Text(title),
-        subtitle: Text(description),
-        trailing: const Text('•••'),
-        onTap: onPressed,
-        enabled: onPressed != null,
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+
+    return InkWell(
+      onTap: onPressed,
+      child: Opacity(
+        opacity: onPressed == null ? 0.45 : 1,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: primary, width: 1.5),
+                ),
+                child: Text(emoji, style: const TextStyle(fontSize: 24)),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(description, style: theme.textTheme.bodySmall),
+                  ],
+                ),
+              ),
+              const ChevronBadge(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ThinLine extends StatelessWidget {
+  const _ThinLine();
+
+  @override
+  Widget build(BuildContext context) => Container(
+        height: 1,
+        margin: const EdgeInsets.symmetric(horizontal: 10),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.18),
       );
 }

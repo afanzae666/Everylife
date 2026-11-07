@@ -2,6 +2,8 @@ import 'package:everylife/core/money/game_currency.dart';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+
+import '../widgets/themed_cards.dart';
 import 'package:flutter/services.dart';
 
 import '../../data/services/character_palette_service.dart';
@@ -1042,14 +1044,41 @@ final double previewContainerSize =
           ? null
           : AppBar(
               automaticallyImplyLeading: false,
+              centerTitle: true,
               leading: widget.onCancel == null
                   ? null
-                  : IconButton(
-                      tooltip: 'Back',
-                      onPressed: widget.onCancel,
-                      icon: const Icon(Icons.arrow_back),
+                  : Center(
+                      child: InkResponse(
+                        onTap: widget.onCancel,
+                        child: Container(
+                          width: s(28),
+                          height: s(28),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.close,
+                            size: s(17),
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                     ),
-              title: const Text('Create Character'),
+              title: Text(
+                'Create Character',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                    ),
+              ),
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(2),
+                child: Container(
+                  height: 2,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
             ),
       
       body: SafeArea(
@@ -1090,26 +1119,9 @@ final double previewContainerSize =
                       final double sectionGap =
                           compact ? s(1) : s(2);
 
-                      final double buttonVerticalPadding =
-                          compact ? s(2) : s(8);
-
-                      final ButtonStyle buttonStyle =
-                          TextButton.styleFrom(
-                        minimumSize:
-                            const Size(0, 0),
-                        padding:
-                            EdgeInsets.symmetric(
-                          horizontal: s(8),
-                          vertical:
-                              buttonVerticalPadding,
-                        ),
-                        tapTargetSize:
-                            MaterialTapTargetSize
-                                .shrinkWrap,
-                      );
-                      
                       return Column(
                         children: [
+                          SectionDivider(title: 'NEW LIFE', zoom: zoom),
                           if (widget.isOverlay &&
                               widget.onCancel != null)
                             Align(
@@ -1139,32 +1151,28 @@ final double previewContainerSize =
                           SizedBox(
                             height: sectionGap,
                           ),
-                          TextButton.icon(
-                            style: buttonStyle,
-                            onPressed:
-                                _showAppearanceDialog,
-                            icon: Icon(
-                              Icons.tune,
-                              size: s(17),
-                            ),
-                            label: const Text(
-                              'Customize Appearance',
-                            ),
-                          ),
-                          SizedBox(
-                            height: sectionGap,
-                          ),
-                          TextButton.icon(
-                            style: buttonStyle,
-                            onPressed:
-                                _randomizeAppearance,
-                            icon: Icon(
-                              Icons.casino_outlined,
-                              size: s(17),
-                            ),
-                            label: const Text(
-                              'Random Appearance',
-                            ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _CreationPillButton(
+                                  zoom: zoom,
+                                  compact: compact,
+                                  icon: Icons.tune,
+                                  label: 'Customize Appearance',
+                                  onPressed: _showAppearanceDialog,
+                                ),
+                              ),
+                              SizedBox(width: s(6)),
+                              Expanded(
+                                child: _CreationPillButton(
+                                  zoom: zoom,
+                                  compact: compact,
+                                  icon: Icons.casino_outlined,
+                                  label: 'Random Appearance',
+                                  onPressed: _randomizeAppearance,
+                                ),
+                              ),
+                            ],
                           ),
                           SizedBox(
                             height:
@@ -1193,7 +1201,25 @@ final double previewContainerSize =
               SizedBox(
                 width: double.infinity,
                 height: s(46),
-                child: FilledButton.icon(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(s(14)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color.alphaBlend(
+                          Colors.black.withValues(alpha: 0.35),
+                          Theme.of(context).colorScheme.primary,
+                        ),
+                        offset: Offset(0, s(3)),
+                      ),
+                    ],
+                  ),
+                  child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(s(14)),
+                    ),
+                  ),
                   onPressed:
                       _createCharacter,
                   icon: Icon(
@@ -1203,6 +1229,7 @@ final double previewContainerSize =
                   label: const Text(
                     'BEGIN LIFE',
                   ),
+                ),
                 ),
               ),
             ],
@@ -2717,15 +2744,18 @@ class _ResponsiveCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      child: Card(
-        color: isOverlay
-            ? Theme.of(context)
-                .colorScheme
-                .surface
-                .withValues(alpha: 0.92)
-            : null,
-        surfaceTintColor: Colors.transparent,
-        margin: EdgeInsets.zero,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isOverlay
+              ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.92)
+              : Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.primary,
+            width: 2,
+          ),
+        ),
+        clipBehavior: Clip.antiAlias,
         child: Padding(
           padding: padding,
           child: child,
@@ -2735,3 +2765,51 @@ class _ResponsiveCard extends StatelessWidget {
   }
 }
 
+
+/// A rounded green-outlined button used for the two appearance actions.
+class _CreationPillButton extends StatelessWidget {
+  const _CreationPillButton({
+    required this.zoom,
+    required this.compact,
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final double zoom;
+  final bool compact;
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: EdgeInsets.symmetric(
+          horizontal: zoom * 6,
+          vertical: compact ? zoom * 3 : zoom * 8,
+        ),
+        side: BorderSide(color: primary, width: 1.5),
+        shape: const StadiumBorder(),
+        backgroundColor: primary.withValues(alpha: 0.08),
+      ),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: zoom * 16),
+            SizedBox(width: zoom * 4),
+            Text(label, maxLines: 1),
+          ],
+        ),
+      ),
+    );
+  }
+}

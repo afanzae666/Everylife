@@ -153,8 +153,11 @@ class _GameScreenState extends State<GameScreen> {
 
         if (progress.ending != null) {
           final player = engine.state.player;
+          final dialogAvatar = await _dialogAvatar();
+          if (!mounted) return;
           final startNew = await showLifeEndedDialog(
             context,
+            avatar: dialogAvatar,
             name: player.fullName,
             ending: progress.ending!,
             netWorthText: _formatMoney(
@@ -183,8 +186,12 @@ class _GameScreenState extends State<GameScreen> {
           continue;
         }
 
+        final dialogAvatar = await _dialogAvatar();
+        if (!mounted) return;
+
         final choiceId = await showLifeDecisionDialog(
           context,
+          avatar: dialogAvatar,
           event: event,
           description: engine.pendingDescription,
           canAfford: engine.canAffordChoice,
@@ -206,7 +213,7 @@ class _GameScreenState extends State<GameScreen> {
         _scrollLifeEventsToBottom();
 
         if (result case Success<LifeChoiceResult>(:final value)) {
-          await showLifeResultDialog(context, value);
+          await showLifeResultDialog(context, value, avatar: dialogAvatar);
         }
 
         if (!mounted) {
@@ -1249,6 +1256,31 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  /// The player's avatar for event overlays, or null while it cannot be
+  /// built (the overlay then falls back to its emoji).
+  Future<Widget?> _dialogAvatar() async {
+    try {
+      final palette = await _characterPaletteFuture;
+      final player = engine.state.player;
+      final skin = palette.skinColor(player.appearance.skinTone);
+      final eyes = palette.eyeColor(player.appearance.eyeColor);
+      final hair = palette.hairColor(player.appearance.hairColor);
+
+      if (skin == null || eyes == null || hair == null) return null;
+
+      return CharacterAvatar(
+        character: player,
+        currentYear: engine.state.clock.currentYear,
+        size: 112,
+        skinColor: skin,
+        eyeColor: eyes,
+        hairColor: hair,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   Widget _buildBottomNavigation(
     BuildContext context,
     double zoom,
@@ -1508,8 +1540,8 @@ class _BottomNavigation
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
-                border: Border(
-                  top: BorderSide(
+                border: Border.symmetric(
+                  horizontal: BorderSide(
                     color: theme.colorScheme.primary,
                     width: 2,
                   ),
@@ -1558,7 +1590,7 @@ class _BottomNavigation
   }
 }
 
-class _AgeUpButton extends StatelessWidget {
+class _AgeUpButton extends StatefulWidget {
   const _AgeUpButton({
     required this.zoom,
     required this.enabled,
@@ -1570,41 +1602,103 @@ class _AgeUpButton extends StatelessWidget {
   final Future<void> Function() onTap;
 
   @override
+  State<_AgeUpButton> createState() => _AgeUpButtonState();
+}
+
+class _AgeUpButtonState extends State<_AgeUpButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 700),
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleTap() async {
+    // The button pops, its ring spins, and a wave spreads from it.
+    _controller.forward(from: 0);
+    await widget.onTap();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    double s(double value) => value * zoom;
+    double s(double value) => value * widget.zoom;
 
     final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+
+    final pop = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.88), weight: 20),
+      TweenSequenceItem(tween: Tween(begin: 0.88, end: 1.08), weight: 35),
+      TweenSequenceItem(tween: Tween(begin: 1.08, end: 1.0), weight: 45),
+    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     return Material(
       key: const Key('bottom-nav-age-up'),
       color: Colors.transparent,
-      child: InkWell(
-        onTap: enabled
-            ? () async {
-                await onTap();
-              }
-            : null,
-        customBorder: const CircleBorder(),
-        child: Opacity(
-          opacity: enabled ? 1.0 : 0.38,
-          child: Container(
-            width: s(94),
-            height: s(94),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.18),
-                  blurRadius: s(5),
-                  offset: Offset(0, s(3)),
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          final t = _controller.value;
+          final spin = Curves.easeOutCubic.transform(t) * 2 * math.pi;
+
+          return Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              // The wave: a green ring that grows and fades out.
+              if (_controller.isAnimating)
+                IgnorePointer(
+                  child: Opacity(
+                    opacity: (1 - t).clamp(0.0, 1.0),
+                    child: Transform.scale(
+                      scale: 1 + t * 0.55,
+                      child: Container(
+                        width: s(94),
+                        height: s(94),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: primary, width: 3),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              ],
-            ),
-            child: CustomPaint(
-              painter: _AgeUpPainter(
-                color: theme.colorScheme.primary,
-                background: theme.colorScheme.surface,
+              Transform.scale(
+                scale: pop.value,
+                child: Transform.rotate(angle: spin, child: child),
+              ),
+            ],
+          );
+        },
+        child: InkWell(
+          onTap: widget.enabled ? _handleTap : null,
+          customBorder: const CircleBorder(),
+          child: Opacity(
+            opacity: widget.enabled ? 1.0 : 0.38,
+            child: Container(
+              width: s(94),
+              height: s(94),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.18),
+                    blurRadius: s(5),
+                    offset: Offset(0, s(3)),
+                  ),
+                ],
+              ),
+              child: CustomPaint(
+                painter: _AgeUpPainter(
+                  color: primary,
+                  background: theme.colorScheme.surface,
+                ),
               ),
             ),
           ),
