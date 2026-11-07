@@ -1,5 +1,4 @@
 import '../character/character.dart';
-import '../character/starting_background.dart';
 import '../event/life_progress.dart';
 import '../event/simulation_event.dart';
 import '../family/family_household.dart';
@@ -10,7 +9,6 @@ class WorldState {
     required this.clock,
     required this.player,
     required this.events,
-    this.startingBackground,
     this.familyHousehold,
     this.lifeProgress = const LifeProgress(),
   });
@@ -18,7 +16,6 @@ class WorldState {
   final SimulationClock clock;
   final Character player;
   final List<SimulationEvent> events;
-  final StartingBackground? startingBackground;
   final FamilyHousehold? familyHousehold;
 
   /// Story flags, event history, pending decision, and the ending.
@@ -28,7 +25,6 @@ class WorldState {
     SimulationClock? clock,
     Character? player,
     List<SimulationEvent>? events,
-    StartingBackground? startingBackground,
     FamilyHousehold? familyHousehold,
     LifeProgress? lifeProgress,
   }) {
@@ -38,8 +34,6 @@ class WorldState {
       events: List.unmodifiable(
         events ?? this.events,
       ),
-      startingBackground:
-          startingBackground ?? this.startingBackground,
       familyHousehold:
           familyHousehold ?? this.familyHousehold,
       lifeProgress: lifeProgress ?? this.lifeProgress,
