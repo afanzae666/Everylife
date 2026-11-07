@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../domain/event/life_event.dart';
 import '../../domain/event/life_progress.dart';
 import 'animated_dialog.dart';
-import 'journal_card.dart';
+import 'modal_cards.dart';
 
 /// Shows an event and returns the id of the choice the player picked.
 ///
@@ -25,9 +25,8 @@ Future<String?> showLifeDecisionDialog(
     builder: (dialogContext) {
       return PopScope<String>(
         canPop: false,
-        child: JournalCard(
+        child: EventCard(
           key: const Key('life-decision-dialog'),
-          stamp: 'EVENT',
           title: event.title,
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -39,7 +38,7 @@ Future<String?> showLifeDecisionDialog(
               ),
               const SizedBox(height: 14),
               for (var i = 0; i < event.choices.length; i++) ...[
-                JournalChoice(
+                EventChoiceButton(
                   key: Key('life-choice-${event.choices[i].id}'),
                   text: _choiceText(
                     event.choices[i],
@@ -105,10 +104,9 @@ Future<void> showTapToCloseOverlay(
         onTap: () => Navigator.of(dialogContext).pop(),
         child: Material(
           color: Colors.transparent,
-          child: JournalCard(
+          child: EventCard(
             key: dialogKey,
-            stamp: title == null ? null : 'RESULT',
-            title: title,
+            title: title ?? 'Life Story',
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -143,9 +141,8 @@ Future<bool> showLifeEndedDialog(
     builder: (dialogContext) {
       return PopScope<bool>(
         canPop: false,
-        child: JournalCard(
+        child: EventCard(
           key: const Key('life-ended-dialog'),
-          stamp: 'THE END',
           title: 'Rest in Peace',
           child: Column(
             mainAxisSize: MainAxisSize.min,
