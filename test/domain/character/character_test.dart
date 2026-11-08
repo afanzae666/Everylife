@@ -3,6 +3,7 @@ import 'package:everylife/core/money/money.dart';
 
 import '../../../lib/domain/character/character.dart';
 import '../../../lib/domain/character/character_stats.dart';
+import '../../../lib/domain/character/fertility.dart';
 
 void main() {
   group('Character', () {
@@ -48,7 +49,9 @@ void main() {
 
         expect(
           character.stats,
-          const CharacterStats(),
+          CharacterStats(
+            fertility: Fertility.baselineFor('character-1'),
+          ),
         );
 
         expect(
