@@ -1,8 +1,10 @@
 import '../../core/random/seeded_random.dart';
 import '../../core/result/result.dart';
 import '../../domain/career/education_state.dart';
+import '../../domain/character/character_stats.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/world/world_state.dart';
+import '../narrative/school_narratives.dart';
 import 'career_actions.dart';
 
 /// An after-school club the player can join in middle or high school.
@@ -12,12 +14,24 @@ class ExtracurricularClub {
     required this.name,
     required this.emoji,
     required this.blurb,
+    required this.viceTitle,
+    required this.leadTitle,
   });
 
   final String id;
   final String name;
   final String emoji;
   final String blurb;
+
+  /// What the player is called at rank 1 and rank 2 of this club.
+  final String viceTitle;
+  final String leadTitle;
+
+  String titleFor(int rank) => switch (rank) {
+        2 => leadTitle,
+        1 => viceTitle,
+        _ => 'Member',
+      };
 }
 
 /// What the player can do at school: study harder or join a club.
@@ -28,36 +42,48 @@ abstract final class SchoolActions {
       name: 'Sports Team',
       emoji: '⚽',
       blurb: 'Fitness and happiness',
+      viceTitle: 'Vice Captain',
+      leadTitle: 'Captain',
     ),
     ExtracurricularClub(
       id: 'drama',
       name: 'Drama Club',
       emoji: '🎭',
       blurb: 'Charisma and creativity',
+      viceTitle: 'Assistant Director',
+      leadTitle: 'Drama Director',
     ),
     ExtracurricularClub(
       id: 'debate',
       name: 'Debate Club',
       emoji: '🗣️',
       blurb: 'Smarts and charisma',
+      viceTitle: 'Vice President',
+      leadTitle: 'President',
     ),
     ExtracurricularClub(
       id: 'art',
       name: 'Art Club',
       emoji: '🎨',
       blurb: 'Creativity',
+      viceTitle: 'Vice Curator',
+      leadTitle: 'Head Curator',
     ),
     ExtracurricularClub(
       id: 'music',
       name: 'Music Band',
       emoji: '🎸',
       blurb: 'Creativity and happiness',
+      viceTitle: 'Co-Bandleader',
+      leadTitle: 'Bandleader',
     ),
     ExtracurricularClub(
       id: 'science',
       name: 'Science Club',
       emoji: '🔬',
       blurb: 'Smarts and grades',
+      viceTitle: 'Vice Chair',
+      leadTitle: 'Chair',
     ),
   ];
 
@@ -67,6 +93,34 @@ abstract final class SchoolActions {
     }
 
     return null;
+  }
+
+  static ExtracurricularClub? clubByName(String? name) {
+    for (final club in clubs) {
+      if (club.name == name) return club;
+    }
+
+    return null;
+  }
+
+  /// Club performance needed for each promotion.
+  static const int viceAt = 60;
+  static const int leadAt = 80;
+
+  /// Gives the next rank if the performance is high enough. Sets
+  /// [EducationState.clubPromotion] so the player is told about it once.
+  static EducationState checkPromotion(EducationState education) {
+    if (education.club == null) return education;
+
+    if (education.clubRank == 0 && education.clubPerformance >= viceAt) {
+      return education.copyWith(clubRank: 1, clubPromotion: 1);
+    }
+
+    if (education.clubRank == 1 && education.clubPerformance >= leadAt) {
+      return education.copyWith(clubRank: 2, clubPromotion: 2);
+    }
+
+    return education;
   }
 
   /// Clubs exist for middle school and high school only.
@@ -123,12 +177,7 @@ abstract final class SchoolActions {
 
     final gain = 4 + random.nextInt(5);
     final stats = state.player.stats;
-    final text = switch (random.nextInt(3)) {
-      0 => 'I stayed up late with my notes and finally things started to '
-          'click.',
-      1 => 'I made a study schedule and actually stuck to it this time.',
-      _ => 'I spent my free time in the library, and my grades went up.',
-    };
+    final text = SchoolNarratives.study(random, education.stage);
 
     final next = _log(
       state.copyWith(
@@ -155,6 +204,7 @@ abstract final class SchoolActions {
   static Result<CareerActionResult> joinClub({
     required WorldState state,
     required String clubId,
+    required SeededRandom random,
   }) {
     final guard = _guard(state);
 
@@ -174,6 +224,13 @@ abstract final class SchoolActions {
       return const Failure('That club does not exist.');
     }
 
+    if (education.club != null) {
+      return Failure(
+        'I am already in the ${education.club}. '
+        'I would have to leave it first.',
+      );
+    }
+
     final year = state.clock.currentYear;
 
     if (education.lastClubYear == year) {
@@ -184,7 +241,37 @@ abstract final class SchoolActions {
     }
 
     final stats = state.player.stats;
-    final changed = switch (club.id) {
+    final changed = _clubStats(club.id, stats);
+    final text = SchoolNarratives.join(
+      random,
+      clubId: club.id,
+      clubName: club.name,
+      school: education.schoolName ?? 'school',
+    );
+
+    final next = _log(
+      state.copyWith(
+        player: state.player.copyWith(stats: changed),
+        lifeProgress: state.lifeProgress.copyWith(
+          education: education.copyWith(
+            club: club.name,
+            lastClubYear: year,
+            clubPerformance: 30,
+            clubRank: 0,
+            grades: club.id == 'science' ? education.grades + 3 : null,
+          ),
+        ),
+      ),
+      'I joined a club',
+      text,
+    );
+
+    return Success(CareerActionResult(state: next, message: text));
+  }
+
+  /// Stat changes for joining or practising with a club.
+  static CharacterStats _clubStats(String id, CharacterStats stats) {
+    return switch (id) {
       'sports' => stats.copyWith(
           fitness: stats.fitness + 3,
           happiness: stats.happiness + 2,
@@ -209,22 +296,83 @@ abstract final class SchoolActions {
           intelligence: stats.intelligence + 2,
         ),
     };
+  }
 
-    final text = 'I joined the ${club.name} at '
-        '${education.schoolName ?? 'school'}. ${club.emoji}';
+  /// Practice with the club: raises performance, once per year.
+  static Result<CareerActionResult> trainClub({
+    required WorldState state,
+    required SeededRandom random,
+  }) {
+    final guard = _guard(state);
+
+    if (guard case Failure<void>(:final message)) {
+      return Failure(message);
+    }
+
+    final education = state.lifeProgress.education;
+    final club = clubByName(education.club);
+
+    if (club == null) {
+      return const Failure('I am not in a club.');
+    }
+
+    final year = state.clock.currentYear;
+
+    if (education.lastTrainYear == year) {
+      return const Failure(
+        'I already trained hard this year. '
+        'I need to rest until my next birthday.',
+      );
+    }
+
+    final gain = 8 + random.nextInt(8);
+    final text = SchoolNarratives.train(random, club.id);
+    final stats = _clubStats(club.id, state.player.stats);
+
+    final trained = education.copyWith(
+      clubPerformance: education.clubPerformance + gain,
+      lastTrainYear: year,
+    );
 
     final next = _log(
       state.copyWith(
-        player: state.player.copyWith(stats: changed),
+        player: state.player.copyWith(stats: stats),
         lifeProgress: state.lifeProgress.copyWith(
-          education: education.copyWith(
-            club: club.name,
-            lastClubYear: year,
-            grades: club.id == 'science' ? education.grades + 3 : null,
-          ),
+          education: checkPromotion(trained),
         ),
       ),
-      'I joined a club',
+      'I trained with the ${club.name}',
+      text,
+    );
+
+    return Success(CareerActionResult(state: next, message: text));
+  }
+
+  static Result<CareerActionResult> leaveClub({
+    required WorldState state,
+    required SeededRandom random,
+  }) {
+    final guard = _guard(state);
+
+    if (guard case Failure<void>(:final message)) {
+      return Failure(message);
+    }
+
+    final education = state.lifeProgress.education;
+
+    if (education.club == null) {
+      return const Failure('I am not in a club.');
+    }
+
+    final text = SchoolNarratives.leave(random, education.club!);
+
+    final next = _log(
+      state.copyWith(
+        lifeProgress: state.lifeProgress.copyWith(
+          education: education.copyWith(clearClub: true),
+        ),
+      ),
+      'I left my club',
       text,
     );
 
