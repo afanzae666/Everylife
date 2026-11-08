@@ -43,6 +43,10 @@ class EducationState {
     this.lastStudyYear,
     this.club,
     this.lastClubYear,
+    this.clubPerformance = 0,
+    this.clubRank = 0,
+    this.lastTrainYear,
+    this.clubPromotion,
   });
 
   /// False for lives that have not been processed yet. The first yearly
@@ -76,6 +80,18 @@ class EducationState {
   final String? club;
   final int? lastClubYear;
 
+  /// How well the player does in the club, 0 to 100.
+  final int clubPerformance;
+
+  /// 0 member, 1 vice leader, 2 leader.
+  final int clubRank;
+
+  /// Last year the player trained with the club.
+  final int? lastTrainYear;
+
+  /// A rank (1 or 2) the player just earned and has not been told about yet.
+  final int? clubPromotion;
+
   Iterable<SchoolNpc> get classmates =>
       npcs.where((npc) => npc.role == SchoolRole.classmate);
 
@@ -96,6 +112,11 @@ class EducationState {
     int? lastStudyYear,
     String? club,
     int? lastClubYear,
+    int? clubPerformance,
+    int? clubRank,
+    int? lastTrainYear,
+    int? clubPromotion,
+    bool clearClubPromotion = false,
     bool clearClub = false,
   }) {
     return EducationState(
@@ -112,6 +133,14 @@ class EducationState {
       lastStudyYear: lastStudyYear ?? this.lastStudyYear,
       club: clearClub ? null : (club ?? this.club),
       lastClubYear: lastClubYear ?? this.lastClubYear,
+      clubPerformance: clearClub
+          ? 0
+          : (clubPerformance ?? this.clubPerformance).clamp(0, 100).toInt(),
+      clubRank: clearClub ? 0 : (clubRank ?? this.clubRank),
+      lastTrainYear: lastTrainYear ?? this.lastTrainYear,
+      clubPromotion: clearClub || clearClubPromotion
+          ? null
+          : (clubPromotion ?? this.clubPromotion),
     );
   }
 
@@ -129,6 +158,10 @@ class EducationState {
         if (lastStudyYear != null) 'lastStudyYear': lastStudyYear,
         if (club != null) 'club': club,
         if (lastClubYear != null) 'lastClubYear': lastClubYear,
+        if (club != null) 'clubPerformance': clubPerformance,
+        if (club != null && clubRank != 0) 'clubRank': clubRank,
+        if (lastTrainYear != null) 'lastTrainYear': lastTrainYear,
+        if (clubPromotion != null) 'clubPromotion': clubPromotion,
       };
 
   factory EducationState.fromJson(Object? json) {
@@ -173,6 +206,14 @@ class EducationState {
       lastStudyYear: json['lastStudyYear'] is int ? json['lastStudyYear'] as int : null,
       club: json['club'] is String ? json['club'] as String : null,
       lastClubYear: json['lastClubYear'] is int ? json['lastClubYear'] as int : null,
+      clubPerformance: json['clubPerformance'] is int
+          ? (json['clubPerformance'] as int).clamp(0, 100).toInt()
+          : 0,
+      clubRank: json['clubRank'] is int ? json['clubRank'] as int : 0,
+      lastTrainYear:
+          json['lastTrainYear'] is int ? json['lastTrainYear'] as int : null,
+      clubPromotion:
+          json['clubPromotion'] is int ? json['clubPromotion'] as int : null,
     );
   }
 }
