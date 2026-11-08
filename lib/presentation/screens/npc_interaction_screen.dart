@@ -341,8 +341,8 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
               child: Column(
                 children: [
                   for (var i = 0; i < _availableActions.length; i++) ...[
-                    if (i > 0) const _ThinLine(),
-                    _ActionRow(
+                    if (i > 0) const ThinLine(),
+                    InteractionRow(
                       title: _availableActions[i],
                       emoji: _actionInfo[_availableActions[i]]?.$1 ?? '💬',
                       description: _actionInfo[_availableActions[i]]?.$2 ?? '',
@@ -352,8 +352,8 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                     ),
                   ],
                   if (_hadArgument && widget.playerAge >= 13) ...[
-                    const _ThinLine(),
-                    _ActionRow(
+                    const ThinLine(),
+                    InteractionRow(
                       title: 'Apologize',
                       emoji: _actionInfo['Apologize']!.$1,
                       description: _actionInfo['Apologize']!.$2,
@@ -374,76 +374,4 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
       ),
     );
   }
-}
-
-class _ActionRow extends StatelessWidget {
-  const _ActionRow({
-    required this.title,
-    required this.emoji,
-    required this.description,
-    required this.onPressed,
-  });
-
-  final String title;
-  final String emoji;
-  final String description;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
-
-    return InkWell(
-      onTap: onPressed,
-      child: Opacity(
-        opacity: onPressed == null ? 0.45 : 1,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-          child: Row(
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: primary, width: 1.5),
-                ),
-                child: Text(emoji, style: const TextStyle(fontSize: 24)),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    Text(description, style: theme.textTheme.bodySmall),
-                  ],
-                ),
-              ),
-              const ChevronBadge(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ThinLine extends StatelessWidget {
-  const _ThinLine();
-
-  @override
-  Widget build(BuildContext context) => Container(
-        height: 1,
-        margin: const EdgeInsets.symmetric(horizontal: 10),
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.18),
-      );
 }

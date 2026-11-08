@@ -13,7 +13,10 @@ import '../../domain/world/country_catalog.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
 import '../../domain/event/life_event.dart';
+import '../../domain/family/parent_npc.dart';
+import '../../domain/family/sibling_npc.dart';
 import '../../domain/character/character_stats.dart';
+import '../widgets/person_avatar.dart';
 import '../widgets/themed_app_bar.dart';
 import '../widgets/themed_cards.dart';
 import '../widgets/slide_up_route.dart';
@@ -184,8 +187,11 @@ class _GameScreenState extends State<GameScreen> {
           continue;
         }
 
+        final npcAvatar = _eventNpcAvatar(event);
+
         final choiceId = await showLifeDecisionDialog(
           context,
+          avatar: npcAvatar,
           event: event,
           description: engine.pendingDescription,
           canAfford: engine.canAffordChoice,
@@ -207,7 +213,7 @@ class _GameScreenState extends State<GameScreen> {
         _scrollLifeEventsToBottom();
 
         if (result case Success<LifeChoiceResult>(:final value)) {
-          await showLifeResultDialog(context, value);
+          await showLifeResultDialog(context, value, avatar: npcAvatar);
         }
 
         if (!mounted) {
@@ -1261,6 +1267,61 @@ class _GameScreenState extends State<GameScreen> {
         ],
       ),
     );
+  }
+
+  /// The avatar of the parent or sibling a life event is about, or null
+  /// when the event is not about one (the overlay then shows its icon).
+  Widget? _eventNpcAvatar(LifeEventDefinition event) {
+    final household = engine.state.familyHousehold;
+
+    if (household == null) return null;
+
+    final year = engine.state.clock.currentYear;
+    final npcId = engine.state.lifeProgress.pending?.subjectNpcId;
+
+    Widget? parentAvatar(ParentNpc parent) => PersonAvatar(
+          id: parent.id,
+          firstName: parent.firstName,
+          lastName: parent.lastName,
+          gender: parent.gender,
+          birthYear: parent.birthYear,
+          appearance: parent.appearance,
+          currentYear: parent.isAlive ? year : (parent.deathYear ?? year),
+        );
+
+    Widget? siblingAvatar(SiblingNpc sibling) => PersonAvatar(
+          id: sibling.id,
+          firstName: sibling.firstName,
+          lastName: sibling.lastName,
+          gender: sibling.gender,
+          birthYear: sibling.birthYear,
+          appearance: sibling.appearance,
+          currentYear: year,
+        );
+
+    if (npcId != null) {
+      for (final parent in household.parents) {
+        if (parent.id == npcId) return parentAvatar(parent);
+      }
+      for (final sibling in household.siblings) {
+        if (sibling.id == npcId) return siblingAvatar(sibling);
+      }
+    }
+
+    // Random family events: show the first living parent or sibling.
+    if (event.id.contains('parent')) {
+      for (final parent in household.parents) {
+        if (parent.isAlive) return parentAvatar(parent);
+      }
+    }
+
+    if (event.id.contains('sibling')) {
+      for (final sibling in household.siblings) {
+        if (sibling.isAlive) return siblingAvatar(sibling);
+      }
+    }
+
+    return null;
   }
 
   Widget _buildBottomNavigation(

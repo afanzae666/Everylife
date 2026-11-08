@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
 
-import '../widgets/themed_app_bar.dart';
+import '../widgets/page_top_bar.dart';
 import '../widgets/themed_cards.dart';
 
 enum MenuScreenAction {
@@ -22,13 +22,12 @@ class MenuScreen extends StatelessWidget {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      appBar: ThemedAppBar(
-        title: 'Menu',
-        zoom: zoom,
-        onClose: () => Navigator.of(context).maybePop(),
-      ),
       body: SafeArea(
-        child: ListView(
+        child: Column(
+          children: [
+            PageTopBar(title: 'Menu', zoom: zoom),
+            Expanded(
+              child: ListView(
           padding: EdgeInsets.zero,
           children: [
             _MenuOption(
@@ -63,6 +62,9 @@ class MenuScreen extends StatelessWidget {
                   MenuScreenAction.settings,
                 );
               },
+            ),
+          ],
+        ),
             ),
           ],
         ),

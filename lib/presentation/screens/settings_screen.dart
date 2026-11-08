@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme/everylife_theme_mode_controller.dart';
 import '../widgets/animated_dialog.dart';
-import '../widgets/themed_app_bar.dart';
+import '../widgets/page_top_bar.dart';
 import '../widgets/themed_cards.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -47,12 +47,12 @@ class SettingsScreen extends StatelessWidget {
     double s(double value) => value * zoom;
 
     return Scaffold(
-      appBar: ThemedAppBar(
-        title: 'Settings',
-        zoom: zoom,
-        onClose: () => Navigator.of(context).maybePop(),
-      ),
-      body: ListView(
+      body: SafeArea(
+        child: Column(
+          children: [
+            PageTopBar(title: 'Settings', zoom: zoom),
+            Expanded(
+              child: ListView(
         padding: EdgeInsets.fromLTRB(
           s(8),
           s(6),
@@ -126,6 +126,10 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+            ),
+          ],
+        ),
       ),
     );
   }

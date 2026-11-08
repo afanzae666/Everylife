@@ -12,6 +12,7 @@ import '../../simulation/career/school_actions.dart';
 import '../../simulation/systems/education_system.dart';
 import '../../domain/world/city_catalog.dart';
 import '../../simulation/school/school_appearance.dart';
+import '../widgets/themed_cards.dart';
 import '../widgets/info_line.dart';
 import '../widgets/npc_avatar.dart';
 import 'npc_interaction_screen.dart';
@@ -358,47 +359,14 @@ class _SchoolScreenState extends State<SchoolScreen> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    final theme = Theme.of(context);
-
-    return Card(
+    return AccentCard(
       key: key,
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-        side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.55)),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: EdgeInsets.all(s(6)),
-          child: Row(
-            children: [
-              SizedBox(
-                width: s(34),
-                child: Center(
-                  child: Text(emoji, style: TextStyle(fontSize: s(24))),
-                ),
-              ),
-              SizedBox(width: s(6)),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(subtitle, style: theme.textTheme.bodySmall),
-                  ],
-                ),
-              ),
-              const Icon(Icons.chevron_right),
-            ],
-          ),
-        ),
+      zoom: widget.zoom,
+      child: InteractionRow(
+        emoji: emoji,
+        title: title,
+        description: subtitle,
+        onPressed: onTap,
       ),
     );
   }
@@ -438,6 +406,10 @@ class _SchoolScreenState extends State<SchoolScreen> {
                         zoom: widget.zoom,
                         onTap: _showSchoolInfo,
                         showChevron: false,
+                      ),
+                      SectionDivider(
+                        title: 'ACTIVITIES',
+                        zoom: widget.zoom,
                       ),
                       _activity(
                         key: const Key('activity-study'),
@@ -615,63 +587,66 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
                   padding: EdgeInsets.zero,
                   children: [
                     for (final npc in people)
-                      Card(
+                      AccentCard(
                         key: Key('school-npc-${npc.id}'),
-                        margin: EdgeInsets.zero,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.zero,
-                          side: BorderSide(
-                            color: theme.dividerColor.withValues(alpha: 0.55),
-                          ),
-                        ),
+                        zoom: widget.zoom,
                         child: InkWell(
                           onTap: () => _open(npc),
                           child: Padding(
-                            padding: EdgeInsets.all(s(4)),
+                            padding: EdgeInsets.all(s(3)),
                             child: Row(
                               children: [
-                                SizedBox(
-                                  width: s(44),
-                                  child: Center(
-                                    child: NpcAvatar(
-                                      character:
-                                          SchoolAppearance.characterFor(npc),
-                                      currentYear:
-                                          engine.state.clock.currentYear,
-                                      size: s(40),
-                                    ),
-                                  ),
+                                NpcAvatar(
+                                  character:
+                                      SchoolAppearance.characterFor(npc),
+                                  currentYear: engine.state.clock.currentYear,
+                                  size: s(56),
                                 ),
                                 SizedBox(width: s(6)),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text(
-                                        npc.fullName,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: theme.textTheme.bodyMedium?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                        ),
+                                      Row(
+                                        children: [
+                                          Flexible(
+                                            child: Text(
+                                              npc.fullName,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: theme.textTheme.bodyMedium
+                                                  ?.copyWith(
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(width: s(4)),
+                                          Text(
+                                            '(${npc.role.label.toUpperCase()})',
+                                            style: theme.textTheme.labelSmall
+                                                ?.copyWith(
+                                              color: theme.colorScheme.primary,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      Text(
-                                        npc.role.label,
-                                        style: theme.textTheme.bodySmall,
-                                      ),
-                                      SizedBox(height: s(2)),
+                                      SizedBox(height: s(3)),
                                       GameBar(
-                                        value: npc.relationshipPercent.abs() / 100,
+                                        value:
+                                            npc.relationshipPercent.abs() / 100,
+                                      ),
+                                      SizedBox(height: s(1)),
+                                      Text(
+                                        'Relationship · ${npc.relationshipPercent}%',
+                                        style: theme.textTheme.labelSmall,
                                       ),
                                     ],
                                   ),
                                 ),
-                                SizedBox(width: s(6)),
-                                Text(
-                                  '${npc.relationshipPercent}%',
-                                  style: theme.textTheme.bodySmall,
-                                ),
+                                ChevronBadge(zoom: widget.zoom),
                               ],
                             ),
                           ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../widgets/themed_app_bar.dart';
+import '../widgets/page_top_bar.dart';
 import '../widgets/themed_cards.dart';
 
 import '../../core/money/currency_formatter.dart';
@@ -223,13 +223,12 @@ class _LifeStorageScreenState extends State<LifeStorageScreen> {
         textScaler: TextScaler.linear(zoom),
       ),
       child: Scaffold(
-        appBar: ThemedAppBar(
-          title: 'Life Storage',
-          zoom: zoom,
-          onClose: () => Navigator.of(context).maybePop(),
-        ),
         body: SafeArea(
-          child: _isLoading
+          child: Column(
+            children: [
+              PageTopBar(title: 'Life Storage', zoom: zoom),
+              Expanded(
+                child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : ListView(
                   key: const Key('life-storage-list'),
@@ -253,6 +252,9 @@ class _LifeStorageScreenState extends State<LifeStorageScreen> {
                       _buildSlot(context, slot),
                   ],
                 ),
+              ),
+            ],
+          ),
         ),
       ),
     );

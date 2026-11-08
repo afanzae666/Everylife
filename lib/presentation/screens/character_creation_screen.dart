@@ -494,24 +494,57 @@ _lastNameController.text = randomLastName;
                       ),
                       child: Column(
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Customize Appearance',
-                                  style: Theme.of(
-                                    context,
-                                  )
-                                      .textTheme
-                                      .titleLarge,
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(14, 4, 6, 4),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.primary,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Customize Appearance',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimary,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.8,
+                                        ),
+                                  ),
                                 ),
-                              ),
-                              CloseCircleButton(
-                                onTap: () {
-                                  Navigator.of(dialogContext).pop();
-                                },
-                              ),
-                            ],
+                                Tooltip(
+                                  message: 'Close',
+                                  child: InkResponse(
+                                  onTap: () {
+                                    Navigator.of(dialogContext).pop();
+                                  },
+                                  child: Container(
+                                    width: 26,
+                                    height: 26,
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.close,
+                                      size: 16,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                    ),
+                                  ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           SizedBox(
                             height: headerGap,
@@ -1229,22 +1262,11 @@ final double previewContainerSize =
       width: double.infinity,
       height: height,
       decoration: BoxDecoration(
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withValues(
-              alpha: 0.35,
-            ),
-        borderRadius:
-            BorderRadius.circular(
-          10 * zoom,
-        ),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14 * zoom),
         border: Border.all(
-          color: Theme.of(context)
-              .dividerColor
-              .withValues(
-                alpha: 0.5,
-              ),
+          color: Theme.of(context).colorScheme.primary,
+          width: 2,
         ),
       ),
       child: Center(
@@ -1996,9 +2018,9 @@ Widget fixedImage({
     showAnimatedDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Select Country'),
-          content: SizedBox(
+        return ThemedDialog(
+          title: 'Select Country',
+          child: SizedBox(
             width: 320,
             height: 360,
             child: ListView(
@@ -2006,14 +2028,9 @@ Widget fixedImage({
                 final bool selected =
                     country.code == _countryCode;
 
-                return ListTile(
-                  title: Text(country.name),
-                  subtitle: Text(
-                    GameCurrency.forCountryCurrency(country.currencyCode),
-                  ),
-                  trailing: selected
-                      ? const Icon(Icons.check)
-                      : null,
+                return OptionTile(
+                  title: country.name,
+                  subtitle: GameCurrency.forCountryCurrency(country.currencyCode),
                   selected: selected,
                   onTap: () {
                     final List<City> cities =
@@ -2038,13 +2055,7 @@ Widget fixedImage({
                 );
               }).toList(),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('CLOSE'),
-            ),
-          ],
+          )
         );
       },
     );
@@ -2057,23 +2068,18 @@ Widget fixedImage({
     showAnimatedDialog<void>(
       context: context,
       builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Select City'),
-          content: SizedBox(
+        return ThemedDialog(
+          title: 'Select City',
+          child: SizedBox(
             width: 320,
             height: 360,
             child: ListView(
               children: cities.map((city) {
                 final bool selected = city.id == _cityId;
 
-                return ListTile(
-                  title: Text(city.name),
-                  subtitle: city.isCapital
-                      ? const Text('Capital')
-                      : null,
-                  trailing: selected
-                      ? const Icon(Icons.check)
-                      : null,
+                return OptionTile(
+                  title: city.name,
+                  subtitle: city.isCapital ? 'Capital' : null,
                   selected: selected,
                   onTap: () {
                     setState(() {
@@ -2085,13 +2091,7 @@ Widget fixedImage({
                 );
               }).toList(),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('CLOSE'),
-            ),
-          ],
+          )
         );
       },
     );
@@ -2103,25 +2103,15 @@ Widget fixedImage({
       builder: (
         BuildContext dialogContext,
       ) {
-        return AlertDialog(
-          title: const Text(
-            'Gender',
-          ),
-          content: Column(
+        return ThemedDialog(
+          title: 'Gender',
+          child: Column(
             mainAxisSize:
                 MainAxisSize.min,
             children: [
-              ListTile(
-                leading: Icon(
-                  _gender == Gender.male
-                      ? Icons
-                          .radio_button_checked
-                      : Icons
-                          .radio_button_unchecked,
-                ),
-                title: const Text(
-                  'Male',
-                ),
+              OptionTile(
+                title: 'Male',
+                selected: _gender == Gender.male,
                 onTap: () {
                   setState(() {
                     _gender =
@@ -2148,17 +2138,9 @@ Widget fixedImage({
                   ).pop();
                 },
               ),
-              ListTile(
-                leading: Icon(
-                  _gender == Gender.female
-                      ? Icons
-                          .radio_button_checked
-                      : Icons
-                          .radio_button_unchecked,
-                ),
-                title: const Text(
-                  'Female',
-                ),
+              OptionTile(
+                title: 'Female',
+                selected: _gender == Gender.female,
                 onTap: () {
                   setState(() {
                     _gender =
