@@ -13,9 +13,9 @@ import '../../domain/world/country_catalog.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
 import '../../domain/event/life_event.dart';
-import '../../domain/family/parent_npc.dart';
-import '../../domain/family/sibling_npc.dart';
 import '../../domain/character/character_stats.dart';
+import '../../simulation/school/school_appearance.dart';
+import '../widgets/npc_avatar.dart';
 import '../widgets/person_avatar.dart';
 import '../widgets/themed_app_bar.dart';
 import '../widgets/themed_cards.dart';
@@ -192,6 +192,10 @@ class _GameScreenState extends State<GameScreen> {
         final choiceId = await showLifeDecisionDialog(
           context,
           avatar: npcAvatar,
+          fillText: (text) => LifeText.fillPending(
+            text,
+            engine.state.lifeProgress.pending,
+          ),
           event: event,
           description: engine.pendingDescription,
           canAfford: engine.canAffordChoice,
@@ -573,6 +577,11 @@ class _GameScreenState extends State<GameScreen> {
       context,
       title: player.fullName,
       emoji: '🪪',
+      avatar: NpcAvatar(
+        character: player,
+        currentYear: engine.state.clock.currentYear,
+        size: 64,
+      ),
       text: '',
       body: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1269,17 +1278,33 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  /// The avatar of the parent or sibling a life event is about, or null
-  /// when the event is not about one (the overlay then shows its icon).
+  /// The avatar of the person the pending life event is about (a parent, a
+  /// sibling, a classmate, a teacher, a coworker or a stranger). Null when the
+  /// event is not about anyone: the overlay then shows its usual icon.
   Widget? _eventNpcAvatar(LifeEventDefinition event) {
-    final household = engine.state.familyHousehold;
+    final pending = engine.state.lifeProgress.pending;
 
-    if (household == null) return null;
+    if (pending == null) return null;
 
     final year = engine.state.clock.currentYear;
-    final npcId = engine.state.lifeProgress.pending?.subjectNpcId;
+    final person = pending.subjectPerson;
 
-    Widget? parentAvatar(ParentNpc parent) => PersonAvatar(
+    if (person != null) {
+      return NpcAvatar(
+        character: SchoolAppearance.characterFor(person),
+        currentYear: year,
+        size: 64,
+      );
+    }
+
+    final household = engine.state.familyHousehold;
+    final npcId = pending.subjectNpcId;
+
+    if (household == null || npcId == null) return null;
+
+    for (final parent in household.parents) {
+      if (parent.id == npcId) {
+        return PersonAvatar(
           id: parent.id,
           firstName: parent.firstName,
           lastName: parent.lastName,
@@ -1288,8 +1313,12 @@ class _GameScreenState extends State<GameScreen> {
           appearance: parent.appearance,
           currentYear: parent.isAlive ? year : (parent.deathYear ?? year),
         );
+      }
+    }
 
-    Widget? siblingAvatar(SiblingNpc sibling) => PersonAvatar(
+    for (final sibling in household.siblings) {
+      if (sibling.id == npcId) {
+        return PersonAvatar(
           id: sibling.id,
           firstName: sibling.firstName,
           lastName: sibling.lastName,
@@ -1298,26 +1327,6 @@ class _GameScreenState extends State<GameScreen> {
           appearance: sibling.appearance,
           currentYear: year,
         );
-
-    if (npcId != null) {
-      for (final parent in household.parents) {
-        if (parent.id == npcId) return parentAvatar(parent);
-      }
-      for (final sibling in household.siblings) {
-        if (sibling.id == npcId) return siblingAvatar(sibling);
-      }
-    }
-
-    // Random family events: show the first living parent or sibling.
-    if (event.id.contains('parent')) {
-      for (final parent in household.parents) {
-        if (parent.isAlive) return parentAvatar(parent);
-      }
-    }
-
-    if (event.id.contains('sibling')) {
-      for (final sibling in household.siblings) {
-        if (sibling.isAlive) return siblingAvatar(sibling);
       }
     }
 

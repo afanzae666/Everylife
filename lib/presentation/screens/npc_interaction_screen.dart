@@ -109,7 +109,6 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
         child: Material(
           color: Colors.transparent,
           child: InteractionCard(
-            avatar: widget.avatar,
             emoji: _actionInfo[action]?.$1 ?? '💬',
             child: Column(
               mainAxisSize: MainAxisSize.min,
