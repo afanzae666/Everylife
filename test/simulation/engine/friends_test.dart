@@ -7,6 +7,7 @@ import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/character/gender.dart';
 import 'package:everylife/domain/event/life_event.dart';
 import 'package:everylife/domain/event/life_progress.dart';
+import 'package:everylife/domain/time/simulation_clock.dart';
 import 'package:everylife/simulation/engine/simulation_engine.dart';
 
 void main() {
@@ -31,8 +32,12 @@ void main() {
       saveRepository: InMemorySaveRepository(),
     );
 
+    // The clock starts at the birth year, so move it to age 16.
     return SimulationEngine(
-      initialState: base.state.copyWith(lifeProgress: progress),
+      initialState: base.state.copyWith(
+        clock: const SimulationClock(currentYear: 2026),
+        lifeProgress: progress,
+      ),
       random: SeededRandom(1),
       saveRepository: InMemorySaveRepository(),
     );
