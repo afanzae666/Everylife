@@ -1,10 +1,10 @@
 import '../../core/random/seeded_random.dart';
 import '../../domain/event/life_event.dart';
-import '../../domain/event/life_progress.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
+import '../events/event_subjects.dart';
 import '../events/life_effect_applier.dart';
 import '../events/life_event_catalog.dart';
 import 'simulation_system.dart';
@@ -75,11 +75,15 @@ class EventSystem implements SimulationSystem {
       ),
     );
 
+    final pending = EventSubjects.start(
+      definition: definition,
+      state: seenState,
+      random: _random,
+    );
+
     if (definition.choices.isNotEmpty) {
       return seenState.copyWith(
-        lifeProgress: seenState.lifeProgress.copyWith(
-          pending: PendingLifeEvent(eventId: definition.id, year: year),
-        ),
+        lifeProgress: seenState.lifeProgress.copyWith(pending: pending),
       );
     }
 
@@ -92,16 +96,22 @@ class EventSystem implements SimulationSystem {
       _random,
     );
 
-    return LifeEffectApplier.applyOutcome(
-      state: seenState,
-      outcome: outcome,
-    ).addEvent(
+    final applied = EventSubjects.applyRelation(
+      LifeEffectApplier.applyOutcome(state: seenState, outcome: outcome),
+      pending,
+      outcome.subjectRelation,
+    );
+
+    final scene = LifeText.fillPending(definition.description, pending);
+    final result = LifeText.fillPending(outcome.text, pending);
+
+    return applied.addEvent(
       SimulationEvent(
         id: 'life-event-$year-${definition.id}',
         type: SimulationEventType.lifeEvent,
         year: year,
         title: definition.title,
-        description: '${definition.description} ${outcome.text}',
+        description: '$scene $result',
       ),
     );
   }
