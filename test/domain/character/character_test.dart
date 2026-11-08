@@ -47,11 +47,19 @@ void main() {
           2026,
         );
 
+        const defaults = CharacterStats();
+
+        expect(character.stats.health, defaults.health);
+        expect(character.stats.intelligence, defaults.intelligence);
+        expect(character.stats.fitness, defaults.fitness);
+        expect(character.stats.happiness, defaults.happiness);
+        expect(character.stats.willpower, defaults.willpower);
+        expect(character.stats.charisma, defaults.charisma);
+        expect(character.stats.creativity, defaults.creativity);
+        expect(character.stats.luck, defaults.luck);
         expect(
-          character.stats,
-          CharacterStats(
-            fertility: Fertility.baselineFor('character-1'),
-          ),
+          character.stats.fertility,
+          Fertility.baselineFor('character-1'),
         );
 
         expect(
