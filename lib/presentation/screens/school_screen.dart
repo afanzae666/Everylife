@@ -6,6 +6,7 @@ import '../../core/result/result.dart';
 import '../../domain/career/education_state.dart';
 import '../../domain/career/job_catalog.dart';
 import '../../domain/career/school_npc.dart';
+import '../../domain/character/fertility.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/career/school_actions.dart';
@@ -721,6 +722,15 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
     };
   }
 
+  /// 'none', 'friend' or 'best friend' for a person from this school.
+  String _bondOf(SchoolNpc npc) {
+    for (final friend in engine.state.lifeProgress.friends) {
+      if (friend.id == npc.id) return friend.bestFriend ? 'best friend' : 'friend';
+    }
+
+    return 'none';
+  }
+
   void _open(SchoolNpc npc) {
     final state = engine.state;
     final country = CountryCatalog.findByCode(npc.countryCode);
@@ -741,6 +751,14 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
                 npc.countryCode,
               ),
               countryCode: npc.countryCode,
+              traits: NpcTraits.forPerson(
+                id: npc.id,
+                gender: npc.gender,
+                birthYear: npc.birthYear,
+                currentYear: state.clock.currentYear,
+              ),
+              befriendable: npc.role.isStudent,
+              bond: _bondOf(npc),
               zoom: widget.zoom,
               headerBuilder: widget.headerBuilder,
               details: [

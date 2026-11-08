@@ -12,6 +12,7 @@ import '../../domain/family/parent_npc.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../domain/family/sibling_npc.dart';
 import '../../domain/career/school_npc.dart';
+import '../../domain/character/fertility.dart';
 import '../../simulation/school/school_appearance.dart';
 import '../widgets/npc_avatar.dart';
 import '../widgets/themed_cards.dart';
@@ -351,6 +352,12 @@ class _ParentNpcCard extends StatelessWidget {
                 parent.countryCode,
               ),
               countryCode: parent.countryCode,
+              traits: NpcTraits.forPerson(
+                id: parent.id,
+                gender: parent.gender,
+                birthYear: parent.birthYear,
+                currentYear: currentYear,
+              ),
               zoom: zoom,
               headerBuilder: headerBuilder,
               avatar: _ParentAvatar(
@@ -498,6 +505,12 @@ class _SiblingNpcCard extends StatelessWidget {
                 sibling.countryCode,
               ),
               countryCode: sibling.countryCode,
+              traits: NpcTraits.forPerson(
+                id: sibling.id,
+                gender: sibling.gender,
+                birthYear: sibling.birthYear,
+                currentYear: currentYear,
+              ),
               zoom: zoom,
               headerBuilder: headerBuilder,
               avatar: SizedBox(
@@ -692,6 +705,13 @@ class _FriendNpcCard extends StatelessWidget {
                     friend.countryCode,
                   ),
                   countryCode: friend.countryCode,
+                  traits: NpcTraits.forPerson(
+                    id: friend.id,
+                    gender: friend.gender,
+                    birthYear: friend.birthYear,
+                    currentYear: currentYear,
+                  ),
+                  bond: friend.bestFriend ? 'best friend' : 'friend',
                   zoom: zoom,
                   headerBuilder: headerBuilder,
                   avatar: NpcAvatar(
@@ -732,7 +752,7 @@ class _FriendNpcCard extends StatelessWidget {
                         ),
                         SizedBox(width: s(4)),
                         Text(
-                          '(FRIEND)',
+                          friend.bestFriend ? '(BEST FRIEND)' : '(FRIEND)',
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w600,

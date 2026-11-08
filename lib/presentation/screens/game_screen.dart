@@ -27,6 +27,8 @@ import '../widgets/life_labels.dart';
 import 'assets_screen.dart';
 import 'career_screen.dart';
 import 'character_profile_screen.dart';
+import '../../domain/character/fertility.dart';
+import '../widgets/animated_dialog.dart';
 import '../widgets/club_widgets.dart';
 import 'life_screen.dart';
 import 'more_screen.dart';
@@ -34,7 +36,6 @@ import 'menu_screen.dart';
 import 'life_storage_screen.dart';
 import 'settings_screen.dart';
 import 'time_machine_screen.dart';
-import '../widgets/animated_dialog.dart';
 
 Future<void> _defaultUiScaleChanged(double value) async {}
 
@@ -221,6 +222,8 @@ class _GameScreenState extends State<GameScreen> {
           await showLifeResultDialog(context, value, avatar: npcAvatar);
         }
 
+        if (mounted) await _offerFriendship();
+
         if (!mounted) {
           return;
         }
@@ -233,6 +236,87 @@ class _GameScreenState extends State<GameScreen> {
       }
     } finally {
       _isShowingLifeDialog = false;
+    }
+  }
+
+  /// Asks whether to become friends with someone an event just introduced.
+  Future<void> _offerFriendship() async {
+    final person = engine.friendOffer;
+
+    if (person == null) return;
+
+    final theme = Theme.of(context);
+    final avatar = NpcAvatar(
+      character: SchoolAppearance.characterFor(person),
+      currentYear: engine.state.clock.currentYear,
+      size: 112,
+    );
+
+    final yes = await showAnimatedDialog<bool>(
+      context: context,
+      builder: (dialogContext) => ThemedDialog(
+        title: 'NEW FRIEND?',
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            key: const Key('friend-offer'),
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: SizedBox(
+                  width: 84,
+                  height: 105,
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: SizedBox(width: 112, height: 140, child: avatar),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Do I want to be friends with ${person.fullName}?',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 14),
+              FilledButton(
+                key: const Key('friend-offer-yes'),
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('YES, LET US BE FRIENDS'),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton(
+                key: const Key('friend-offer-no'),
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('NO, THANKS'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (yes != true) {
+      engine.declineFriendOffer();
+
+      return;
+    }
+
+    final result = engine.acceptFriendOffer();
+
+    setState(() {});
+
+    if (result case Success<String>(:final value)) {
+      await showTapToCloseOverlay(
+        context,
+        title: 'New Friend',
+        emoji: '🤝',
+        avatar: avatar,
+        text: value,
+      );
     }
   }
 
@@ -1280,15 +1364,35 @@ class _GameScreenState extends State<GameScreen> {
   /// The traits that are not on the main screen. Luck stays hidden on
   /// purpose, so lucky and unlucky moments keep their mystery.
   Future<void> _openOtherTraits() async {
-    final stats = engine.state.player.stats;
+    final player = engine.state.player;
+    final stats = player.stats;
     final theme = Theme.of(context);
+    final age = player.ageAt(engine.state.clock.currentYear);
+    final fertility = Fertility.effective(stats.fertility, age, player.gender);
 
-    Widget row(String label, int value) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
+    Widget row(String label, int value, {Key? key}) => Padding(
+          key: key,
+          padding: const EdgeInsets.symmetric(vertical: 5),
           child: Row(
             children: [
-              Expanded(child: Text(label)),
-              Text('$value%', style: theme.textTheme.bodyLarge),
+              SizedBox(
+                width: 84,
+                child: Text(
+                  label,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Expanded(child: PipBar(value: value / 100, height: 9)),
+              SizedBox(
+                width: 48,
+                child: Text(
+                  '$value%',
+                  textAlign: TextAlign.right,
+                  style: theme.textTheme.bodyLarge,
+                ),
+              ),
             ],
           ),
         );
@@ -1306,6 +1410,7 @@ class _GameScreenState extends State<GameScreen> {
           row('Willpower', stats.willpower),
           row('Charisma', stats.charisma),
           row('Creativity', stats.creativity),
+          row('Fertility', fertility, key: const Key('trait-fertility')),
         ],
       ),
     );

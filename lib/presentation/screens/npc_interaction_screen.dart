@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../core/result/result.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
+import '../../domain/character/fertility.dart';
 import '../../domain/character/life_stage.dart';
+import '../../domain/social/social_rules.dart';
 import '../widgets/info_line.dart';
 import '../widgets/themed_cards.dart';
 import '../widgets/animated_dialog.dart';
@@ -26,6 +28,9 @@ class NpcInteractionScreen extends StatefulWidget {
     this.isAlive = true,
     this.details = const <MapEntry<String, String>>[],
     this.netWorth,
+    this.traits,
+    this.befriendable = false,
+    this.bond = 'none',
     this.countryCode,
     this.zoom = 1,
     this.headerBuilder,
@@ -53,6 +58,15 @@ class NpcInteractionScreen extends StatefulWidget {
   /// Formatted net worth; only shown for NPCs aged 18 or more.
   final String? netWorth;
 
+  /// Looks, smarts and fertility, shown as bars in the information overlay.
+  final NpcTraits? traits;
+
+  /// True for people the player can ask to be friends (classmates).
+  final bool befriendable;
+
+  /// 'none', 'friend' or 'best friend' when the page opens.
+  final String bond;
+
   /// Country of the NPC; its flag is shown next to the name.
   final String? countryCode;
 
@@ -68,6 +82,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
   late int _score = widget.relationshipPercent.clamp(-100, 100).toInt();
   bool _hadArgument = false;
   bool _showingNarrative = false;
+  late String _bond = widget.bond;
 
   void _interact(String action) {
     if (!widget.isAlive || _showingNarrative) return;
@@ -76,18 +91,89 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
       case Success<NpcInteractionOutcome>(:final value):
         setState(() {
           _score = value.relationshipPercent;
+          _bond = value.bond;
           if (action == 'Argue') _hadArgument = true;
           if (action == 'Apologize') _hadArgument = false;
-          _showingNarrative = true;
         });
+
+        // Saying "not now" to a best friendship needs no story.
+        if (action == NpcInteractionOutcome.bestFriendNo) return;
+
+        setState(() => _showingNarrative = true);
         _showNarrative(
           value.narrative,
           progressed: value.progressed,
           action: action,
-        );
+        ).then((_) {
+          if (mounted && value.prompt == 'bestFriend') _askBestFriend();
+        });
       case Failure<NpcInteractionOutcome>(:final message):
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     }
+  }
+
+  /// "Make this friend a best friend?" with a yes and a not now.
+  Future<void> _askBestFriend() async {
+    final theme = Theme.of(context);
+
+    final yes = await showAnimatedDialog<bool>(
+      context: context,
+      builder: (dialogContext) => ThemedDialog(
+        title: 'BEST FRIEND?',
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            key: const Key('best-friend-prompt'),
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (widget.avatar != null)
+                Center(
+                  child: SizedBox(
+                    width: 84,
+                    height: 105,
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: SizedBox(
+                        width: 112,
+                        height: 140,
+                        child: widget.avatar,
+                      ),
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 10),
+              Text(
+                '${widget.name} and I have grown really close. '
+                'Do I want to make ${widget.name} my best friend?',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 14),
+              FilledButton(
+                key: const Key('best-friend-yes'),
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('YES, BEST FRIENDS'),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton(
+                key: const Key('best-friend-no'),
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('NOT NOW'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+
+    _interact(
+      yes == true
+          ? NpcInteractionOutcome.bestFriendYes
+          : NpcInteractionOutcome.bestFriendNo,
+    );
   }
 
   Future<void> _showNarrative(
@@ -139,6 +225,8 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
   }
 
   static const Map<String, (String, String)> _actionInfo = {
+    'Become Friends': ('🤝', 'Ask to be friends'),
+    'Best Friend: yes': ('💛', 'Best friends'),
     'Talk': ('💬', 'Have a chat'),
     'Spend Time': ('🎈', 'Do something together'),
     'Compliment': ('💐', 'Say something kind'),
@@ -262,8 +350,53 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                 ),
               ],
             ),
+            if (widget.traits != null) ...[
+              const SizedBox(height: 8),
+              const SectionTitle('Stats'),
+              const SizedBox(height: 4),
+              _traitRow(context, 'Looks', widget.traits!.looks),
+              _traitRow(context, 'Smarts', widget.traits!.smarts),
+              _traitRow(
+                context,
+                'Fertility',
+                widget.traits!.fertility,
+                key: const Key('npc-fertility-bar'),
+              ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+
+  /// One stat of the person: its name, a bar and the number.
+  Widget _traitRow(BuildContext context, String label, int value, {Key? key}) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      key: key,
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 74,
+            child: Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Expanded(child: PipBar(value: value / 100, height: 8)),
+          SizedBox(
+            width: 44,
+            child: Text(
+              '$value%',
+              textAlign: TextAlign.right,
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -272,11 +405,21 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
     final stage = LifeStageAge.fromAge(widget.playerAge.clamp(0, 150).toInt());
     if (stage == LifeStage.infant) return const [];
 
-    const basic = ['Talk', 'Spend Time', 'Compliment', 'Help'];
+    // Friendship can be asked for once the relationship is good enough.
+    final canBefriend = widget.befriendable &&
+        _bond == 'none' &&
+        _score >= SocialRules.friendAt;
+    final basic = [
+      'Talk',
+      'Spend Time',
+      'Compliment',
+      'Help',
+      if (canBefriend) 'Become Friends',
+    ];
     if (stage == LifeStage.toddler || stage == LifeStage.child) {
       return basic;
     }
-    return const ['Talk', 'Spend Time', 'Compliment', 'Help', 'Argue'];
+    return [...basic, 'Argue'];
   }
 
   @override
@@ -291,7 +434,10 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
           child: Column(
             children: [
               if (widget.headerBuilder != null) widget.headerBuilder!(context),
-              PageTopBar(title: widget.relationship, zoom: widget.zoom),
+              PageTopBar(
+                title: _bond == 'best friend' ? 'best friend' : widget.relationship,
+                zoom: widget.zoom,
+              ),
               Expanded(
                 child: ListView(
         padding: EdgeInsets.zero,
