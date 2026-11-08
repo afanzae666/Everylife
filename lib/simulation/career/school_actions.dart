@@ -16,6 +16,14 @@ class ExtracurricularClub {
     required this.blurb,
     required this.viceTitle,
     required this.leadTitle,
+    this.category = 'sport',
+    this.fitness = 0,
+    this.charisma = 0,
+    this.creativity = 0,
+    this.intelligence = 0,
+    this.happiness = 0,
+    this.willpower = 0,
+    this.grades = 0,
   });
 
   final String id;
@@ -26,6 +34,21 @@ class ExtracurricularClub {
   /// What the player is called at rank 1 and rank 2 of this club.
   final String viceTitle;
   final String leadTitle;
+
+  /// Groups the clubs in the picker and picks the story lines:
+  /// sport, stage, craft, mind, tech or social.
+  final String category;
+
+  /// What joining or practising gives the player.
+  final int fitness;
+  final int charisma;
+  final int creativity;
+  final int intelligence;
+  final int happiness;
+  final int willpower;
+
+  /// Extra grades when joining (the science-type clubs).
+  final int grades;
 
   String titleFor(int rank) => switch (rank) {
         2 => leadTitle,
@@ -39,11 +62,95 @@ abstract final class SchoolActions {
   static const List<ExtracurricularClub> clubs = [
     ExtracurricularClub(
       id: 'sports',
-      name: 'Sports Team',
+      name: 'Soccer Team',
       emoji: '⚽',
       blurb: 'Fitness and happiness',
       viceTitle: 'Vice Captain',
       leadTitle: 'Captain',
+      category: 'sport',
+      fitness: 3,
+      happiness: 2,
+    ),
+    ExtracurricularClub(
+      id: 'basketball',
+      name: 'Basketball Team',
+      emoji: '🏀',
+      blurb: 'Fitness and charisma',
+      viceTitle: 'Vice Captain',
+      leadTitle: 'Captain',
+      category: 'sport',
+      fitness: 3,
+      charisma: 1,
+      happiness: 1,
+    ),
+    ExtracurricularClub(
+      id: 'baseball',
+      name: 'Baseball Team',
+      emoji: '⚾',
+      blurb: 'Fitness and focus',
+      viceTitle: 'Vice Captain',
+      leadTitle: 'Captain',
+      category: 'sport',
+      fitness: 2,
+      willpower: 1,
+      happiness: 2,
+    ),
+    ExtracurricularClub(
+      id: 'volleyball',
+      name: 'Volleyball Team',
+      emoji: '🏐',
+      blurb: 'Fitness and teamwork',
+      viceTitle: 'Vice Captain',
+      leadTitle: 'Captain',
+      category: 'sport',
+      fitness: 2,
+      charisma: 1,
+      happiness: 2,
+    ),
+    ExtracurricularClub(
+      id: 'swimming',
+      name: 'Swim Team',
+      emoji: '🏊',
+      blurb: 'Fitness and discipline',
+      viceTitle: 'Vice Captain',
+      leadTitle: 'Captain',
+      category: 'sport',
+      fitness: 3,
+      willpower: 2,
+    ),
+    ExtracurricularClub(
+      id: 'track',
+      name: 'Track & Field',
+      emoji: '🏃',
+      blurb: 'Fitness and discipline',
+      viceTitle: 'Vice Captain',
+      leadTitle: 'Captain',
+      category: 'sport',
+      fitness: 3,
+      willpower: 2,
+    ),
+    ExtracurricularClub(
+      id: 'tennis',
+      name: 'Tennis Team',
+      emoji: '🎾',
+      blurb: 'Fitness and focus',
+      viceTitle: 'Vice Captain',
+      leadTitle: 'Captain',
+      category: 'sport',
+      fitness: 2,
+      willpower: 1,
+      happiness: 1,
+    ),
+    ExtracurricularClub(
+      id: 'karate',
+      name: 'Martial Arts Club',
+      emoji: '🥋',
+      blurb: 'Discipline and fitness',
+      viceTitle: 'Senior Student',
+      leadTitle: 'Head Student',
+      category: 'sport',
+      fitness: 2,
+      willpower: 3,
     ),
     ExtracurricularClub(
       id: 'drama',
@@ -52,22 +159,9 @@ abstract final class SchoolActions {
       blurb: 'Charisma and creativity',
       viceTitle: 'Assistant Director',
       leadTitle: 'Drama Director',
-    ),
-    ExtracurricularClub(
-      id: 'debate',
-      name: 'Debate Club',
-      emoji: '🗣️',
-      blurb: 'Smarts and charisma',
-      viceTitle: 'Vice President',
-      leadTitle: 'President',
-    ),
-    ExtracurricularClub(
-      id: 'art',
-      name: 'Art Club',
-      emoji: '🎨',
-      blurb: 'Creativity',
-      viceTitle: 'Vice Curator',
-      leadTitle: 'Head Curator',
+      category: 'stage',
+      charisma: 3,
+      creativity: 1,
     ),
     ExtracurricularClub(
       id: 'music',
@@ -76,6 +170,76 @@ abstract final class SchoolActions {
       blurb: 'Creativity and happiness',
       viceTitle: 'Co-Bandleader',
       leadTitle: 'Bandleader',
+      category: 'stage',
+      creativity: 2,
+      happiness: 2,
+    ),
+    ExtracurricularClub(
+      id: 'choir',
+      name: 'Choir',
+      emoji: '🎤',
+      blurb: 'Charisma and happiness',
+      viceTitle: 'Section Leader',
+      leadTitle: 'Head Singer',
+      category: 'stage',
+      charisma: 2,
+      happiness: 2,
+    ),
+    ExtracurricularClub(
+      id: 'dance',
+      name: 'Dance Crew',
+      emoji: '💃',
+      blurb: 'Fitness and creativity',
+      viceTitle: 'Dance Captain',
+      leadTitle: 'Head Choreographer',
+      category: 'stage',
+      fitness: 2,
+      creativity: 2,
+      charisma: 1,
+    ),
+    ExtracurricularClub(
+      id: 'art',
+      name: 'Art Club',
+      emoji: '🎨',
+      blurb: 'Creativity',
+      viceTitle: 'Vice Curator',
+      leadTitle: 'Head Curator',
+      category: 'craft',
+      creativity: 3,
+      happiness: 1,
+    ),
+    ExtracurricularClub(
+      id: 'photo',
+      name: 'Photography Club',
+      emoji: '📷',
+      blurb: 'Creativity and focus',
+      viceTitle: 'Assistant Editor',
+      leadTitle: 'Chief Photographer',
+      category: 'craft',
+      creativity: 3,
+      willpower: 1,
+    ),
+    ExtracurricularClub(
+      id: 'cooking',
+      name: 'Cooking Club',
+      emoji: '🍳',
+      blurb: 'Creativity and happiness',
+      viceTitle: 'Sous Chef',
+      leadTitle: 'Head Chef',
+      category: 'craft',
+      creativity: 2,
+      happiness: 2,
+    ),
+    ExtracurricularClub(
+      id: 'debate',
+      name: 'Debate Club',
+      emoji: '🗣️',
+      blurb: 'Smarts and charisma',
+      viceTitle: 'Vice President',
+      leadTitle: 'President',
+      category: 'mind',
+      intelligence: 1,
+      charisma: 2,
     ),
     ExtracurricularClub(
       id: 'science',
@@ -84,6 +248,76 @@ abstract final class SchoolActions {
       blurb: 'Smarts and grades',
       viceTitle: 'Vice Chair',
       leadTitle: 'Chair',
+      category: 'mind',
+      intelligence: 2,
+      grades: 3,
+    ),
+    ExtracurricularClub(
+      id: 'chess',
+      name: 'Chess Club',
+      emoji: '♟️',
+      blurb: 'Smarts and focus',
+      viceTitle: 'Second Board',
+      leadTitle: 'First Board',
+      category: 'mind',
+      intelligence: 2,
+      willpower: 1,
+    ),
+    ExtracurricularClub(
+      id: 'news',
+      name: 'School Newspaper',
+      emoji: '📰',
+      blurb: 'Smarts and charisma',
+      viceTitle: 'Deputy Editor',
+      leadTitle: 'Editor-in-Chief',
+      category: 'mind',
+      intelligence: 1,
+      charisma: 1,
+      creativity: 1,
+    ),
+    ExtracurricularClub(
+      id: 'robotics',
+      name: 'Robotics Club',
+      emoji: '🤖',
+      blurb: 'Smarts and creativity',
+      viceTitle: 'Vice Lead',
+      leadTitle: 'Team Lead',
+      category: 'tech',
+      intelligence: 2,
+      creativity: 1,
+    ),
+    ExtracurricularClub(
+      id: 'coding',
+      name: 'Coding Club',
+      emoji: '💻',
+      blurb: 'Smarts and focus',
+      viceTitle: 'Senior Coder',
+      leadTitle: 'Lead Coder',
+      category: 'tech',
+      intelligence: 2,
+      willpower: 1,
+    ),
+    ExtracurricularClub(
+      id: 'green',
+      name: 'Green Club',
+      emoji: '🌱',
+      blurb: 'Willpower and happiness',
+      viceTitle: 'Vice Coordinator',
+      leadTitle: 'Coordinator',
+      category: 'social',
+      willpower: 2,
+      happiness: 2,
+    ),
+    ExtracurricularClub(
+      id: 'volunteer',
+      name: 'Volunteer Club',
+      emoji: '🤝',
+      blurb: 'Charisma and happiness',
+      viceTitle: 'Vice Coordinator',
+      leadTitle: 'Coordinator',
+      category: 'social',
+      charisma: 2,
+      happiness: 2,
     ),
   ];
 
@@ -96,16 +330,19 @@ abstract final class SchoolActions {
   }
 
   static ExtracurricularClub? clubByName(String? name) {
+    // Saves from before the soccer team was named call it "Sports Team".
+    final wanted = name == 'Sports Team' ? 'Soccer Team' : name;
+
     for (final club in clubs) {
-      if (club.name == name) return club;
+      if (club.name == wanted) return club;
     }
 
     return null;
   }
 
   /// Club performance needed for each promotion.
-  static const int viceAt = 60;
-  static const int leadAt = 80;
+  static const int viceAt = 48;
+  static const int leadAt = 65;
 
   /// Gives the next rank if the performance is high enough. Sets
   /// [EducationState.clubPromotion] so the player is told about it once.
@@ -241,10 +478,11 @@ abstract final class SchoolActions {
     }
 
     final stats = state.player.stats;
-    final changed = _clubStats(club.id, stats);
+    final changed = _clubStats(club, stats);
     final text = SchoolNarratives.join(
       random,
       clubId: club.id,
+      category: club.category,
       clubName: club.name,
       school: education.schoolName ?? 'school',
     );
@@ -258,7 +496,7 @@ abstract final class SchoolActions {
             lastClubYear: year,
             clubPerformance: 30,
             clubRank: 0,
-            grades: club.id == 'science' ? education.grades + 3 : null,
+            grades: club.grades > 0 ? education.grades + club.grades : null,
           ),
         ),
       ),
@@ -270,32 +508,15 @@ abstract final class SchoolActions {
   }
 
   /// Stat changes for joining or practising with a club.
-  static CharacterStats _clubStats(String id, CharacterStats stats) {
-    return switch (id) {
-      'sports' => stats.copyWith(
-          fitness: stats.fitness + 3,
-          happiness: stats.happiness + 2,
-        ),
-      'drama' => stats.copyWith(
-          charisma: stats.charisma + 3,
-          creativity: stats.creativity + 1,
-        ),
-      'debate' => stats.copyWith(
-          intelligence: stats.intelligence + 1,
-          charisma: stats.charisma + 2,
-        ),
-      'art' => stats.copyWith(
-          creativity: stats.creativity + 3,
-          happiness: stats.happiness + 1,
-        ),
-      'music' => stats.copyWith(
-          creativity: stats.creativity + 2,
-          happiness: stats.happiness + 2,
-        ),
-      _ => stats.copyWith(
-          intelligence: stats.intelligence + 2,
-        ),
-    };
+  static CharacterStats _clubStats(ExtracurricularClub club, CharacterStats stats) {
+    return stats.copyWith(
+      fitness: stats.fitness + club.fitness,
+      charisma: stats.charisma + club.charisma,
+      creativity: stats.creativity + club.creativity,
+      intelligence: stats.intelligence + club.intelligence,
+      happiness: stats.happiness + club.happiness,
+      willpower: stats.willpower + club.willpower,
+    );
   }
 
   /// Practice with the club: raises performance, once per year.
@@ -327,7 +548,7 @@ abstract final class SchoolActions {
 
     final gain = 8 + random.nextInt(8);
     final text = SchoolNarratives.train(random, club.id);
-    final stats = _clubStats(club.id, state.player.stats);
+    final stats = _clubStats(club, state.player.stats);
 
     final trained = education.copyWith(
       clubPerformance: education.clubPerformance + gain,
