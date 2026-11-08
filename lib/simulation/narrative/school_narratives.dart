@@ -123,16 +123,52 @@ abstract final class SchoolNarratives {
     ],
   };
 
+  static const Map<String, List<String>> _joinByCategory = {
+    'sport': [
+      'Tryouts were short, loud and sweaty. The coach scribbled my name on '
+          'the roster.',
+      'I laced up, ran my first drill and heard "Welcome to the team!"',
+    ],
+    'stage': [
+      'The room buzzed with warm-ups and nervous laughter. I fit right in.',
+      'Everybody introduced themselves with a tiny performance. Mine was '
+          'terrible, and I was welcomed anyway.',
+    ],
+    'craft': [
+      'The tables were covered with materials and half-finished projects. '
+          'I could not wait to start.',
+      'They said, "No wrong ideas here." I decided to test that.',
+    ],
+    'mind': [
+      'The first meeting was a friendly argument over snacks. I knew I was '
+          'in the right place.',
+      'They gave me a quick quiz as a "welcome". I survived.',
+    ],
+    'tech': [
+      'Cables, laptops and the smell of fresh coffee. Instantly my kind of '
+          'place.',
+      'They handed me a mystery gadget and said, "Fix it, newbie."',
+    ],
+    'social': [
+      'We made a plan to improve the school and the world. No pressure.',
+      'The members were warm, a bit chaotic and very welcoming.',
+    ],
+  };
+
   static String join(
     SeededRandom random, {
     required String clubId,
+    required String category,
     required String clubName,
     required String school,
   }) {
     final intro = _pick(random, _joinIntro)
         .replaceAll('{club}', clubName)
         .replaceAll('{school}', school);
-    final extra = _pick(random, _joinExtra[clubId] ?? const ['It begins.']);
+    final extra = _pick(
+      random,
+      _joinExtra[clubId] ?? _joinByCategory[category] ?? const ['It begins.'],
+    );
 
     return '$intro $extra';
   }
@@ -205,8 +241,141 @@ abstract final class SchoolNarratives {
     ],
   };
 
+  static const Map<String, List<String>> _trainSpecific = {
+    'basketball': [
+      'We ran suicide sprints, then drilled free throws until the net sang. '
+          'My jump shot is dangerous now.',
+      'The coach set up a three-on-three. I stole the ball and heard the '
+          'whole gym go "ooooh".',
+      'I practised crossovers until I tied myself up in knots. Then I '
+          'finally did it clean.',
+      'We worked on the fast break. The ball never touched the floor, and '
+          'it felt like flying.',
+    ],
+    'baseball': [
+      'Batting practice in the sun. Fifty swings, three real hits, and a '
+          'blister the size of a coin.',
+      'I worked on my throw from the outfield. The coach said, "Ouch, that '
+          'was a rocket." I took it as praise.',
+      'We practised the double play until it was pure rhythm. Beautiful.',
+      'The pitcher taught me a new grip. I have no idea what the ball will '
+          'do now, and neither does the catcher.',
+    ],
+    'volleyball': [
+      'We practised serves until my forearms went red. One landed exactly '
+          'where I aimed. Once.',
+      'We worked on setting and spiking. The first spike hit the net, the '
+          'tenth hit the floor, glorious.',
+      'A long rally with no one letting the ball drop. We cheered for our '
+          'own team.',
+    ],
+    'swimming': [
+      'Laps at dawn. The pool was cold, my arms were burning, my time was '
+          'better.',
+      'I practised flip turns until I stopped swallowing half the pool.',
+      'The coach timed our relay. We broke the team record and splashed '
+          'each other for ten minutes.',
+    ],
+    'track': [
+      'We ran intervals until the track blurred. My lungs filed a '
+          'complaint, my legs did not.',
+      'I practised my starts. The gun cracked and I was gone.',
+      'A long-distance run at sunset. Tiring, calm and weirdly beautiful.',
+    ],
+    'tennis': [
+      'I hit a hundred backhands against the wall. The wall never '
+          'complained.',
+      'My serve finally landed in the box, three times in a row. I did a '
+          'victory dance.',
+      'We played practice sets. I lost 6-4 and learned more than winning.',
+    ],
+    'karate': [
+      'We practised kata until every move was sharp. The sensei nodded once. '
+          'That nod is worth gold.',
+      'Sparring day. I got tapped on the shoulder twelve times and tapped '
+          'back twice, and was proud.',
+      'I held a stance for five minutes. My legs shook, my mind was calm.',
+    ],
+    'choir': [
+      'We practised the harmonies line by line. When the chord finally '
+          'locked in, the room went silent in awe.',
+      'The conductor made us breathe from the stomach. I sang a note I did '
+          'not know I had.',
+      'We rehearsed the big finale. I got goosebumps.',
+    ],
+    'dance': [
+      'We drilled the choreography until counting 5-6-7-8 felt like '
+          'breathing.',
+      'I nailed a spin that had been bugging me for weeks. The mirror and I '
+          'had a moment.',
+      'We learned a new routine. Half of us went left, half went right, '
+          'then it worked.',
+    ],
+    'photo': [
+      'I chased the golden hour around campus. One shot made the whole club '
+          'gasp.',
+      'We critiqued each other\'s photos. Kind, honest, and useful.',
+      'I learned to play with light and shadow. Suddenly everything looked '
+          'like a photograph.',
+    ],
+    'cooking': [
+      'We cooked a three-course meal for ten people. Nothing caught fire. '
+          'It was a miracle.',
+      'I practised my knife skills. The onion won the first round, I won '
+          'the second.',
+      'I invented a sauce. Everyone asked for the recipe, and I could not '
+          'remember it.',
+    ],
+    'chess': [
+      'I solved fifty tactics puzzles. My brain feels like a squeezed '
+          'sponge, in a good way.',
+      'We played a long game. I sacrificed my queen, and it worked.',
+      'The captain showed me an opening that made my opponent sweat.',
+    ],
+    'news': [
+      'I interviewed the principal about the cafeteria menu. Yes, it was a '
+          'scoop.',
+      'We chased a headline until midnight. The front page looks great.',
+      'I rewrote my article three times. The third version made the editor '
+          'smile.',
+    ],
+    'robotics': [
+      'Our robot finally drove straight. Then it drove into the wall. '
+          'Progress.',
+      'We soldered, rewired and debugged until it moved on its own. We '
+          'screamed.',
+      'I wrote the sensor code. The robot dodged an obstacle on the first '
+          'try. I wanted to cry.',
+    ],
+    'coding': [
+      'I fixed a bug that took three hours. It was a missing semicolon. I '
+          'laughed, then cried.',
+      'We built a tiny game in a weekend. It crashed twice, but it was '
+          'fun.',
+      'I refactored my code until it looked clean. Past me would be '
+          'impressed.',
+    ],
+    'green': [
+      'We planted a row of trees around the school. My back hurts, my heart '
+          'is full.',
+      'We sorted the recycling and found a surprising number of lost '
+          'socks.',
+      'We designed posters about saving water. They actually look good.',
+    ],
+    'volunteer': [
+      'We packed boxes for the food bank. A small job that felt very big.',
+      'We cleaned a local park. Strangers thanked us, and that felt great.',
+      'We visited a nursing home and played cards. I lost, they were '
+          'delighted.',
+    ],
+  };
+
   static String train(SeededRandom random, String clubId) {
-    return _pick(random, _train[clubId] ?? _train['sports']!);
+    final pool = _train[clubId] ??
+        _trainSpecific[clubId] ??
+        _train['sports']!;
+
+    return _pick(random, pool);
   }
 
   static String promotion({
