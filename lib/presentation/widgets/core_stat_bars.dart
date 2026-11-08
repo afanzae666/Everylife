@@ -60,7 +60,10 @@ class CoreStatBars extends StatelessWidget {
               Theme.of(context).colorScheme.surface,
             ],
           ),
-          border: Border(left: BorderSide(color: primary, width: s(6))),
+          border: Border(
+            top: BorderSide(color: primary, width: 2),
+            left: BorderSide(color: primary, width: s(6)),
+          ),
         ),
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: s(4), vertical: s(3)),
