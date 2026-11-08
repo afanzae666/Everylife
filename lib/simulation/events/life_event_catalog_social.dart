@@ -98,7 +98,7 @@ abstract final class LifeEventCatalogSocial {
           outcomes: [
             LifeOutcome(
               text: 'I got a decent grade and zero distractions. {first} seemed a bit hurt.',
-              stats: [StatEffect(StatKey.intelligence, 3)],
+              stats: [StatEffect(StatKey.intelligence, 3), StatEffect(StatKey.happiness, -2)],
               subjectRelation: -4,
             ),
           ],
@@ -817,7 +817,7 @@ abstract final class LifeEventCatalogSocial {
           outcomes: [
             LifeOutcome(
               text: 'I took a bow. The class laughed, and {role} laughed too.',
-              stats: [StatEffect(StatKey.charisma, 3), StatEffect(StatKey.happiness, 3)],
+              stats: [StatEffect(StatKey.charisma, 3), StatEffect(StatKey.happiness, 3), StatEffect(StatKey.willpower, -1)],
               subjectRelation: 6,
             ),
           ],
@@ -1610,7 +1610,7 @@ abstract final class LifeEventCatalogSocial {
           outcomes: [
             LifeOutcome(
               text: 'Dogs are better than people sometimes. I walked on, feeling slightly empty.',
-              stats: [StatEffect(StatKey.happiness, 0)],
+              stats: [StatEffect(StatKey.happiness, -1)],
             ),
           ],
         ),
@@ -1894,7 +1894,7 @@ abstract final class LifeEventCatalogSocial {
           outcomes: [
             LifeOutcome(
               text: 'I was not seen. The cake was very good.',
-              stats: [StatEffect(StatKey.happiness, 3)],
+              stats: [StatEffect(StatKey.happiness, 3), StatEffect(StatKey.charisma, -1)],
             ),
           ],
         ),
@@ -1997,7 +1997,7 @@ abstract final class LifeEventCatalogSocial {
           outcomes: [
             LifeOutcome(
               text: 'I figured it out eventually. {first} watched proudly from the doorway.',
-              stats: [StatEffect(StatKey.intelligence, 2), StatEffect(StatKey.willpower, 3)],
+              stats: [StatEffect(StatKey.intelligence, 2), StatEffect(StatKey.willpower, 3), StatEffect(StatKey.happiness, -1)],
               subjectRelation: 2,
             ),
           ],
