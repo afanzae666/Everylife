@@ -27,6 +27,7 @@ import '../widgets/life_labels.dart';
 import 'assets_screen.dart';
 import 'career_screen.dart';
 import 'character_profile_screen.dart';
+import '../widgets/club_widgets.dart';
 import 'life_screen.dart';
 import 'more_screen.dart';
 import 'menu_screen.dart';
@@ -288,6 +289,11 @@ class _GameScreenState extends State<GameScreen> {
     });
 
     await _handleLifeFlow();
+
+    // A club promotion earned on this birthday.
+    if (mounted && engine.state.lifeProgress.ending == null) {
+      await showClubPromotionIfAny(context, engine);
+    }
   }
 
   /// Opens Life Storage. Returns true when a different life was loaded.
@@ -787,7 +793,7 @@ class _GameScreenState extends State<GameScreen> {
   static const double _navigationHeight = 74;
 
   /// How far the Age Up button rises above the navigation bar.
-  static const double _ageUpRise = 24;
+  static const double _ageUpRise = 10;
 
   Widget _buildScaffold(
     BuildContext context,
@@ -1653,7 +1659,7 @@ class _BottomNavigation
                       label: 'Assets',
                       onTap: onAssetsTap,
                     ),
-                    SizedBox(width: s(84)),
+                    SizedBox(width: s(72)),
                     item(
                       icon: Icons.family_restroom_rounded,
                       label: 'Life',
@@ -1757,8 +1763,8 @@ class _AgeUpButtonState extends State<_AgeUpButton>
                     child: Transform.scale(
                       scale: 1 + t * 0.55,
                       child: Container(
-                        width: s(94),
-                        height: s(94),
+                        width: s(80),
+                        height: s(80),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(color: primary, width: 3),
@@ -1781,8 +1787,8 @@ class _AgeUpButtonState extends State<_AgeUpButton>
             // No dimming while a year is processing: that made the bar flicker.
             opacity: 1.0,
             child: Container(
-              width: s(94),
-              height: s(94),
+              width: s(80),
+              height: s(80),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
                 shape: BoxShape.circle,

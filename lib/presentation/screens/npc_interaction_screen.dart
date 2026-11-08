@@ -6,7 +6,6 @@ import '../../domain/character/life_stage.dart';
 import '../widgets/info_line.dart';
 import '../widgets/themed_cards.dart';
 import '../widgets/animated_dialog.dart';
-import '../widgets/game_bar.dart';
 import '../widgets/id_card_frame.dart';
 import '../widgets/life_labels.dart' show countryFlag;
 import '../widgets/modal_cards.dart';
@@ -243,7 +242,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                         style: theme.textTheme.bodySmall,
                       ),
                       const SizedBox(height: 2),
-                      GameBar(
+                      PipBar(
                         barKey: const Key('npc-details-relationship-bar'),
                         value: score.abs() / 100,
                       ),
@@ -319,7 +318,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 3),
-                        GameBar(value: score.abs() / 100),
+                        PipBar(value: score.abs() / 100),
                         const SizedBox(height: 3),
                         Text('Relationship · $score%'),
                       ],

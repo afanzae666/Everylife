@@ -17,7 +17,8 @@ import '../widgets/info_line.dart';
 import '../widgets/npc_avatar.dart';
 import 'npc_interaction_screen.dart';
 import '../widgets/animated_dialog.dart';
-import '../widgets/game_bar.dart';
+import '../widgets/club_widgets.dart';
+import '../widgets/life_event_dialogs.dart';
 import '../widgets/id_card_frame.dart';
 import '../../simulation/generation/npc_wealth.dart';
 import '../widgets/npc_money.dart';
@@ -212,23 +213,48 @@ class _SchoolScreenState extends State<SchoolScreen> {
   void initState() {
     super.initState();
     engine.ensureSchool();
+
+    // A promotion earned at the last birthday is announced here too.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
+      await showClubPromotionIfAny(context, engine);
+
+      if (mounted) setState(() {});
+    });
   }
 
-  void _say(Result<String> result) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
+  /// Shows what happened as a pop-up (not a bar at the bottom).
+  Future<void> _announce(
+    Result<String> result, {
+    required String title,
+    required String emoji,
+  }) async {
+    final ok = result.isSuccess;
 
     final text = switch (result) {
       Success<String>(:final value) => value,
       Failure<String>(:final message) => message,
     };
 
-    messenger.showSnackBar(SnackBar(content: Text(text)));
     setState(() {});
 
-    if (result.isSuccess) {
+    if (ok) {
       widget.onChanged?.call();
     }
+
+    await showTapToCloseOverlay(
+      context,
+      title: ok ? title : 'Not Now',
+      emoji: ok ? emoji : '⏳',
+      text: text,
+    );
+
+    if (!mounted) return;
+
+    await showClubPromotionIfAny(context, engine);
+
+    if (mounted) setState(() {});
   }
 
   void _showSchoolInfo() {
@@ -243,7 +269,6 @@ class _SchoolScreenState extends State<SchoolScreen> {
     final head = education.faculty
         .where((npc) => npc.role == SchoolRole.principal || npc.role == SchoolRole.dean)
         .toList();
-    final year = state.clock.currentYear;
     final theme = Theme.of(context);
 
     final place = country == null
@@ -299,9 +324,7 @@ class _SchoolScreenState extends State<SchoolScreen> {
               if (SchoolActions.hasClubs(stage))
                 InfoLine(
                   label: 'Extracurricular',
-                  value: education.club != null && education.lastClubYear == year
-                      ? education.club!
-                      : 'None',
+                  value: education.club ?? 'None',
                 ),
             ],
           ),
@@ -340,7 +363,123 @@ class _SchoolScreenState extends State<SchoolScreen> {
       return;
     }
 
-    _say(engine.joinClub(clubId));
+    final club = SchoolActions.clubById(clubId);
+
+    await _announce(
+      engine.joinClub(clubId),
+      title: 'New Club',
+      emoji: club?.emoji ?? '🏅',
+    );
+  }
+
+  /// The club's information, with the buttons to train or leave.
+  void _openClub() {
+    final education = engine.state.lifeProgress.education;
+    final club = SchoolActions.clubByName(education.club);
+
+    if (club == null) return;
+
+    final year = engine.state.clock.currentYear;
+    final trained = education.lastTrainYear == year;
+    final rank = education.clubRank;
+    final theme = Theme.of(context);
+
+    final next = switch (rank) {
+      0 => '${club.viceTitle} at ${SchoolActions.viceAt} performance',
+      1 => '${club.leadTitle} at ${SchoolActions.leadAt} performance',
+      _ => 'Top rank reached',
+    };
+
+    showAnimatedDialog<void>(
+      context: context,
+      builder: (dialogContext) => ThemedDialog(
+        title: '${club.emoji}  ${club.name.toUpperCase()}',
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            key: const Key('club-info'),
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              InfoLine(
+                label: 'School',
+                value: education.schoolName ?? schoolStageTitle(education.stage),
+              ),
+              InfoLine(label: 'My role', value: club.titleFor(rank)),
+              InfoLine(label: 'Focus', value: club.blurb),
+              InfoLine(label: 'Next goal', value: next),
+              const SizedBox(height: 8),
+              Text(
+                '◆ PERFORMANCE · ${education.clubPerformance}/100',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1,
+                ),
+              ),
+              const SizedBox(height: 4),
+              PipBar(value: education.clubPerformance / 100),
+              const SizedBox(height: 14),
+              FilledButton(
+                key: const Key('club-train'),
+                onPressed: trained
+                    ? null
+                    : () {
+                        Navigator.of(dialogContext).pop();
+                        _announce(
+                          engine.trainClub(),
+                          title: 'Practice',
+                          emoji: '🏅',
+                        );
+                      },
+                child: Text(trained ? 'TRAINED THIS YEAR' : 'TRAIN'),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton(
+                key: const Key('club-leave'),
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  _leaveClub();
+                },
+                child: const Text('LEAVE CLUB'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _leaveClub() async {
+    final confirmed = await showAnimatedDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Leave the club?'),
+        content: const Text(
+          'My performance and rank here would be gone. '
+          'I could join another club next year.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('CANCEL'),
+          ),
+          FilledButton(
+            key: const Key('leave-club-confirm'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('LEAVE'),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted || confirmed != true) return;
+
+    await _announce(
+      engine.leaveClub(),
+      title: 'Left the Club',
+      emoji: '🚪',
+    );
   }
 
   Future<void> _leaveSchool() async {
@@ -368,11 +507,18 @@ class _SchoolScreenState extends State<SchoolScreen> {
     }
 
     final result = engine.dropOutOfSchool();
-    _say(result);
 
-    if (result.isSuccess && mounted) {
-      Navigator.of(context).pop();
+    if (result.isSuccess) {
+      widget.onChanged?.call();
+
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      return;
     }
+
+    await _announce(result, title: 'School', emoji: '🎒');
   }
 
   void _openPeople({required bool faculty}) {
@@ -448,6 +594,12 @@ class _SchoolScreenState extends State<SchoolScreen> {
                         onTap: _showSchoolInfo,
                         showChevron: false,
                       ),
+                      if (SchoolActions.hasClubs(stage) && education.club != null)
+                        ClubCard(
+                          education: education,
+                          zoom: widget.zoom,
+                          onTap: _openClub,
+                        ),
                       SectionDivider(
                         title: 'ACTIVITIES',
                         zoom: widget.zoom,
@@ -459,16 +611,19 @@ class _SchoolScreenState extends State<SchoolScreen> {
                         subtitle: education.lastStudyYear == year
                             ? 'Done for this year'
                             : 'Raise your grades',
-                        onTap: () => _say(engine.studyHarder()),
+                        onTap: () => _announce(
+                          engine.studyHarder(),
+                          title: 'Study Time',
+                          emoji: '📚',
+                        ),
                       ),
-                      if (SchoolActions.hasClubs(stage))
+                      if (SchoolActions.hasClubs(stage) && education.club == null)
                         _activity(
                           key: const Key('activity-club'),
                           emoji: '🎭',
                           title: 'Extracurricular',
-                          subtitle: education.lastClubYear == year &&
-                                  education.club != null
-                              ? 'This year: ${education.club}'
+                          subtitle: education.lastClubYear == year
+                              ? 'Done for this year'
                               : 'Join a club',
                           onTap: _pickClub,
                         ),
@@ -675,7 +830,7 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
                                         ],
                                       ),
                                       SizedBox(height: s(3)),
-                                      GameBar(
+                                      PipBar(
                                         value:
                                             npc.relationshipPercent.abs() / 100,
                                       ),

@@ -16,7 +16,6 @@ import '../../simulation/school/school_appearance.dart';
 import '../widgets/npc_avatar.dart';
 import '../widgets/themed_cards.dart';
 import '../widgets/character_avatar.dart';
-import '../widgets/game_bar.dart';
 import 'npc_interaction_screen.dart';
 import '../../simulation/generation/npc_wealth.dart';
 import '../widgets/npc_money.dart';
@@ -770,7 +769,7 @@ class _RelationshipBar extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        GameBar(value: score.abs() / 100.0),
+        PipBar(value: score.abs() / 100.0),
         SizedBox(height: 1 * zoom),
         Text(
           'Relationship · $score%',
