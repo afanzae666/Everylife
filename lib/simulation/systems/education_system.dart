@@ -107,7 +107,7 @@ class EducationSystem implements SimulationSystem {
 
       education = SchoolActions.checkPromotion(
         education.copyWith(
-          clubPerformance: education.clubPerformance + 6,
+          clubPerformance: education.clubPerformance + 8,
         ),
       );
 
