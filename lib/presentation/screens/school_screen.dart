@@ -78,61 +78,102 @@ class SchoolSummaryCard extends StatelessWidget {
     final theme = Theme.of(context);
     final stage = education.stage;
 
-    return Card(
+    final primary = theme.colorScheme.primary;
+
+    return AccentCard(
       key: const Key('school-card'),
-      margin: EdgeInsets.zero,
+      zoom: zoom,
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: EdgeInsets.all(s(8)),
+          padding: EdgeInsets.fromLTRB(s(8), s(6), s(8), s(7)),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
                 children: [
-                  Text(
-                    schoolStageEmoji(stage),
-                    style: TextStyle(fontSize: s(22)),
-                  ),
-                  SizedBox(width: s(6)),
-                  Expanded(
+                  Container(
+                    padding: EdgeInsets.all(s(5)),
+                    decoration: BoxDecoration(
+                      color: primary.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(s(10)),
+                      border: Border.all(color: primary, width: 1.5),
+                    ),
                     child: Text(
-                      schoolStageTitle(stage),
-                      style: theme.textTheme.titleMedium,
+                      schoolStageEmoji(stage),
+                      style: TextStyle(fontSize: s(22)),
                     ),
                   ),
-                  if (onTap != null && showChevron) const Icon(Icons.chevron_right),
+                  SizedBox(width: s(8)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          schoolStageTitle(stage),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        if (education.schoolName != null)
+                          Text(
+                            education.schoolName!,
+                            key: const Key('school-name'),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: s(7),
+                      vertical: s(2),
+                    ),
+                    decoration: BoxDecoration(
+                      color: primary,
+                      borderRadius: BorderRadius.circular(s(10)),
+                    ),
+                    child: Text(
+                      schoolProgressLabel(education),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onPrimary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  if (onTap != null && showChevron) ...[
+                    SizedBox(width: s(6)),
+                    ChevronBadge(zoom: zoom),
+                  ],
                 ],
               ),
-              if (education.schoolName != null)
-                Text(
-                  education.schoolName!,
-                  key: const Key('school-name'),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              Text(
-                schoolProgressLabel(education),
-                style: theme.textTheme.bodySmall,
-              ),
-              SizedBox(height: s(6)),
+              SizedBox(height: s(7)),
               Row(
                 children: [
-                  Text('Grades', style: theme.textTheme.bodySmall),
+                  Text(
+                    '◆ GRADES',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: primary,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1,
+                    ),
+                  ),
                   const Spacer(),
                   Text(
                     '${education.grades}/100',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w700,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: s(2)),
-              GameBar(
+              SizedBox(height: s(3)),
+              PipBar(
                 barKey: const Key('grades-bar'),
                 value: education.grades / 100,
+                height: s(8),
               ),
             ],
           ),

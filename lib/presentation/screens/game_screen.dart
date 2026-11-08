@@ -580,7 +580,7 @@ class _GameScreenState extends State<GameScreen> {
       avatar: NpcAvatar(
         character: player,
         currentYear: engine.state.clock.currentYear,
-        size: 64,
+        size: 112,
       ),
       text: '',
       body: Column(
@@ -786,6 +786,9 @@ class _GameScreenState extends State<GameScreen> {
   /// Height of the bottom navigation bar (before zoom).
   static const double _navigationHeight = 74;
 
+  /// How far the Age Up button rises above the navigation bar.
+  static const double _ageUpRise = 24;
+
   Widget _buildScaffold(
     BuildContext context,
     double zoom,
@@ -851,13 +854,14 @@ class _GameScreenState extends State<GameScreen> {
                 events,
               ),
             ),
-            // The navigation bar sits on top of the stat card. A Stack lets
-            // the big Age Up button overlap the card below it.
+            // The stat card sits above the navigation bar, which is the very
+            // last thing on the screen. The Age Up button rises a little above
+            // the bar, over the bottom edge of the stat card.
             Stack(
               clipBehavior: Clip.none,
               children: [
                 Padding(
-                  padding: EdgeInsets.only(top: _navigationHeight * zoom),
+                  padding: EdgeInsets.only(bottom: _navigationHeight * zoom),
                   child: _buildCoreStatsCard(
                     context,
                     zoom,
@@ -865,9 +869,9 @@ class _GameScreenState extends State<GameScreen> {
                   ),
                 ),
                 Positioned(
-                  top: 0,
                   left: 0,
                   right: 0,
+                  bottom: 0,
                   child: _buildBottomNavigation(
                     context,
                     zoom,
@@ -1016,63 +1020,84 @@ class _GameScreenState extends State<GameScreen> {
                                           .titleMedium!
                                           .fontSize ??
                                       16) *
-                                  0.85,
+                                  0.9,
+                              fontWeight: FontWeight.w800,
                             ),
                       ),
                     ),
-                    SizedBox(height: s(1)),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
+                    SizedBox(height: s(3)),
+                    _HeaderTag(
+                      zoom: zoom,
                       child: _flagLine(
                         occupationLabel(state),
                         occupationEmoji(state),
-                        Theme.of(context).textTheme.bodySmall!,
+                        Theme.of(context).textTheme.labelSmall!.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
                     ),
                     SizedBox(height: s(3)),
-                    _AgeChip(
-                      zoom: zoom,
-                      text: '${lifeStageLabel.toUpperCase()} · AGE $age',
+                    Row(
+                      children: [
+                        _HeaderTag(
+                          zoom: zoom,
+                          filled: true,
+                          child: Text(lifeStageLabel.toUpperCase()),
+                        ),
+                        SizedBox(width: s(4)),
+                        _HeaderTag(
+                          zoom: zoom,
+                          child: Text('AGE $age'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
               SizedBox(width: s(6)),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerRight,
-                                        child: _MoneyPill(
-                      zoom: zoom,
-                      child: Text(
-                      _formatMoney(
-                        player.money,
-                        currencyCode: _getCurrencyCode(player),
-                      ),
-                      textAlign: TextAlign.right,
-                      maxLines: 1,
-                      softWrap: false,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge!
-                          .copyWith(
-                            fontSize:
-                                (Theme.of(context)
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'CASH',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                        ),
+                  ),
+                  SizedBox(height: s(2)),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: s(150)),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: _MoneyPill(
+                        zoom: zoom,
+                        child: Text(
+                          _formatMoney(
+                            player.money,
+                            currencyCode: _getCurrencyCode(player),
+                          ),
+                          textAlign: TextAlign.right,
+                          maxLines: 1,
+                          softWrap: false,
+                          style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                                fontSize: (Theme.of(context)
                                             .textTheme
                                             .bodyLarge!
                                             .fontSize ??
                                         14) *
                                     0.95,
-                            fontWeight: FontWeight.w700,
-                            color: Theme.of(context).colorScheme.onPrimary,
-                          ),
-                    ),
+                                fontWeight: FontWeight.w700,
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
@@ -1295,7 +1320,7 @@ class _GameScreenState extends State<GameScreen> {
       return NpcAvatar(
         character: SchoolAppearance.characterFor(person),
         currentYear: year,
-        size: 64,
+        size: 112,
       );
     }
 
@@ -1472,33 +1497,40 @@ class _MoneyPill extends StatelessWidget {
   }
 }
 
-/// Life stage and age as a small tinted tag.
-class _AgeChip extends StatelessWidget {
-  const _AgeChip({required this.text, required this.zoom});
+/// A small tag in the header: outlined, or filled green when [filled].
+class _HeaderTag extends StatelessWidget {
+  const _HeaderTag({
+    required this.child,
+    required this.zoom,
+    this.filled = false,
+  });
 
-  final String text;
+  final Widget child;
   final double zoom;
+  final bool filled;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+    final textStyle = theme.textTheme.labelSmall!.copyWith(
+      fontWeight: FontWeight.w800,
+      letterSpacing: 0.6,
+      color: filled ? theme.colorScheme.onPrimary : null,
+    );
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: zoom * 6, vertical: zoom * 1),
+      padding: EdgeInsets.symmetric(horizontal: zoom * 6, vertical: zoom * 1.5),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(zoom * 6),
+        color: filled ? primary : primary.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(zoom * 5),
+        border: Border.all(color: primary.withValues(alpha: 0.7)),
       ),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Text(
-          text,
-          maxLines: 1,
-          style: theme.textTheme.labelSmall?.copyWith(
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.6,
-          ),
-        ),
+      child: DefaultTextStyle.merge(
+        style: textStyle,
+        maxLines: 1,
+        softWrap: false,
+        child: child,
       ),
     );
   }
@@ -1584,59 +1616,72 @@ class _BottomNavigation
     }
 
     return SizedBox(
-      height: s(_GameScreenState._navigationHeight),
+      height: s(_GameScreenState._navigationHeight + _GameScreenState._ageUpRise),
       child: Stack(
         clipBehavior: Clip.none,
-        alignment: Alignment.center,
         children: [
-          // The bar, with lines above and below it.
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                border: Border.symmetric(
-                  horizontal: BorderSide(
-                    color: theme.colorScheme.primary,
-                    width: 2,
+          // The bar, with a green line above and below it.
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: s(_GameScreenState._navigationHeight),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    border: Border.symmetric(
+                      horizontal: BorderSide(
+                        color: theme.colorScheme.primary,
+                        width: 2,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    item(
+                      icon: firstSlot.icon,
+                      label: firstSlot.label,
+                      onTap: onCareerTap,
+                    ),
+                    item(
+                      icon: Icons.account_balance_wallet_rounded,
+                      label: 'Assets',
+                      onTap: onAssetsTap,
+                    ),
+                    SizedBox(width: s(84)),
+                    item(
+                      icon: Icons.family_restroom_rounded,
+                      label: 'Life',
+                      onTap: onLifeTap,
+                    ),
+                    item(
+                      icon: Icons.more_horiz_rounded,
+                      label: 'More',
+                      onTap: onMoreTap,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
 
-          // Icons with a line between each of them.
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              item(
-                icon: firstSlot.icon,
-                label: firstSlot.label,
-                onTap: onCareerTap,
+          // Age Up sits in the middle of the bar and rises above it.
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: s(3),
+            child: Center(
+              child: _AgeUpButton(
+                zoom: zoom,
+                enabled: !isProcessing,
+                onTap: onAgeUpTap,
               ),
-              item(
-                icon: Icons.account_balance_wallet_rounded,
-                label: 'Assets',
-                onTap: onAssetsTap,
-              ),
-              SizedBox(width: s(84)),
-              item(
-                icon: Icons.family_restroom_rounded,
-                label: 'Life',
-                onTap: onLifeTap,
-              ),
-              item(
-                icon: Icons.more_horiz_rounded,
-                label: 'More',
-                onTap: onMoreTap,
-              ),
-            ],
-          ),
-
-          // Age Up sits in the middle of the bar and may spill outside it.
-          _AgeUpButton(
-            zoom: zoom,
-            enabled: !isProcessing,
-            onTap: onAgeUpTap,
+            ),
           ),
         ],
       ),
