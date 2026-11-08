@@ -341,8 +341,8 @@ abstract final class SchoolActions {
   }
 
   /// Club performance needed for each promotion.
-  static const int viceAt = 48;
-  static const int leadAt = 65;
+  static const int viceAt = 60;
+  static const int leadAt = 80;
 
   /// Gives the next rank if the performance is high enough. Sets
   /// [EducationState.clubPromotion] so the player is told about it once.
@@ -546,7 +546,7 @@ abstract final class SchoolActions {
       );
     }
 
-    final gain = 8 + random.nextInt(8);
+    final gain = 15 + random.nextInt(8);
     final text = SchoolNarratives.train(random, club.id);
     final stats = _clubStats(club, state.player.stats);
 
