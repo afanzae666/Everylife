@@ -72,7 +72,7 @@ void main() {
     expect(engine.trainClub().isSuccess, isTrue);
     expect(
       engine.state.lifeProgress.education.clubPerformance,
-      greaterThanOrEqualTo(38),
+      greaterThanOrEqualTo(45),
     );
     expect(engine.trainClub().isFailure, isTrue);
   });
@@ -182,10 +182,10 @@ void main() {
   });
 
   test('even the slowest player becomes the leader by grade 3', () {
-    // Join in grade 1 with the weakest practice (+8) and the yearly +6.
+    // Join in grade 1 with the weakest practice (+15) and the yearly +8.
     const start = 30;
-    const practice = 8;
-    const yearly = 6;
+    const practice = 15;
+    const yearly = 8;
 
     const grade2 = start + practice + yearly + practice;
     const grade3 = grade2 + yearly + practice;
