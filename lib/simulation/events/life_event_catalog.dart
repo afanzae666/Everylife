@@ -1,6 +1,8 @@
 import '../../domain/event/life_event.dart';
 import '../../domain/world/world_state.dart';
+import 'event_subjects.dart';
 import 'life_event_catalog_more.dart';
+import 'life_event_catalog_social.dart';
 import 'scripted_events.dart';
 
 /// The built-in life events (all player-facing text is English).
@@ -45,7 +47,8 @@ abstract final class LifeEventCatalog {
             event.statRequirements
                 .every((rule) => rule.isMetBy(state.player.stats)) &&
             (!event.needsLivingParent || hasLivingParent) &&
-            (!event.needsLivingSibling || hasLivingSibling))
+            (!event.needsLivingSibling || hasLivingSibling) &&
+            EventSubjects.isAvailable(event.about, state))
           event,
     ];
   }
@@ -63,6 +66,7 @@ abstract final class LifeEventCatalog {
   static const List<LifeEventDefinition> all = [
     ..._core,
     ...LifeEventCatalogMore.all,
+    ...LifeEventCatalogSocial.all,
     ...ScriptedEvents.all,
   ];
 
@@ -262,10 +266,11 @@ abstract final class LifeEventCatalog {
     LifeEventDefinition(
       id: 'school_bully',
       title: 'The Bully',
-      description: 'A bigger kid keeps taking my lunch money and laughing about it.',
+      description: '{name}, a bigger kid in my class, keeps taking my lunch money and laughing about it.',
       minAge: 7,
       maxAge: 14,
       cooldownYears: 6,
+      about: EventSubjectKind.classmate,
       weight: 12,
       choices: [
         LifeChoice(
@@ -273,12 +278,14 @@ abstract final class LifeEventCatalog {
           label: 'Stand up to them',
           outcomes: [
             LifeOutcome(
+              subjectRelation: -6,
               weight: 5,
               text: 'My voice shook, but they backed down. Word spread fast.',
               stats: [StatEffect(StatKey.willpower, 4), StatEffect(StatKey.charisma, 3)],
               addFlags: ['stood_up_to_bully'],
             ),
             LifeOutcome(
+              subjectRelation: -6,
               weight: 5,
               text: 'It turned into a scuffle, and I lost. I limped home with a bruised lip.',
               stats: [StatEffect(StatKey.health, -6), StatEffect(StatKey.happiness, -5), StatEffect(StatKey.willpower, 2)],
@@ -291,11 +298,13 @@ abstract final class LifeEventCatalog {
           label: 'Tell a teacher',
           outcomes: [
             LifeOutcome(
+              subjectRelation: -6,
               weight: 7,
               text: 'The teacher stepped in and the bully was moved to another class.',
               stats: [StatEffect(StatKey.happiness, 3)],
             ),
             LifeOutcome(
+              subjectRelation: -6,
               weight: 3,
               text: 'Someone called me a snitch, and that stuck for months.',
               stats: [StatEffect(StatKey.charisma, -4), StatEffect(StatKey.happiness, -3)],
@@ -308,6 +317,7 @@ abstract final class LifeEventCatalog {
           label: 'Avoid them and keep quiet',
           outcomes: [
             LifeOutcome(
+              subjectRelation: -6,
               text: 'I took the long way around school every day. It was exhausting.',
               stats: [StatEffect(StatKey.happiness, -4), StatEffect(StatKey.willpower, -2)],
               addFlags: ['bullied'],
@@ -509,10 +519,11 @@ abstract final class LifeEventCatalog {
     LifeEventDefinition(
       id: 'sibling_squabble',
       title: 'Sibling Rivalry',
-      description: 'My sibling broke my favourite toy and swears they did not.',
+      description: '{Role} {first} broke my favourite toy and swears {he} did not.',
       minAge: 6,
       maxAge: 17,
       needsLivingSibling: true,
+      about: EventSubjectKind.sibling,
       weight: 12,
       choices: [
         LifeChoice(
@@ -521,7 +532,7 @@ abstract final class LifeEventCatalog {
           outcomes: [
             LifeOutcome(
               text: 'We both got grounded. The house was very quiet for a week.',
-              siblingRelation: -8,
+              subjectRelation: -8,
               stats: [StatEffect(StatKey.happiness, -3), StatEffect(StatKey.willpower, -1)],
             ),
           ],
@@ -533,13 +544,13 @@ abstract final class LifeEventCatalog {
             LifeOutcome(
               weight: 3,
               text: 'We shook hands and built a blanket fort together.',
-              siblingRelation: 8,
+              subjectRelation: 8,
               stats: [StatEffect(StatKey.happiness, 4), StatEffect(StatKey.charisma, 2)],
             ),
             LifeOutcome(
               weight: 1,
               text: 'They laughed in my face and kept the toy.',
-              siblingRelation: -3,
+              subjectRelation: -3,
               stats: [StatEffect(StatKey.happiness, -2)],
             ),
           ],
@@ -550,7 +561,7 @@ abstract final class LifeEventCatalog {
           outcomes: [
             LifeOutcome(
               text: 'Justice was served, but I was labelled a tattletale for a while.',
-              siblingRelation: -4,
+              subjectRelation: -4,
               stats: [StatEffect(StatKey.happiness, 1), StatEffect(StatKey.charisma, -2)],
             ),
           ],
@@ -1399,11 +1410,12 @@ abstract final class LifeEventCatalog {
     LifeEventDefinition(
       id: 'parent_needs_care',
       title: 'A Parent in Need',
-      description: 'My parent has been getting frail, and the family needs a plan.',
+      description: '{Role} {first} has been getting frail, and the family needs a plan.',
       minAge: 30,
       maxAge: 70,
       cooldownYears: 8,
       needsLivingParent: true,
+      about: EventSubjectKind.parent,
       weight: 10,
       choices: [
         LifeChoice(
@@ -1412,7 +1424,7 @@ abstract final class LifeEventCatalog {
           outcomes: [
             LifeOutcome(
               text: 'It is tiring, but the stories they tell me are priceless.',
-              parentRelation: 10,
+              subjectRelation: 10,
               stats: [StatEffect(StatKey.happiness, 2), StatEffect(StatKey.health, -2), StatEffect(StatKey.willpower, 3)],
             ),
           ],
@@ -1424,7 +1436,7 @@ abstract final class LifeEventCatalog {
           outcomes: [
             LifeOutcome(
               text: 'It costs a lot, but they are in good hands and I can breathe.',
-              parentRelation: 4,
+              subjectRelation: 4,
               moneyBase: -200000,
               stats: [StatEffect(StatKey.happiness, 1)],
             ),
@@ -1436,7 +1448,7 @@ abstract final class LifeEventCatalog {
           outcomes: [
             LifeOutcome(
               text: 'I told myself I was too busy. The guilt followed me home.',
-              parentRelation: -10,
+              subjectRelation: -10,
               stats: [StatEffect(StatKey.happiness, -4), StatEffect(StatKey.willpower, -1)],
             ),
           ],
