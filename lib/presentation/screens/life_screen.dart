@@ -769,7 +769,7 @@ class _RelationshipBar extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        PipBar(value: score.abs() / 100.0),
+        PipBar(value: score.abs() / 100.0, widthFactor: 0.5),
         SizedBox(height: 1 * zoom),
         Text(
           'Relationship · $score%',

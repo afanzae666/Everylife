@@ -332,29 +332,44 @@ class _SchoolScreenState extends State<SchoolScreen> {
     );
   }
 
+  static const List<(String, String)> _clubGroups = [
+    ('sport', 'SPORTS'),
+    ('stage', 'STAGE & MUSIC'),
+    ('craft', 'ARTS & CRAFTS'),
+    ('mind', 'MIND'),
+    ('tech', 'TECH'),
+    ('social', 'COMMUNITY'),
+  ];
+
   Future<void> _pickClub() async {
-    final clubId = await showModalBottomSheet<String>(
+    final size = MediaQuery.of(context).size;
+
+    final clubId = await showAnimatedDialog<String>(
       context: context,
-      builder: (sheetContext) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(12),
-              child: Text(
-                'Pick an extracurricular',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-            ),
-            for (final club in SchoolActions.clubs)
-              ListTile(
-                key: Key('club-${club.id}'),
-                leading: Text(club.emoji, style: const TextStyle(fontSize: 24)),
-                title: Text(club.name),
-                subtitle: Text(club.blurb),
-                onTap: () => Navigator.of(sheetContext).pop(club.id),
-              ),
-          ],
+      builder: (dialogContext) => ThemedDialog(
+        title: 'Pick an Extracurricular',
+        child: SizedBox(
+          key: const Key('club-picker'),
+          width: 320,
+          height: size.height * 0.7,
+          child: ListView(
+            padding: const EdgeInsets.only(bottom: 8),
+            children: [
+              for (final group in _clubGroups) ...[
+                SectionDivider(title: group.$2),
+                for (final club in SchoolActions.clubs)
+                  if (club.category == group.$1)
+                    OptionTile(
+                      key: Key('club-${club.id}'),
+                      emoji: club.emoji,
+                      title: club.name,
+                      subtitle: club.blurb,
+                      selected: false,
+                      onTap: () => Navigator.of(dialogContext).pop(club.id),
+                    ),
+              ],
+            ],
+          ),
         ),
       ),
     );
@@ -831,6 +846,7 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
                                       ),
                                       SizedBox(height: s(3)),
                                       PipBar(
+                                        widthFactor: 0.5,
                                         value:
                                             npc.relationshipPercent.abs() / 100,
                                       ),

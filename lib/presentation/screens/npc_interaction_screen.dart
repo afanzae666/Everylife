@@ -244,6 +244,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                       const SizedBox(height: 2),
                       PipBar(
                         barKey: const Key('npc-details-relationship-bar'),
+                        widthFactor: 0.5,
                         value: score.abs() / 100,
                       ),
                       const SizedBox(height: 6),
@@ -318,7 +319,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                               ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 3),
-                        PipBar(value: score.abs() / 100),
+                        PipBar(value: score.abs() / 100, widthFactor: 0.5),
                         const SizedBox(height: 3),
                         Text('Relationship · $score%'),
                       ],
