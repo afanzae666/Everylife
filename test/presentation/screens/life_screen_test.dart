@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:everylife/presentation/widgets/themed_cards.dart';
 import 'package:everylife/presentation/screens/life_screen.dart';
 import 'package:everylife/core/money/money.dart';
 import 'package:everylife/domain/character/appearance.dart';
@@ -44,8 +45,8 @@ void main() {
     await tester.tap(find.byIcon(Icons.close));
     await tester.pumpAndSettle();
 
-    final relationshipBar = tester.widget<LinearProgressIndicator>(
-      find.byType(LinearProgressIndicator).first,
+    final relationshipBar = tester.widget<PipBar>(
+      find.byType(PipBar).first,
     );
     expect(relationshipBar.value, 0.75);
   });
