@@ -50,6 +50,7 @@ abstract final class FuneralPlanner {
             eventId: existing.eventId,
             year: existing.year,
             subject: '${existing.subject ?? ''} and $names'.trim(),
+            subjectNpcId: existing.subjectNpcId ?? died.first.id,
           ),
         ),
       );
@@ -62,6 +63,7 @@ abstract final class FuneralPlanner {
               age >= 18 ? ScriptedEvents.funeral : ScriptedEvents.funeralFamily,
           year: state.clock.currentYear,
           subject: names,
+          subjectNpcId: died.first.id,
         ),
       ),
     );
