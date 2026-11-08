@@ -414,3 +414,62 @@ class OptionTile extends StatelessWidget {
     );
   }
 }
+
+/// A bar made of ten small blocks that fill up from the left. The block at
+/// the edge of the value fills partly, so small changes still show.
+class PipBar extends StatelessWidget {
+  const PipBar({
+    required this.value,
+    this.color,
+    this.height = 8,
+    this.pips = 10,
+    this.barKey,
+    super.key,
+  });
+
+  /// 0..1.
+  final double value;
+
+  /// Defaults to the theme's green.
+  final Color? color;
+  final double height;
+  final int pips;
+
+  /// Key of the row of blocks, for tests.
+  final Key? barKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final fill = color ?? Theme.of(context).colorScheme.primary;
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(end: value.clamp(0.0, 1.0).toDouble()),
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
+      builder: (context, fraction, _) {
+        return Row(
+          key: barKey,
+          children: [
+            for (var i = 0; i < pips; i++) ...[
+              if (i > 0) const SizedBox(width: 2),
+              Expanded(
+                child: Container(
+                  height: height,
+                  decoration: BoxDecoration(
+                    color: Color.alphaBlend(
+                      fill.withValues(
+                        alpha: (fraction * pips - i).clamp(0.0, 1.0).toDouble(),
+                      ),
+                      fill.withValues(alpha: 0.16),
+                    ),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}

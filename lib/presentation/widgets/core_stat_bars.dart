@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../domain/character/character_stats.dart';
 import 'stat_icons.dart';
+import 'themed_cards.dart';
 
 /// The four main stats as colored bars with expressive icons:
 /// Happiness, Health, Smarts, and Looks.
@@ -34,31 +35,53 @@ class CoreStatBars extends StatelessWidget {
       );
     }
 
+    final primary = Theme.of(context).colorScheme.primary;
+
+    Widget divider() => Container(
+          width: 1,
+          margin: EdgeInsets.symmetric(vertical: s(2)),
+          color: primary.withValues(alpha: 0.25),
+        );
+
+    Widget row(Widget left, Widget right) => IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [left, divider(), right],
+          ),
+        );
+
     return InkWell(
       onTap: onTap,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: s(8), vertical: s(6)),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              primary.withValues(alpha: 0.10),
+              Theme.of(context).colorScheme.surface,
+            ],
+          ),
+          border: Border(left: BorderSide(color: primary, width: s(6))),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: s(4), vertical: s(3)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              row(
                 cell(CoreStatKind.happiness, stats.happiness, 'happiness'),
-                SizedBox(width: s(8)),
                 cell(CoreStatKind.health, stats.health, 'health'),
-              ],
-            ),
-            SizedBox(height: s(6)),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              ),
+              Container(
+                height: 1,
+                margin: EdgeInsets.symmetric(horizontal: s(6)),
+                color: primary.withValues(alpha: 0.25),
+              ),
+              row(
                 cell(CoreStatKind.smarts, stats.intelligence, 'intelligence'),
-                SizedBox(width: s(8)),
                 cell(CoreStatKind.looks, stats.looks, 'looks'),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -84,20 +107,15 @@ class _StatBarCell extends StatelessWidget {
     final theme = Theme.of(context);
     final percent = value.clamp(0, 100).toInt();
 
-    return Container(
+    return Padding(
       padding: EdgeInsets.fromLTRB(s(7), s(5), s(7), s(6)),
-      decoration: BoxDecoration(
-        color: kind.color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(s(10)),
-        border: Border.all(color: kind.color.withValues(alpha: 0.65), width: 1.3),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              StatIcon(kind: kind, value: percent, size: s(24)),
-              SizedBox(width: s(6)),
+              StatIcon(kind: kind, value: percent, size: s(22)),
+              SizedBox(width: s(5)),
               Expanded(
                 child: Text(
                   kind.label,
@@ -120,24 +138,10 @@ class _StatBarCell extends StatelessWidget {
             ],
           ),
           SizedBox(height: s(4)),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(s(6)),
-            child: SizedBox(
-              height: s(9),
-              child: TweenAnimationBuilder<double>(
-                tween: Tween<double>(end: percent / 100),
-                duration: const Duration(milliseconds: 450),
-                curve: Curves.easeOutCubic,
-                builder: (context, fraction, _) {
-                  return LinearProgressIndicator(
-                    value: fraction,
-                    minHeight: s(9),
-                    color: kind.color,
-                    backgroundColor: kind.color.withValues(alpha: 0.18),
-                  );
-                },
-              ),
-            ),
+          PipBar(
+            value: percent / 100,
+            color: kind.color,
+            height: s(8),
           ),
         ],
       ),
