@@ -8,6 +8,7 @@ class CharacterStats {
     this.charisma = 50,
     this.creativity = 50,
     this.luck = 50,
+    this.fertility = 70,
   });
 
   static const int minimum = 0;
@@ -21,6 +22,10 @@ class CharacterStats {
   final int charisma;
   final int creativity;
   final int luck;
+
+  /// Baseline fertility the character is born with. The fertility that is
+  /// shown also follows age (see `Fertility.effective`).
+  final int fertility;
 
   /// Appearance, from 0 to 100. It is not stored: it follows from how fit,
   /// charming, and healthy the character is, so events that change those
@@ -40,6 +45,7 @@ class CharacterStats {
     int? charisma,
     int? creativity,
     int? luck,
+    int? fertility,
   }) {
     return CharacterStats(
       health: _clamp(health ?? this.health),
@@ -64,6 +70,7 @@ class CharacterStats {
       luck: _clamp(
         luck ?? this.luck,
       ),
+      fertility: _clamp(fertility ?? this.fertility),
     );
   }
 

@@ -4,6 +4,7 @@ import '../world/character_location.dart';
 import 'appearance.dart';
 import 'character_stats.dart';
 import 'cultural_name_catalog.dart';
+import 'fertility.dart';
 import 'gender.dart';
 import 'life_stage.dart';
 import 'player_asset.dart';
@@ -256,7 +257,7 @@ return Character(
   lastName: resolvedLastName,
   gender: gender,
   birthYear: birthYear,
-  stats: stats ?? const CharacterStats(),
+  stats: stats ?? CharacterStats(fertility: Fertility.baselineFor(id)),
   money: const Money.zero(),
   appearance: appearance,
   location: location,
