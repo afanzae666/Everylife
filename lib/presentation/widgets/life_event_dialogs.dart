@@ -20,6 +20,7 @@ Future<String?> showLifeDecisionDialog(
   String? description,
   String? Function(LifeChoice choice)? costLabel,
   Widget? avatar,
+  String Function(String text)? fillText,
 }) {
   return showAnimatedDialog<String>(
     context: context,
@@ -46,6 +47,7 @@ Future<String?> showLifeDecisionDialog(
                   key: Key('life-choice-${event.choices[i].id}'),
                   text: _choiceText(
                     event.choices[i],
+                    fill: fillText,
                     affordable: canAfford(event.choices[i]),
                     cost: costLabel?.call(event.choices[i]),
                   ),
@@ -66,8 +68,10 @@ String _choiceText(
   LifeChoice choice, {
   required bool affordable,
   String? cost,
+  String Function(String text)? fill,
 }) {
-  final priced = cost == null ? choice.label : '${choice.label}\n$cost';
+  final label = fill == null ? choice.label : fill(choice.label);
+  final priced = cost == null ? label : '$label\n$cost';
 
   return affordable ? priced : '$priced\n(not enough money)';
 }
