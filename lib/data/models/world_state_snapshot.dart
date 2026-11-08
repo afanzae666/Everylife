@@ -27,6 +27,7 @@ required this.playerGender,
 required this.playerBirthYear,
 this.playerBirthMonth = 1,
 this.playerBirthDay = 1,
+this.playerFertility = 70,
 required this.playerHealth,
 required this.playerIntelligence,
 required this.playerFitness,
@@ -58,6 +59,7 @@ final int playerBirthDay;
 
 final int playerHealth;
 final int playerIntelligence;
+final int playerFertility;
 final int playerFitness;
 final int playerHappiness;
 final int playerWillpower;
@@ -109,6 +111,7 @@ return WorldStateSnapshot(
   playerBirthDay: player.birthDay,
   playerHealth: stats.health,
   playerIntelligence: stats.intelligence,
+  playerFertility: stats.fertility,
   playerFitness: stats.fitness,
   playerHappiness: stats.happiness,
   playerWillpower: stats.willpower,
@@ -144,6 +147,7 @@ birthDay: playerBirthDay,
 stats: CharacterStats(
 health: playerHealth,
 intelligence: playerIntelligence,
+fertility: playerFertility,
 fitness: playerFitness,
 happiness: playerHappiness,
 willpower: playerWillpower,
@@ -182,6 +186,7 @@ return {
 'stats': {
 'health': playerHealth,
 'intelligence': playerIntelligence,
+'fertility': playerFertility,
 'fitness': playerFitness,
 'happiness': playerHappiness,
 'willpower': playerWillpower,
@@ -297,6 +302,7 @@ return WorldStateSnapshot(
     stats['health'],
     'player.stats.health',
   ),
+  playerFertility: stats['fertility'] is int ? stats['fertility'] as int : 70,
   playerIntelligence: _requireInt(
     stats['intelligence'],
     'player.stats.intelligence',
