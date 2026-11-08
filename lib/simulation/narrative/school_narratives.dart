@@ -406,4 +406,37 @@ abstract final class SchoolNarratives {
 
   static String leave(SeededRandom random, String clubName) =>
       _pick(random, _leave).replaceAll('{club}', clubName);
+
+  static const List<String> _befriend = [
+    'I finally asked {n} if we could be friends. {n} grinned and said, '
+        '"I thought we already were!"',
+    'I took a deep breath and asked {n} to be my friend. The answer was a '
+        'big yes, plus a high five.',
+    '{n} and I had been circling this for a while. Today we made it '
+        'official: friends.',
+    'I told {n} I really liked hanging out with {n2}. {n} said the same, '
+        'and that was that.',
+    'I asked {n} to be friends in the most awkward way possible. It still '
+        'worked.',
+  ];
+
+  static const List<String> _bestFriend = [
+    'I told {n} that I could not imagine my life without {n2}. We are '
+        'best friends now, and we sealed it with a ridiculous handshake.',
+    '{n} and I made it official: best friends, no takebacks.',
+    'I asked {n} to be my best friend. {n} teared up, laughed, and said '
+        'yes.',
+    'After everything we have been through, {n} became my best friend. I '
+        'could not be happier.',
+  ];
+
+  static String befriend(SeededRandom random, String name) => _pick(
+        random,
+        _befriend,
+      ).replaceAll('{n2}', 'them').replaceAll('{n}', name);
+
+  static String bestFriend(SeededRandom random, String name) => _pick(
+        random,
+        _bestFriend,
+      ).replaceAll('{n2}', 'them').replaceAll('{n}', name);
 }
