@@ -62,6 +62,7 @@ abstract final class EventSubjects {
       EventSubjectKind.classmate =>
         state.lifeProgress.education.classmates.isNotEmpty,
       EventSubjectKind.teacher => _teachers(state).isNotEmpty,
+      EventSubjectKind.friend => state.lifeProgress.friends.isNotEmpty,
     };
   }
 
@@ -144,6 +145,18 @@ abstract final class EventSubjects {
           npcId: teacher.id,
           person: teacher,
         );
+      case EventSubjectKind.friend:
+        final friends = state.lifeProgress.friends;
+        if (friends.isEmpty) return base;
+        final friend = friends[random.nextInt(friends.length)];
+        return withPerson(
+          role: 'my friend',
+          name: friend.fullName,
+          first: friend.firstName,
+          gender: friend.gender,
+          npcId: friend.id,
+          person: friend,
+        );
       case EventSubjectKind.stranger:
       case EventSubjectKind.coworker:
         final stranger = _makeStranger(state, random);
@@ -223,6 +236,23 @@ abstract final class EventSubjects {
       );
     }
 
+    final friends = next.lifeProgress.friends;
+
+    if (friends.any((friend) => friend.id == npcId)) {
+      next = next.copyWith(
+        lifeProgress: next.lifeProgress.copyWith(
+          friends: [
+            for (final friend in friends)
+              friend.id == npcId
+                  ? friend.copyWith(
+                      relationshipPercent: shift(friend.relationshipPercent),
+                    )
+                  : friend,
+          ],
+        ),
+      );
+    }
+
     final education = next.lifeProgress.education;
 
     if (education.npcs.any((npc) => npc.id == npcId)) {
@@ -238,6 +268,51 @@ abstract final class EventSubjects {
                     : npc,
             ],
           ),
+        ),
+      );
+    }
+
+    return next;
+  }
+
+  /// Applies everything an outcome does to the person the event is about:
+  /// the relationship change, and making or losing a friend.
+  static WorldState applyToSubject(
+    WorldState state,
+    PendingLifeEvent? pending,
+    LifeOutcome outcome,
+  ) {
+    var next = applyRelation(state, pending, outcome.subjectRelation);
+    final person = pending?.subjectPerson;
+
+    if (person == null) return next;
+
+    final friends = next.lifeProgress.friends;
+    final isFriend = friends.any((friend) => friend.id == person.id);
+
+    if (outcome.makesFriend && !isFriend) {
+      // Classmates keep the score they already have with the player.
+      var score = person.relationshipPercent;
+
+      for (final npc in next.lifeProgress.education.npcs) {
+        if (npc.id == person.id) score = npc.relationshipPercent;
+      }
+
+      next = next.copyWith(
+        lifeProgress: next.lifeProgress.copyWith(
+          friends: [
+            ...friends,
+            person.copyWith(relationshipPercent: score < 50 ? 50 : score),
+          ],
+        ),
+      );
+    } else if (outcome.losesFriend && isFriend) {
+      next = next.copyWith(
+        lifeProgress: next.lifeProgress.copyWith(
+          friends: [
+            for (final friend in friends)
+              if (friend.id != person.id) friend,
+          ],
         ),
       );
     }

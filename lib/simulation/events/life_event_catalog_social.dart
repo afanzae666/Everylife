@@ -23,6 +23,7 @@ abstract final class LifeEventCatalogSocial {
               text: '{first} and I swapped a sad sandwich for a legendary cookie. We have been inseparable since.',
               stats: [StatEffect(StatKey.happiness, 5), StatEffect(StatKey.charisma, 3)],
               subjectRelation: 14,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
           ],
@@ -37,6 +38,7 @@ abstract final class LifeEventCatalogSocial {
               stats: [StatEffect(StatKey.happiness, 4), StatEffect(StatKey.charisma, 2)],
               moneyBase: -100,
               subjectRelation: 12,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -79,6 +81,7 @@ abstract final class LifeEventCatalogSocial {
               weight: 3,
               stats: [StatEffect(StatKey.intelligence, 4), StatEffect(StatKey.happiness, 3)],
               subjectRelation: 10,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -122,6 +125,7 @@ abstract final class LifeEventCatalogSocial {
               weight: 3,
               stats: [StatEffect(StatKey.happiness, 5), StatEffect(StatKey.charisma, 3)],
               subjectRelation: 14,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -181,6 +185,7 @@ abstract final class LifeEventCatalogSocial {
               text: 'Fair and simple. We both did our half and high-fived at the end.',
               stats: [StatEffect(StatKey.intelligence, 2), StatEffect(StatKey.happiness, 3)],
               subjectRelation: 8,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
           ],
@@ -279,6 +284,7 @@ abstract final class LifeEventCatalogSocial {
               stats: [StatEffect(StatKey.happiness, 5), StatEffect(StatKey.charisma, 2)],
               moneyBase: -300,
               subjectRelation: 10,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -503,6 +509,7 @@ abstract final class LifeEventCatalogSocial {
               weight: 3,
               stats: [StatEffect(StatKey.willpower, 4), StatEffect(StatKey.charisma, 3), StatEffect(StatKey.happiness, 3)],
               subjectRelation: 16,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -610,6 +617,7 @@ abstract final class LifeEventCatalogSocial {
               weight: 3,
               stats: [StatEffect(StatKey.happiness, 6), StatEffect(StatKey.charisma, 3)],
               subjectRelation: 12,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -763,6 +771,7 @@ abstract final class LifeEventCatalogSocial {
               text: 'It was heavy, but {first} noticed and trusted me even more.',
               stats: [StatEffect(StatKey.willpower, 3), StatEffect(StatKey.happiness, 2)],
               subjectRelation: 14,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
           ],
@@ -1083,6 +1092,7 @@ abstract final class LifeEventCatalogSocial {
               stats: [StatEffect(StatKey.intelligence, 3), StatEffect(StatKey.happiness, 4), StatEffect(StatKey.charisma, 2)],
               moneyBase: -500,
               subjectRelation: 12,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
           ],
@@ -1120,6 +1130,7 @@ abstract final class LifeEventCatalogSocial {
               weight: 3,
               stats: [StatEffect(StatKey.happiness, 6), StatEffect(StatKey.charisma, 4), StatEffect(StatKey.health, -1)],
               subjectRelation: 12,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -1160,6 +1171,7 @@ abstract final class LifeEventCatalogSocial {
               text: 'We played until the streetlights came on. A new friend!',
               weight: 3,
               stats: [StatEffect(StatKey.happiness, 6), StatEffect(StatKey.charisma, 2)],
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -1199,6 +1211,7 @@ abstract final class LifeEventCatalogSocial {
               weight: 3,
               stats: [StatEffect(StatKey.happiness, 4), StatEffect(StatKey.charisma, 3)],
               moneyBase: -800,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -1248,6 +1261,7 @@ abstract final class LifeEventCatalogSocial {
               text: 'We play every evening now. Voice chat is chaos, but the fun kind.',
               weight: 3,
               stats: [StatEffect(StatKey.happiness, 5), StatEffect(StatKey.charisma, 2)],
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -1286,6 +1300,7 @@ abstract final class LifeEventCatalogSocial {
               text: 'We talked all the way to my stop. We swapped numbers.',
               weight: 3,
               stats: [StatEffect(StatKey.happiness, 4), StatEffect(StatKey.charisma, 3)],
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -1324,6 +1339,7 @@ abstract final class LifeEventCatalogSocial {
               text: 'A solid spot and a new workout partner.',
               weight: 3,
               stats: [StatEffect(StatKey.fitness, 3), StatEffect(StatKey.happiness, 3), StatEffect(StatKey.charisma, 2)],
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -1363,6 +1379,7 @@ abstract final class LifeEventCatalogSocial {
               weight: 3,
               stats: [StatEffect(StatKey.happiness, 5), StatEffect(StatKey.charisma, 3)],
               moneyBase: -400,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -1402,6 +1419,7 @@ abstract final class LifeEventCatalogSocial {
               weight: 3,
               stats: [StatEffect(StatKey.happiness, 5), StatEffect(StatKey.charisma, 3), StatEffect(StatKey.luck, 2)],
               moneyBase: 800,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -1447,6 +1465,7 @@ abstract final class LifeEventCatalogSocial {
               text: 'We changed the tire together. {first} insisted on exchanging numbers.',
               weight: 3,
               stats: [StatEffect(StatKey.happiness, 4), StatEffect(StatKey.charisma, 2), StatEffect(StatKey.willpower, 2)],
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -1501,6 +1520,7 @@ abstract final class LifeEventCatalogSocial {
               text: '{first} paid me back with interest. Wow.',
               stats: [StatEffect(StatKey.happiness, 3), StatEffect(StatKey.luck, 3)],
               moneyBase: 500,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
           ],
@@ -1536,6 +1556,7 @@ abstract final class LifeEventCatalogSocial {
               weight: 3,
               stats: [StatEffect(StatKey.happiness, 6), StatEffect(StatKey.charisma, 3)],
               moneyBase: -1500,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -1574,6 +1595,7 @@ abstract final class LifeEventCatalogSocial {
               text: 'The dog loved me and {first} liked me too. We now walk together on weekends.',
               weight: 3,
               stats: [StatEffect(StatKey.happiness, 5), StatEffect(StatKey.fitness, 2)],
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -1613,6 +1635,7 @@ abstract final class LifeEventCatalogSocial {
               weight: 3,
               stats: [StatEffect(StatKey.happiness, 6), StatEffect(StatKey.charisma, 3)],
               moneyBase: -3000,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -1653,6 +1676,7 @@ abstract final class LifeEventCatalogSocial {
               text: '{first} was so relieved. Lunch together became our daily routine.',
               weight: 3,
               stats: [StatEffect(StatKey.happiness, 4), StatEffect(StatKey.charisma, 3)],
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -1741,6 +1765,7 @@ abstract final class LifeEventCatalogSocial {
               weight: 3,
               stats: [StatEffect(StatKey.happiness, 4), StatEffect(StatKey.charisma, 2)],
               moneyBase: -1200,
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
             LifeOutcome(
@@ -1825,6 +1850,7 @@ abstract final class LifeEventCatalogSocial {
               text: 'I learned a lot, and {first} and I grew closer.',
               weight: 2,
               stats: [StatEffect(StatKey.happiness, 3)],
+              makesFriend: true,
               addFlags: ['made_friend'],
             ),
           ],
@@ -2116,6 +2142,357 @@ abstract final class LifeEventCatalogSocial {
               text: '{first} was so happy. It was worth it.',
               stats: [StatEffect(StatKey.happiness, 3)],
               subjectRelation: 8,
+            ),
+          ],
+        ),
+      ],
+    ),
+    LifeEventDefinition(
+      id: 'friend_hangout',
+      title: 'Hangout',
+      description: '{Name} texted me: "Free today? Let\'s do something."',
+      minAge: 8,
+      maxAge: 85,
+      about: EventSubjectKind.friend,
+      weight: 14,
+      cooldownYears: 2,
+      choices: [
+        LifeChoice(
+          id: 'go',
+          label: 'Go out together',
+          outcomes: [
+            LifeOutcome(
+              text: 'We wandered around, ate too much and laughed until it hurt.',
+              stats: [StatEffect(StatKey.happiness, 5), StatEffect(StatKey.charisma, 1)],
+              moneyBase: -1000,
+              subjectRelation: 8,
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'home',
+          label: 'Invite {him} over',
+          outcomes: [
+            LifeOutcome(
+              text: 'Snacks, games and terrible movies. A perfect day.',
+              stats: [StatEffect(StatKey.happiness, 4)],
+              moneyBase: -400,
+              subjectRelation: 7,
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'busy',
+          label: 'Say I am busy',
+          outcomes: [
+            LifeOutcome(
+              text: '{first} said no worries, but the reply took a while.',
+              stats: [StatEffect(StatKey.happiness, -1)],
+              subjectRelation: -5,
+            ),
+          ],
+        ),
+      ],
+    ),
+    LifeEventDefinition(
+      id: 'friend_needs_help',
+      title: 'Friend in Trouble',
+      description: '{Name} called me at night, clearly upset and needing someone to talk to.',
+      minAge: 10,
+      maxAge: 85,
+      about: EventSubjectKind.friend,
+      weight: 10,
+      cooldownYears: 4,
+      choices: [
+        LifeChoice(
+          id: 'listen',
+          label: 'Listen all night',
+          outcomes: [
+            LifeOutcome(
+              text: '{first} felt so much better. Our bond got stronger.',
+              stats: [StatEffect(StatKey.happiness, 2), StatEffect(StatKey.willpower, 2)],
+              subjectRelation: 12,
+            ),
+            LifeOutcome(
+              text: 'I was exhausted the next day, but it was worth it.',
+              stats: [StatEffect(StatKey.health, -2), StatEffect(StatKey.willpower, 2)],
+              subjectRelation: 10,
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'advice',
+          label: 'Give quick advice and hang up',
+          outcomes: [
+            LifeOutcome(
+              text: 'Meh. {first} said thanks but sounded unconvinced.',
+              stats: [StatEffect(StatKey.happiness, -1)],
+              subjectRelation: -3,
+            ),
+          ],
+        ),
+      ],
+    ),
+    LifeEventDefinition(
+      id: 'friend_birthday',
+      title: 'Friend\'s Birthday',
+      description: 'It is {name}\'s birthday today.',
+      minAge: 8,
+      maxAge: 90,
+      about: EventSubjectKind.friend,
+      weight: 10,
+      cooldownYears: 2,
+      choices: [
+        LifeChoice(
+          id: 'gift',
+          label: 'Buy a thoughtful gift',
+          outcomes: [
+            LifeOutcome(
+              text: '{first} loved it! It will be on display for years.',
+              stats: [StatEffect(StatKey.happiness, 4), StatEffect(StatKey.charisma, 2)],
+              moneyBase: -2500,
+              subjectRelation: 10,
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'card',
+          label: 'Write a heartfelt message',
+          outcomes: [
+            LifeOutcome(
+              text: 'A simple message, but {first} replied with a dozen hearts.',
+              stats: [StatEffect(StatKey.happiness, 3)],
+              subjectRelation: 6,
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'forget',
+          label: 'Forget until tomorrow',
+          outcomes: [
+            LifeOutcome(
+              text: '{first} acted like it was fine. It was not fine.',
+              stats: [StatEffect(StatKey.happiness, -2), StatEffect(StatKey.charisma, -1)],
+              subjectRelation: -10,
+            ),
+          ],
+        ),
+      ],
+    ),
+    LifeEventDefinition(
+      id: 'friend_betrayal',
+      title: 'Broken Trust',
+      description: 'I found out {name} had been talking behind my back.',
+      minAge: 12,
+      maxAge: 85,
+      about: EventSubjectKind.friend,
+      weight: 7,
+      cooldownYears: 8,
+      choices: [
+        LifeChoice(
+          id: 'confront',
+          label: 'Confront {him}',
+          outcomes: [
+            LifeOutcome(
+              text: 'It was a tough talk, but {first} apologized sincerely.',
+              weight: 3,
+              stats: [StatEffect(StatKey.willpower, 3), StatEffect(StatKey.happiness, 1)],
+              subjectRelation: -4,
+            ),
+            LifeOutcome(
+              text: 'It ended in a screaming match. We are no longer friends.',
+              weight: 2,
+              stats: [StatEffect(StatKey.happiness, -5)],
+              subjectRelation: -30,
+              losesFriend: true,
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'cut',
+          label: 'Cut {him} off',
+          outcomes: [
+            LifeOutcome(
+              text: 'I blocked {first} everywhere. Quiet, but a bit lonely.',
+              stats: [StatEffect(StatKey.happiness, -3), StatEffect(StatKey.willpower, 2)],
+              subjectRelation: -40,
+              losesFriend: true,
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'forgive',
+          label: 'Let it slide',
+          outcomes: [
+            LifeOutcome(
+              text: 'I decided the friendship mattered more than the gossip.',
+              stats: [StatEffect(StatKey.willpower, 1), StatEffect(StatKey.happiness, -1)],
+              subjectRelation: -5,
+            ),
+          ],
+        ),
+      ],
+    ),
+    LifeEventDefinition(
+      id: 'friend_drifting',
+      title: 'Drifting Apart',
+      description: 'I realized I had not talked to {name} in months.',
+      minAge: 14,
+      maxAge: 85,
+      about: EventSubjectKind.friend,
+      weight: 8,
+      cooldownYears: 5,
+      choices: [
+        LifeChoice(
+          id: 'call',
+          label: 'Call {him} right now',
+          outcomes: [
+            LifeOutcome(
+              text: 'We talked for hours, as if no time had passed.',
+              stats: [StatEffect(StatKey.happiness, 5)],
+              subjectRelation: 14,
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'later',
+          label: 'Tell myself I will call later',
+          outcomes: [
+            LifeOutcome(
+              text: 'Later never came. The silence grew.',
+              stats: [StatEffect(StatKey.happiness, -2)],
+              subjectRelation: -12,
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'let',
+          label: 'Let the friendship fade',
+          outcomes: [
+            LifeOutcome(
+              text: 'Some friendships just run their course.',
+              stats: [StatEffect(StatKey.happiness, -3)],
+              subjectRelation: -25,
+              losesFriend: true,
+            ),
+          ],
+        ),
+      ],
+    ),
+    LifeEventDefinition(
+      id: 'friend_loan',
+      title: 'Friend Asks for Money',
+      description: '{Name} asked to borrow some money until payday.',
+      minAge: 16,
+      maxAge: 85,
+      about: EventSubjectKind.friend,
+      weight: 9,
+      cooldownYears: 5,
+      choices: [
+        LifeChoice(
+          id: 'lend',
+          label: 'Lend it',
+          outcomes: [
+            LifeOutcome(
+              text: '{first} paid me back on time and bought lunch.',
+              weight: 3,
+              stats: [StatEffect(StatKey.happiness, 3)],
+              moneyBase: -3000,
+              subjectRelation: 8,
+            ),
+            LifeOutcome(
+              text: '{first} "forgot" to pay me back. Awkward every time we meet.',
+              weight: 2,
+              stats: [StatEffect(StatKey.happiness, -4)],
+              moneyBase: -6000,
+              subjectRelation: -12,
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'refuse',
+          label: 'Say no politely',
+          outcomes: [
+            LifeOutcome(
+              text: '{first} understood. Mostly.',
+              stats: [StatEffect(StatKey.willpower, 2)],
+              subjectRelation: -6,
+            ),
+          ],
+        ),
+      ],
+    ),
+    LifeEventDefinition(
+      id: 'friend_success',
+      title: 'Friend\'s Big News',
+      description: '{Name} told me about a big success in {his} life.',
+      minAge: 14,
+      maxAge: 85,
+      about: EventSubjectKind.friend,
+      weight: 9,
+      cooldownYears: 4,
+      choices: [
+        LifeChoice(
+          id: 'cheer',
+          label: 'Celebrate loudly',
+          outcomes: [
+            LifeOutcome(
+              text: 'We celebrated like champions. I am genuinely proud of {first}.',
+              stats: [StatEffect(StatKey.happiness, 5), StatEffect(StatKey.charisma, 2)],
+              moneyBase: -1500,
+              subjectRelation: 10,
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'jealous',
+          label: 'Feel quietly jealous',
+          outcomes: [
+            LifeOutcome(
+              text: 'I smiled, but part of me stung. Ugh, human nature.',
+              stats: [StatEffect(StatKey.happiness, -3)],
+              subjectRelation: -4,
+            ),
+          ],
+        ),
+      ],
+    ),
+    LifeEventDefinition(
+      id: 'friend_road_trip',
+      title: 'Road Trip',
+      description: '{Name} suggested a spontaneous weekend road trip.',
+      minAge: 18,
+      maxAge: 70,
+      about: EventSubjectKind.friend,
+      weight: 7,
+      cooldownYears: 6,
+      choices: [
+        LifeChoice(
+          id: 'go',
+          label: 'Pack the car and go',
+          outcomes: [
+            LifeOutcome(
+              text: 'We got lost twice, sang badly and made memories for life.',
+              stats: [StatEffect(StatKey.happiness, 7), StatEffect(StatKey.charisma, 2)],
+              moneyBase: -6000,
+              subjectRelation: 14,
+            ),
+            LifeOutcome(
+              text: 'The car broke down. Still, we laughed about it for years.',
+              stats: [StatEffect(StatKey.happiness, 4)],
+              moneyBase: -9000,
+              subjectRelation: 10,
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'stay',
+          label: 'Stay home',
+          outcomes: [
+            LifeOutcome(
+              text: 'I stayed home. My phone buzzed with trip photos all weekend.',
+              stats: [StatEffect(StatKey.happiness, -3)],
+              subjectRelation: -4,
             ),
           ],
         ),
