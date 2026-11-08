@@ -158,7 +158,43 @@ class SimulationEngine {
     ensureSchool();
 
     return _commitAction(
-      SchoolActions.joinClub(state: _state, clubId: clubId),
+      SchoolActions.joinClub(
+        state: _state,
+        clubId: clubId,
+        random: _random,
+      ),
+    );
+  }
+
+  Result<String> trainClub() {
+    ensureSchool();
+
+    return _commitAction(
+      SchoolActions.trainClub(state: _state, random: _random),
+    );
+  }
+
+  Result<String> leaveClub() {
+    ensureSchool();
+
+    return _commitAction(
+      SchoolActions.leaveClub(state: _state, random: _random),
+    );
+  }
+
+  /// The club rank (1 or 2) the player just earned and has not seen yet.
+  int? get clubPromotion => _state.lifeProgress.education.clubPromotion;
+
+  /// Marks the club promotion as announced.
+  void acknowledgeClubPromotion() {
+    final education = _state.lifeProgress.education;
+
+    if (education.clubPromotion == null) return;
+
+    _state = _state.copyWith(
+      lifeProgress: _state.lifeProgress.copyWith(
+        education: education.copyWith(clearClubPromotion: true),
+      ),
     );
   }
 
