@@ -1,5 +1,6 @@
 import '../career/career_state.dart';
 import '../career/education_state.dart';
+import '../career/school_npc.dart';
 
 /// Flags that systems (not events) set and clear. Events may require them.
 abstract final class SystemFlags {
@@ -31,6 +32,12 @@ class PendingLifeEvent {
     required this.year,
     this.subject,
     this.subjectNpcId,
+    this.subjectKind,
+    this.subjectName,
+    this.subjectFirst,
+    this.subjectRole,
+    this.subjectGender,
+    this.subjectPerson,
   });
 
   final String eventId;
@@ -42,11 +49,30 @@ class PendingLifeEvent {
   /// The id of the parent or sibling the event is about, when there is one.
   final String? subjectNpcId;
 
+  /// `EventSubjectKind.name` of the person picked for the event.
+  final String? subjectKind;
+
+  /// Full name, first name, role ("my father") and gender name of that person.
+  final String? subjectName;
+  final String? subjectFirst;
+  final String? subjectRole;
+  final String? subjectGender;
+
+  /// The classmate, teacher or stranger the event is about (family members
+  /// are found again through [subjectNpcId]).
+  final SchoolNpc? subjectPerson;
+
   Map<String, dynamic> toJson() => {
         'eventId': eventId,
         'year': year,
         if (subject != null) 'subject': subject,
         if (subjectNpcId != null) 'subjectNpcId': subjectNpcId,
+        if (subjectKind != null) 'subjectKind': subjectKind,
+        if (subjectName != null) 'subjectName': subjectName,
+        if (subjectFirst != null) 'subjectFirst': subjectFirst,
+        if (subjectRole != null) 'subjectRole': subjectRole,
+        if (subjectGender != null) 'subjectGender': subjectGender,
+        if (subjectPerson != null) 'subjectPerson': subjectPerson!.toJson(),
       };
 
   static PendingLifeEvent? fromJson(Object? json) {
@@ -65,6 +91,18 @@ class PendingLifeEvent {
       subject: subject is String ? subject : null,
       subjectNpcId:
           json['subjectNpcId'] is String ? json['subjectNpcId'] as String : null,
+      subjectKind:
+          json['subjectKind'] is String ? json['subjectKind'] as String : null,
+      subjectName:
+          json['subjectName'] is String ? json['subjectName'] as String : null,
+      subjectFirst:
+          json['subjectFirst'] is String ? json['subjectFirst'] as String : null,
+      subjectRole:
+          json['subjectRole'] is String ? json['subjectRole'] as String : null,
+      subjectGender: json['subjectGender'] is String
+          ? json['subjectGender'] as String
+          : null,
+      subjectPerson: SchoolNpc.fromJson(json['subjectPerson']),
     );
   }
 }

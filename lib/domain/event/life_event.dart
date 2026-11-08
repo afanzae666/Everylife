@@ -1,4 +1,19 @@
 import '../character/character_stats.dart';
+import '../character/gender.dart';
+import 'life_progress.dart';
+
+/// Who a life event is about. The game picks a real person of that kind
+/// (a living parent, an actual classmate, ...) when the event starts, so the
+/// text can name them and the pop-up can show their avatar.
+enum EventSubjectKind {
+  none,
+  parent,
+  sibling,
+  classmate,
+  teacher,
+  stranger,
+  coworker,
+}
 
 /// Player stats that an event outcome can change.
 enum StatKey {
@@ -71,6 +86,7 @@ class LifeOutcome {
     this.removeFlags = const <String>[],
     this.parentRelation = 0,
     this.siblingRelation = 0,
+    this.subjectRelation = 0,
   });
 
   /// First-person result text shown to the player.
@@ -93,6 +109,10 @@ class LifeOutcome {
 
   /// Change to the relationship score with every living, born sibling.
   final int siblingRelation;
+
+  /// Change to the relationship score with the person the event is about
+  /// (see [LifeEventDefinition.about]) and nobody else.
+  final int subjectRelation;
 }
 
 class LifeChoice {
@@ -156,10 +176,15 @@ class LifeEventDefinition {
     this.choices = const <LifeChoice>[],
     this.autoOutcomes = const <LifeOutcome>[],
     this.scripted = false,
+    this.about = EventSubjectKind.none,
   });
 
   final String id;
   final String title;
+
+  /// The kind of person this event is about. Text may use `{name}`,
+  /// `{first}`, `{role}`, `{Role}`, `{he}`, `{He}`, `{him}`, `{his}`, `{His}`.
+  final EventSubjectKind about;
 
   /// Scripted events are started by game systems (for example a funeral),
   /// never drawn at random.
@@ -196,6 +221,36 @@ class LifeEventDefinition {
 abstract final class LifeText {
   static String fill(String text, String? subject) {
     return text.replaceAll('{who}', subject ?? 'someone close to me');
+  }
+
+  /// Fills every placeholder from the person a pending event is about.
+  static String fillPending(String text, PendingLifeEvent? pending) {
+    var out = fill(text, pending?.subject);
+
+    final name = pending?.subjectName;
+
+    if (pending == null || name == null) return out;
+
+    final first = pending.subjectFirst ?? name;
+    final role = pending.subjectRole ?? 'someone';
+    final female = pending.subjectGender == Gender.female.name;
+
+    final replacements = <String, String>{
+      '{name}': name,
+      '{Name}': name,
+      '{first}': first,
+      '{role}': role,
+      '{Role}': role[0].toUpperCase() + role.substring(1),
+      '{he}': female ? 'she' : 'he',
+      '{He}': female ? 'She' : 'He',
+      '{him}': female ? 'her' : 'him',
+      '{his}': female ? 'her' : 'his',
+      '{His}': female ? 'Her' : 'His',
+    };
+
+    replacements.forEach((key, value) => out = out.replaceAll(key, value));
+
+    return out;
   }
 }
 
