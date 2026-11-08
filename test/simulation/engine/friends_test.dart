@@ -2,7 +2,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:everylife/core/random/seeded_random.dart';
 import 'package:everylife/data/repositories/save_repository.dart';
+import 'package:everylife/core/result/result.dart';
+import 'package:everylife/domain/career/education_state.dart';
 import 'package:everylife/domain/career/school_npc.dart';
+import 'package:everylife/domain/character/fertility.dart';
+import 'package:everylife/domain/event/npc_interaction_outcome.dart';
 import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/character/gender.dart';
 import 'package:everylife/domain/event/life_event.dart';
@@ -75,11 +79,143 @@ void main() {
 
     expect(result.isSuccess, isTrue);
 
+    // The event only offers; nobody is a friend until I say yes.
+    expect(engine.state.lifeProgress.friends, isEmpty);
+    expect(engine.friendOffer?.id, person.id);
+
+    final accepted = engine.acceptFriendOffer();
+
+    expect(accepted.isSuccess, isTrue);
+    expect(engine.friendOffer, isNull);
+
     final friends = engine.state.lifeProgress.friends;
 
     expect(friends, hasLength(1));
     expect(friends.single.id, person.id);
     expect(friends.single.relationshipPercent, greaterThanOrEqualTo(50));
+  });
+
+  test('declining a friend offer keeps the person out of the list', () {
+    final engine = engineWith(
+      LifeProgress(
+        pending: PendingLifeEvent(
+          eventId: 'school_new_friend',
+          year: 2026,
+          subjectNpcId: person.id,
+          subjectKind: EventSubjectKind.stranger.name,
+          subjectName: 'Dewi Lestari',
+          subjectFirst: 'Dewi',
+          subjectRole: 'a stranger',
+          subjectGender: Gender.female.name,
+          subjectPerson: person,
+        ),
+      ),
+    );
+
+    engine.resolveLifeChoice('trade');
+    engine.declineFriendOffer();
+
+    expect(engine.friendOffer, isNull);
+    expect(engine.state.lifeProgress.friends, isEmpty);
+    expect(engine.acceptFriendOffer().isFailure, isTrue);
+  });
+
+  test('a classmate becomes a friend only through the interaction', () {
+    final engine = engineWith(
+      LifeProgress(
+        education: EducationState(
+          npcs: [person.copyWith(relationshipPercent: 30)],
+        ),
+      ),
+    );
+
+    expect(
+      engine
+          .interactWithNpc(npcId: person.id, action: 'Become Friends')
+          .isFailure,
+      isTrue,
+    );
+
+    final ready = engineWith(
+      LifeProgress(
+        education: EducationState(
+          npcs: [person.copyWith(relationshipPercent: 55)],
+        ),
+      ),
+    );
+
+    final result = ready.interactWithNpc(
+      npcId: person.id,
+      action: 'Become Friends',
+    );
+
+    expect(result.isSuccess, isTrue);
+    expect(ready.state.lifeProgress.friends.single.id, person.id);
+  });
+
+  test('a best friend is asked first, and the answer is remembered', () {
+    final engine = engineWith(
+      LifeProgress(
+        friends: [person.copyWith(relationshipPercent: 83)],
+      ),
+    );
+
+    final talk = engine.interactWithNpc(
+      npcId: person.id,
+      action: 'Spend Time',
+    );
+    final outcome = (talk as Success<NpcInteractionOutcome>).value;
+
+    expect(outcome.relationshipPercent, greaterThanOrEqualTo(85));
+    expect(outcome.prompt, 'bestFriend');
+
+    engine.interactWithNpc(
+      npcId: person.id,
+      action: NpcInteractionOutcome.bestFriendYes,
+    );
+
+    final friend = engine.state.lifeProgress.friends.single;
+
+    expect(friend.bestFriend, isTrue);
+
+    final again = engine.interactWithNpc(
+      npcId: person.id,
+      action: 'Spend Time',
+    );
+
+    expect((again as Success<NpcInteractionOutcome>).value.prompt, isNull);
+  });
+
+  test('best friend flags survive save and load', () {
+    final progress = LifeProgress(
+      friends: [person.copyWith(bestFriend: true, bestFriendAsked: true)],
+    );
+    final loaded = LifeProgress.fromJson(progress.toJson());
+
+    expect(loaded.friends.single.bestFriend, isTrue);
+    expect(loaded.friends.single.bestFriendAsked, isTrue);
+  });
+
+  test('fertility is steady per person and follows age', () {
+    final a = Fertility.baselineFor('someone');
+
+    expect(Fertility.baselineFor('someone'), a);
+    expect(a, inInclusiveRange(60, 100));
+    expect(Fertility.effective(a, 5, Gender.female), 0);
+    expect(
+      Fertility.effective(a, 25, Gender.female),
+      greaterThan(Fertility.effective(a, 45, Gender.female)),
+    );
+
+    final traits = NpcTraits.forPerson(
+      id: person.id,
+      gender: person.gender,
+      birthYear: person.birthYear,
+      currentYear: 2026,
+    );
+
+    expect(traits.looks, inInclusiveRange(35, 90));
+    expect(traits.smarts, inInclusiveRange(35, 90));
   });
 
   test('a friend can be talked to and the score is saved', () {
