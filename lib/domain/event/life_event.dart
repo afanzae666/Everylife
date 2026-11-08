@@ -13,6 +13,7 @@ enum EventSubjectKind {
   teacher,
   stranger,
   coworker,
+  friend,
 }
 
 /// Player stats that an event outcome can change.
@@ -87,6 +88,8 @@ class LifeOutcome {
     this.parentRelation = 0,
     this.siblingRelation = 0,
     this.subjectRelation = 0,
+    this.makesFriend = false,
+    this.losesFriend = false,
   });
 
   /// First-person result text shown to the player.
@@ -113,6 +116,12 @@ class LifeOutcome {
   /// Change to the relationship score with the person the event is about
   /// (see [LifeEventDefinition.about]) and nobody else.
   final int subjectRelation;
+
+  /// The person the event is about becomes a friend.
+  final bool makesFriend;
+
+  /// The person the event is about stops being a friend.
+  final bool losesFriend;
 }
 
 class LifeChoice {

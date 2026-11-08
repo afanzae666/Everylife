@@ -160,6 +160,7 @@ class LifeProgress {
     this.education = const EducationState(),
     this.career = const CareerState(),
     this.interactionCounts = const <String, int>{},
+    this.friends = const <SchoolNpc>[],
   });
 
   /// Story flags set by earlier outcomes (for example "bullied").
@@ -184,6 +185,9 @@ class LifeProgress {
   /// Keys look like "2031:parent-father-2000".
   final Map<String, int> interactionCounts;
 
+  /// People the player became friends with (classmates, strangers, ...).
+  final List<SchoolNpc> friends;
+
   bool hasFlag(String flag) => flags.contains(flag);
 
   bool get isAlive => ending == null;
@@ -198,6 +202,7 @@ class LifeProgress {
     EducationState? education,
     CareerState? career,
     Map<String, int>? interactionCounts,
+    List<SchoolNpc>? friends,
   }) {
     return LifeProgress(
       flags: flags ?? this.flags,
@@ -208,6 +213,7 @@ class LifeProgress {
       education: education ?? this.education,
       career: career ?? this.career,
       interactionCounts: interactionCounts ?? this.interactionCounts,
+      friends: friends ?? this.friends,
     );
   }
 
@@ -220,6 +226,8 @@ class LifeProgress {
         'education': education.toJson(),
         'career': career.toJson(),
         'interactionCounts': interactionCounts,
+        if (friends.isNotEmpty)
+          'friends': [for (final friend in friends) friend.toJson()],
       };
 
   /// Reads saved progress. Missing or malformed data (for example from a
@@ -260,6 +268,12 @@ class LifeProgress {
                   entry.key as String: entry.value as int,
             }
           : const <String, int>{},
+      friends: json['friends'] is List
+          ? [
+              for (final raw in json['friends'] as List)
+                if (SchoolNpc.fromJson(raw) case final friend?) friend,
+            ]
+          : const <SchoolNpc>[],
     );
   }
 }
