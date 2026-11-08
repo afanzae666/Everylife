@@ -96,10 +96,10 @@ class EventSystem implements SimulationSystem {
       _random,
     );
 
-    final applied = EventSubjects.applyRelation(
+    final applied = EventSubjects.applyToSubject(
       LifeEffectApplier.applyOutcome(state: seenState, outcome: outcome),
       pending,
-      outcome.subjectRelation,
+      outcome,
     );
 
     final scene = LifeText.fillPending(definition.description, pending);
