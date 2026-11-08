@@ -360,11 +360,15 @@ class OptionTile extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.subtitle,
+    this.emoji,
     super.key,
   });
 
   final String title;
   final String? subtitle;
+
+  /// A small picture in front of the title (for example a club's emoji).
+  final String? emoji;
   final bool selected;
   final VoidCallback onTap;
 
@@ -390,6 +394,10 @@ class OptionTile extends StatelessWidget {
           ),
           child: Row(
             children: [
+              if (emoji != null) ...[
+                Text(emoji!, style: const TextStyle(fontSize: 22)),
+                const SizedBox(width: 10),
+              ],
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -423,6 +431,7 @@ class PipBar extends StatelessWidget {
     this.color,
     this.height = 8,
     this.pips = 10,
+    this.widthFactor = 1,
     this.barKey,
     super.key,
   });
@@ -434,6 +443,9 @@ class PipBar extends StatelessWidget {
   final Color? color;
   final double height;
   final int pips;
+
+  /// Share of the available width the bar takes (0.5 is half).
+  final double widthFactor;
 
   /// Key of the row of blocks, for tests.
   final Key? barKey;
@@ -447,7 +459,7 @@ class PipBar extends StatelessWidget {
       duration: const Duration(milliseconds: 450),
       curve: Curves.easeOutCubic,
       builder: (context, fraction, _) {
-        return Row(
+        final bar = Row(
           key: barKey,
           children: [
             for (var i = 0; i < pips; i++) ...[
@@ -468,6 +480,14 @@ class PipBar extends StatelessWidget {
               ),
             ],
           ],
+        );
+
+        if (widthFactor >= 1) return bar;
+
+        return FractionallySizedBox(
+          widthFactor: widthFactor,
+          alignment: Alignment.centerLeft,
+          child: bar,
         );
       },
     );
