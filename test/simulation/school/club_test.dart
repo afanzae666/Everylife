@@ -180,4 +180,51 @@ void main() {
 
     expect(training.length, greaterThan(2));
   });
+
+  test('even the slowest player becomes the leader by grade 3', () {
+    // Join in grade 1 with the weakest practice (+8) and the yearly +6.
+    const start = 30;
+    const practice = 8;
+    const yearly = 6;
+
+    const grade2 = start + practice + yearly + practice;
+    const grade3 = grade2 + yearly + practice;
+
+    expect(grade2, greaterThanOrEqualTo(SchoolActions.viceAt));
+    expect(grade3, greaterThanOrEqualTo(SchoolActions.leadAt));
+  });
+
+  test('there are many clubs, with sports like basketball and baseball', () {
+    final ids = SchoolActions.clubs.map((club) => club.id).toSet();
+    final names = SchoolActions.clubs.map((club) => club.name).toSet();
+
+    expect(SchoolActions.clubs.length, greaterThanOrEqualTo(20));
+    expect(ids.length, SchoolActions.clubs.length);
+    expect(names.length, SchoolActions.clubs.length);
+    expect(ids, containsAll(['sports', 'basketball', 'baseball']));
+
+    for (final club in SchoolActions.clubs) {
+      expect(
+        SchoolNarratives.train(SeededRandom(1), club.id),
+        isNotEmpty,
+        reason: club.id,
+      );
+      expect(
+        SchoolNarratives.join(
+          SeededRandom(1),
+          clubId: club.id,
+          category: club.category,
+          clubName: club.name,
+          school: 'Test School',
+        ),
+        contains(club.name),
+        reason: club.id,
+      );
+    }
+  });
+
+  test('saves that call the soccer team "Sports Team" still work', () {
+    expect(SchoolActions.clubByName('Sports Team')?.id, 'sports');
+    expect(SchoolActions.clubByName('Soccer Team')?.id, 'sports');
+  });
 }
