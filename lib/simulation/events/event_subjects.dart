@@ -275,8 +275,33 @@ abstract final class EventSubjects {
     return next;
   }
 
-  /// Applies everything an outcome does to the person the event is about:
-  /// the relationship change, and making or losing a friend.
+  /// The person an outcome offers friendship to, or null. The player decides
+  /// whether to accept; nothing is added to the friends list here.
+  static SchoolNpc? friendCandidate(
+    WorldState state,
+    PendingLifeEvent? pending,
+    LifeOutcome outcome,
+  ) {
+    final person = pending?.subjectPerson;
+
+    if (person == null || !outcome.makesFriend) return null;
+
+    final friends = state.lifeProgress.friends;
+
+    if (friends.any((friend) => friend.id == person.id)) return null;
+
+    // Classmates keep the score they already have with the player.
+    var score = person.relationshipPercent;
+
+    for (final npc in state.lifeProgress.education.npcs) {
+      if (npc.id == person.id) score = npc.relationshipPercent;
+    }
+
+    return person.copyWith(relationshipPercent: score < 50 ? 50 : score);
+  }
+
+  /// Applies what an outcome does to the person the event is about: the
+  /// relationship change, and losing a friend.
   static WorldState applyToSubject(
     WorldState state,
     PendingLifeEvent? pending,
@@ -290,23 +315,7 @@ abstract final class EventSubjects {
     final friends = next.lifeProgress.friends;
     final isFriend = friends.any((friend) => friend.id == person.id);
 
-    if (outcome.makesFriend && !isFriend) {
-      // Classmates keep the score they already have with the player.
-      var score = person.relationshipPercent;
-
-      for (final npc in next.lifeProgress.education.npcs) {
-        if (npc.id == person.id) score = npc.relationshipPercent;
-      }
-
-      next = next.copyWith(
-        lifeProgress: next.lifeProgress.copyWith(
-          friends: [
-            ...friends,
-            person.copyWith(relationshipPercent: score < 50 ? 50 : score),
-          ],
-        ),
-      );
-    } else if (outcome.losesFriend && isFriend) {
+    if (outcome.losesFriend && isFriend) {
       next = next.copyWith(
         lifeProgress: next.lifeProgress.copyWith(
           friends: [
