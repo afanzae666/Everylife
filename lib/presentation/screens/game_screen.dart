@@ -662,6 +662,8 @@ class _GameScreenState extends State<GameScreen> {
   },
   readCurrentParents: () => engine.state.familyHousehold?.parents ?? const [],
   readCurrentSiblings: () => engine.state.familyHousehold?.siblings ?? const [],
+  friends: engine.state.lifeProgress.friends,
+  readCurrentFriends: () => engine.state.lifeProgress.friends,
 ),
       ),
     );

@@ -11,6 +11,9 @@ import '../../domain/career/job_catalog.dart';
 import '../../domain/family/parent_npc.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../domain/family/sibling_npc.dart';
+import '../../domain/career/school_npc.dart';
+import '../../simulation/school/school_appearance.dart';
+import '../widgets/npc_avatar.dart';
 import '../widgets/themed_cards.dart';
 import '../widgets/character_avatar.dart';
 import '../widgets/game_bar.dart';
@@ -99,6 +102,8 @@ class LifeScreen extends StatefulWidget {
     this.readCurrentParents,
     this.readCurrentSiblings,
     this.headerBuilder,
+    this.friends = const <SchoolNpc>[],
+    this.readCurrentFriends,
     super.key,
   });
 
@@ -115,6 +120,10 @@ class LifeScreen extends StatefulWidget {
   /// Builds the character card shown at the top of the page.
   final WidgetBuilder? headerBuilder;
 
+  /// Friends the player made. They are shown under the siblings.
+  final List<SchoolNpc> friends;
+  final List<SchoolNpc> Function()? readCurrentFriends;
+
   @override
   State<LifeScreen> createState() => _LifeScreenState();
 }
@@ -122,12 +131,14 @@ class LifeScreen extends StatefulWidget {
 class _LifeScreenState extends State<LifeScreen> {
   late List<ParentNpc> _parents = widget.parents;
   late List<SiblingNpc> _siblings = widget.siblings;
+  late List<SchoolNpc> _friends = widget.friends;
 
   void _refreshNpcData() {
     if (!mounted) return;
     setState(() {
       _parents = widget.readCurrentParents?.call() ?? _parents;
       _siblings = widget.readCurrentSiblings?.call() ?? _siblings;
+      _friends = widget.readCurrentFriends?.call() ?? _friends;
     });
   }
 
@@ -136,6 +147,7 @@ class _LifeScreenState extends State<LifeScreen> {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.parents, widget.parents)) _parents = widget.parents;
     if (!identical(oldWidget.siblings, widget.siblings)) _siblings = widget.siblings;
+    if (!identical(oldWidget.friends, widget.friends)) _friends = widget.friends;
   }
 
   @override
@@ -209,6 +221,27 @@ class _LifeScreenState extends State<LifeScreen> {
                                   _SiblingNpcCard(
                                     key: ValueKey('sibling-card-${sibling.id}'),
                                     sibling: sibling,
+                                    playerBirthYear: playerBirthYear,
+                                    currentYear: currentYear,
+                                    zoom: zoom,
+                                    onNpcInteraction: onNpcInteraction,
+                                    onInteractionPageClosed: _refreshNpcData,
+                                    headerBuilder: widget.headerBuilder,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        if (_friends.isNotEmpty)
+                          _CategoryCard(
+                            title: 'Friends',
+                            zoom: zoom,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                for (final friend in _friends)
+                                  _FriendNpcCard(
+                                    key: ValueKey('friend-card-${friend.id}'),
+                                    friend: friend,
                                     playerBirthYear: playerBirthYear,
                                     currentYear: currentYear,
                                     zoom: zoom,
@@ -603,6 +636,127 @@ class _SiblingNpcCard extends StatelessWidget {
   }
 }
 
+
+class _FriendNpcCard extends StatelessWidget {
+  const _FriendNpcCard({
+    required this.friend,
+    required this.playerBirthYear,
+    required this.currentYear,
+    required this.zoom,
+    required this.onNpcInteraction,
+    required this.onInteractionPageClosed,
+    this.headerBuilder,
+    super.key,
+  });
+
+  final WidgetBuilder? headerBuilder;
+  final VoidCallback onInteractionPageClosed;
+  final SchoolNpc friend;
+  final int playerBirthYear;
+  final int currentYear;
+  final Result<NpcInteractionOutcome> Function({required String npcId, required String action}) onNpcInteraction;
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) => value * zoom;
+
+    final theme = Theme.of(context);
+    final age = currentYear - friend.birthYear;
+
+    return AccentCard(
+      zoom: zoom,
+      child: InkWell(
+        onTap: () => Navigator.of(context)
+            .push<void>(
+              MaterialPageRoute<void>(
+                builder: (_) => NpcInteractionScreen(
+                  npcId: friend.id,
+                  name: friend.fullName,
+                  onInteraction: onNpcInteraction,
+                  relationship: 'friend',
+                  relationshipPercent: friend.relationshipPercent,
+                  playerAge: currentYear - playerBirthYear,
+                  currentYear: currentYear,
+                  birthYear: friend.birthYear,
+                  subtitle: 'Friend',
+                  details: [
+                    MapEntry('Gender', _genderLabel(friend.gender)),
+                    MapEntry(
+                      'Occupation',
+                      age < 23 ? 'Student' : 'Working adult',
+                    ),
+                    MapEntry('Location', _countryLabel(friend.countryCode)),
+                  ],
+                  netWorth: npcMoneyLabel(
+                    NpcWealth.forSchoolNpc(friend),
+                    friend.countryCode,
+                  ),
+                  countryCode: friend.countryCode,
+                  zoom: zoom,
+                  headerBuilder: headerBuilder,
+                  avatar: NpcAvatar(
+                    character: SchoolAppearance.characterFor(friend),
+                    currentYear: currentYear,
+                    size: 112,
+                  ),
+                ),
+              ),
+            )
+            .then((_) => onInteractionPageClosed()),
+        child: Padding(
+          padding: EdgeInsets.all(s(3)),
+          child: Row(
+            children: [
+              NpcAvatar(
+                character: SchoolAppearance.characterFor(friend),
+                currentYear: currentYear,
+                size: s(56),
+              ),
+              SizedBox(width: s(6)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            friend.fullName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: s(4)),
+                        Text(
+                          '(FRIEND)',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: s(3)),
+                    _RelationshipBar(
+                      value: friend.relationshipPercent,
+                      zoom: zoom,
+                    ),
+                  ],
+                ),
+              ),
+              ChevronBadge(zoom: zoom),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _RelationshipBar extends StatelessWidget {
   const _RelationshipBar({required this.value, required this.zoom});
