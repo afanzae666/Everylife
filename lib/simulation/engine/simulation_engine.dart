@@ -18,6 +18,7 @@ import '../commands/simulation_command.dart';
 import '../career/career_actions.dart';
 import '../career/school_actions.dart';
 import '../school/school_setup.dart';
+import '../events/event_subjects.dart';
 import '../events/life_effect_applier.dart';
 import '../events/life_event_catalog.dart';
 import '../generation/family_household_generator.dart';
@@ -197,7 +198,10 @@ class SimulationEngine {
 
     if (event == null) return '';
 
-    return LifeText.fill(event.description, pendingSubject);
+    return LifeText.fillPending(
+      event.description,
+      _state.lifeProgress.pending,
+    );
   }
 
   /// Whether the player can afford [choice] right now.
@@ -249,9 +253,10 @@ class SimulationEngine {
 
     final outcome = LifeEffectApplier.pickOutcome(choice.outcomes, _random);
 
-    final applied = LifeEffectApplier.applyOutcome(
-      state: _state,
-      outcome: outcome,
+    final applied = EventSubjects.applyRelation(
+      LifeEffectApplier.applyOutcome(state: _state, outcome: outcome),
+      pending,
+      outcome.subjectRelation,
     );
 
     final progress = applied.lifeProgress.copyWith(
@@ -263,9 +268,9 @@ class SimulationEngine {
     );
 
     // One flowing paragraph: the scene, what I did, and what happened.
-    final story = LifeText.fill(choice.story, pending.subject);
-    final result = LifeText.fill(outcome.text, pending.subject);
-    final scene = LifeText.fill(definition.description, pending.subject);
+    final story = LifeText.fillPending(choice.story, pending);
+    final result = LifeText.fillPending(outcome.text, pending);
+    final scene = LifeText.fillPending(definition.description, pending);
 
     final nextState = applied.copyWith(lifeProgress: progress).addEvent(
           SimulationEvent(
