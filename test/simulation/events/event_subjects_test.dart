@@ -110,5 +110,6 @@ void main() {
     expect(has(EventSubjectKind.coworker), isTrue);
     expect(has(EventSubjectKind.parent), isTrue);
     expect(has(EventSubjectKind.sibling), isTrue);
+    expect(has(EventSubjectKind.friend), isTrue);
   });
 }
