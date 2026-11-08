@@ -1,5 +1,7 @@
 import '../../core/random/seeded_random.dart';
 import '../../domain/career/education_state.dart';
+import '../career/school_actions.dart';
+import '../narrative/school_narratives.dart';
 import '../../domain/event/life_progress.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/world/world_state.dart';
@@ -97,6 +99,32 @@ class EducationSystem implements SimulationSystem {
       );
       flags.add(SystemFlags.schoolDropout);
       log('dropout', 'I left school', 'I walked away from my studies for now.');
+    }
+
+    // Club members get better every year, and may be promoted for it.
+    if (education.isStudent && education.club != null) {
+      final before = education.clubRank;
+
+      education = SchoolActions.checkPromotion(
+        education.copyWith(
+          clubPerformance: education.clubPerformance + 6,
+        ),
+      );
+
+      final club = SchoolActions.clubByName(education.club);
+
+      if (club != null && education.clubRank > before) {
+        log(
+          'club-promotion',
+          'Promoted in my club',
+          SchoolNarratives.promotion(
+            clubName: club.name,
+            title: club.titleFor(education.clubRank),
+            rank: education.clubRank,
+            school: education.schoolName ?? 'school',
+          ),
+        );
+      }
     }
 
     if (education.isStudent) {
