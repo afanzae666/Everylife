@@ -10,7 +10,10 @@ import '../../domain/career/job_catalog.dart';
 import '../../domain/character/life_stage.dart';
 import '../../domain/event/life_event.dart';
 import '../../domain/event/simulation_event.dart';
+import '../../domain/career/school_npc.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
+import '../../domain/social/social_rules.dart';
+import '../narrative/school_narratives.dart';
 import '../../domain/time/simulation_clock.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
@@ -289,6 +292,8 @@ class SimulationEngine {
 
     final outcome = LifeEffectApplier.pickOutcome(choice.outcomes, _random);
 
+    _friendOffer = EventSubjects.friendCandidate(_state, pending, outcome);
+
     final applied = EventSubjects.applyToSubject(
       LifeEffectApplier.applyOutcome(state: _state, outcome: outcome),
       pending,
@@ -390,6 +395,16 @@ class SimulationEngine {
     if (playerStage == LifeStage.infant) {
       return const Failure('NPC interactions are unavailable during infancy.');
     }
+    if (action == 'Become Friends') return _befriendNpc(npcId);
+
+    if (action == NpcInteractionOutcome.bestFriendYes ||
+        action == NpcInteractionOutcome.bestFriendNo) {
+      return _answerBestFriend(
+        npcId,
+        yes: action == NpcInteractionOutcome.bestFriendYes,
+      );
+    }
+
     if ((playerStage == LifeStage.toddler || playerStage == LifeStage.child) &&
         !const ['Talk', 'Spend Time', 'Compliment', 'Help'].contains(action)) {
       return const Failure('This interaction is not available at your current life stage.');
@@ -546,15 +561,218 @@ class SimulationEngine {
     final committed = _commit(nextState);
     if (committed case Failure<void>(:final message)) return Failure(message);
 
+    String? prompt;
+    var bond = 'none';
+
+    if (friendIndex >= 0) {
+      final friend = friends[friendIndex];
+
+      bond = friend.bestFriend ? 'best friend' : 'friend';
+
+      if (progressed &&
+          !friend.bestFriend &&
+          !friend.bestFriendAsked &&
+          nextScore >= SocialRules.bestFriendAt) {
+        prompt = 'bestFriend';
+      }
+    }
+
     return Success(NpcInteractionOutcome(
       npcId: npcId,
       action: action,
       narrative: narrative,
       relationshipPercent: nextScore,
+      bond: bond,
+      prompt: prompt,
       progressed: progressed,
       year: _state.clock.currentYear,
       age: (_state.clock.currentYear - _state.player.birthYear).clamp(0, 150),
     ));
+  }
+
+  SchoolNpc? _friendOffer;
+
+  /// Someone an event just offered friendship to. The player accepts or
+  /// declines with [acceptFriendOffer] and [declineFriendOffer].
+  SchoolNpc? get friendOffer => _friendOffer;
+
+  void declineFriendOffer() => _friendOffer = null;
+
+  /// Adds the offered person to the friends list.
+  Result<String> acceptFriendOffer() {
+    final person = _friendOffer;
+
+    if (person == null) return const Failure('Nobody is waiting to be asked.');
+
+    _friendOffer = null;
+
+    if (_state.lifeProgress.friends.any((friend) => friend.id == person.id)) {
+      return const Failure('We are already friends.');
+    }
+
+    final text = SchoolNarratives.befriend(_random, person.fullName);
+
+    final next = _state.copyWith(
+      lifeProgress: _state.lifeProgress.copyWith(
+        friends: [..._state.lifeProgress.friends, person],
+      ),
+      events: [
+        ..._state.events,
+        SimulationEvent(
+          id: 'friend-${_state.events.length + 1}-${_state.clock.currentYear}-${person.id}',
+          type: SimulationEventType.npcInteraction,
+          year: _state.clock.currentYear,
+          title: 'New friend',
+          description: text,
+        ),
+      ],
+    );
+
+    final committed = _commit(next);
+
+    if (committed case Failure<void>(:final message)) return Failure(message);
+
+    return Success(text);
+  }
+
+  Result<NpcInteractionOutcome> _socialOutcome({
+    required String npcId,
+    required String action,
+    required String narrative,
+    required int score,
+    required String bond,
+    WorldState? next,
+  }) {
+    final year = _state.clock.currentYear;
+    final state = (next ?? _state).copyWith(
+      events: [
+        ...(next ?? _state).events,
+        SimulationEvent(
+          id: 'npc-interaction-${_state.events.length + 1}-$year-$npcId',
+          type: SimulationEventType.npcInteraction,
+          year: year,
+          title: action,
+          description: narrative,
+        ),
+      ],
+    );
+    final committed = _commit(state);
+
+    if (committed case Failure<void>(:final message)) return Failure(message);
+
+    return Success(NpcInteractionOutcome(
+      npcId: npcId,
+      action: action,
+      narrative: narrative,
+      relationshipPercent: score,
+      bond: bond,
+      year: year,
+      age: (year - _state.player.birthYear).clamp(0, 150),
+    ));
+  }
+
+  /// "Become Friends" with a classmate once the relationship is good enough.
+  Result<NpcInteractionOutcome> _befriendNpc(String npcId) {
+    final education = _state.lifeProgress.education;
+    final friends = _state.lifeProgress.friends;
+
+    if (friends.any((friend) => friend.id == npcId)) {
+      return const Failure('We are already friends.');
+    }
+
+    final index = education.npcs.indexWhere((npc) => npc.id == npcId);
+
+    if (index < 0 || !education.npcs[index].role.isStudent) {
+      return const Failure('I cannot ask this person to be friends.');
+    }
+
+    final npc = education.npcs[index];
+
+    if (npc.relationshipPercent < SocialRules.friendAt) {
+      return const Failure(
+        'We are not close enough yet. '
+        'Let us spend more time together first.',
+      );
+    }
+
+    final score = (npc.relationshipPercent + 5).clamp(-100, 100).toInt();
+    final friend = npc.copyWith(relationshipPercent: score);
+    final npcs = List.of(education.npcs);
+
+    npcs[index] = friend;
+
+    return _socialOutcome(
+      npcId: npcId,
+      action: 'Become Friends',
+      narrative: SchoolNarratives.befriend(_random, npc.fullName),
+      score: score,
+      bond: 'friend',
+      next: _state.copyWith(
+        player: _state.player.copyWith(
+          stats: _state.player.stats.copyWith(
+            happiness: _state.player.stats.happiness + 3,
+          ),
+        ),
+        lifeProgress: _state.lifeProgress.copyWith(
+          education: education.copyWith(npcs: npcs),
+          friends: [...friends, friend],
+        ),
+      ),
+    );
+  }
+
+  /// The answer to "make this friend a best friend?".
+  Result<NpcInteractionOutcome> _answerBestFriend(
+    String npcId, {
+    required bool yes,
+  }) {
+    final friends = _state.lifeProgress.friends;
+    final index = friends.indexWhere((friend) => friend.id == npcId);
+
+    if (index < 0) return const Failure('This person is not my friend.');
+
+    final friend = friends[index];
+    final updated = List.of(friends);
+
+    if (!yes) {
+      updated[index] = friend.copyWith(bestFriendAsked: true);
+
+      return _socialOutcome(
+        npcId: npcId,
+        action: NpcInteractionOutcome.bestFriendNo,
+        narrative: 'We are good friends, and that is plenty for now.',
+        score: friend.relationshipPercent,
+        bond: 'friend',
+        next: _state.copyWith(
+          lifeProgress: _state.lifeProgress.copyWith(friends: updated),
+        ),
+      );
+    }
+
+    // There is only one best friend at a time.
+    for (var i = 0; i < updated.length; i++) {
+      updated[i] = updated[i].copyWith(bestFriend: i == index);
+    }
+
+    final score = (friend.relationshipPercent + 5).clamp(-100, 100).toInt();
+
+    updated[index] = updated[index].copyWith(relationshipPercent: score);
+
+    return _socialOutcome(
+      npcId: npcId,
+      action: NpcInteractionOutcome.bestFriendYes,
+      narrative: SchoolNarratives.bestFriend(_random, friend.fullName),
+      score: score,
+      bond: 'best friend',
+      next: _state.copyWith(
+        player: _state.player.copyWith(
+          stats: _state.player.stats.copyWith(
+            happiness: _state.player.stats.happiness + 5,
+          ),
+        ),
+        lifeProgress: _state.lifeProgress.copyWith(friends: updated),
+      ),
+    );
   }
 
   Result<void> ageUp() {
