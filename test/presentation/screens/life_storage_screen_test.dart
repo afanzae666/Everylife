@@ -74,7 +74,7 @@ void main() {
     ) async {
       await openScreen(tester);
 
-      expect(find.text('Life Storage'), findsOneWidget);
+      expect(find.text('LIFE STORAGE'), findsOneWidget);
       expect(find.text('Alice Smith'), findsOneWidget);
       expect(find.text('Bob Jones'), findsOneWidget);
       expect(find.text('Slot 2: empty'), findsOneWidget);
@@ -108,7 +108,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(loaded, isEmpty);
-      expect(find.text('Life Storage'), findsOneWidget);
+      expect(find.text('LIFE STORAGE'), findsOneWidget);
     });
 
     testWidgets('deleting a life frees its slot after confirming', (
