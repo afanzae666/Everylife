@@ -34,6 +34,8 @@ class SchoolNpc {
     this.countryCode = 'ID',
     this.relationshipPercent = 40,
     this.finance,
+    this.bestFriend = false,
+    this.bestFriendAsked = false,
   });
 
   final String id;
@@ -48,13 +50,26 @@ class SchoolNpc {
   /// Real job and savings of faculty (null for students).
   final NpcFinance? finance;
 
+  /// Set for a friend the player made their best friend.
+  final bool bestFriend;
+
+  /// True once the player was asked about a best friendship and said no, so
+  /// they are not asked again.
+  final bool bestFriendAsked;
+
   String get fullName => CulturalNameCatalog.formatFullName(
         countryCode,
         firstName,
         lastName,
       );
 
-  SchoolNpc copyWith({int? relationshipPercent, NpcFinance? finance}) => SchoolNpc(
+  SchoolNpc copyWith({
+    int? relationshipPercent,
+    NpcFinance? finance,
+    bool? bestFriend,
+    bool? bestFriendAsked,
+  }) =>
+      SchoolNpc(
         id: id,
         firstName: firstName,
         lastName: lastName,
@@ -64,6 +79,8 @@ class SchoolNpc {
         countryCode: countryCode,
         relationshipPercent: relationshipPercent ?? this.relationshipPercent,
         finance: finance ?? this.finance,
+        bestFriend: bestFriend ?? this.bestFriend,
+        bestFriendAsked: bestFriendAsked ?? this.bestFriendAsked,
       );
 
   Map<String, dynamic> toJson() => {
@@ -76,6 +93,8 @@ class SchoolNpc {
         'countryCode': countryCode,
         'relationshipPercent': relationshipPercent,
         if (finance != null) 'finance': finance!.toJson(),
+        if (bestFriend) 'bestFriend': true,
+        if (bestFriendAsked) 'bestFriendAsked': true,
       };
 
   static SchoolNpc? fromJson(Object? json) {
@@ -110,6 +129,8 @@ class SchoolNpc {
       countryCode: country is String ? country : 'ID',
       relationshipPercent: score is int ? score.clamp(-100, 100).toInt() : 40,
       finance: NpcFinance.fromJson(json['finance']),
+      bestFriend: json['bestFriend'] == true,
+      bestFriendAsked: json['bestFriendAsked'] == true,
     );
   }
 }
