@@ -253,10 +253,10 @@ class SimulationEngine {
 
     final outcome = LifeEffectApplier.pickOutcome(choice.outcomes, _random);
 
-    final applied = EventSubjects.applyRelation(
+    final applied = EventSubjects.applyToSubject(
       LifeEffectApplier.applyOutcome(state: _state, outcome: outcome),
       pending,
-      outcome.subjectRelation,
+      outcome,
     );
 
     final progress = applied.lifeProgress.copyWith(
@@ -366,8 +366,13 @@ class SimulationEngine {
     final siblingIndex =
         household?.siblings.indexWhere((npc) => npc.id == npcId) ?? -1;
     final schoolIndex = education.npcs.indexWhere((npc) => npc.id == npcId);
+    final friends = _state.lifeProgress.friends;
+    final friendIndex = friends.indexWhere((npc) => npc.id == npcId);
 
-    if (parentIndex < 0 && siblingIndex < 0 && schoolIndex < 0) {
+    if (parentIndex < 0 &&
+        siblingIndex < 0 &&
+        schoolIndex < 0 &&
+        friendIndex < 0) {
       return Failure(
         household == null && education.npcs.isEmpty
             ? 'No NPC household is available.'
@@ -388,7 +393,9 @@ class SimulationEngine {
         ? household!.parents[parentIndex].relationshipPercent
         : isSibling
             ? household!.siblings[siblingIndex].relationshipPercent
-            : education.npcs[schoolIndex].relationshipPercent;
+            : friendIndex >= 0
+                ? friends[friendIndex].relationshipPercent
+                : education.npcs[schoolIndex].relationshipPercent;
     final change = switch (action) {
       'Talk' => 2,
       'Spend Time' => 5,
@@ -410,7 +417,9 @@ class SimulationEngine {
         ? household!.parents[parentIndex].fullName
         : isSibling
             ? household!.siblings[siblingIndex].fullName
-            : education.npcs[schoolIndex].fullName;
+            : friendIndex >= 0
+                ? friends[friendIndex].fullName
+                : education.npcs[schoolIndex].fullName;
     final narrative = NpcInteractionNarratives.pick(
       random: _random,
       action: action,
@@ -439,7 +448,18 @@ class SimulationEngine {
         parents: parents,
         siblings: siblings,
       );
-    } else {
+    }
+
+    // Friends and school people share one relationship score.
+    var nextFriends = friends;
+
+    if (friendIndex >= 0) {
+      nextFriends = List.of(friends);
+      nextFriends[friendIndex] =
+          friends[friendIndex].copyWith(relationshipPercent: nextScore);
+    }
+
+    if (schoolIndex >= 0 && !isParent && !isSibling) {
       final npcs = List.of(education.npcs);
       npcs[schoolIndex] = npcs[schoolIndex].copyWith(relationshipPercent: nextScore);
       nextEducation = education.copyWith(npcs: npcs);
@@ -477,6 +497,7 @@ class SimulationEngine {
       events: [..._state.events, event],
       lifeProgress: _state.lifeProgress.copyWith(
         education: nextEducation,
+        friends: nextFriends,
         interactionCounts: {
           // Only this year's counts matter; older keys are dropped.
           for (final entry in _state.lifeProgress.interactionCounts.entries)
