@@ -30,6 +30,7 @@ class PendingLifeEvent {
     required this.eventId,
     required this.year,
     this.subject,
+    this.subjectNpcId,
   });
 
   final String eventId;
@@ -38,10 +39,14 @@ class PendingLifeEvent {
   /// Who or what the event is about, for scripted events ("my father, Alex").
   final String? subject;
 
+  /// The id of the parent or sibling the event is about, when there is one.
+  final String? subjectNpcId;
+
   Map<String, dynamic> toJson() => {
         'eventId': eventId,
         'year': year,
         if (subject != null) 'subject': subject,
+        if (subjectNpcId != null) 'subjectNpcId': subjectNpcId,
       };
 
   static PendingLifeEvent? fromJson(Object? json) {
@@ -58,6 +63,8 @@ class PendingLifeEvent {
       eventId: eventId,
       year: year,
       subject: subject is String ? subject : null,
+      subjectNpcId:
+          json['subjectNpcId'] is String ? json['subjectNpcId'] as String : null,
     );
   }
 }
