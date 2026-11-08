@@ -57,7 +57,7 @@ void main() {
 
     final education = engine.state.lifeProgress.education;
 
-    expect(education.club, 'Sports Team');
+    expect(education.club, 'Soccer Team');
     expect(education.clubPerformance, 30);
     expect(education.clubRank, 0);
 
