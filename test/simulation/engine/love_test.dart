@@ -282,6 +282,92 @@ void main() {
     }
   });
 
+  test('a pregnancy asks first: keeping it is remembered, ending clears it',
+      () {
+    final partner = person(birthYear: 2000, score: 90);
+
+    LifeProgress waiting() => LifeProgress(
+          friends: [partner],
+          love: LoveState(
+            partnerId: partner.id,
+            pregnancy: Pregnancy(conceivedYear: 2026, partner: partner),
+          ),
+        );
+
+    final keep = engineWith(playerBirthYear: 2000, progress: waiting());
+
+    expect(
+      keep
+          .interactWithNpc(
+            npcId: partner.id,
+            action: NpcInteractionOutcome.pregnancyKeep,
+          )
+          .isSuccess,
+      isTrue,
+    );
+    expect(keep.state.lifeProgress.love.pregnancy?.decided, isTrue);
+
+    final end = engineWith(playerBirthYear: 2000, progress: waiting());
+
+    end.interactWithNpc(
+      npcId: partner.id,
+      action: NpcInteractionOutcome.pregnancyEnd,
+    );
+
+    expect(end.state.lifeProgress.love.pregnancy, isNull);
+  });
+
+  test('birth control toggles for a female partner and is saved', () {
+    final partner = person(birthYear: 2000, score: 90);
+    final engine = engineWith(
+      playerBirthYear: 2000,
+      progress: LifeProgress(
+        friends: [partner],
+        love: LoveState(partnerId: partner.id),
+      ),
+    );
+
+    final on = engine.interactWithNpc(npcId: partner.id, action: 'Birth Control');
+
+    expect((on as Success<NpcInteractionOutcome>).value.onBirthControl, isTrue);
+    expect(
+      LoveState.fromJson(engine.state.lifeProgress.love.toJson())
+          .birthControl,
+      {partner.id},
+    );
+
+    final off = engine.interactWithNpc(npcId: partner.id, action: 'Birth Control');
+
+    expect((off as Success<NpcInteractionOutcome>).value.onBirthControl, isFalse);
+  });
+
+  test('a baby can be named, and the name suggestions fit the country', () {
+    final partner = person(birthYear: 2000, score: 90);
+    final engine = engineWith(
+      playerBirthYear: 2000,
+      progress: LifeProgress(
+        friends: [partner],
+        love: LoveState(
+          partnerId: partner.id,
+          pregnancy: Pregnancy(conceivedYear: 2026, partner: partner),
+        ),
+      ),
+    );
+
+    engine.ageUp();
+
+    final baby = engine.takeNewborn()!;
+
+    expect(engine.newbornNameSuggestions, isNotEmpty);
+    expect(engine.randomNameFor(baby), isNotEmpty);
+    expect(engine.nameChild(baby.id, '   ').isFailure, isTrue);
+    expect(engine.nameChild(baby.id, 'Bintang').isSuccess, isTrue);
+    expect(
+      engine.state.lifeProgress.love.children.single.firstName,
+      'Bintang',
+    );
+  });
+
   test('old saves without love data still load', () {
     final loaded = LifeProgress.fromJson({'flags': <String>[]});
 
