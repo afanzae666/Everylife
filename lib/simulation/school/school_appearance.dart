@@ -6,6 +6,7 @@ import '../../domain/character/character.dart';
 import '../../domain/character/character_hair.dart';
 import '../../domain/character/cultural_randomizer_catalog.dart';
 import '../../domain/character/gender.dart';
+import '../../domain/love/love_state.dart';
 
 /// The look of a school NPC, made from the same avatar assets as every other
 /// character. It only depends on the NPC itself, so nothing needs saving and
@@ -89,4 +90,48 @@ abstract final class SchoolAppearance {
         birthYear: npc.birthYear,
         appearance: forNpc(npc),
       );
+
+  /// A child's look: the inherited skin, hair colour, eyes and brows, with
+  /// hairstyles picked from the child's id.
+  static Character characterForChild(ChildNpc child) {
+    var seed = 11;
+
+    for (final unit in child.id.codeUnits) {
+      seed = (seed * 31 + unit) & 0x3fffffff;
+    }
+
+    final random = math.Random(seed);
+    final gender = child.gender;
+
+    String pick(List<String> list) => list[random.nextInt(list.length)];
+
+    final masters = CharacterHair.masterStylesFor(gender);
+    final toddler = gender == Gender.female
+        ? CharacterHair.femaleToddlerStyles
+        : CharacterHair.maleToddlerStyles;
+    final kid = gender == Gender.female
+        ? CharacterHair.femaleChildStyles
+        : CharacterHair.maleChildStyles;
+
+    return Character.create(
+      id: child.id,
+      firstName: child.firstName,
+      lastName: child.lastName,
+      gender: gender,
+      birthYear: child.birthYear,
+      appearance: CharacterAppearance(
+        base: 'default',
+        skinTone: child.skinTone,
+        hair: pick(masters),
+        infantHair: pick(CharacterHair.infantStyles),
+        toddlerHair: pick(toddler),
+        childHair: pick(kid),
+        hairColor: child.hairColor,
+        eyes: 'default',
+        eyeColor: child.eyeColor,
+        eyebrows: child.eyebrows,
+        beard: 'none',
+      ),
+    );
+  }
 }
