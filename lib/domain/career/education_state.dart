@@ -38,6 +38,7 @@ class EducationState {
     this.yearsInStage = 0,
     this.lastUniversityApplicationYear,
     this.schoolName,
+    this.isPrivateSchool = false,
     this.schoolStage = SchoolStage.none,
     this.npcs = const <SchoolNpc>[],
     this.lastStudyYear,
@@ -65,6 +66,9 @@ class EducationState {
 
   /// Name of the school or university, for example "Oakridge High School".
   final String? schoolName;
+
+  /// A private school (otherwise a public one).
+  final bool isPrivateSchool;
 
   /// The stage [schoolName] and [npcs] were made for. When the player moves
   /// to the next stage, a new school is made.
@@ -107,6 +111,7 @@ class EducationState {
     int? yearsInStage,
     int? lastUniversityApplicationYear,
     String? schoolName,
+    bool? isPrivateSchool,
     SchoolStage? schoolStage,
     List<SchoolNpc>? npcs,
     int? lastStudyYear,
@@ -128,6 +133,7 @@ class EducationState {
       lastUniversityApplicationYear:
           lastUniversityApplicationYear ?? this.lastUniversityApplicationYear,
       schoolName: schoolName ?? this.schoolName,
+      isPrivateSchool: isPrivateSchool ?? this.isPrivateSchool,
       schoolStage: schoolStage ?? this.schoolStage,
       npcs: List.unmodifiable(npcs ?? this.npcs),
       lastStudyYear: lastStudyYear ?? this.lastStudyYear,
@@ -153,6 +159,7 @@ class EducationState {
         if (lastUniversityApplicationYear != null)
           'lastUniversityApplicationYear': lastUniversityApplicationYear,
         if (schoolName != null) 'schoolName': schoolName,
+        if (isPrivateSchool) 'privateSchool': true,
         'schoolStage': schoolStage.name,
         if (npcs.isNotEmpty) 'npcs': [for (final npc in npcs) npc.toJson()],
         if (lastStudyYear != null) 'lastStudyYear': lastStudyYear,
@@ -192,6 +199,7 @@ class EducationState {
       yearsInStage: years is int ? years : 0,
       lastUniversityApplicationYear: applied is int ? applied : null,
       schoolName: json['schoolName'] is String ? json['schoolName'] as String : null,
+      isPrivateSchool: json['privateSchool'] == true,
       schoolStage: _enumByName(
         SchoolStage.values,
         json['schoolStage'],
