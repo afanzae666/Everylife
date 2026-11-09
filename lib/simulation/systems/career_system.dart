@@ -9,6 +9,7 @@ import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
 import '../events/life_effect_applier.dart';
+import '../events/money_text.dart';
 import 'simulation_system.dart';
 import 'system_priority.dart';
 
@@ -203,12 +204,36 @@ class CareerSystem implements SimulationSystem {
     if (money >= outflow) {
       money -= outflow;
     } else {
-      debt += outflow - money;
+      final borrowed = outflow - money;
+
+      debt += borrowed;
       money = 0;
+
+      final reasons = [
+        if (living > 0) 'living costs',
+        if (tuition > 0) 'tuition',
+      ].join(' and ');
+
+      log(
+        'borrowed',
+        'Went into debt',
+        'My $reasons this year were more than I earned and saved, so I had '
+            'to borrow ${MoneyText.of(state, borrowed)}.',
+      );
     }
 
     if (debt > 0) {
-      debt += debt * 6 ~/ 100;
+      final interest = debt * 6 ~/ 100;
+
+      debt += interest;
+
+      if (interest > 0) {
+        log(
+          'interest',
+          'Debt interest',
+          'My debt grew by ${MoneyText.of(state, interest)} in interest.',
+        );
+      }
 
       final repayment = money ~/ 2 < debt ? money ~/ 2 : debt;
       money -= repayment;

@@ -101,6 +101,14 @@ class EducationSystem implements SimulationSystem {
       log('dropout', 'I left school', 'I walked away from my studies for now.');
     }
 
+    // Clubs belong to one school. When the school changes (or ends), the
+    // club is left behind, so nobody is promoted in a club they cannot be in.
+    if (education.club != null &&
+        (!SchoolActions.hasClubs(education.stage) ||
+            education.schoolStage != education.stage)) {
+      education = education.copyWith(clearClub: true);
+    }
+
     // Club members get better every year, and may be promoted for it.
     if (education.isStudent && education.club != null) {
       final before = education.clubRank;
@@ -125,6 +133,17 @@ class EducationSystem implements SimulationSystem {
           ),
         );
       }
+    }
+
+    flags.remove(SystemFlags.schoolStudent);
+    flags.remove(SystemFlags.universityStudent);
+
+    if (education.isStudent) {
+      flags.add(
+        education.stage == SchoolStage.university
+            ? SystemFlags.universityStudent
+            : SystemFlags.schoolStudent,
+      );
     }
 
     if (education.isStudent) {
