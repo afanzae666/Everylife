@@ -1,6 +1,7 @@
 import '../career/career_state.dart';
 import '../career/education_state.dart';
 import '../career/school_npc.dart';
+import '../love/love_state.dart';
 
 /// Flags that systems (not events) set and clear. Events may require them.
 abstract final class SystemFlags {
@@ -161,6 +162,7 @@ class LifeProgress {
     this.career = const CareerState(),
     this.interactionCounts = const <String, int>{},
     this.friends = const <SchoolNpc>[],
+    this.love = const LoveState(),
   });
 
   /// Story flags set by earlier outcomes (for example "bullied").
@@ -188,6 +190,9 @@ class LifeProgress {
   /// People the player became friends with (classmates, strangers, ...).
   final List<SchoolNpc> friends;
 
+  /// Partner, pregnancy and children.
+  final LoveState love;
+
   bool hasFlag(String flag) => flags.contains(flag);
 
   bool get isAlive => ending == null;
@@ -203,6 +208,7 @@ class LifeProgress {
     CareerState? career,
     Map<String, int>? interactionCounts,
     List<SchoolNpc>? friends,
+    LoveState? love,
   }) {
     return LifeProgress(
       flags: flags ?? this.flags,
@@ -214,6 +220,7 @@ class LifeProgress {
       career: career ?? this.career,
       interactionCounts: interactionCounts ?? this.interactionCounts,
       friends: friends ?? this.friends,
+      love: love ?? this.love,
     );
   }
 
@@ -228,6 +235,7 @@ class LifeProgress {
         'interactionCounts': interactionCounts,
         if (friends.isNotEmpty)
           'friends': [for (final friend in friends) friend.toJson()],
+        if (!love.isEmpty) 'love': love.toJson(),
       };
 
   /// Reads saved progress. Missing or malformed data (for example from a
@@ -274,6 +282,7 @@ class LifeProgress {
                 if (SchoolNpc.fromJson(raw) case final friend?) friend,
             ]
           : const <SchoolNpc>[],
+      love: LoveState.fromJson(json['love']),
     );
   }
 }

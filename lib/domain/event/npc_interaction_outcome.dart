@@ -9,6 +9,7 @@ class NpcInteractionOutcome {
     this.progressed = true,
     this.bond = 'none',
     this.prompt,
+    this.romance = 'none',
   });
 
   final String npcId;
@@ -30,6 +31,9 @@ class NpcInteractionOutcome {
   /// this friend a best friend. Answer with the action
   /// [bestFriendYes] or [bestFriendNo].
   final String? prompt;
+
+  /// 'partner' when this person is the player's boyfriend or girlfriend.
+  final String romance;
 
   static const String bestFriendYes = 'Best Friend: yes';
   static const String bestFriendNo = 'Best Friend: no';
