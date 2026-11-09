@@ -11,6 +11,7 @@ abstract final class LifeEventCatalogMore {
       description: 'The teacher announced auditions for the class play.',
       minAge: 6,
       maxAge: 11,
+      requiredFlags: ['school_student'],
       weight: 12,
       choices: [
         LifeChoice(
@@ -293,6 +294,7 @@ abstract final class LifeEventCatalogMore {
       description: 'Someone in my class made my heart do backflips.',
       minAge: 10,
       maxAge: 15,
+      requiredFlags: ['school_student'],
       weight: 14,
       oncePerLife: true,
       choices: [

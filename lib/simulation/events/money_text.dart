@@ -1,6 +1,6 @@
 import '../../core/money/currency_formatter.dart';
 import '../../core/money/game_currency.dart';
-import '../../core/money/money.dart';
+import 'package:everylife/core/money/money.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../domain/world/world_state.dart';
 

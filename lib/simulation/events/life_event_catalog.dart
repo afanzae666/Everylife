@@ -269,6 +269,7 @@ abstract final class LifeEventCatalog {
       description: '{name}, a bigger kid in my class, keeps taking my lunch money and laughing about it.',
       minAge: 7,
       maxAge: 14,
+      requiredFlags: ['school_student'],
       cooldownYears: 6,
       about: EventSubjectKind.classmate,
       weight: 12,
@@ -372,6 +373,7 @@ abstract final class LifeEventCatalog {
       description: 'A huge test is tomorrow and I have barely opened the book.',
       minAge: 7,
       maxAge: 18,
+      requiredFlags: ['school_student'],
       cooldownYears: 3,
       weight: 16,
       choices: [
