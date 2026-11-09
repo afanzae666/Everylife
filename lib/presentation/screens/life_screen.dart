@@ -13,6 +13,7 @@ import '../../domain/world/country_catalog.dart';
 import '../../domain/family/sibling_npc.dart';
 import '../../domain/career/school_npc.dart';
 import '../../domain/character/fertility.dart';
+import '../../domain/love/love_state.dart';
 import '../../simulation/school/school_appearance.dart';
 import '../widgets/npc_avatar.dart';
 import '../widgets/themed_cards.dart';
@@ -104,6 +105,8 @@ class LifeScreen extends StatefulWidget {
     this.headerBuilder,
     this.friends = const <SchoolNpc>[],
     this.readCurrentFriends,
+    this.love = const LoveState(),
+    this.readCurrentLove,
     super.key,
   });
 
@@ -124,6 +127,10 @@ class LifeScreen extends StatefulWidget {
   final List<SchoolNpc> friends;
   final List<SchoolNpc> Function()? readCurrentFriends;
 
+  /// Partner and children. Shown above the parents.
+  final LoveState love;
+  final LoveState Function()? readCurrentLove;
+
   @override
   State<LifeScreen> createState() => _LifeScreenState();
 }
@@ -132,6 +139,7 @@ class _LifeScreenState extends State<LifeScreen> {
   late List<ParentNpc> _parents = widget.parents;
   late List<SiblingNpc> _siblings = widget.siblings;
   late List<SchoolNpc> _friends = widget.friends;
+  late LoveState _love = widget.love;
 
   void _refreshNpcData() {
     if (!mounted) return;
@@ -139,6 +147,7 @@ class _LifeScreenState extends State<LifeScreen> {
       _parents = widget.readCurrentParents?.call() ?? _parents;
       _siblings = widget.readCurrentSiblings?.call() ?? _siblings;
       _friends = widget.readCurrentFriends?.call() ?? _friends;
+      _love = widget.readCurrentLove?.call() ?? _love;
     });
   }
 
@@ -148,6 +157,7 @@ class _LifeScreenState extends State<LifeScreen> {
     if (!identical(oldWidget.parents, widget.parents)) _parents = widget.parents;
     if (!identical(oldWidget.siblings, widget.siblings)) _siblings = widget.siblings;
     if (!identical(oldWidget.friends, widget.friends)) _friends = widget.friends;
+    if (!identical(oldWidget.love, widget.love)) _love = widget.love;
   }
 
   @override
@@ -157,6 +167,13 @@ class _LifeScreenState extends State<LifeScreen> {
     final currentYear = widget.currentYear;
     final playerBirthYear = widget.playerBirthYear;
     final onNpcInteraction = widget.onNpcInteraction;
+    final partner = _love.partnerId == null
+        ? null
+        : _friends.where((f) => f.id == _love.partnerId).firstOrNull;
+    final otherFriends = [
+      for (final friend in _friends)
+        if (friend.id != _love.partnerId) friend,
+    ];
     final visibleSiblings = _siblings
         .where((sibling) => sibling.birthYear <= currentYear)
         .toList(growable: false);
@@ -189,6 +206,61 @@ class _LifeScreenState extends State<LifeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        if (partner != null || _love.pregnancy != null)
+                          _CategoryCard(
+                            title: 'Love',
+                            zoom: zoom,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (partner != null)
+                                  _FriendNpcCard(
+                                    key: ValueKey('partner-card-${partner.id}'),
+                                    friend: partner,
+                                    isPartner: true,
+                                    hasPartner: true,
+                                    playerBirthYear: playerBirthYear,
+                                    currentYear: currentYear,
+                                    zoom: zoom,
+                                    onNpcInteraction: onNpcInteraction,
+                                    onInteractionPageClosed: _refreshNpcData,
+                                    headerBuilder: widget.headerBuilder,
+                                  ),
+                                if (_love.pregnancy != null)
+                                  Padding(
+                                    key: const Key('pregnancy-note'),
+                                    padding: EdgeInsets.all(zoom * 6),
+                                    child: Text(
+                                      'A baby is on the way. The birth is at '
+                                      'the next birthday.',
+                                      style:
+                                          Theme.of(context).textTheme.bodySmall,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        if (_love.children.isNotEmpty)
+                          _CategoryCard(
+                            title: 'Children',
+                            zoom: zoom,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                for (final child in _love.children)
+                                  _ChildNpcCard(
+                                    key: ValueKey('child-card-${child.id}'),
+                                    child: child,
+                                    playerBirthYear: playerBirthYear,
+                                    currentYear: currentYear,
+                                    zoom: zoom,
+                                    onNpcInteraction: onNpcInteraction,
+                                    onInteractionPageClosed: _refreshNpcData,
+                                    headerBuilder: widget.headerBuilder,
+                                  ),
+                              ],
+                            ),
+                          ),
                         if (parents.isNotEmpty)
                           _CategoryCard(
                             title: 'Parents',
@@ -231,15 +303,16 @@ class _LifeScreenState extends State<LifeScreen> {
                               ],
                             ),
                           ),
-                        if (_friends.isNotEmpty)
+                        if (otherFriends.isNotEmpty)
                           _CategoryCard(
                             title: 'Friends',
                             zoom: zoom,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                for (final friend in _friends)
+                                for (final friend in otherFriends)
                                   _FriendNpcCard(
+                                    hasPartner: _love.hasPartner,
                                     key: ValueKey('friend-card-${friend.id}'),
                                     friend: friend,
                                     playerBirthYear: playerBirthYear,
@@ -658,9 +731,13 @@ class _FriendNpcCard extends StatelessWidget {
     required this.onNpcInteraction,
     required this.onInteractionPageClosed,
     this.headerBuilder,
+    this.isPartner = false,
+    this.hasPartner = false,
     super.key,
   });
 
+  final bool isPartner;
+  final bool hasPartner;
   final WidgetBuilder? headerBuilder;
   final VoidCallback onInteractionPageClosed;
   final SchoolNpc friend;
@@ -686,12 +763,12 @@ class _FriendNpcCard extends StatelessWidget {
                   npcId: friend.id,
                   name: friend.fullName,
                   onInteraction: onNpcInteraction,
-                  relationship: 'friend',
+                  relationship: isPartner ? 'partner' : 'friend',
                   relationshipPercent: friend.relationshipPercent,
                   playerAge: currentYear - playerBirthYear,
                   currentYear: currentYear,
                   birthYear: friend.birthYear,
-                  subtitle: 'Friend',
+                  subtitle: isPartner ? 'Partner' : 'Friend',
                   details: [
                     MapEntry('Gender', _genderLabel(friend.gender)),
                     MapEntry(
@@ -712,6 +789,9 @@ class _FriendNpcCard extends StatelessWidget {
                     currentYear: currentYear,
                   ),
                   bond: friend.bestFriend ? 'best friend' : 'friend',
+                  romanceEligible: friend.role.isStudent,
+                  romance: isPartner ? 'partner' : 'none',
+                  playerHasPartner: hasPartner,
                   zoom: zoom,
                   headerBuilder: headerBuilder,
                   avatar: NpcAvatar(
@@ -752,7 +832,11 @@ class _FriendNpcCard extends StatelessWidget {
                         ),
                         SizedBox(width: s(4)),
                         Text(
-                          friend.bestFriend ? '(BEST FRIEND)' : '(FRIEND)',
+                          isPartner
+                              ? '(PARTNER)'
+                              : friend.bestFriend
+                                  ? '(BEST FRIEND)'
+                                  : '(FRIEND)',
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w600,
@@ -763,6 +847,134 @@ class _FriendNpcCard extends StatelessWidget {
                     SizedBox(height: s(3)),
                     _RelationshipBar(
                       value: friend.relationshipPercent,
+                      zoom: zoom,
+                    ),
+                  ],
+                ),
+              ),
+              ChevronBadge(zoom: zoom),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ChildNpcCard extends StatelessWidget {
+  const _ChildNpcCard({
+    required this.child,
+    required this.playerBirthYear,
+    required this.currentYear,
+    required this.zoom,
+    required this.onNpcInteraction,
+    required this.onInteractionPageClosed,
+    this.headerBuilder,
+    super.key,
+  });
+
+  final WidgetBuilder? headerBuilder;
+  final VoidCallback onInteractionPageClosed;
+  final ChildNpc child;
+  final int playerBirthYear;
+  final int currentYear;
+  final Result<NpcInteractionOutcome> Function({required String npcId, required String action}) onNpcInteraction;
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) => value * zoom;
+
+    final theme = Theme.of(context);
+    final age = currentYear - child.birthYear;
+    final label = child.gender == Gender.female ? 'Daughter' : 'Son';
+
+    return AccentCard(
+      zoom: zoom,
+      child: InkWell(
+        onTap: () => Navigator.of(context)
+            .push<void>(
+              MaterialPageRoute<void>(
+                builder: (_) => NpcInteractionScreen(
+                  npcId: child.id,
+                  name: child.fullName,
+                  onInteraction: onNpcInteraction,
+                  relationship: label.toLowerCase(),
+                  relationshipPercent: child.relationshipPercent,
+                  playerAge: currentYear - playerBirthYear,
+                  currentYear: currentYear,
+                  birthYear: child.birthYear,
+                  subtitle: label,
+                  details: [
+                    MapEntry('Gender', _genderLabel(child.gender)),
+                    MapEntry('Age', '$age'),
+                    if (child.otherParentName.isNotEmpty)
+                      MapEntry('Other parent', child.otherParentName),
+                    MapEntry('Location', _countryLabel(child.countryCode)),
+                  ],
+                  countryCode: child.countryCode,
+                  traits: NpcTraits(
+                    looks: child.looks,
+                    smarts: child.smarts,
+                    fertility: Fertility.effective(
+                      child.fertilityBase,
+                      age,
+                      child.gender,
+                    ),
+                    fertilityBase: child.fertilityBase,
+                  ),
+                  bond: 'child',
+                  zoom: zoom,
+                  headerBuilder: headerBuilder,
+                  avatar: NpcAvatar(
+                    character: SchoolAppearance.characterForChild(child),
+                    currentYear: currentYear,
+                    size: 112,
+                  ),
+                ),
+              ),
+            )
+            .then((_) => onInteractionPageClosed()),
+        child: Padding(
+          padding: EdgeInsets.all(s(3)),
+          child: Row(
+            children: [
+              NpcAvatar(
+                character: SchoolAppearance.characterForChild(child),
+                currentYear: currentYear,
+                size: s(56),
+              ),
+              SizedBox(width: s(6)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            child.fullName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: s(4)),
+                        Text(
+                          '(${label.toUpperCase()})',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: s(3)),
+                    _RelationshipBar(
+                      value: child.relationshipPercent,
                       zoom: zoom,
                     ),
                   ],

@@ -28,6 +28,7 @@ import 'assets_screen.dart';
 import 'career_screen.dart';
 import 'character_profile_screen.dart';
 import '../../domain/character/fertility.dart';
+import '../../domain/character/gender.dart';
 import '../widgets/animated_dialog.dart';
 import '../widgets/club_widgets.dart';
 import 'life_screen.dart';
@@ -239,6 +240,29 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  /// Announces a baby born on this birthday.
+  Future<void> _announceNewborn() async {
+    final baby = engine.takeNewborn();
+
+    if (baby == null) return;
+
+    final year = engine.state.clock.currentYear;
+
+    await showTapToCloseOverlay(
+      context,
+      title: 'Baby Born',
+      emoji: '👶',
+      avatar: NpcAvatar(
+        character: SchoolAppearance.characterForChild(baby),
+        currentYear: year,
+        size: 112,
+      ),
+      text: baby.gender == Gender.female
+          ? 'It is a girl! Welcome to the world, ${baby.fullName}.'
+          : 'It is a boy! Welcome to the world, ${baby.fullName}.',
+    );
+  }
+
   /// Asks whether to become friends with someone an event just introduced.
   Future<void> _offerFriendship() async {
     final person = engine.friendOffer;
@@ -373,6 +397,8 @@ class _GameScreenState extends State<GameScreen> {
     });
 
     await _handleLifeFlow();
+
+    if (mounted) await _announceNewborn();
 
     // A club promotion earned on this birthday.
     if (mounted && engine.state.lifeProgress.ending == null) {
@@ -754,6 +780,8 @@ class _GameScreenState extends State<GameScreen> {
   readCurrentSiblings: () => engine.state.familyHousehold?.siblings ?? const [],
   friends: engine.state.lifeProgress.friends,
   readCurrentFriends: () => engine.state.lifeProgress.friends,
+  love: engine.state.lifeProgress.love,
+  readCurrentLove: () => engine.state.lifeProgress.love,
 ),
       ),
     );

@@ -759,6 +759,11 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
               ),
               befriendable: npc.role.isStudent,
               bond: _bondOf(npc),
+              romanceEligible: npc.role.isStudent,
+              romance: state.lifeProgress.love.partnerId == npc.id
+                  ? 'partner'
+                  : 'none',
+              playerHasPartner: state.lifeProgress.love.hasPartner,
               zoom: widget.zoom,
               headerBuilder: widget.headerBuilder,
               details: [

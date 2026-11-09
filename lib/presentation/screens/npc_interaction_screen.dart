@@ -4,6 +4,7 @@ import '../../core/result/result.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
 import '../../domain/character/fertility.dart';
 import '../../domain/character/life_stage.dart';
+import '../../domain/love/love_state.dart';
 import '../../domain/social/social_rules.dart';
 import '../widgets/info_line.dart';
 import '../widgets/themed_cards.dart';
@@ -31,6 +32,9 @@ class NpcInteractionScreen extends StatefulWidget {
     this.traits,
     this.befriendable = false,
     this.bond = 'none',
+    this.romanceEligible = false,
+    this.romance = 'none',
+    this.playerHasPartner = false,
     this.countryCode,
     this.zoom = 1,
     this.headerBuilder,
@@ -67,6 +71,15 @@ class NpcInteractionScreen extends StatefulWidget {
   /// 'none', 'friend' or 'best friend' when the page opens.
   final String bond;
 
+  /// True for people the player may date (classmates and friends).
+  final bool romanceEligible;
+
+  /// 'partner' when this person is the player's boyfriend or girlfriend.
+  final String romance;
+
+  /// True when the player already has a partner (someone else).
+  final bool playerHasPartner;
+
   /// Country of the NPC; its flag is shown next to the name.
   final String? countryCode;
 
@@ -83,6 +96,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
   bool _hadArgument = false;
   bool _showingNarrative = false;
   late String _bond = widget.bond;
+  late String _romance = widget.romance;
 
   void _interact(String action) {
     if (!widget.isAlive || _showingNarrative) return;
@@ -92,6 +106,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
         setState(() {
           _score = value.relationshipPercent;
           _bond = value.bond;
+          _romance = value.romance;
           if (action == 'Argue') _hadArgument = true;
           if (action == 'Apologize') _hadArgument = false;
         });
@@ -226,6 +241,10 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
 
   static const Map<String, (String, String)> _actionInfo = {
     'Become Friends': ('🤝', 'Ask to be friends'),
+    'Start Dating': ('💘', 'Ask them out'),
+    'Go on a Date': ('🌹', 'Plan a date'),
+    'Have Sex': ('🔥', 'Get intimate'),
+    'Break Up': ('💔', 'End the relationship'),
     'Best Friend: yes': ('💛', 'Best friends'),
     'Talk': ('💬', 'Have a chat'),
     'Spend Time': ('🎈', 'Do something together'),
@@ -409,6 +428,26 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
     final canBefriend = widget.befriendable &&
         _bond == 'none' &&
         _score >= SocialRules.friendAt;
+    final birth = widget.birthYear;
+    final year = widget.currentYear;
+    final otherAge = birth != null && year != null ? year - birth : -1;
+    final isPartner = _romance == 'partner';
+    final canDate = widget.romanceEligible &&
+        !isPartner &&
+        !widget.playerHasPartner &&
+        otherAge >= 0 &&
+        LoveRules.canDate(widget.playerAge, otherAge) &&
+        _score >= LoveRules.dateAt;
+    final canBeIntimate =
+        otherAge >= 0 && LoveRules.canBeIntimate(widget.playerAge, otherAge);
+    final love = [
+      if (canDate) 'Start Dating',
+      if (isPartner) ...[
+        'Go on a Date',
+        if (canBeIntimate) 'Have Sex',
+        'Break Up',
+      ],
+    ];
     final basic = [
       'Talk',
       'Spend Time',
@@ -419,7 +458,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
     if (stage == LifeStage.toddler || stage == LifeStage.child) {
       return basic;
     }
-    return [...basic, 'Argue'];
+    return [...basic, ...love, 'Argue'];
   }
 
   @override
@@ -435,7 +474,11 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
             children: [
               if (widget.headerBuilder != null) widget.headerBuilder!(context),
               PageTopBar(
-                title: _bond == 'best friend' ? 'best friend' : widget.relationship,
+                title: _romance == 'partner'
+                    ? 'partner'
+                    : _bond == 'best friend'
+                        ? 'best friend'
+                        : widget.relationship,
                 zoom: widget.zoom,
               ),
               Expanded(
