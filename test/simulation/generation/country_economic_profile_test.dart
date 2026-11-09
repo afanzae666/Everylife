@@ -109,7 +109,10 @@ void main() {
       expect(first.parents.map((p) => p.id).toList(), second.parents.map((p) => p.id).toList());
       expect(first.cashSavings.minorUnits, 0);
       expect(first.annualLivingCosts.minorUnits, 0);
-      expect(first.parents.every((p) => p.cashBalance.minorUnits == 0), isTrue);
+      expect(
+        first.parents.map((p) => p.cashBalance.minorUnits).toList(),
+        second.parents.map((p) => p.cashBalance.minorUnits).toList(),
+      );
       expect(first.parents.every((p) => p.annualExpenses.minorUnits == 0), isTrue);
     });
 
