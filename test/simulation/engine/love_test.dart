@@ -366,6 +366,10 @@ void main() {
       engine.state.lifeProgress.love.children.single.firstName,
       'Bintang',
     );
+    expect(
+      engine.state.events.any((e) => e.title == 'Baby named'),
+      isTrue,
+    );
   });
 
   test('old saves without love data still load', () {

@@ -118,6 +118,10 @@ void main() {
     expect(engine.friendOffer, isNull);
     expect(engine.state.lifeProgress.friends, isEmpty);
     expect(engine.acceptFriendOffer().isFailure, isTrue);
+    expect(
+      engine.state.events.any((e) => e.title == 'Said no to a friend'),
+      isTrue,
+    );
   });
 
   test('a classmate becomes a friend only through the interaction', () {

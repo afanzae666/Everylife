@@ -91,9 +91,12 @@ void main() {
           expect(household.totalDebt.minorUnits, 0);
           expect(household.cashSavings.minorUnits, 0);
           expect(household.annualLivingCosts.minorUnits, 0);
+          // A parent with an income has savings; one without has none.
           expect(
             household.parents.every(
-              (parent) => parent.cashBalance.minorUnits == 0,
+              (parent) =>
+                  parent.annualIncome.minorUnits > 0 ||
+                  parent.cashBalance.minorUnits == 0,
             ),
             isTrue,
           );
