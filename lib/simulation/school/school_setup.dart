@@ -118,6 +118,9 @@ abstract final class SchoolSetup {
       lifeProgress: state.lifeProgress.copyWith(
         education: education.copyWith(
           schoolName: name,
+          // Drawn from its own random, so nothing else in the school shifts.
+          isPrivateSchool: math.Random(seed ^ 0x5bd1).nextInt(100) <
+              (isUniversity ? 35 : 25),
           schoolStage: stage,
           npcs: funded,
           clearClub: true,
