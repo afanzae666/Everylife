@@ -1,13 +1,23 @@
 import 'package:everylife/presentation/widgets/page_top_bar.dart';
 import 'package:flutter/material.dart';
 
-class MoreScreen extends StatelessWidget {
+class MoreScreen extends StatefulWidget {
   const MoreScreen({
     required this.zoom,
     this.headerBuilder,
     this.onTimeMachine,
+    this.showBirthControl = false,
+    this.birthControlOn = false,
+    this.onBirthControl,
     super.key,
   });
+
+  /// Shown for an adult female character.
+  final bool showBirthControl;
+  final bool birthControlOn;
+
+  /// Turns birth control on or off. Returns the state that is now saved.
+  final bool Function({required bool on})? onBirthControl;
 
   final double zoom;
 
@@ -18,7 +28,18 @@ class MoreScreen extends StatelessWidget {
   final VoidCallback? onTimeMachine;
 
   @override
+  State<MoreScreen> createState() => _MoreScreenState();
+}
+
+class _MoreScreenState extends State<MoreScreen> {
+  late bool _birthControl = widget.birthControlOn;
+
+  @override
   Widget build(BuildContext context) {
+    final zoom = widget.zoom;
+    final headerBuilder = widget.headerBuilder;
+    final onTimeMachine = widget.onTimeMachine;
+
     double s(double value) => value * zoom;
 
     return MediaQuery(
@@ -29,7 +50,7 @@ class MoreScreen extends StatelessWidget {
         body: SafeArea(
           child: Column(
             children: [
-              if (headerBuilder != null) headerBuilder!(context),
+              if (headerBuilder != null) headerBuilder(context),
               PageTopBar(title: 'More', zoom: zoom),
               Expanded(
                 child: ListView(
@@ -69,6 +90,29 @@ class MoreScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              if (widget.showBirthControl)
+                Card(
+                  key: const Key('birth-control-card'),
+                  margin: EdgeInsets.zero,
+                  child: SwitchListTile(
+                    secondary: Text('💊', style: TextStyle(fontSize: s(28))),
+                    title: Text(
+                      'Birth Control',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    subtitle: Text(
+                      'Greatly lowers the chance of pregnancy',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    value: _birthControl,
+                    onChanged: (value) {
+                      final saved =
+                          widget.onBirthControl?.call(on: value) ?? value;
+
+                      setState(() => _birthControl = saved);
+                    },
+                  ),
+                ),
               Card(
                 margin: EdgeInsets.zero,
                 child: Padding(

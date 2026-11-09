@@ -9,6 +9,7 @@ import '../../domain/career/school_npc.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/fertility.dart';
 import '../../domain/world/country_catalog.dart';
+import '../../simulation/school/npc_place.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/career/school_actions.dart';
 import '../../simulation/systems/education_system.dart';
@@ -259,6 +260,19 @@ class _SchoolScreenState extends State<SchoolScreen> {
     if (mounted) setState(() {});
   }
 
+  /// Puts a thin rule between rows.
+  List<Widget> _ruled(List<Widget> rows) => [
+        for (var i = 0; i < rows.length; i++) ...[
+          if (i > 0)
+            Divider(
+              height: 10,
+              thickness: 1,
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+            ),
+          rows[i],
+        ],
+      ];
+
   void _showSchoolInfo() {
     final state = engine.state;
     final education = state.lifeProgress.education;
@@ -305,29 +319,37 @@ class _SchoolScreenState extends State<SchoolScreen> {
                 ],
               ),
               const Divider(height: 16),
-              InfoLine(label: 'Type', value: schoolStageTitle(stage)),
-              if (place != null) InfoLine(label: 'Location', value: place),
-              InfoLine(
-                label: stage == SchoolStage.university ? 'Year' : 'Grade',
-                value: schoolProgressLabel(education)
-                    .replaceFirst(RegExp(r'^(Grade|Year) '), ''),
-              ),
-              InfoLine(label: 'Grades', value: '${education.grades}/100'),
-              if (head.isNotEmpty)
+              ..._ruled([
+                InfoLine(label: 'Type', value: schoolStageTitle(stage)),
                 InfoLine(
-                  label: head.first.role == SchoolRole.dean ? 'Dean' : 'Principal',
-                  value: head.first.fullName,
+                  label: 'School',
+                  value: education.isPrivateSchool ? 'Private' : 'Public',
                 ),
-              InfoLine(
-                label: stage == SchoolStage.university ? 'Professors' : 'Teachers',
-                value: '${education.faculty.where((n) => n.role != SchoolRole.principal && n.role != SchoolRole.dean).length}',
-              ),
-              InfoLine(label: 'Classmates', value: '${education.classmates.length}'),
-              if (SchoolActions.hasClubs(stage))
+                if (place != null) InfoLine(label: 'Location', value: place),
+                if (head.isNotEmpty)
+                  InfoLine(
+                    label: head.first.role == SchoolRole.dean
+                        ? 'Dean'
+                        : 'Principal',
+                    value: head.first.fullName,
+                  ),
                 InfoLine(
-                  label: 'Extracurricular',
-                  value: education.club ?? 'None',
+                  label: stage == SchoolStage.university
+                      ? 'Professors'
+                      : 'Teachers',
+                  value:
+                      '${education.faculty.where((n) => n.role != SchoolRole.principal && n.role != SchoolRole.dean).length}',
                 ),
+                InfoLine(
+                  label: 'Classmates',
+                  value: '${education.classmates.length}',
+                ),
+                if (SchoolActions.hasClubs(stage))
+                  InfoLine(
+                    label: 'Extracurricular',
+                    value: education.club ?? 'None',
+                  ),
+              ]),
             ],
           ),
       ),
@@ -734,7 +756,6 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
 
   void _open(SchoolNpc npc) {
     final state = engine.state;
-    final country = CountryCatalog.findByCode(npc.countryCode);
 
     Navigator.of(context)
         .push<void>(
@@ -774,7 +795,14 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
               details: [
                 MapEntry('Gender', npc.gender.name == 'male' ? 'Male' : 'Female'),
                 MapEntry('Occupation', _occupationOf(npc)),
-                MapEntry('Location', country?.name ?? npc.countryCode),
+                MapEntry(
+                  'Location',
+                  NpcPlace.label(
+                    countryCode: npc.countryCode,
+                    id: npc.id,
+                    homeCityId: state.player.location?.cityId,
+                  ),
+                ),
               ],
               avatar: NpcAvatar(
                 character: SchoolAppearance.characterFor(npc),

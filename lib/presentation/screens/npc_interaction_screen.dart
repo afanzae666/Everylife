@@ -105,6 +105,30 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
   late String _romance = widget.romance;
   late bool _onPill = widget.onBirthControl;
 
+  /// True when both the player and this person are at least 18.
+  bool get _bothAdults {
+    final birth = widget.birthYear;
+    final year = widget.currentYear;
+
+    if (birth == null || year == null) return false;
+
+    return LoveRules.canBeIntimate(widget.playerAge, year - birth);
+  }
+
+  /// The current relationship, which changes as the person becomes a
+  /// friend, a best friend or a partner.
+  String get _relationshipLabel {
+    if (_romance == 'partner') return 'partner';
+
+    if (_bond == 'best friend') return 'best friend';
+
+    if (_bond == 'friend' && widget.relationship.toLowerCase() == 'classmate') {
+      return 'friend';
+    }
+
+    return widget.relationship;
+  }
+
   void _interact(String action) {
     if (!widget.isAlive || _showingNarrative) return;
     final result = widget.onInteraction(npcId: widget.npcId, action: action);
@@ -342,7 +366,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
       context: context,
       builder: (dialogContext) => IdCardFrame(
         key: const Key('npc-details-dialog'),
-        title: widget.relationship.toUpperCase(),
+        title: _relationshipLabel.toUpperCase(),
         onClose: () => Navigator.of(dialogContext).pop(),
         footer: widget.netWorth != null && age != null && age >= 18
             ? Column(
@@ -438,12 +462,14 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
               const SizedBox(height: 4),
               _traitRow(context, 'Looks', widget.traits!.looks),
               _traitRow(context, 'Smarts', widget.traits!.smarts),
-              _traitRow(
-                context,
-                'Fertility',
-                widget.traits!.fertility,
-                key: const Key('npc-fertility-bar'),
-              ),
+              // Fertility is only shown once the person is an adult.
+              if ((age ?? 0) >= LoveRules.adultAge)
+                _traitRow(
+                  context,
+                  'Fertility',
+                  widget.traits!.fertility,
+                  key: const Key('npc-fertility-bar'),
+                ),
             ],
           ],
         ),
@@ -538,11 +564,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
             children: [
               if (widget.headerBuilder != null) widget.headerBuilder!(context),
               PageTopBar(
-                title: _romance == 'partner'
-                    ? 'partner'
-                    : _bond == 'best friend'
-                        ? 'best friend'
-                        : widget.relationship,
+                title: _relationshipLabel,
                 zoom: widget.zoom,
               ),
               Expanded(
@@ -597,7 +619,10 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                     InteractionRow(
                       title: _availableActions[i],
                       emoji: _actionInfo[_availableActions[i]]?.$1 ?? '💬',
-                      description: _availableActions[i] == 'Birth Control'
+                      description: _availableActions[i] == 'Go on a Date' &&
+                              !_bothAdults
+                          ? 'Plan a date. Intimacy opens when we are both 18.'
+                          : _availableActions[i] == 'Birth Control'
                           ? (_onPill
                               ? 'Stop using birth control'
                               : 'Start using birth control')

@@ -9,11 +9,11 @@ import '../../core/result/result.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
 import '../../domain/career/job_catalog.dart';
 import '../../domain/family/parent_npc.dart';
-import '../../domain/world/country_catalog.dart';
 import '../../domain/family/sibling_npc.dart';
 import '../../domain/career/school_npc.dart';
 import '../../domain/character/fertility.dart';
 import '../../domain/love/love_state.dart';
+import '../../simulation/school/npc_place.dart';
 import '../../simulation/school/school_appearance.dart';
 import '../widgets/npc_avatar.dart';
 import '../widgets/themed_cards.dart';
@@ -38,12 +38,11 @@ String _parentDetails(ParentNpc parent) {
 
 String _genderLabel(Gender gender) => gender == Gender.male ? 'Male' : 'Female';
 
-String _countryLabel(String countryCode) {
-  return CountryCatalog.findByCode(countryCode)?.name ?? countryCode;
-}
-
 /// Facts shown in the parent information overlay (after Age).
-List<MapEntry<String, String>> _parentDetailList(ParentNpc parent) {
+List<MapEntry<String, String>> _parentDetailList(
+  ParentNpc parent,
+  String? homeCityId,
+) {
   final occupation = switch (parent.employmentStatus) {
     EmploymentStatus.employed => parent.occupation ?? 'Employed',
     EmploymentStatus.selfEmployed => parent.occupation ?? 'Self-employed',
@@ -56,7 +55,15 @@ List<MapEntry<String, String>> _parentDetailList(ParentNpc parent) {
   return [
     MapEntry('Gender', _genderLabel(parent.gender)),
     MapEntry('Occupation', occupation),
-    MapEntry('Location', _countryLabel(parent.countryCode)),
+    MapEntry(
+      'Location',
+      NpcPlace.label(
+        countryCode: parent.countryCode,
+        id: parent.id,
+        homeCityId: homeCityId,
+        sameHome: true,
+      ),
+    ),
   ];
 }
 
@@ -64,6 +71,7 @@ List<MapEntry<String, String>> _parentDetailList(ParentNpc parent) {
 List<MapEntry<String, String>> _siblingDetailList(
   SiblingNpc sibling,
   String kind,
+  String? homeCityId,
 ) {
   final finance = sibling.finance;
   final job = finance?.jobId == null ? null : JobCatalog.byId(finance!.jobId!);
@@ -72,7 +80,15 @@ List<MapEntry<String, String>> _siblingDetailList(
     MapEntry('Gender', _genderLabel(sibling.gender)),
     if (finance != null)
       MapEntry('Occupation', job?.titleAt(finance.rank) ?? 'Unemployed'),
-    MapEntry('Location', _countryLabel(sibling.countryCode)),
+    MapEntry(
+      'Location',
+      NpcPlace.label(
+        countryCode: sibling.countryCode,
+        id: sibling.id,
+        homeCityId: homeCityId,
+        sameHome: true,
+      ),
+    ),
   ];
 }
 
@@ -107,6 +123,8 @@ class LifeScreen extends StatefulWidget {
     this.readCurrentFriends,
     this.love = const LoveState(),
     this.readCurrentLove,
+    this.homeCityId,
+    this.playerName = '',
     super.key,
   });
 
@@ -130,6 +148,12 @@ class LifeScreen extends StatefulWidget {
   /// Partner and children. Shown above the parents.
   final LoveState love;
   final LoveState Function()? readCurrentLove;
+
+  /// The player's city, so family lives in the same one.
+  final String? homeCityId;
+
+  /// The player's full name, shown as a parent of their children.
+  final String playerName;
 
   @override
   State<LifeScreen> createState() => _LifeScreenState();
@@ -215,6 +239,7 @@ class _LifeScreenState extends State<LifeScreen> {
                               children: [
                                 if (partner != null)
                                   _FriendNpcCard(
+                                    homeCityId: widget.homeCityId,
                                     key: ValueKey('partner-card-${partner.id}'),
                                     friend: partner,
                                     isPartner: true,
@@ -251,6 +276,8 @@ class _LifeScreenState extends State<LifeScreen> {
                               children: [
                                 for (final child in _love.children)
                                   _ChildNpcCard(
+                                    homeCityId: widget.homeCityId,
+                                    playerName: widget.playerName,
                                     key: ValueKey('child-card-${child.id}'),
                                     child: child,
                                     playerBirthYear: playerBirthYear,
@@ -314,6 +341,7 @@ class _LifeScreenState extends State<LifeScreen> {
                               children: [
                                 for (final friend in otherFriends)
                                   _FriendNpcCard(
+                                    homeCityId: widget.homeCityId,
                                     hasPartner: _love.hasPartner,
                                     key: ValueKey('friend-card-${friend.id}'),
                                     friend: friend,
@@ -421,7 +449,7 @@ class _ParentNpcCard extends StatelessWidget {
               currentYear: currentYear,
               birthYear: parent.birthYear,
               subtitle: _parentDetails(parent),
-              details: _parentDetailList(parent),
+              details: _parentDetailList(parent, widget.homeCityId),
               netWorth: npcMoneyLabel(
                 NpcWealth.forParent(parent),
                 parent.countryCode,
@@ -574,7 +602,7 @@ class _SiblingNpcCard extends StatelessWidget {
               currentYear: currentYear,
               birthYear: sibling.birthYear,
               subtitle: 'Sibling · ${sibling.relationship.name}',
-              details: _siblingDetailList(sibling, siblingKind),
+              details: _siblingDetailList(sibling, siblingKind, widget.homeCityId),
               netWorth: npcMoneyLabel(
                 NpcWealth.forSibling(sibling),
                 sibling.countryCode,
@@ -726,6 +754,7 @@ class _SiblingNpcCard extends StatelessWidget {
 
 class _FriendNpcCard extends StatelessWidget {
   const _FriendNpcCard({
+    this.homeCityId,
     required this.friend,
     required this.playerBirthYear,
     required this.currentYear,
@@ -739,6 +768,7 @@ class _FriendNpcCard extends StatelessWidget {
     super.key,
   });
 
+  final String? homeCityId;
   final bool onBirthControl;
   final bool isPartner;
   final bool hasPartner;
@@ -779,7 +809,14 @@ class _FriendNpcCard extends StatelessWidget {
                       'Occupation',
                       age < 23 ? 'Student' : 'Working adult',
                     ),
-                    MapEntry('Location', _countryLabel(friend.countryCode)),
+                    MapEntry(
+                      'Location',
+                      NpcPlace.label(
+                        countryCode: friend.countryCode,
+                        id: friend.id,
+                        homeCityId: homeCityId,
+                      ),
+                    ),
                   ],
                   netWorth: npcMoneyLabel(
                     NpcWealth.forSchoolNpc(friend),
@@ -870,6 +907,8 @@ class _FriendNpcCard extends StatelessWidget {
 
 class _ChildNpcCard extends StatelessWidget {
   const _ChildNpcCard({
+    this.homeCityId,
+    this.playerName = '',
     required this.child,
     required this.playerBirthYear,
     required this.currentYear,
@@ -880,6 +919,8 @@ class _ChildNpcCard extends StatelessWidget {
     super.key,
   });
 
+  final String? homeCityId;
+  final String playerName;
   final WidgetBuilder? headerBuilder;
   final VoidCallback onInteractionPageClosed;
   final ChildNpc child;
@@ -914,10 +955,23 @@ class _ChildNpcCard extends StatelessWidget {
                   subtitle: label,
                   details: [
                     MapEntry('Gender', _genderLabel(child.gender)),
-                    MapEntry('Age', '$age'),
-                    if (child.otherParentName.isNotEmpty)
-                      MapEntry('Other parent', child.otherParentName),
-                    MapEntry('Location', _countryLabel(child.countryCode)),
+                    MapEntry(
+                      'Parents',
+                      [
+                        if (playerName.isNotEmpty) playerName,
+                        if (child.otherParentName.isNotEmpty)
+                          child.otherParentName,
+                      ].join(' & '),
+                    ),
+                    MapEntry(
+                      'Location',
+                      NpcPlace.label(
+                        countryCode: child.countryCode,
+                        id: child.id,
+                        homeCityId: homeCityId,
+                        sameHome: true,
+                      ),
+                    ),
                   ],
                   countryCode: child.countryCode,
                   traits: NpcTraits(

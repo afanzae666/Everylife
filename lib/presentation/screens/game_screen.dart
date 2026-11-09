@@ -223,7 +223,11 @@ class _GameScreenState extends State<GameScreen> {
           await showLifeResultDialog(context, value, avatar: npcAvatar);
         }
 
-        if (mounted) await _offerFriendship();
+        if (mounted) {
+          await _offerFriendship();
+          setState(() {});
+          _scrollLifeEventsToBottom();
+        }
 
         if (!mounted) {
           return;
@@ -358,7 +362,7 @@ class _GameScreenState extends State<GameScreen> {
 
     final chosen = (name ?? '').trim();
 
-    if (chosen.isNotEmpty) engine.nameChild(baby.id, chosen);
+    engine.nameChild(baby.id, chosen.isEmpty ? baby.firstName : chosen);
 
     setState(() {});
 
@@ -510,7 +514,11 @@ class _GameScreenState extends State<GameScreen> {
 
     await _handleLifeFlow();
 
-    if (mounted) await _announceNewborn();
+    if (mounted) {
+      await _announceNewborn();
+      setState(() {});
+      _scrollLifeEventsToBottom();
+    }
 
     // A club promotion earned on this birthday.
     if (mounted && engine.state.lifeProgress.ending == null) {
@@ -893,6 +901,8 @@ class _GameScreenState extends State<GameScreen> {
   friends: engine.state.lifeProgress.friends,
   readCurrentFriends: () => engine.state.lifeProgress.friends,
   love: engine.state.lifeProgress.love,
+  homeCityId: engine.state.player.location?.cityId,
+  playerName: engine.state.player.fullName,
   readCurrentLove: () => engine.state.lifeProgress.love,
 ),
       ),
@@ -950,6 +960,15 @@ class _GameScreenState extends State<GameScreen> {
           zoom: _uiScaleController.value,
           headerBuilder: _pageHeader,
           onTimeMachine: _openTimeMachine,
+          showBirthControl: engine.playerCanUseBirthControl,
+          birthControlOn: engine.playerOnBirthControl,
+          onBirthControl: ({required on}) {
+            engine.setPlayerBirthControl(on: on);
+            setState(() {});
+            _scrollLifeEventsToBottom();
+
+            return engine.playerOnBirthControl;
+          },
         ),
       ),
     );
@@ -1550,7 +1569,9 @@ class _GameScreenState extends State<GameScreen> {
           row('Willpower', stats.willpower),
           row('Charisma', stats.charisma),
           row('Creativity', stats.creativity),
-          row('Fertility', fertility, key: const Key('trait-fertility')),
+          // Fertility is only shown once the player is an adult.
+          if (age >= 18)
+            row('Fertility', fertility, key: const Key('trait-fertility')),
         ],
       ),
     );
