@@ -14,6 +14,12 @@ import '../../domain/career/school_npc.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
 import '../../domain/social/social_rules.dart';
 import '../narrative/school_narratives.dart';
+import '../narrative/love_narratives.dart';
+import '../school/school_appearance.dart';
+import '../../domain/character/fertility.dart';
+import '../../domain/character/gender.dart';
+import '../../domain/love/genetics.dart';
+import '../../domain/love/love_state.dart';
 import '../../domain/time/simulation_clock.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
@@ -397,6 +403,12 @@ class SimulationEngine {
     }
     if (action == 'Become Friends') return _befriendNpc(npcId);
 
+    if (_loveActions.contains(action)) return _loveAction(npcId, action);
+
+    if (_state.lifeProgress.love.children.any((child) => child.id == npcId)) {
+      return _childInteraction(npcId, action);
+    }
+
     if (action == NpcInteractionOutcome.bestFriendYes ||
         action == NpcInteractionOutcome.bestFriendNo) {
       return _answerBestFriend(
@@ -584,6 +596,8 @@ class SimulationEngine {
       relationshipPercent: nextScore,
       bond: bond,
       prompt: prompt,
+      romance:
+          _state.lifeProgress.love.partnerId == npcId ? 'partner' : 'none',
       progressed: progressed,
       year: _state.clock.currentYear,
       age: (_state.clock.currentYear - _state.player.birthYear).clamp(0, 150),
@@ -635,6 +649,402 @@ class SimulationEngine {
     return Success(text);
   }
 
+
+  // ---------------------------------------------------------------------
+  // Love: dating, pregnancy, children.
+  // ---------------------------------------------------------------------
+
+  static const Set<String> _loveActions = {
+    'Start Dating',
+    'Go on a Date',
+    'Have Sex',
+    'Break Up',
+  };
+
+  SchoolNpc? _personById(String id) {
+    for (final friend in _state.lifeProgress.friends) {
+      if (friend.id == id) return friend;
+    }
+
+    for (final npc in _state.lifeProgress.education.npcs) {
+      if (npc.id == id) return npc;
+    }
+
+    return null;
+  }
+
+  /// Writes a new relationship score to every saved copy of a person.
+  LifeProgress _scored(LifeProgress progress, String id, int score) {
+    SchoolNpc update(SchoolNpc npc) =>
+        npc.id == id ? npc.copyWith(relationshipPercent: score) : npc;
+
+    return progress.copyWith(
+      friends: [for (final friend in progress.friends) update(friend)],
+      education: progress.education.copyWith(
+        npcs: [for (final npc in progress.education.npcs) update(npc)],
+      ),
+    );
+  }
+
+  ParentGenes _playerGenes() {
+    final player = _state.player;
+    final look = player.appearance;
+
+    return ParentGenes(
+      skinTone: look.skinTone,
+      hairColor: look.hairColor,
+      eyeColor: look.eyeColor,
+      eyebrows: look.eyebrows,
+      looks: player.stats.looks,
+      smarts: player.stats.intelligence,
+      fertility: player.stats.fertility,
+    );
+  }
+
+  ParentGenes _genesOf(SchoolNpc npc) {
+    final look = SchoolAppearance.forNpc(npc);
+    final traits = NpcTraits.forPerson(
+      id: npc.id,
+      gender: npc.gender,
+      birthYear: npc.birthYear,
+      currentYear: _state.clock.currentYear,
+    );
+
+    return ParentGenes(
+      skinTone: look.skinTone,
+      hairColor: look.hairColor,
+      eyeColor: look.eyeColor,
+      eyebrows: look.eyebrows,
+      looks: traits.looks,
+      smarts: traits.smarts,
+      fertility: traits.fertilityBase,
+    );
+  }
+
+  Result<NpcInteractionOutcome> _loveAction(String npcId, String action) {
+    final year = _state.clock.currentYear;
+    final playerAge = year - _state.player.birthYear;
+    final progress = _state.lifeProgress;
+    final love = progress.love;
+    final person = _personById(npcId);
+
+    if (person == null) return const Failure('I cannot find this person.');
+
+    final age = year - person.birthYear;
+    final name = person.fullName;
+    final score = person.relationshipPercent;
+
+    WorldState withStats(WorldState state, {int happiness = 0}) =>
+        state.copyWith(
+          player: state.player.copyWith(
+            stats: state.player.stats.copyWith(
+              happiness: state.player.stats.happiness + happiness,
+            ),
+          ),
+        );
+
+    if (action == 'Start Dating') {
+      if (!person.role.isStudent) {
+        return const Failure('I cannot date this person.');
+      }
+
+      if (love.hasPartner) {
+        return const Failure('I already have a partner.');
+      }
+
+      if (!LoveRules.canDate(playerAge, age)) {
+        return const Failure('We are not at the right age to date.');
+      }
+
+      if (score < LoveRules.dateAt) {
+        return const Failure(
+          'We are not close enough yet. Let us spend more time together.',
+        );
+      }
+
+      final next = (score + 8).clamp(-100, 100).toInt();
+      final partner = person.copyWith(relationshipPercent: next);
+      final friends = progress.friends.any((friend) => friend.id == npcId)
+          ? progress.friends
+          : [...progress.friends, partner];
+      final updated = _scored(
+        progress.copyWith(
+          friends: friends,
+          love: love.copyWith(partnerId: npcId, partnerSince: year),
+        ),
+        npcId,
+        next,
+      );
+
+      return _socialOutcome(
+        npcId: npcId,
+        action: action,
+        narrative: LoveNarratives.startDating(_random, name),
+        score: next,
+        bond: 'friend',
+        romance: 'partner',
+        next: withStats(
+          _state.copyWith(lifeProgress: updated),
+          happiness: 5,
+        ),
+      );
+    }
+
+    if (love.partnerId != npcId) {
+      return const Failure('This person is not my partner.');
+    }
+
+    final key = '$year:$npcId:$action';
+    final times = progress.interactionCounts[key] ?? 0;
+    final first = times == 0;
+    final counts = {
+      for (final entry in progress.interactionCounts.entries)
+        if (entry.key.startsWith('$year:')) entry.key: entry.value,
+      key: times + 1,
+    };
+
+    if (action == 'Break Up') {
+      final next = (score - 35).clamp(-100, 100).toInt();
+      final updated = _scored(
+        progress.copyWith(love: love.copyWith(clearPartner: true)),
+        npcId,
+        next,
+      );
+
+      return _socialOutcome(
+        npcId: npcId,
+        action: action,
+        narrative: LoveNarratives.breakUp(_random, name),
+        score: next,
+        bond: 'friend',
+        next: withStats(
+          _state.copyWith(lifeProgress: updated),
+          happiness: -6,
+        ),
+      );
+    }
+
+    var narrative = '';
+    var next = score;
+    var pregnancy = love.pregnancy;
+
+    if (action == 'Go on a Date') {
+      narrative = LoveNarratives.date(_random, name);
+      next = first ? (score + 6).clamp(-100, 100).toInt() : score;
+    } else {
+      // Have Sex
+      if (!LoveRules.canBeIntimate(playerAge, age)) {
+        return const Failure('We are not old enough for that.');
+      }
+
+      if (score < LoveRules.intimacyAt) {
+        return const Failure('We are not close enough for that yet.');
+      }
+
+      narrative = LoveNarratives.intimate(_random, name);
+      next = first ? (score + 4).clamp(-100, 100).toInt() : score;
+
+      if (first && pregnancy == null) {
+        final player = _state.player;
+        final mine = Fertility.effective(
+          player.stats.fertility,
+          playerAge,
+          player.gender,
+        );
+        final theirs = NpcTraits.forPerson(
+          id: person.id,
+          gender: person.gender,
+          birthYear: person.birthYear,
+          currentYear: year,
+        ).fertility;
+        final canConceive = player.gender != person.gender;
+
+        if (!canConceive) {
+          narrative = '$narrative ${LoveNarratives.noBaby(name)}';
+        } else {
+          final chance = (mine * theirs / 100 * 0.35).round();
+
+          if (_random.nextInt(100) < chance) {
+            pregnancy = Pregnancy(conceivedYear: year, partner: person);
+            narrative =
+                '$narrative ${LoveNarratives.pregnancy(playerCarries: player.gender == Gender.female, name: name)}';
+          }
+        }
+      }
+    }
+
+    final updated = _scored(
+      progress.copyWith(
+        interactionCounts: counts,
+        love: pregnancy == love.pregnancy
+            ? love
+            : love.copyWith(pregnancy: pregnancy),
+      ),
+      npcId,
+      next,
+    );
+
+    return _socialOutcome(
+      npcId: npcId,
+      action: action,
+      narrative: narrative,
+      score: next,
+      bond: 'friend',
+      romance: 'partner',
+      progressed: first,
+      next: withStats(
+        _state.copyWith(lifeProgress: updated),
+        happiness: first ? 3 : 0,
+      ),
+    );
+  }
+
+  Result<NpcInteractionOutcome> _childInteraction(
+    String childId,
+    String action,
+  ) {
+    const changes = {
+      'Talk': 2,
+      'Spend Time': 5,
+      'Compliment': 3,
+      'Help': 4,
+      'Argue': -8,
+      'Apologize': 4,
+    };
+    final change = changes[action];
+
+    if (change == null) return const Failure('Unknown interaction.');
+
+    final year = _state.clock.currentYear;
+    final progress = _state.lifeProgress;
+    final children = List.of(progress.love.children);
+    final index = children.indexWhere((child) => child.id == childId);
+
+    if (index < 0) return const Failure('I cannot find my child.');
+
+    final child = children[index];
+    final key = '$year:$childId:$action';
+    final times = progress.interactionCounts[key] ?? 0;
+    final first = times == 0;
+    final score = first
+        ? (child.relationshipPercent + change).clamp(-100, 100).toInt()
+        : child.relationshipPercent;
+
+    children[index] = child.copyWith(relationshipPercent: score);
+
+    final mood = !first
+        ? 0
+        : switch (action) {
+            'Spend Time' || 'Apologize' => 1,
+            'Argue' => -2,
+            _ => 0,
+          };
+
+    return _socialOutcome(
+      npcId: childId,
+      action: action,
+      narrative: LoveNarratives.child(_random, action, child.firstName),
+      score: score,
+      bond: 'child',
+      progressed: first,
+      next: _state.copyWith(
+        player: _state.player.copyWith(
+          stats: _state.player.stats.copyWith(
+            happiness: _state.player.stats.happiness + mood,
+          ),
+        ),
+        lifeProgress: progress.copyWith(
+          love: progress.love.copyWith(children: children),
+          interactionCounts: {
+            for (final entry in progress.interactionCounts.entries)
+              if (entry.key.startsWith('$year:')) entry.key: entry.value,
+            key: times + 1,
+          },
+        ),
+      ),
+    );
+  }
+
+  ChildNpc? _newborn;
+
+  /// The baby born at the last birthday, once. The screen announces it.
+  ChildNpc? takeNewborn() {
+    final baby = _newborn;
+
+    _newborn = null;
+
+    return baby;
+  }
+
+  /// Gives birth to a baby conceived in an earlier year.
+  void _resolvePregnancy() {
+    final progress = _state.lifeProgress;
+    final pregnancy = progress.love.pregnancy;
+    final year = _state.clock.currentYear;
+
+    if (pregnancy == null || year <= pregnancy.conceivedYear) return;
+
+    final player = _state.player;
+    final other = pregnancy.partner;
+    final genes = Genetics.inherit(
+      _random,
+      _playerGenes(),
+      _genesOf(other),
+    );
+    final gender = _random.nextInt(2) == 0 ? Gender.male : Gender.female;
+    final names = gender == Gender.female
+        ? LoveNarratives.femaleNames
+        : LoveNarratives.maleNames;
+    final father = player.gender == Gender.male ? player : null;
+    final lastName = father != null
+        ? player.resolvedLastName
+        : other.lastName;
+    final baby = ChildNpc(
+      id: 'child-$year-${progress.love.children.length + 1}',
+      firstName: names[_random.nextInt(names.length)],
+      lastName: lastName,
+      gender: gender,
+      birthYear: year,
+      looks: genes.looks,
+      smarts: genes.smarts,
+      fertilityBase: genes.fertility,
+      skinTone: genes.skinTone,
+      hairColor: genes.hairColor,
+      eyeColor: genes.eyeColor,
+      eyebrows: genes.eyebrows,
+      countryCode: player.location?.countryCode ?? other.countryCode,
+      otherParentName: other.fullName,
+    );
+    final text = LoveNarratives.birth(
+      childName: baby.fullName,
+      gender: gender,
+      otherParent: other.firstName,
+    );
+    final next = _state.copyWith(
+      player: player.copyWith(
+        stats: player.stats.copyWith(happiness: player.stats.happiness + 10),
+      ),
+      lifeProgress: progress.copyWith(
+        love: progress.love.copyWith(
+          clearPregnancy: true,
+          children: [...progress.love.children, baby],
+        ),
+      ),
+      events: [
+        ..._state.events,
+        SimulationEvent(
+          id: 'birth-$year-${baby.id}',
+          type: SimulationEventType.npcInteraction,
+          year: year,
+          title: 'Baby born',
+          description: text,
+        ),
+      ],
+    );
+
+    if (_commit(next) case Success<void>()) _newborn = baby;
+  }
+
   Result<NpcInteractionOutcome> _socialOutcome({
     required String npcId,
     required String action,
@@ -642,6 +1052,8 @@ class SimulationEngine {
     required int score,
     required String bond,
     WorldState? next,
+    String romance = 'none',
+    bool progressed = true,
   }) {
     final year = _state.clock.currentYear;
     final state = (next ?? _state).copyWith(
@@ -666,6 +1078,8 @@ class SimulationEngine {
       narrative: narrative,
       relationshipPercent: score,
       bond: bond,
+      romance: romance,
+      progressed: progressed,
       year: year,
       age: (year - _state.player.birthYear).clamp(0, 150),
     ));
@@ -794,7 +1208,9 @@ class SimulationEngine {
 
     if (result case Success<void>()) {
       _nextTickId++;
+      _newborn = null;
       ensureSchool();
+      _resolvePregnancy();
       _recordCheckpoint();
     }
 
