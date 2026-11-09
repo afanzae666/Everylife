@@ -68,6 +68,41 @@ void main() {
     }
   });
 
+  test('university and school events only reach the right students', () {
+    for (final event in events) {
+      if (event.id.startsWith('uni_')) {
+        expect(
+          event.requiredFlags,
+          contains(SystemFlags.universityStudent),
+          reason: event.id,
+        );
+      }
+
+      if (event.id.startsWith('school_') && event.id != 'school_crush') {
+        expect(
+          event.requiredFlags,
+          contains(SystemFlags.schoolStudent),
+          reason: event.id,
+        );
+      }
+    }
+  });
+
+  test('events about adult life are not offered to children', () {
+    final adultWords = RegExp(
+      r'\b(salary|boss|coworker|mortgage|landlord|nightclub|casino)\b',
+      caseSensitive: false,
+    );
+
+    for (final event in events) {
+      final text = '${event.title} ${event.description}';
+
+      if (adultWords.hasMatch(text)) {
+        expect(event.minAge, greaterThanOrEqualTo(16), reason: event.id);
+      }
+    }
+  });
+
   test('flags that events require are set by some outcome', () {
     final addable = <String>{
       ...SystemFlags.all,
