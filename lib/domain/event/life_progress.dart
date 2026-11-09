@@ -7,6 +7,12 @@ import '../love/love_state.dart';
 abstract final class SystemFlags {
   static const String employed = 'employed';
   static const String student = 'student';
+
+  /// In elementary, middle or high school.
+  static const String schoolStudent = 'school_student';
+
+  /// In university.
+  static const String universityStudent = 'university_student';
   static const String graduatedHighSchool = 'graduated_high_school';
   static const String graduatedUniversity = 'graduated_university';
   static const String schoolDropout = 'school_dropout';
@@ -17,6 +23,8 @@ abstract final class SystemFlags {
   static const Set<String> all = {
     employed,
     student,
+    schoolStudent,
+    universityStudent,
     graduatedHighSchool,
     graduatedUniversity,
     schoolDropout,
