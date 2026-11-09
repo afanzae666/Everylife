@@ -35,6 +35,8 @@ class NpcInteractionScreen extends StatefulWidget {
     this.romanceEligible = false,
     this.romance = 'none',
     this.playerHasPartner = false,
+    this.canUseBirthControl = false,
+    this.onBirthControl = false,
     this.countryCode,
     this.zoom = 1,
     this.headerBuilder,
@@ -80,6 +82,10 @@ class NpcInteractionScreen extends StatefulWidget {
   /// True when the player already has a partner (someone else).
   final bool playerHasPartner;
 
+  /// True for a female partner, who can use birth control.
+  final bool canUseBirthControl;
+  final bool onBirthControl;
+
   /// Country of the NPC; its flag is shown next to the name.
   final String? countryCode;
 
@@ -97,6 +103,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
   bool _showingNarrative = false;
   late String _bond = widget.bond;
   late String _romance = widget.romance;
+  late bool _onPill = widget.onBirthControl;
 
   void _interact(String action) {
     if (!widget.isAlive || _showingNarrative) return;
@@ -107,6 +114,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
           _score = value.relationshipPercent;
           _bond = value.bond;
           _romance = value.romance;
+          _onPill = value.onBirthControl;
           if (action == 'Argue') _hadArgument = true;
           if (action == 'Apologize') _hadArgument = false;
         });
@@ -120,7 +128,9 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
           progressed: value.progressed,
           action: action,
         ).then((_) {
-          if (mounted && value.prompt == 'bestFriend') _askBestFriend();
+          if (!mounted) return;
+          if (value.prompt == 'bestFriend') _askBestFriend();
+          if (value.prompt == 'pregnancy') _askPregnancy();
         });
       case Failure<NpcInteractionOutcome>(:final message):
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
@@ -191,6 +201,56 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
     );
   }
 
+  /// "Keep the baby?" after a pregnancy.
+  Future<void> _askPregnancy() async {
+    final theme = Theme.of(context);
+
+    final keep = await showAnimatedDialog<bool>(
+      context: context,
+      builder: (dialogContext) => ThemedDialog(
+        title: 'PREGNANCY',
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            key: const Key('pregnancy-prompt'),
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Center(child: Text('🤰', style: TextStyle(fontSize: 48))),
+              const SizedBox(height: 10),
+              Text(
+                'A baby is on the way with ${widget.name}. '
+                'Do we continue the pregnancy?',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 14),
+              FilledButton(
+                key: const Key('pregnancy-keep'),
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('KEEP THE BABY'),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton(
+                key: const Key('pregnancy-end'),
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('END THE PREGNANCY'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (!mounted) return;
+
+    _interact(
+      keep == false
+          ? NpcInteractionOutcome.pregnancyEnd
+          : NpcInteractionOutcome.pregnancyKeep,
+    );
+  }
+
   Future<void> _showNarrative(
     String narrative, {
     bool progressed = true,
@@ -245,6 +305,9 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
     'Go on a Date': ('🌹', 'Plan a date'),
     'Have Sex': ('🔥', 'Get intimate'),
     'Break Up': ('💔', 'End the relationship'),
+    'Birth Control': ('💊', 'Talk about birth control'),
+    'Pregnancy: keep': ('👶', 'Keep the baby'),
+    'Pregnancy: end': ('💔', 'End the pregnancy'),
     'Best Friend: yes': ('💛', 'Best friends'),
     'Talk': ('💬', 'Have a chat'),
     'Spend Time': ('🎈', 'Do something together'),
@@ -445,6 +508,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
       if (isPartner) ...[
         'Go on a Date',
         if (canBeIntimate) 'Have Sex',
+        if (widget.canUseBirthControl && canBeIntimate) 'Birth Control',
         'Break Up',
       ],
     ];
@@ -533,7 +597,11 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                     InteractionRow(
                       title: _availableActions[i],
                       emoji: _actionInfo[_availableActions[i]]?.$1 ?? '💬',
-                      description: _actionInfo[_availableActions[i]]?.$2 ?? '',
+                      description: _availableActions[i] == 'Birth Control'
+                          ? (_onPill
+                              ? 'Stop using birth control'
+                              : 'Start using birth control')
+                          : _actionInfo[_availableActions[i]]?.$2 ?? '',
                       onPressed: widget.isAlive
                           ? () => _interact(_availableActions[i])
                           : null,

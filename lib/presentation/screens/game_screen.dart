@@ -240,26 +240,138 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  /// Announces a baby born on this birthday.
+  /// A baby was born on this birthday: choose its name (type one, roll the
+  /// dice, or take a suggestion from the other parent), then announce it.
   Future<void> _announceNewborn() async {
     final baby = engine.takeNewborn();
 
     if (baby == null) return;
 
     final year = engine.state.clock.currentYear;
+    final suggestions = engine.newbornNameSuggestions;
+    final avatar = NpcAvatar(
+      character: SchoolAppearance.characterForChild(baby),
+      currentYear: year,
+      size: 112,
+    );
+    final controller = TextEditingController(text: baby.firstName);
+    final other = baby.otherParentName.split(' ').first;
+
+    final name = await showAnimatedDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        final theme = Theme.of(dialogContext);
+
+        return ThemedDialog(
+          title: 'NAME YOUR BABY',
+          onClose: () => Navigator.of(dialogContext).pop(controller.text),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: SingleChildScrollView(
+              child: Column(
+                key: const Key('baby-name-dialog'),
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: SizedBox(
+                      width: 84,
+                      height: 105,
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: SizedBox(width: 112, height: 140, child: avatar),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    baby.gender == Gender.female
+                        ? 'It is a girl! What do we call her?'
+                        : 'It is a boy! What do we call him?',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          key: const Key('baby-name-field'),
+                          controller: controller,
+                          maxLength: 20,
+                          textCapitalization: TextCapitalization.words,
+                          decoration: const InputDecoration(
+                            labelText: 'First name',
+                            counterText: '',
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton.filledTonal(
+                        key: const Key('baby-name-dice'),
+                        tooltip: 'Random name',
+                        icon: const Icon(Icons.casino_rounded),
+                        onPressed: () => controller.text =
+                            engine.randomNameFor(baby),
+                      ),
+                    ],
+                  ),
+                  if (suggestions.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      '$other suggests:',
+                      style: theme.textTheme.labelMedium,
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        for (final suggestion in suggestions)
+                          ActionChip(
+                            key: Key('baby-name-suggestion-$suggestion'),
+                            label: Text(suggestion),
+                            onPressed: () => controller.text = suggestion,
+                          ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 14),
+                  FilledButton(
+                    key: const Key('baby-name-confirm'),
+                    onPressed: () =>
+                        Navigator.of(dialogContext).pop(controller.text),
+                    child: const Text('NAME THE BABY'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    controller.dispose();
+
+    if (!mounted) return;
+
+    final chosen = (name ?? '').trim();
+
+    if (chosen.isNotEmpty) engine.nameChild(baby.id, chosen);
+
+    setState(() {});
+
+    final finalName = engine.state.lifeProgress.love.children
+        .firstWhere((child) => child.id == baby.id, orElse: () => baby)
+        .fullName;
 
     await showTapToCloseOverlay(
       context,
       title: 'Baby Born',
       emoji: '👶',
-      avatar: NpcAvatar(
-        character: SchoolAppearance.characterForChild(baby),
-        currentYear: year,
-        size: 112,
-      ),
-      text: baby.gender == Gender.female
-          ? 'It is a girl! Welcome to the world, ${baby.fullName}.'
-          : 'It is a boy! Welcome to the world, ${baby.fullName}.',
+      avatar: avatar,
+      text: 'Welcome to the world, $finalName!',
     );
   }
 

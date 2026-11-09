@@ -6,6 +6,7 @@ import '../../core/result/result.dart';
 import '../../domain/career/education_state.dart';
 import '../../domain/career/job_catalog.dart';
 import '../../domain/career/school_npc.dart';
+import '../../domain/character/gender.dart';
 import '../../domain/character/fertility.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../simulation/engine/simulation_engine.dart';
@@ -764,6 +765,10 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
                   ? 'partner'
                   : 'none',
               playerHasPartner: state.lifeProgress.love.hasPartner,
+              canUseBirthControl: state.lifeProgress.love.partnerId == npc.id &&
+                  npc.gender == Gender.female,
+              onBirthControl:
+                  state.lifeProgress.love.birthControl.contains(npc.id),
               zoom: widget.zoom,
               headerBuilder: widget.headerBuilder,
               details: [

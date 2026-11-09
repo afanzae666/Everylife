@@ -219,6 +219,8 @@ class _LifeScreenState extends State<LifeScreen> {
                                     friend: partner,
                                     isPartner: true,
                                     hasPartner: true,
+                                    onBirthControl: _love.birthControl
+                                        .contains(partner.id),
                                     playerBirthYear: playerBirthYear,
                                     currentYear: currentYear,
                                     zoom: zoom,
@@ -733,9 +735,11 @@ class _FriendNpcCard extends StatelessWidget {
     this.headerBuilder,
     this.isPartner = false,
     this.hasPartner = false,
+    this.onBirthControl = false,
     super.key,
   });
 
+  final bool onBirthControl;
   final bool isPartner;
   final bool hasPartner;
   final WidgetBuilder? headerBuilder;
@@ -792,6 +796,9 @@ class _FriendNpcCard extends StatelessWidget {
                   romanceEligible: friend.role.isStudent,
                   romance: isPartner ? 'partner' : 'none',
                   playerHasPartner: hasPartner,
+                  canUseBirthControl:
+                      isPartner && friend.gender == Gender.female,
+                  onBirthControl: onBirthControl,
                   zoom: zoom,
                   headerBuilder: headerBuilder,
                   avatar: NpcAvatar(
