@@ -299,6 +299,7 @@ class _LifeScreenState extends State<LifeScreen> {
                               children: [
                                 for (final parent in parents)
                                   _ParentNpcCard(
+                                    homeCityId: widget.homeCityId,
                                     key: ValueKey('parent-card-${parent.id}'),
                                     parent: parent,
                                     playerBirthYear: playerBirthYear,
@@ -320,6 +321,7 @@ class _LifeScreenState extends State<LifeScreen> {
                               children: [
                                 for (final sibling in visibleSiblings)
                                   _SiblingNpcCard(
+                                    homeCityId: widget.homeCityId,
                                     key: ValueKey('sibling-card-${sibling.id}'),
                                     sibling: sibling,
                                     playerBirthYear: playerBirthYear,
@@ -410,6 +412,7 @@ class _CategoryCard extends StatelessWidget {
 
 class _ParentNpcCard extends StatelessWidget {
   const _ParentNpcCard({
+    this.homeCityId,
     required this.parent,
     required this.playerBirthYear,
     required this.currentYear,
@@ -427,6 +430,8 @@ class _ParentNpcCard extends StatelessWidget {
   final int currentYear;
   final Result<NpcInteractionOutcome> Function({required String npcId, required String action}) onNpcInteraction;
   final double zoom;
+
+  final String? homeCityId;
 
   @override
   Widget build(BuildContext context) {
@@ -449,7 +454,7 @@ class _ParentNpcCard extends StatelessWidget {
               currentYear: currentYear,
               birthYear: parent.birthYear,
               subtitle: _parentDetails(parent),
-              details: _parentDetailList(parent, widget.homeCityId),
+              details: _parentDetailList(parent, homeCityId),
               netWorth: npcMoneyLabel(
                 NpcWealth.forParent(parent),
                 parent.countryCode,
@@ -551,6 +556,7 @@ class _ParentNpcCard extends StatelessWidget {
 
 class _SiblingNpcCard extends StatelessWidget {
   const _SiblingNpcCard({
+    this.homeCityId,
     required this.sibling,
     required this.playerBirthYear,
     required this.currentYear,
@@ -568,6 +574,8 @@ class _SiblingNpcCard extends StatelessWidget {
   final int currentYear;
   final Result<NpcInteractionOutcome> Function({required String npcId, required String action}) onNpcInteraction;
   final double zoom;
+
+  final String? homeCityId;
 
   @override
   Widget build(BuildContext context) {
@@ -602,7 +610,7 @@ class _SiblingNpcCard extends StatelessWidget {
               currentYear: currentYear,
               birthYear: sibling.birthYear,
               subtitle: 'Sibling · ${sibling.relationship.name}',
-              details: _siblingDetailList(sibling, siblingKind, widget.homeCityId),
+              details: _siblingDetailList(sibling, siblingKind, homeCityId),
               netWorth: npcMoneyLabel(
                 NpcWealth.forSibling(sibling),
                 sibling.countryCode,
