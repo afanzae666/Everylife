@@ -614,7 +614,37 @@ class SimulationEngine {
   /// declines with [acceptFriendOffer] and [declineFriendOffer].
   SchoolNpc? get friendOffer => _friendOffer;
 
-  void declineFriendOffer() => _friendOffer = null;
+  /// Says no, and the life log remembers it.
+  void declineFriendOffer() {
+    final person = _friendOffer;
+
+    _friendOffer = null;
+
+    if (person == null) return;
+
+    const lines = [
+      'I decided not to become friends with {n}. We stayed acquaintances.',
+      'I kept my distance from {n}. Not everyone has to become a friend.',
+      'I politely passed on a friendship with {n}.',
+    ];
+    final text =
+        lines[_random.nextInt(lines.length)].replaceAll('{n}', person.fullName);
+
+    _commit(
+      _state.copyWith(
+        events: [
+          ..._state.events,
+          SimulationEvent(
+            id: 'friend-declined-${_state.events.length + 1}-${_state.clock.currentYear}-${person.id}',
+            type: SimulationEventType.npcInteraction,
+            year: _state.clock.currentYear,
+            title: 'Said no to a friend',
+            description: text,
+          ),
+        ],
+      ),
+    );
+  }
 
   /// Adds the offered person to the friends list.
   Result<String> acceptFriendOffer() {
@@ -938,7 +968,11 @@ class SimulationEngine {
         } else {
           var chance = (mine * theirs / 100 * 0.35).round();
 
-          if (love.birthControl.contains(npcId)) chance = chance ~/ 10;
+          final protected = love.birthControl.contains(npcId) ||
+              (player.gender == Gender.female &&
+                  love.birthControl.contains(player.id));
+
+          if (protected) chance = chance ~/ 10;
 
           if (_random.nextInt(100) < chance) {
             pregnancy = Pregnancy(conceivedYear: year, partner: person);
@@ -1041,6 +1075,55 @@ class SimulationEngine {
         ),
       ),
     );
+  }
+
+  /// Only an adult woman has her own birth control switch.
+  bool get playerCanUseBirthControl =>
+      _state.player.gender == Gender.female &&
+      _state.clock.currentYear - _state.player.birthYear >=
+          LoveRules.adultAge;
+
+  bool get playerOnBirthControl =>
+      _state.lifeProgress.love.birthControl.contains(_state.player.id);
+
+  /// Turns the player's own birth control on or off.
+  Result<String> setPlayerBirthControl({required bool on}) {
+    if (!playerCanUseBirthControl) {
+      return const Failure('Birth control is not available right now.');
+    }
+
+    final progress = _state.lifeProgress;
+    final set = {...progress.love.birthControl};
+
+    if (on) {
+      set.add(_state.player.id);
+    } else {
+      set.remove(_state.player.id);
+    }
+
+    final text = on
+        ? 'I started using birth control. My body, my plan.'
+        : 'I stopped using birth control and left the future open.';
+    final year = _state.clock.currentYear;
+    final result = _commit(
+      _state.copyWith(
+        lifeProgress: progress.copyWith(
+          love: progress.love.copyWith(birthControl: set),
+        ),
+        events: [
+          ..._state.events,
+          SimulationEvent(
+            id: 'birth-control-${_state.events.length + 1}-$year',
+            type: SimulationEventType.npcInteraction,
+            year: year,
+            title: on ? 'Started birth control' : 'Stopped birth control',
+            description: text,
+          ),
+        ],
+      ),
+    );
+
+    return result.isSuccess ? Success(text) : Failure('Could not save that.');
   }
 
   ChildNpc? _newborn;
@@ -1167,11 +1250,27 @@ class SimulationEngine {
         child.id == childId ? child.copyWith(firstName: clean) : child,
     ];
 
+    final found = children.where((child) => child.id == childId);
+
+    if (found.isEmpty) return const Failure('I cannot find this child.');
+
+    final named = found.first;
+
     return _commit(
       _state.copyWith(
         lifeProgress: progress.copyWith(
           love: progress.love.copyWith(children: children),
         ),
+        events: [
+          ..._state.events,
+          SimulationEvent(
+            id: 'child-named-${_state.events.length + 1}-$childId',
+            type: SimulationEventType.npcInteraction,
+            year: _state.clock.currentYear,
+            title: 'Baby named',
+            description: 'We named our baby ${named.fullName}.',
+          ),
+        ],
       ),
     );
   }
