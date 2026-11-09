@@ -10,6 +10,7 @@ class NpcInteractionOutcome {
     this.bond = 'none',
     this.prompt,
     this.romance = 'none',
+    this.onBirthControl = false,
   });
 
   final String npcId;
@@ -35,6 +36,11 @@ class NpcInteractionOutcome {
   /// 'partner' when this person is the player's boyfriend or girlfriend.
   final String romance;
 
+  /// True when this partner uses birth control.
+  final bool onBirthControl;
+
+  static const String pregnancyKeep = 'Pregnancy: keep';
+  static const String pregnancyEnd = 'Pregnancy: end';
   static const String bestFriendYes = 'Best Friend: yes';
   static const String bestFriendNo = 'Best Friend: no';
 }
