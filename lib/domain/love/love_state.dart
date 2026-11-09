@@ -78,9 +78,10 @@ class ChildNpc {
         lastName,
       );
 
-  ChildNpc copyWith({int? relationshipPercent}) => ChildNpc(
+  ChildNpc copyWith({int? relationshipPercent, String? firstName}) =>
+      ChildNpc(
         id: id,
-        firstName: firstName,
+        firstName: firstName ?? this.firstName,
         lastName: lastName,
         gender: gender,
         birthYear: birthYear,
@@ -164,9 +165,23 @@ class ChildNpc {
 
 /// A baby on the way. The birth happens at the next birthday.
 class Pregnancy {
-  const Pregnancy({required this.conceivedYear, required this.partner});
+  const Pregnancy({
+    required this.conceivedYear,
+    required this.partner,
+    this.decided = false,
+  });
 
   final int conceivedYear;
+
+  /// True once the player chose to keep the baby. (A pregnancy that was not
+  /// answered yet is kept at birth.)
+  final bool decided;
+
+  Pregnancy copyWith({bool? decided}) => Pregnancy(
+        conceivedYear: conceivedYear,
+        partner: partner,
+        decided: decided ?? this.decided,
+      );
 
   /// The other parent when the baby was conceived.
   final SchoolNpc partner;
@@ -174,6 +189,7 @@ class Pregnancy {
   Map<String, dynamic> toJson() => {
         'conceivedYear': conceivedYear,
         'partner': partner.toJson(),
+        if (decided) 'decided': true,
       };
 
   static Pregnancy? fromJson(Object? json) {
@@ -184,7 +200,11 @@ class Pregnancy {
 
     if (year is! int || partner == null) return null;
 
-    return Pregnancy(conceivedYear: year, partner: partner);
+    return Pregnancy(
+      conceivedYear: year,
+      partner: partner,
+      decided: json['decided'] == true,
+    );
   }
 }
 
@@ -195,7 +215,11 @@ class LoveState {
     this.partnerSince,
     this.pregnancy,
     this.children = const <ChildNpc>[],
+    this.birthControl = const <String>{},
   });
+
+  /// Ids of women who use birth control.
+  final Set<String> birthControl;
 
   /// Id of the boyfriend or girlfriend. They live in the friends list, so
   /// their relationship score is shared with every other screen.
@@ -207,7 +231,10 @@ class LoveState {
   bool get hasPartner => partnerId != null;
 
   bool get isEmpty =>
-      partnerId == null && pregnancy == null && children.isEmpty;
+      partnerId == null &&
+      pregnancy == null &&
+      children.isEmpty &&
+      birthControl.isEmpty;
 
   LoveState copyWith({
     String? partnerId,
@@ -216,12 +243,14 @@ class LoveState {
     Pregnancy? pregnancy,
     bool clearPregnancy = false,
     List<ChildNpc>? children,
+    Set<String>? birthControl,
   }) =>
       LoveState(
         partnerId: clearPartner ? null : (partnerId ?? this.partnerId),
         partnerSince: clearPartner ? null : (partnerSince ?? this.partnerSince),
         pregnancy: clearPregnancy ? null : (pregnancy ?? this.pregnancy),
         children: children ?? this.children,
+        birthControl: birthControl ?? this.birthControl,
       );
 
   Map<String, dynamic> toJson() => {
@@ -230,6 +259,7 @@ class LoveState {
         if (pregnancy != null) 'pregnancy': pregnancy!.toJson(),
         if (children.isNotEmpty)
           'children': [for (final child in children) child.toJson()],
+        if (birthControl.isNotEmpty) 'birthControl': birthControl.toList()..sort(),
       };
 
   factory LoveState.fromJson(Object? json) {
@@ -248,6 +278,9 @@ class LoveState {
                 if (ChildNpc.fromJson(raw) case final child?) child,
             ]
           : const <ChildNpc>[],
+      birthControl: json['birthControl'] is List
+          ? (json['birthControl'] as List).whereType<String>().toSet()
+          : const <String>{},
     );
   }
 }
