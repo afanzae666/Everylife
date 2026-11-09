@@ -296,7 +296,12 @@ abstract final class CareerActions {
     final accepted = random.nextInt(100) < universityChance(state);
 
     final flags = {...state.lifeProgress.flags};
-    if (accepted) flags.add(SystemFlags.student);
+    if (accepted) {
+      flags
+        ..add(SystemFlags.student)
+        ..add(SystemFlags.universityStudent)
+        ..remove(SystemFlags.schoolStudent);
+    }
 
     final next = _log(
       state.copyWith(
@@ -342,6 +347,8 @@ abstract final class CareerActions {
 
     final flags = {...state.lifeProgress.flags}
       ..remove(SystemFlags.student)
+      ..remove(SystemFlags.schoolStudent)
+      ..remove(SystemFlags.universityStudent)
       ..add(SystemFlags.schoolDropout);
 
     final next = _log(
