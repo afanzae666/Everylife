@@ -64,26 +64,43 @@ class FamilyHouseholdGenerator {
 
     final countryEconomicProfile =
         CountryEconomicProfile.forCountryCode(countryCode);
+    var unowned = 0;
     final assets = _generateAssets(
       random: random,
       householdId: householdId,
       housingStatus: housingStatus,
       countryEconomicProfile: countryEconomicProfile,
-    ).map((asset) => asset.ownerNpcId == null
-        ? FamilyAsset(
-            id: asset.id,
-            name: asset.name,
-            type: asset.type,
-            value: asset.value,
-            ownerNpcId: parents.first.id,
-          )
-        : asset).toList(growable: false);
+    ).map((asset) {
+      if (asset.ownerNpcId != null) return asset;
+
+      // Things nobody owns yet are shared out between the two parents, so
+      // one parent is not rich on paper while the other owns nothing.
+      final owner = parents[unowned % parents.length];
+
+      unowned++;
+
+      return FamilyAsset(
+        id: asset.id,
+        name: asset.name,
+        type: asset.type,
+        value: asset.value,
+        ownerNpcId: owner.id,
+      );
+    }).toList(growable: false);
     final financiallyInitializedParents = parents.map((parent) {
       final personalAssets = assets
           .where((asset) => asset.ownerNpcId == parent.id)
           .toList(growable: false);
+
+      // A working parent has been saving since their early twenties.
+      final yearsWorked = (birthYear - parent.birthYear - 20).clamp(0, 45);
+      final savings = parent.annualIncome.minorUnits *
+          NpcEconomy.savingsPercent ~/
+          100 *
+          yearsWorked;
+
       return parent.copyWith(
-        cashBalance: Money.zero(),
+        cashBalance: Money.fromMinorUnits(savings),
         annualExpenses: Money.zero(),
         assets: personalAssets,
         countryCode: countryCode,
