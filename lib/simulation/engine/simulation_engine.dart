@@ -9,6 +9,7 @@ import '../../domain/character/character.dart';
 import '../../domain/career/job_catalog.dart';
 import '../../domain/character/life_stage.dart';
 import '../../domain/event/life_event.dart';
+import '../../domain/event/life_progress.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/career/school_npc.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
@@ -18,6 +19,8 @@ import '../narrative/love_narratives.dart';
 import '../school/school_appearance.dart';
 import '../../domain/character/fertility.dart';
 import '../../domain/character/gender.dart';
+import '../../domain/character/cultural_randomizer_catalog.dart';
+import 'dart:math' as math;
 import '../../domain/love/genetics.dart';
 import '../../domain/love/love_state.dart';
 import '../../domain/time/simulation_clock.dart';
@@ -598,6 +601,7 @@ class SimulationEngine {
       prompt: prompt,
       romance:
           _state.lifeProgress.love.partnerId == npcId ? 'partner' : 'none',
+      onBirthControl: _state.lifeProgress.love.birthControl.contains(npcId),
       progressed: progressed,
       year: _state.clock.currentYear,
       age: (_state.clock.currentYear - _state.player.birthYear).clamp(0, 150),
@@ -659,6 +663,9 @@ class SimulationEngine {
     'Go on a Date',
     'Have Sex',
     'Break Up',
+    'Birth Control',
+    NpcInteractionOutcome.pregnancyKeep,
+    NpcInteractionOutcome.pregnancyEnd,
   };
 
   SchoolNpc? _personById(String id) {
@@ -824,9 +831,76 @@ class SimulationEngine {
       );
     }
 
+    if (action == 'Birth Control') {
+      if (person.gender != Gender.female ||
+          !LoveRules.canBeIntimate(playerAge, age)) {
+        return const Failure('Birth control is not an option here.');
+      }
+
+      final on = love.birthControl.contains(npcId);
+      final set = {...love.birthControl};
+
+      if (on) {
+        set.remove(npcId);
+      } else {
+        set.add(npcId);
+      }
+
+      return _socialOutcome(
+        npcId: npcId,
+        action: action,
+        narrative: on
+            ? '$name stopped using birth control. We are leaving things to '
+                'fate now.'
+            : '$name and I talked it through, and $name started using birth '
+                'control. A grown-up decision, handled calmly.',
+        score: score,
+        bond: 'friend',
+        romance: 'partner',
+        next: _state.copyWith(
+          lifeProgress: progress.copyWith(
+            love: love.copyWith(birthControl: set),
+          ),
+        ),
+      );
+    }
+
+    if (action == NpcInteractionOutcome.pregnancyKeep ||
+        action == NpcInteractionOutcome.pregnancyEnd) {
+      final waiting = love.pregnancy;
+
+      if (waiting == null) return const Failure('There is no pregnancy.');
+
+      final keep = action == NpcInteractionOutcome.pregnancyKeep;
+
+      return _socialOutcome(
+        npcId: npcId,
+        action: action,
+        narrative: keep
+            ? 'We decided to keep the baby. Scared, excited, and ready to '
+                'learn everything.'
+            : 'We made the hard decision not to continue the pregnancy. It '
+                'hurt, and we held each other through it.',
+        score: score,
+        bond: 'friend',
+        romance: 'partner',
+        next: withStats(
+          _state.copyWith(
+            lifeProgress: progress.copyWith(
+              love: keep
+                  ? love.copyWith(pregnancy: waiting.copyWith(decided: true))
+                  : love.copyWith(clearPregnancy: true),
+            ),
+          ),
+          happiness: keep ? 2 : -8,
+        ),
+      );
+    }
+
     var narrative = '';
     var next = score;
     var pregnancy = love.pregnancy;
+    var asksAboutBaby = false;
 
     if (action == 'Go on a Date') {
       narrative = LoveNarratives.date(_random, name);
@@ -862,10 +936,13 @@ class SimulationEngine {
         if (!canConceive) {
           narrative = '$narrative ${LoveNarratives.noBaby(name)}';
         } else {
-          final chance = (mine * theirs / 100 * 0.35).round();
+          var chance = (mine * theirs / 100 * 0.35).round();
+
+          if (love.birthControl.contains(npcId)) chance = chance ~/ 10;
 
           if (_random.nextInt(100) < chance) {
             pregnancy = Pregnancy(conceivedYear: year, partner: person);
+            asksAboutBaby = true;
             narrative =
                 '$narrative ${LoveNarratives.pregnancy(playerCarries: player.gender == Gender.female, name: name)}';
           }
@@ -892,6 +969,7 @@ class SimulationEngine {
       bond: 'friend',
       romance: 'partner',
       progressed: first,
+      prompt: asksAboutBaby ? 'pregnancy' : null,
       next: withStats(
         _state.copyWith(lifeProgress: updated),
         happiness: first ? 3 : 0,
@@ -992,16 +1070,15 @@ class SimulationEngine {
       _genesOf(other),
     );
     final gender = _random.nextInt(2) == 0 ? Gender.male : Gender.female;
-    final names = gender == Gender.female
-        ? LoveNarratives.femaleNames
-        : LoveNarratives.maleNames;
+    final country = player.location?.countryCode ?? other.countryCode;
+    final suggestions = _suggestNames(country, gender);
     final father = player.gender == Gender.male ? player : null;
     final lastName = father != null
         ? player.resolvedLastName
         : other.lastName;
     final baby = ChildNpc(
       id: 'child-$year-${progress.love.children.length + 1}',
-      firstName: names[_random.nextInt(names.length)],
+      firstName: suggestions.first,
       lastName: lastName,
       gender: gender,
       birthYear: year,
@@ -1012,7 +1089,7 @@ class SimulationEngine {
       hairColor: genes.hairColor,
       eyeColor: genes.eyeColor,
       eyebrows: genes.eyebrows,
-      countryCode: player.location?.countryCode ?? other.countryCode,
+      countryCode: country,
       otherParentName: other.fullName,
     );
     final text = LoveNarratives.birth(
@@ -1042,7 +1119,61 @@ class SimulationEngine {
       ],
     );
 
-    if (_commit(next) case Success<void>()) _newborn = baby;
+    if (_commit(next) case Success<void>()) {
+      _newborn = baby;
+      _newbornNames = suggestions;
+    }
+  }
+
+  List<String> _newbornNames = const <String>[];
+
+  /// Names the other parent recommends for the newborn, from the country's
+  /// own name pool.
+  List<String> get newbornNameSuggestions => _newbornNames;
+
+  List<String> _suggestNames(String countryCode, Gender gender) {
+    final names = <String>[];
+
+    for (var i = 0; i < 40 && names.length < 3; i++) {
+      final name = CulturalRandomizerCatalog.randomFirstName(
+        countryCode: countryCode,
+        gender: gender,
+        random: math.Random(_random.nextInt(0x3fffffff)),
+      );
+
+      if (!names.contains(name)) names.add(name);
+    }
+
+    return names;
+  }
+
+  /// One more culturally fitting name for the dice button.
+  String randomNameFor(ChildNpc baby) => _suggestNames(
+        baby.countryCode,
+        baby.gender,
+      ).first;
+
+  /// Sets the baby's first name.
+  Result<void> nameChild(String childId, String name) {
+    final clean = name.trim();
+
+    if (clean.isEmpty) return const Failure('A baby needs a name.');
+
+    if (clean.length > 20) return const Failure('That name is too long.');
+
+    final progress = _state.lifeProgress;
+    final children = [
+      for (final child in progress.love.children)
+        child.id == childId ? child.copyWith(firstName: clean) : child,
+    ];
+
+    return _commit(
+      _state.copyWith(
+        lifeProgress: progress.copyWith(
+          love: progress.love.copyWith(children: children),
+        ),
+      ),
+    );
   }
 
   Result<NpcInteractionOutcome> _socialOutcome({
@@ -1054,6 +1185,7 @@ class SimulationEngine {
     WorldState? next,
     String romance = 'none',
     bool progressed = true,
+    String? prompt,
   }) {
     final year = _state.clock.currentYear;
     final state = (next ?? _state).copyWith(
@@ -1079,6 +1211,8 @@ class SimulationEngine {
       relationshipPercent: score,
       bond: bond,
       romance: romance,
+      prompt: prompt,
+      onBirthControl: state.lifeProgress.love.birthControl.contains(npcId),
       progressed: progressed,
       year: year,
       age: (year - _state.player.birthYear).clamp(0, 150),
