@@ -199,7 +199,7 @@ abstract final class LifeEventCatalogMore {
       minAge: 8,
       maxAge: 17,
       cooldownYears: 5,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'study',
@@ -452,7 +452,7 @@ abstract final class LifeEventCatalogMore {
       minAge: 16,
       maxAge: 19,
       oncePerLife: true,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'apply',
@@ -574,7 +574,7 @@ abstract final class LifeEventCatalogMore {
       minAge: 18,
       maxAge: 24,
       weight: 14,
-      requiredFlags: ['student'],
+      requiredFlags: ['university_student'],
       choices: [
         LifeChoice(
           id: 'coffee',
@@ -621,7 +621,7 @@ abstract final class LifeEventCatalogMore {
       minAge: 18,
       maxAge: 24,
       weight: 12,
-      requiredFlags: ['student'],
+      requiredFlags: ['university_student'],
       choices: [
         LifeChoice(
           id: 'dance',
@@ -666,7 +666,7 @@ abstract final class LifeEventCatalogMore {
       description: 'My professor was famous for failing half the class.',
       minAge: 18,
       maxAge: 24,
-      requiredFlags: ['student'],
+      requiredFlags: ['university_student'],
       choices: [
         LifeChoice(
           id: 'office',
@@ -716,7 +716,7 @@ abstract final class LifeEventCatalogMore {
       description: 'A company offered a summer internship.',
       minAge: 19,
       maxAge: 23,
-      requiredFlags: ['student'],
+      requiredFlags: ['university_student'],
       choices: [
         LifeChoice(
           id: 'accept',
@@ -764,7 +764,7 @@ abstract final class LifeEventCatalogMore {
       description: 'My new roommate had very... particular habits.',
       minAge: 18,
       maxAge: 22,
-      requiredFlags: ['student'],
+      requiredFlags: ['university_student'],
       choices: [
         LifeChoice(
           id: 'talk',
@@ -805,7 +805,7 @@ abstract final class LifeEventCatalogMore {
       minAge: 18,
       maxAge: 24,
       weight: 8,
-      requiredFlags: ['student'],
+      requiredFlags: ['university_student'],
       choices: [
         LifeChoice(
           id: 'parttime',

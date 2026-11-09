@@ -3,8 +3,10 @@ import 'package:everylife/core/money/money.dart';
 import '../../core/random/seeded_random.dart';
 import '../../domain/character/character_stats.dart';
 import '../../domain/event/life_event.dart';
+import '../../domain/event/simulation_event.dart';
 import '../../domain/family/family_household.dart';
 import '../../domain/world/world_state.dart';
+import 'money_text.dart';
 import '../generation/country_economic_profile.dart';
 
 /// Applies event outcomes to the world and rolls weighted results.
@@ -97,7 +99,8 @@ abstract final class LifeEffectApplier {
       ..addAll(outcome.addFlags)
       ..removeAll(outcome.removeFlags);
 
-    return state.copyWith(
+    final borrowed = debt - state.player.debt.minorUnits;
+    final next = state.copyWith(
       player: state.player.copyWith(
         stats: stats,
         money: Money.fromMinorUnits(money),
@@ -105,6 +108,21 @@ abstract final class LifeEffectApplier {
       ),
       familyHousehold: _applyRelations(state, outcome),
       lifeProgress: state.lifeProgress.copyWith(flags: flags),
+    );
+
+    if (borrowed <= 0) return next;
+
+    // Say it plainly in the life log: nobody should wonder where a debt
+    // came from.
+    return next.addEvent(
+      SimulationEvent(
+        id: 'debt-${state.events.length + 1}-${state.clock.currentYear}',
+        type: SimulationEventType.randomEvent,
+        year: state.clock.currentYear,
+        title: 'Went into debt',
+        description: 'I did not have enough cash for that, so I borrowed '
+            '${MoneyText.of(state, borrowed)}.',
+      ),
     );
   }
 

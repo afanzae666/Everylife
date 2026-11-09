@@ -13,7 +13,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.classmate,
       weight: 16,
       cooldownYears: 3,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'trade',
@@ -70,7 +70,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.classmate,
       weight: 12,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'accept',
@@ -114,7 +114,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.classmate,
       weight: 12,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'join',
@@ -157,7 +157,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.classmate,
       weight: 12,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'lead',
@@ -212,7 +212,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.classmate,
       weight: 8,
       cooldownYears: 5,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'apologize',
@@ -272,7 +272,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.classmate,
       weight: 12,
       cooldownYears: 4,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'go',
@@ -317,7 +317,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.classmate,
       weight: 14,
       cooldownYears: 4,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'shove',
@@ -380,7 +380,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.classmate,
       weight: 10,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'confront',
@@ -442,7 +442,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.classmate,
       weight: 9,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'pay',
@@ -498,7 +498,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.classmate,
       weight: 9,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'help',
@@ -553,7 +553,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.classmate,
       weight: 12,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'allow',
@@ -606,7 +606,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.classmate,
       weight: 12,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'join',
@@ -661,7 +661,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.classmate,
       weight: 10,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'talk',
@@ -719,7 +719,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.classmate,
       weight: 12,
       cooldownYears: 5,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'pick',
@@ -761,7 +761,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.classmate,
       weight: 8,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'keep',
@@ -798,7 +798,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.teacher,
       weight: 12,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'humble',
@@ -833,7 +833,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.teacher,
       weight: 12,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'accept',
@@ -874,7 +874,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.teacher,
       weight: 11,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'accept',
@@ -909,7 +909,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.teacher,
       weight: 12,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'truth',
@@ -962,7 +962,7 @@ abstract final class LifeEventCatalogSocial {
       weight: 9,
       cooldownYears: 10,
       oncePerLife: true,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'thanks',
@@ -998,7 +998,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.teacher,
       weight: 12,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'sorry',
@@ -1039,7 +1039,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.teacher,
       weight: 8,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['university_student'],
       choices: [
         LifeChoice(
           id: 'join',
@@ -1081,7 +1081,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.classmate,
       weight: 10,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['university_student'],
       choices: [
         LifeChoice(
           id: 'join',
@@ -1119,7 +1119,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.classmate,
       weight: 10,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['university_student'],
       choices: [
         LifeChoice(
           id: 'dance',
@@ -1943,7 +1943,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.parent,
       weight: 10,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'laugh',
@@ -1978,7 +1978,7 @@ abstract final class LifeEventCatalogSocial {
       about: EventSubjectKind.parent,
       weight: 10,
       cooldownYears: 6,
-      requiredFlags: ['student'],
+      requiredFlags: ['school_student'],
       choices: [
         LifeChoice(
           id: 'accept',
