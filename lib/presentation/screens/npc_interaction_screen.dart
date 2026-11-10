@@ -120,6 +120,8 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
   String get _relationshipLabel {
     if (_romance == 'partner') return 'partner';
 
+    if (_bond == 'ex') return 'ex';
+
     if (_bond == 'best friend') return 'best friend';
 
     if (_bond == 'friend' && widget.relationship.toLowerCase() == 'classmate') {
@@ -335,6 +337,8 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
     'Best Friend: yes': ('💛', 'Best friends'),
     'Talk': ('💬', 'Have a chat'),
     'Spend Time': ('🎈', 'Do something together'),
+    'Play': ('🧸', 'Play together'),
+    'Cry': ('😭', 'Cry for attention'),
     'Compliment': ('💐', 'Say something kind'),
     'Help': ('🤝', 'Lend a hand'),
     'Argue': ('💢', 'Start a fight'),
@@ -511,7 +515,15 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
 
   List<String> get _availableActions {
     final stage = LifeStageAge.fromAge(widget.playerAge.clamp(0, 150).toInt());
-    if (stage == LifeStage.infant) return const [];
+    final theirBirth = widget.birthYear;
+    final thisYear = widget.currentYear;
+    final theyAreBaby =
+        theirBirth != null && thisYear != null && thisYear - theirBirth <= 2;
+
+    // A baby can only play. A player who is a baby can only play and cry.
+    if (theyAreBaby) return const ['Play'];
+
+    if (stage == LifeStage.infant) return const ['Play', 'Cry'];
 
     // Friendship can be asked for once the relationship is good enough.
     final canBefriend = widget.befriendable &&

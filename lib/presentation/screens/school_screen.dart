@@ -6,6 +6,7 @@ import '../../core/result/result.dart';
 import '../../domain/career/education_state.dart';
 import '../../domain/career/job_catalog.dart';
 import '../../domain/career/school_npc.dart';
+import '../../domain/love/love_state.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/fertility.dart';
 import '../../domain/world/country_catalog.dart';
@@ -747,6 +748,8 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
 
   /// 'none', 'friend' or 'best friend' for a person from this school.
   String _bondOf(SchoolNpc npc) {
+    if (engine.state.lifeProgress.love.exIds.contains(npc.id)) return 'ex';
+
     for (final friend in engine.state.lifeProgress.friends) {
       if (friend.id == npc.id) return friend.bestFriend ? 'best friend' : 'friend';
     }
@@ -781,7 +784,8 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
               ),
               befriendable: npc.role.isStudent,
               bond: _bondOf(npc),
-              romanceEligible: npc.role.isStudent,
+              romanceEligible: npc.role.isStudent &&
+                  !state.lifeProgress.love.exIds.contains(npc.id),
               romance: state.lifeProgress.love.partnerId == npc.id
                   ? 'partner'
                   : 'none',
@@ -794,6 +798,12 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
               headerBuilder: widget.headerBuilder,
               details: [
                 MapEntry('Gender', npc.gender.name == 'male' ? 'Male' : 'Female'),
+                ...MaritalInfo.rows(
+                  age: state.clock.currentYear - npc.birthYear,
+                  partnerName: state.lifeProgress.love.partnerId == npc.id
+                      ? state.player.fullName
+                      : null,
+                ),
                 MapEntry('Occupation', _occupationOf(npc)),
                 MapEntry(
                   'Location',

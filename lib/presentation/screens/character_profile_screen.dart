@@ -19,6 +19,7 @@ class CharacterProfileScreen extends StatelessWidget {
     this.uiScaleController,
     this.onViewAssets,
     this.occupation,
+    this.maritalRows = const [],
     super.key,
   });
 
@@ -29,6 +30,9 @@ class CharacterProfileScreen extends StatelessWidget {
 
   /// What the character does (job, school stage, ...), when known.
   final String? occupation;
+
+  /// Marital Status and Children rows, from the age of 15.
+  final List<MapEntry<String, String>> maritalRows;
 
   String _getCurrencyCode() {
     final countryCode = character.location?.countryCode ?? '';
@@ -277,6 +281,7 @@ class CharacterProfileScreen extends StatelessWidget {
     return [
       InfoLine(label: 'Age', value: '${character.ageAt(currentYear)}'),
       InfoLine(label: 'Gender', value: character.gender.label),
+      for (final row in maritalRows) InfoLine(label: row.key, value: row.value),
       if (job != null && job.isNotEmpty)
         InfoLine(label: 'Occupation', value: job),
       if (locationLabel != null)

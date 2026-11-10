@@ -15,6 +15,7 @@ import '../../domain/character/fertility.dart';
 import '../../domain/love/love_state.dart';
 import '../../simulation/school/npc_place.dart';
 import '../../simulation/school/school_appearance.dart';
+import '../widgets/modal_cards.dart';
 import '../widgets/npc_avatar.dart';
 import '../widgets/themed_cards.dart';
 import '../widgets/character_avatar.dart';
@@ -42,6 +43,7 @@ String _genderLabel(Gender gender) => gender == Gender.male ? 'Male' : 'Female';
 List<MapEntry<String, String>> _parentDetailList(
   ParentNpc parent,
   String? homeCityId,
+  List<MapEntry<String, String>> marital,
 ) {
   final occupation = switch (parent.employmentStatus) {
     EmploymentStatus.employed => parent.occupation ?? 'Employed',
@@ -54,6 +56,7 @@ List<MapEntry<String, String>> _parentDetailList(
 
   return [
     MapEntry('Gender', _genderLabel(parent.gender)),
+    ...marital,
     MapEntry('Occupation', occupation),
     MapEntry(
       'Location',
@@ -72,12 +75,14 @@ List<MapEntry<String, String>> _siblingDetailList(
   SiblingNpc sibling,
   String kind,
   String? homeCityId,
+  List<MapEntry<String, String>> marital,
 ) {
   final finance = sibling.finance;
   final job = finance?.jobId == null ? null : JobCatalog.byId(finance!.jobId!);
 
   return [
     MapEntry('Gender', _genderLabel(sibling.gender)),
+    ...marital,
     if (finance != null)
       MapEntry('Occupation', job?.titleAt(finance.rank) ?? 'Unemployed'),
     MapEntry(
@@ -125,6 +130,8 @@ class LifeScreen extends StatefulWidget {
     this.readCurrentLove,
     this.homeCityId,
     this.playerName = '',
+    this.onSpendTimeAll,
+    this.canSpendTimeAll,
     super.key,
   });
 
@@ -155,6 +162,10 @@ class LifeScreen extends StatefulWidget {
   /// The player's full name, shown as a parent of their children.
   final String playerName;
 
+  /// Spends time with everyone on this page, once a year.
+  final Result<String> Function()? onSpendTimeAll;
+  final bool Function()? canSpendTimeAll;
+
   @override
   State<LifeScreen> createState() => _LifeScreenState();
 }
@@ -164,6 +175,7 @@ class _LifeScreenState extends State<LifeScreen> {
   late List<SiblingNpc> _siblings = widget.siblings;
   late List<SchoolNpc> _friends = widget.friends;
   late LoveState _love = widget.love;
+  late bool _canSpendAll = widget.canSpendTimeAll?.call() ?? false;
 
   void _refreshNpcData() {
     if (!mounted) return;
@@ -172,7 +184,25 @@ class _LifeScreenState extends State<LifeScreen> {
       _siblings = widget.readCurrentSiblings?.call() ?? _siblings;
       _friends = widget.readCurrentFriends?.call() ?? _friends;
       _love = widget.readCurrentLove?.call() ?? _love;
+      _canSpendAll = widget.canSpendTimeAll?.call() ?? _canSpendAll;
     });
+  }
+
+  Future<void> _spendTimeAll() async {
+    final result = widget.onSpendTimeAll?.call();
+
+    _refreshNpcData();
+
+    if (result case Success<String>(:final value)) {
+      if (!mounted) return;
+
+      await showTapToCloseOverlay(
+        context,
+        title: 'Time Together',
+        emoji: '🫶',
+        text: value,
+      );
+    }
   }
 
   @override
@@ -182,6 +212,50 @@ class _LifeScreenState extends State<LifeScreen> {
     if (!identical(oldWidget.siblings, widget.siblings)) _siblings = widget.siblings;
     if (!identical(oldWidget.friends, widget.friends)) _friends = widget.friends;
     if (!identical(oldWidget.love, widget.love)) _love = widget.love;
+  }
+
+  List<MapEntry<String, String>> _parentMarital(
+    ParentNpc parent,
+    List<ParentNpc> all,
+  ) {
+    final age = widget.currentYear - parent.birthYear;
+    final spouses = all.where((other) => other.id != parent.id).toList();
+    final children = 1 + _siblings.length;
+
+    if (spouses.isEmpty) {
+      return MaritalInfo.rows(age: age, children: children);
+    }
+
+    final spouse = spouses.first;
+
+    return spouse.isAlive
+        ? MaritalInfo.rows(
+            age: age,
+            partnerName: spouse.fullName,
+            married: true,
+            children: children,
+          )
+        : MaritalInfo.rows(age: age, widowed: true, children: children);
+  }
+
+  void _openExes() {
+    Navigator.of(context)
+        .push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => _ExesScreen(
+              zoom: widget.zoom,
+              readFriends: () => _friends,
+              readLove: () => _love,
+              refresh: _refreshNpcData,
+              playerBirthYear: widget.playerBirthYear,
+              currentYear: widget.currentYear,
+              homeCityId: widget.homeCityId,
+              onNpcInteraction: widget.onNpcInteraction,
+              headerBuilder: widget.headerBuilder,
+            ),
+          ),
+        )
+        .then((_) => _refreshNpcData());
   }
 
   @override
@@ -196,7 +270,12 @@ class _LifeScreenState extends State<LifeScreen> {
         : _friends.where((f) => f.id == _love.partnerId).firstOrNull;
     final otherFriends = [
       for (final friend in _friends)
-        if (friend.id != _love.partnerId) friend,
+        if (friend.id != _love.partnerId && !_love.exIds.contains(friend.id))
+          friend,
+    ];
+    final exes = [
+      for (final friend in _friends)
+        if (_love.exIds.contains(friend.id)) friend,
     ];
     final visibleSiblings = _siblings
         .where((sibling) => sibling.birthYear <= currentYear)
@@ -242,6 +321,17 @@ class _LifeScreenState extends State<LifeScreen> {
                                     homeCityId: widget.homeCityId,
                                     key: ValueKey('partner-card-${partner.id}'),
                                     friend: partner,
+                                    marital: MaritalInfo.rows(
+                                      age: currentYear - partner.birthYear,
+                                      partnerName: widget.playerName,
+                                      children: _love.children
+                                          .where(
+                                            (c) =>
+                                                c.otherParentName ==
+                                                partner.fullName,
+                                          )
+                                          .length,
+                                    ),
                                     isPartner: true,
                                     hasPartner: true,
                                     onBirthControl: _love.birthControl
@@ -302,6 +392,7 @@ class _LifeScreenState extends State<LifeScreen> {
                                     homeCityId: widget.homeCityId,
                                     key: ValueKey('parent-card-${parent.id}'),
                                     parent: parent,
+                                    marital: _parentMarital(parent, parents),
                                     playerBirthYear: playerBirthYear,
                                     currentYear: currentYear,
                                     zoom: zoom,
@@ -324,6 +415,9 @@ class _LifeScreenState extends State<LifeScreen> {
                                     homeCityId: widget.homeCityId,
                                     key: ValueKey('sibling-card-${sibling.id}'),
                                     sibling: sibling,
+                                    marital: MaritalInfo.rows(
+                                      age: currentYear - sibling.birthYear,
+                                    ),
                                     playerBirthYear: playerBirthYear,
                                     currentYear: currentYear,
                                     zoom: zoom,
@@ -347,6 +441,9 @@ class _LifeScreenState extends State<LifeScreen> {
                                     hasPartner: _love.hasPartner,
                                     key: ValueKey('friend-card-${friend.id}'),
                                     friend: friend,
+                                    marital: MaritalInfo.rows(
+                                      age: currentYear - friend.birthYear,
+                                    ),
                                     playerBirthYear: playerBirthYear,
                                     currentYear: currentYear,
                                     zoom: zoom,
@@ -358,6 +455,57 @@ class _LifeScreenState extends State<LifeScreen> {
                             ),
                           ),
                         const Spacer(),
+                        if (exes.isNotEmpty)
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(
+                              zoom * 8,
+                              zoom * 6,
+                              zoom * 8,
+                              0,
+                            ),
+                            child: AccentCard(
+                              zoom: zoom,
+                              child: InkWell(
+                                key: const Key('exes-card'),
+                                onTap: _openExes,
+                                child: Padding(
+                                  padding: EdgeInsets.all(zoom * 8),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        '💔',
+                                        style: TextStyle(fontSize: zoom * 22),
+                                      ),
+                                      SizedBox(width: zoom * 8),
+                                      Expanded(
+                                        child: Text(
+                                          'Exes (${exes.length})',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleMedium,
+                                        ),
+                                      ),
+                                      ChevronBadge(zoom: zoom),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (widget.onSpendTimeAll != null)
+                          Padding(
+                            padding: EdgeInsets.all(zoom * 8),
+                            child: FilledButton.icon(
+                              key: const Key('spend-time-all'),
+                              onPressed: _canSpendAll ? _spendTimeAll : null,
+                              icon: const Icon(Icons.groups_rounded),
+                              label: Text(
+                                _canSpendAll
+                                    ? 'SPEND TIME WITH EVERYONE'
+                                    : 'SPENT TIME THIS YEAR',
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -413,6 +561,7 @@ class _CategoryCard extends StatelessWidget {
 class _ParentNpcCard extends StatelessWidget {
   const _ParentNpcCard({
     this.homeCityId,
+    this.marital = const [],
     required this.parent,
     required this.playerBirthYear,
     required this.currentYear,
@@ -432,6 +581,7 @@ class _ParentNpcCard extends StatelessWidget {
   final double zoom;
 
   final String? homeCityId;
+  final List<MapEntry<String, String>> marital;
 
   @override
   Widget build(BuildContext context) {
@@ -454,7 +604,7 @@ class _ParentNpcCard extends StatelessWidget {
               currentYear: currentYear,
               birthYear: parent.birthYear,
               subtitle: _parentDetails(parent),
-              details: _parentDetailList(parent, homeCityId),
+              details: _parentDetailList(parent, homeCityId, marital),
               netWorth: npcMoneyLabel(
                 NpcWealth.forParent(parent),
                 parent.countryCode,
@@ -557,6 +707,7 @@ class _ParentNpcCard extends StatelessWidget {
 class _SiblingNpcCard extends StatelessWidget {
   const _SiblingNpcCard({
     this.homeCityId,
+    this.marital = const [],
     required this.sibling,
     required this.playerBirthYear,
     required this.currentYear,
@@ -576,6 +727,7 @@ class _SiblingNpcCard extends StatelessWidget {
   final double zoom;
 
   final String? homeCityId;
+  final List<MapEntry<String, String>> marital;
 
   @override
   Widget build(BuildContext context) {
@@ -610,7 +762,7 @@ class _SiblingNpcCard extends StatelessWidget {
               currentYear: currentYear,
               birthYear: sibling.birthYear,
               subtitle: 'Sibling · ${sibling.relationship.name}',
-              details: _siblingDetailList(sibling, siblingKind, homeCityId),
+              details: _siblingDetailList(sibling, siblingKind, homeCityId, marital),
               netWorth: npcMoneyLabel(
                 NpcWealth.forSibling(sibling),
                 sibling.countryCode,
@@ -763,6 +915,7 @@ class _SiblingNpcCard extends StatelessWidget {
 class _FriendNpcCard extends StatelessWidget {
   const _FriendNpcCard({
     this.homeCityId,
+    this.marital = const [],
     required this.friend,
     required this.playerBirthYear,
     required this.currentYear,
@@ -771,14 +924,17 @@ class _FriendNpcCard extends StatelessWidget {
     required this.onInteractionPageClosed,
     this.headerBuilder,
     this.isPartner = false,
+    this.isEx = false,
     this.hasPartner = false,
     this.onBirthControl = false,
     super.key,
   });
 
   final String? homeCityId;
+  final List<MapEntry<String, String>> marital;
   final bool onBirthControl;
   final bool isPartner;
+  final bool isEx;
   final bool hasPartner;
   final WidgetBuilder? headerBuilder;
   final VoidCallback onInteractionPageClosed;
@@ -805,14 +961,23 @@ class _FriendNpcCard extends StatelessWidget {
                   npcId: friend.id,
                   name: friend.fullName,
                   onInteraction: onNpcInteraction,
-                  relationship: isPartner ? 'partner' : 'friend',
+                  relationship: isEx
+                      ? 'ex'
+                      : isPartner
+                          ? 'partner'
+                          : 'friend',
                   relationshipPercent: friend.relationshipPercent,
                   playerAge: currentYear - playerBirthYear,
                   currentYear: currentYear,
                   birthYear: friend.birthYear,
-                  subtitle: isPartner ? 'Partner' : 'Friend',
+                  subtitle: isEx
+                      ? 'Ex'
+                      : isPartner
+                          ? 'Partner'
+                          : 'Friend',
                   details: [
                     MapEntry('Gender', _genderLabel(friend.gender)),
+                    ...marital,
                     MapEntry(
                       'Occupation',
                       age < 23 ? 'Student' : 'Working adult',
@@ -837,8 +1002,12 @@ class _FriendNpcCard extends StatelessWidget {
                     birthYear: friend.birthYear,
                     currentYear: currentYear,
                   ),
-                  bond: friend.bestFriend ? 'best friend' : 'friend',
-                  romanceEligible: friend.role.isStudent,
+                  bond: isEx
+                      ? 'ex'
+                      : friend.bestFriend
+                          ? 'best friend'
+                          : 'friend',
+                  romanceEligible: friend.role.isStudent && !isEx,
                   romance: isPartner ? 'partner' : 'none',
                   playerHasPartner: hasPartner,
                   canUseBirthControl:
@@ -884,7 +1053,9 @@ class _FriendNpcCard extends StatelessWidget {
                         ),
                         SizedBox(width: s(4)),
                         Text(
-                          isPartner
+                          isEx
+                              ? '(EX)'
+                              : isPartner
                               ? '(PARTNER)'
                               : friend.bestFriend
                                   ? '(BEST FRIEND)'
@@ -1208,6 +1379,102 @@ class _SiblingAvatarForProfile extends StatelessWidget {
           hairColor: hair,
         );
       },
+    );
+  }
+}
+
+/// The page of people the player used to date.
+class _ExesScreen extends StatefulWidget {
+  const _ExesScreen({
+    required this.zoom,
+    required this.readFriends,
+    required this.readLove,
+    required this.refresh,
+    required this.playerBirthYear,
+    required this.currentYear,
+    required this.onNpcInteraction,
+    this.homeCityId,
+    this.headerBuilder,
+  });
+
+  final double zoom;
+  final List<SchoolNpc> Function() readFriends;
+  final LoveState Function() readLove;
+  final VoidCallback refresh;
+  final int playerBirthYear;
+  final int currentYear;
+  final String? homeCityId;
+  final WidgetBuilder? headerBuilder;
+  final Result<NpcInteractionOutcome> Function({
+    required String npcId,
+    required String action,
+  }) onNpcInteraction;
+
+  @override
+  State<_ExesScreen> createState() => _ExesScreenState();
+}
+
+class _ExesScreenState extends State<_ExesScreen> {
+  void _refresh() {
+    widget.refresh();
+
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final zoom = widget.zoom;
+    final love = widget.readLove();
+    final exes = [
+      for (final friend in widget.readFriends())
+        if (love.exIds.contains(friend.id)) friend,
+    ];
+
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(zoom)),
+      child: Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              if (widget.headerBuilder != null) widget.headerBuilder!(context),
+              PageTopBar(title: 'Exes', zoom: zoom),
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    _CategoryCard(
+                      title: 'Exes',
+                      zoom: zoom,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          for (final ex in exes)
+                            _FriendNpcCard(
+                              key: ValueKey('ex-card-${ex.id}'),
+                              homeCityId: widget.homeCityId,
+                              marital: MaritalInfo.rows(
+                                age: widget.currentYear - ex.birthYear,
+                              ),
+                              friend: ex,
+                              isEx: true,
+                              hasPartner: love.hasPartner,
+                              playerBirthYear: widget.playerBirthYear,
+                              currentYear: widget.currentYear,
+                              zoom: zoom,
+                              onNpcInteraction: widget.onNpcInteraction,
+                              onInteractionPageClosed: _refresh,
+                              headerBuilder: widget.headerBuilder,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

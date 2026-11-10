@@ -29,6 +29,7 @@ import 'career_screen.dart';
 import 'character_profile_screen.dart';
 import '../../domain/character/fertility.dart';
 import '../../domain/character/gender.dart';
+import '../../domain/love/love_state.dart';
 import '../widgets/animated_dialog.dart';
 import '../widgets/club_widgets.dart';
 import 'life_screen.dart';
@@ -657,6 +658,7 @@ class _GameScreenState extends State<GameScreen> {
                   currentYear: engine.state.clock.currentYear,
                   uiScaleController: _uiScaleController,
                   occupation: occupationLabel(engine.state),
+                  maritalRows: _playerMaritalRows(),
                   onViewAssets: () {
                     Navigator.of(dialogContext).pop();
 
@@ -903,6 +905,15 @@ class _GameScreenState extends State<GameScreen> {
   love: engine.state.lifeProgress.love,
   homeCityId: engine.state.player.location?.cityId,
   playerName: engine.state.player.fullName,
+  canSpendTimeAll: () => engine.canSpendTimeWithEveryone,
+  onSpendTimeAll: () {
+    final result = engine.spendTimeWithEveryone();
+
+    setState(() {});
+    _scrollLifeEventsToBottom();
+
+    return result;
+  },
   readCurrentLove: () => engine.state.lifeProgress.love,
 ),
       ),
