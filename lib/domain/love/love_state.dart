@@ -16,6 +16,12 @@ abstract final class LoveRules {
   /// Relationship needed to ask someone out.
   static const int dateAt = 60;
 
+  /// Relationship an ex needs before they will consider getting back together.
+  static const int getBackAt = 50;
+
+  /// At or below this, a person may refuse to interact at all.
+  static const int refuseAtOrBelow = 10;
+
   /// Relationship needed before the relationship can get intimate.
   static const int intimacyAt = 70;
 
