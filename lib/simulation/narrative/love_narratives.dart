@@ -83,6 +83,12 @@ abstract final class LoveNarratives {
   }
 
   static const Map<String, List<String>> _child = {
+    'Play': [
+      'I played peek-a-boo with {n}, who laughed like it was a miracle.',
+      '{n} grabbed my finger and would not let go. I did not mind.',
+      'We stacked soft blocks and {n} knocked them down. Applause for everyone.',
+      'I sang a silly song to {n}, who answered with serious baby opinions.',
+    ],
     'Talk': [
       '{n} told me a very long story about a dragon who hates broccoli.',
       'I asked {n} about the day. The answer took twenty minutes and had '
