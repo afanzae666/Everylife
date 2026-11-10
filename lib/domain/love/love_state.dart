@@ -216,7 +216,12 @@ class LoveState {
     this.pregnancy,
     this.children = const <ChildNpc>[],
     this.birthControl = const <String>{},
+    this.exIds = const <String>{},
   });
+
+  /// People the player broke up with. They live on the Exes page, not in
+  /// the friends list.
+  final Set<String> exIds;
 
   /// Ids of women who use birth control.
   final Set<String> birthControl;
@@ -234,7 +239,8 @@ class LoveState {
       partnerId == null &&
       pregnancy == null &&
       children.isEmpty &&
-      birthControl.isEmpty;
+      birthControl.isEmpty &&
+      exIds.isEmpty;
 
   LoveState copyWith({
     String? partnerId,
@@ -244,6 +250,7 @@ class LoveState {
     bool clearPregnancy = false,
     List<ChildNpc>? children,
     Set<String>? birthControl,
+    Set<String>? exIds,
   }) =>
       LoveState(
         partnerId: clearPartner ? null : (partnerId ?? this.partnerId),
@@ -251,6 +258,7 @@ class LoveState {
         pregnancy: clearPregnancy ? null : (pregnancy ?? this.pregnancy),
         children: children ?? this.children,
         birthControl: birthControl ?? this.birthControl,
+        exIds: exIds ?? this.exIds,
       );
 
   Map<String, dynamic> toJson() => {
@@ -260,6 +268,7 @@ class LoveState {
         if (children.isNotEmpty)
           'children': [for (final child in children) child.toJson()],
         if (birthControl.isNotEmpty) 'birthControl': birthControl.toList()..sort(),
+        if (exIds.isNotEmpty) 'exIds': exIds.toList()..sort(),
       };
 
   factory LoveState.fromJson(Object? json) {
@@ -281,6 +290,41 @@ class LoveState {
       birthControl: json['birthControl'] is List
           ? (json['birthControl'] as List).whereType<String>().toSet()
           : const <String>{},
+      exIds: json['exIds'] is List
+          ? (json['exIds'] as List).whereType<String>().toSet()
+          : const <String>{},
     );
+  }
+}
+
+/// The "Marital Status" and "Children" rows of an information overlay.
+abstract final class MaritalInfo {
+  /// Shown from this age.
+  static const int minAge = 15;
+
+  /// [partnerName] is the boyfriend, girlfriend, fiancé(e) or spouse, if
+  /// any. [married] changes the wording. [children] is the number of
+  /// children: the row shows for anyone married or with children.
+  static List<MapEntry<String, String>> rows({
+    required int age,
+    String? partnerName,
+    bool married = false,
+    bool widowed = false,
+    int children = 0,
+  }) {
+    if (age < minAge) return const [];
+
+    final status = widowed
+        ? 'Widowed'
+        : partnerName == null
+            ? 'Single'
+            : married
+                ? 'Married to $partnerName'
+                : 'Dating $partnerName';
+
+    return [
+      MapEntry('Marital Status', status),
+      if (married || children > 0) MapEntry('Children', '$children'),
+    ];
   }
 }
