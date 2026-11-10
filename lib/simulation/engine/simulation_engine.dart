@@ -17,6 +17,7 @@ import '../../domain/social/social_rules.dart';
 import '../narrative/school_narratives.dart';
 import '../narrative/infant_narratives.dart';
 import '../narrative/love_narratives.dart';
+import '../narrative/relationship_narratives.dart';
 import '../school/school_appearance.dart';
 import '../../domain/character/fertility.dart';
 import '../../domain/character/gender.dart';
@@ -495,6 +496,7 @@ class SimulationEngine {
       _ => null,
     };
     if (change == null) return const Failure('Unknown NPC interaction.');
+
     final interactionKey = '${_state.clock.currentYear}:$npcId:$action';
     final timesThisYear = _state.lifeProgress.interactionCounts[interactionKey] ?? 0;
     // Only the first use of each interaction per year moves the relationship.
@@ -509,6 +511,36 @@ class SimulationEngine {
             : friendIndex >= 0
                 ? friends[friendIndex].fullName
                 : education.npcs[schoolIndex].fullName;
+    // Someone who is very distant may simply refuse. A small chance remains
+    // that they hear me out.
+    if (change > 0 &&
+        !npcIsBaby &&
+        currentScore <= LoveRules.refuseAtOrBelow) {
+      final repair = action == 'Apologize' || action == 'Help';
+      final refuses = _random.nextDouble() < (repair ? 0.55 : 0.75);
+
+      if (refuses) {
+        return _socialOutcome(
+          npcId: npcId,
+          action: action,
+          narrative: RelationshipNarratives.refuse(
+            _random,
+            npcName,
+            repair: action == 'Apologize',
+          ),
+          score: currentScore,
+          bond: _state.lifeProgress.love.exIds.contains(npcId)
+              ? 'ex'
+              : friendIndex >= 0
+                  ? (friends[friendIndex].bestFriend ? 'best friend' : 'friend')
+                  : 'none',
+          romance:
+              _state.lifeProgress.love.partnerId == npcId ? 'partner' : 'none',
+          progressed: false,
+        );
+      }
+    }
+
     final narrative = action == 'Play' || action == 'Cry'
         ? InfantNarratives.pick(
             _random,
@@ -726,6 +758,7 @@ class SimulationEngine {
     'Go on a Date',
     'Have Sex',
     'Break Up',
+    'Get Back Together',
     'Birth Control',
     NpcInteractionOutcome.pregnancyKeep,
     NpcInteractionOutcome.pregnancyEnd,
@@ -860,6 +893,53 @@ class SimulationEngine {
         next: withStats(
           _state.copyWith(lifeProgress: updated),
           happiness: 5,
+        ),
+      );
+    }
+
+    if (action == 'Get Back Together') {
+      if (!love.exIds.contains(npcId)) {
+        return const Failure('This person is not my ex.');
+      }
+
+      if (love.hasPartner) {
+        return const Failure('I already have a partner.');
+      }
+
+      if (!LoveRules.canDate(playerAge, age)) {
+        return const Failure('We are not at the right age to date.');
+      }
+
+      if (score < LoveRules.getBackAt) {
+        return const Failure(
+          'The wounds are still fresh. We need to rebuild trust first.',
+        );
+      }
+
+      final next = (score + 10).clamp(-100, 100).toInt();
+      final exes = {...love.exIds}..remove(npcId);
+      final updated = _scored(
+        progress.copyWith(
+          love: love.copyWith(
+            partnerId: npcId,
+            partnerSince: year,
+            exIds: exes,
+          ),
+        ),
+        npcId,
+        next,
+      );
+
+      return _socialOutcome(
+        npcId: npcId,
+        action: action,
+        narrative: RelationshipNarratives.getBack(_random, name),
+        score: next,
+        bond: 'friend',
+        romance: 'partner',
+        next: withStats(
+          _state.copyWith(lifeProgress: updated),
+          happiness: 6,
         ),
       );
     }
@@ -1180,6 +1260,24 @@ class SimulationEngine {
   }
 
 
+  static const String _hideDeceasedFlag = 'ui_hide_deceased';
+
+  /// Whether the Life page hides family who have died.
+  bool get hideDeceased => _state.lifeProgress.hasFlag(_hideDeceasedFlag);
+
+  void setHideDeceased({required bool hide}) {
+    final progress = _state.lifeProgress;
+    final flags = {...progress.flags};
+
+    if (hide) {
+      flags.add(_hideDeceasedFlag);
+    } else {
+      flags.remove(_hideDeceasedFlag);
+    }
+
+    _commit(_state.copyWith(lifeProgress: progress.copyWith(flags: flags)));
+  }
+
   String get _everyoneKey => '${_state.clock.currentYear}:everyone:all';
 
   /// True until the player has spent time with everyone this year.
@@ -1262,6 +1360,169 @@ class SimulationEngine {
     _newborn = null;
 
     return baby;
+  }
+
+  /// Relationships fade when nobody keeps them up. Anyone I did not
+  /// interact with last year loses a few points. It uses no dice, so saved
+  /// games and tests stay predictable.
+  void _decayRelationships() {
+    final year = _state.clock.currentYear;
+    final playerAge = year - _state.player.birthYear;
+
+    if (playerAge <= 5) return;
+
+    final progress = _state.lifeProgress;
+    final counts = progress.interactionCounts;
+    final prefix = '${year - 1}:';
+    final love = progress.love;
+
+    bool contacted(String id) => counts.keys.any(
+          (key) => key.startsWith('$prefix$id:'),
+        );
+
+    int salt(String id) {
+      var h = year;
+
+      for (final unit in id.codeUnits) {
+        h = (h * 31 + unit) & 0x7fffffff;
+      }
+
+      return h;
+    }
+
+    int lose(String id, int base, int span) =>
+        base + salt(id) % span;
+
+    // New score, or null when nothing changes.
+    int? decayed(String id, int score, int birthYear, int base, int span) {
+      if (year - birthYear <= 2 || contacted(id) || score <= 0) return null;
+
+      return (score - lose(id, base, span)).clamp(0, 100).toInt();
+    }
+
+    final drifted = <String>[];
+    final household = _state.familyHousehold;
+    var nextHousehold = household;
+
+    if (household != null) {
+      nextHousehold = household.copyWith(
+        parents: [
+          for (final parent in household.parents)
+            if (parent.isAlive)
+              _fade(
+                parent,
+                decayed(parent.id, parent.relationshipPercent,
+                    parent.birthYear, 2, 3),
+                drifted,
+              )
+            else
+              parent,
+        ],
+        siblings: [
+          for (final sibling in household.siblings)
+            if (sibling.isAlive && sibling.birthYear <= year)
+              _fade(
+                sibling,
+                decayed(sibling.id, sibling.relationshipPercent,
+                    sibling.birthYear, 2, 3),
+                drifted,
+              )
+            else
+              sibling,
+        ],
+      );
+    }
+
+    SchoolNpc fadePerson(SchoolNpc npc) {
+      if (love.exIds.contains(npc.id)) return npc;
+
+      final partner = love.partnerId == npc.id;
+      final next = decayed(
+        npc.id,
+        npc.relationshipPercent,
+        npc.birthYear,
+        partner ? 4 : 3,
+        partner ? 5 : 4,
+      );
+
+      if (next == null) return npc;
+
+      if (npc.relationshipPercent >= 40 && next < 40) {
+        if (!drifted.contains(npc.fullName)) drifted.add(npc.fullName);
+      }
+
+      return npc.copyWith(relationshipPercent: next);
+    }
+
+    final friends = [for (final f in progress.friends) fadePerson(f)];
+    final classmates = [
+      for (final npc in progress.education.npcs) fadePerson(npc),
+    ];
+    final children = [
+      for (final child in love.children)
+        () {
+          final next = decayed(
+            child.id,
+            child.relationshipPercent,
+            child.birthYear,
+            2,
+            3,
+          );
+
+          return next == null
+              ? child
+              : child.copyWith(relationshipPercent: next);
+        }(),
+    ];
+    final events = <SimulationEvent>[..._state.events];
+
+    if (drifted.isNotEmpty) {
+      final names = drifted.take(2).join(' and ');
+
+      events.add(
+        SimulationEvent(
+          id: 'drift-${events.length + 1}-$year',
+          type: SimulationEventType.npcInteraction,
+          year: year,
+          title: 'Drifting apart',
+          description: RelationshipNarratives.drift(salt(names), names),
+        ),
+      );
+    }
+
+    _commit(
+      _state.copyWith(
+        familyHousehold: nextHousehold,
+        events: events,
+        lifeProgress: progress.copyWith(
+          friends: friends,
+          education: progress.education.copyWith(npcs: classmates),
+          love: love.copyWith(children: children),
+        ),
+      ),
+    );
+  }
+
+  T _fade<T>(T npc, int? next, List<String> drifted) {
+    if (next == null) return npc;
+
+    if (npc is ParentNpc) {
+      if (npc.relationshipPercent >= 40 && next < 40) {
+        if (!drifted.contains(npc.fullName)) drifted.add(npc.fullName);
+      }
+
+      return npc.copyWith(relationshipPercent: next) as T;
+    }
+
+    if (npc is SiblingNpc) {
+      if (npc.relationshipPercent >= 40 && next < 40) {
+        if (!drifted.contains(npc.fullName)) drifted.add(npc.fullName);
+      }
+
+      return npc.copyWith(relationshipPercent: next) as T;
+    }
+
+    return npc;
   }
 
   /// Gives birth to a baby conceived in an earlier year.
@@ -1571,6 +1832,7 @@ class SimulationEngine {
       _newborn = null;
       ensureSchool();
       _resolvePregnancy();
+      _decayRelationships();
       _recordCheckpoint();
     }
 
