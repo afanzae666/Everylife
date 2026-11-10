@@ -15,6 +15,7 @@ import '../../domain/career/school_npc.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
 import '../../domain/social/social_rules.dart';
 import '../narrative/school_narratives.dart';
+import '../narrative/infant_narratives.dart';
 import '../narrative/love_narratives.dart';
 import '../school/school_appearance.dart';
 import '../../domain/character/fertility.dart';
@@ -401,8 +402,9 @@ class SimulationEngine {
         .clamp(0, 150)
         .toInt();
     final playerStage = LifeStageAge.fromAge(playerAge);
-    if (playerStage == LifeStage.infant) {
-      return const Failure('NPC interactions are unavailable during infancy.');
+    if (playerStage == LifeStage.infant &&
+        !const ['Play', 'Cry'].contains(action)) {
+      return const Failure('Babies can only play and cry.');
     }
     if (action == 'Become Friends') return _befriendNpc(npcId);
 
@@ -421,7 +423,8 @@ class SimulationEngine {
     }
 
     if ((playerStage == LifeStage.toddler || playerStage == LifeStage.child) &&
-        !const ['Talk', 'Spend Time', 'Compliment', 'Help'].contains(action)) {
+        !const ['Talk', 'Spend Time', 'Compliment', 'Help', 'Play']
+            .contains(action)) {
       return const Failure('This interaction is not available at your current life stage.');
     }
 
@@ -455,6 +458,24 @@ class SimulationEngine {
             : true;
     if (!alive) return const Failure('A deceased NPC cannot be interacted with.');
 
+    final npcBirthYear = isParent
+        ? household!.parents[parentIndex].birthYear
+        : isSibling
+            ? household!.siblings[siblingIndex].birthYear
+            : friendIndex >= 0
+                ? friends[friendIndex].birthYear
+                : education.npcs[schoolIndex].birthYear;
+    final npcIsBaby = _state.clock.currentYear - npcBirthYear <= 2;
+
+    if (npcIsBaby && action != 'Play') {
+      return const Failure('A baby can only play.');
+    }
+
+    if (!npcIsBaby && (action == 'Play' || action == 'Cry') &&
+        playerStage != LifeStage.infant) {
+      return const Failure('This interaction is not available right now.');
+    }
+
     final currentScore = isParent
         ? household!.parents[parentIndex].relationshipPercent
         : isSibling
@@ -469,6 +490,8 @@ class SimulationEngine {
       'Help' => 4,
       'Argue' => -8,
       'Apologize' => 4,
+      'Play' => 3,
+      'Cry' => 2,
       _ => null,
     };
     if (change == null) return const Failure('Unknown NPC interaction.');
@@ -486,18 +509,25 @@ class SimulationEngine {
             : friendIndex >= 0
                 ? friends[friendIndex].fullName
                 : education.npcs[schoolIndex].fullName;
-    final narrative = NpcInteractionNarratives.pick(
-      random: _random,
-      action: action,
-      npcName: npcName,
-      stage: playerStage,
-      kind: isParent
-          ? NpcKind.parent
-          : isSibling
-              ? NpcKind.sibling
-              : NpcKind.schoolmate,
-      score: currentScore,
-    );
+    final narrative = action == 'Play' || action == 'Cry'
+        ? InfantNarratives.pick(
+            _random,
+            action: action,
+            name: npcName,
+            playerIsBaby: playerStage == LifeStage.infant,
+          )
+        : NpcInteractionNarratives.pick(
+            random: _random,
+            action: action,
+            npcName: npcName,
+            stage: playerStage,
+            kind: isParent
+                ? NpcKind.parent
+                : isSibling
+                    ? NpcKind.sibling
+                    : NpcKind.schoolmate,
+            score: currentScore,
+          );
 
     var nextHousehold = household;
     var nextEducation = education;
@@ -541,6 +571,7 @@ class SimulationEngine {
         ? null
         : switch (action) {
       'Spend Time' => const StatEffect(StatKey.happiness, 1),
+      'Play' => const StatEffect(StatKey.happiness, 1),
       'Apologize' => const StatEffect(StatKey.happiness, 1),
       'Compliment' => const StatEffect(StatKey.charisma, 1),
       'Help' => const StatEffect(StatKey.willpower, 1),
@@ -579,7 +610,9 @@ class SimulationEngine {
     String? prompt;
     var bond = 'none';
 
-    if (friendIndex >= 0) {
+    if (_state.lifeProgress.love.exIds.contains(npcId)) {
+      bond = 'ex';
+    } else if (friendIndex >= 0) {
       final friend = friends[friendIndex];
 
       bond = friend.bestFriend ? 'best friend' : 'friend';
@@ -785,6 +818,10 @@ class SimulationEngine {
         return const Failure('I cannot date this person.');
       }
 
+      if (love.exIds.contains(npcId)) {
+        return const Failure('We broke up. That chapter is closed.');
+      }
+
       if (love.hasPartner) {
         return const Failure('I already have a partner.');
       }
@@ -841,9 +878,15 @@ class SimulationEngine {
     };
 
     if (action == 'Break Up') {
-      final next = (score - 35).clamp(-100, 100).toInt();
+      // The relationship collapses, and they move to the Exes page.
+      final next = (score - 70).clamp(-100, 100).toInt();
       final updated = _scored(
-        progress.copyWith(love: love.copyWith(clearPartner: true)),
+        progress.copyWith(
+          love: love.copyWith(
+            clearPartner: true,
+            exIds: {...love.exIds, npcId},
+          ),
+        ),
         npcId,
         next,
       );
@@ -853,7 +896,7 @@ class SimulationEngine {
         action: action,
         narrative: LoveNarratives.breakUp(_random, name),
         score: next,
-        bond: 'friend',
+        bond: 'ex',
         next: withStats(
           _state.copyWith(lifeProgress: updated),
           happiness: -6,
@@ -1022,6 +1065,7 @@ class SimulationEngine {
       'Help': 4,
       'Argue': -8,
       'Apologize': 4,
+      'Play': 3,
     };
     final change = changes[action];
 
@@ -1035,6 +1079,15 @@ class SimulationEngine {
     if (index < 0) return const Failure('I cannot find my child.');
 
     final child = children[index];
+    final isBaby = year - child.birthYear <= 2;
+
+    if (isBaby && action != 'Play') {
+      return const Failure('A baby can only play.');
+    }
+
+    if (!isBaby && action == 'Play') {
+      return const Failure('My child is too big for that.');
+    }
     final key = '$year:$childId:$action';
     final times = progress.interactionCounts[key] ?? 0;
     final first = times == 0;
@@ -1047,7 +1100,7 @@ class SimulationEngine {
     final mood = !first
         ? 0
         : switch (action) {
-            'Spend Time' || 'Apologize' => 1,
+            'Spend Time' || 'Apologize' || 'Play' => 1,
             'Argue' => -2,
             _ => 0,
           };
@@ -1124,6 +1177,80 @@ class SimulationEngine {
     );
 
     return result.isSuccess ? Success(text) : Failure('Could not save that.');
+  }
+
+
+  String get _everyoneKey => '${_state.clock.currentYear}:everyone:all';
+
+  /// True until the player has spent time with everyone this year.
+  bool get canSpendTimeWithEveryone =>
+      (_state.lifeProgress.interactionCounts[_everyoneKey] ?? 0) == 0;
+
+  /// Spends time with every person on the Life page (parents, siblings,
+  /// partner, friends and children), once a year. The life log gets one
+  /// combined entry instead of one per person.
+  Result<String> spendTimeWithEveryone() {
+    if (!canSpendTimeWithEveryone) {
+      return const Failure('I already spent time with everyone this year.');
+    }
+
+    final year = _state.clock.currentYear;
+    final playerStage = LifeStageAge.fromAge(
+      (year - _state.player.birthYear).clamp(0, 150).toInt(),
+    );
+    final household = _state.familyHousehold;
+    final love = _state.lifeProgress.love;
+    final targets = <(String, int)>[
+      if (household != null) ...[
+        for (final parent in household.parents)
+          if (parent.isAlive) (parent.id, parent.birthYear),
+        for (final sibling in household.siblings)
+          if (sibling.isAlive && sibling.birthYear <= year)
+            (sibling.id, sibling.birthYear),
+      ],
+      for (final friend in _state.lifeProgress.friends)
+        if (!love.exIds.contains(friend.id)) (friend.id, friend.birthYear),
+      for (final child in love.children) (child.id, child.birthYear),
+    ];
+    final eventsBefore = _state.events.length;
+    var met = 0;
+
+    for (final (id, birthYear) in targets) {
+      final baby = year - birthYear <= 2;
+      final action = baby || playerStage == LifeStage.infant
+          ? 'Play'
+          : 'Spend Time';
+
+      if (interactWithNpc(npcId: id, action: action).isSuccess) met++;
+    }
+
+    if (met == 0) return const Failure('There is nobody to spend time with.');
+
+    final text = InfantNarratives.togetherWithAll(_random, met);
+    final progress = _state.lifeProgress;
+    final result = _commit(
+      _state.copyWith(
+        events: [
+          // One entry for the whole round, not one per person.
+          ..._state.events.take(eventsBefore),
+          SimulationEvent(
+            id: 'spend-all-$year-${eventsBefore + 1}',
+            type: SimulationEventType.npcInteraction,
+            year: year,
+            title: 'Time with everyone',
+            description: text,
+          ),
+        ],
+        lifeProgress: progress.copyWith(
+          interactionCounts: {
+            ...progress.interactionCounts,
+            _everyoneKey: 1,
+          },
+        ),
+      ),
+    );
+
+    return result.isSuccess ? Success(text) : const Failure('Could not save that.');
   }
 
   ChildNpc? _newborn;
