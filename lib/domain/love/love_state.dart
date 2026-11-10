@@ -97,6 +97,12 @@ abstract final class LoveRules {
 
   static const List<LoveOption> weddings = [
     LoveOption(
+      id: 'elope',
+      label: 'Quick signing',
+      blurb: 'Two signatures and a free coffee. Romantic on a budget.',
+      happiness: 2,
+    ),
+    LoveOption(
       id: 'courthouse',
       label: 'Courthouse wedding',
       blurb: 'Quick, quiet and cheap.',
