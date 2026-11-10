@@ -331,6 +331,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
     'Go on a Date': ('🌹', 'Plan a date'),
     'Have Sex': ('🔥', 'Get intimate'),
     'Break Up': ('💔', 'End the relationship'),
+    'Get Back Together': ('💞', 'Give us another chance'),
     'Birth Control': ('💊', 'Talk about birth control'),
     'Pregnancy: keep': ('👶', 'Keep the baby'),
     'Pregnancy: end': ('💔', 'End the pregnancy'),
@@ -541,8 +542,14 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
         _score >= LoveRules.dateAt;
     final canBeIntimate =
         otherAge >= 0 && LoveRules.canBeIntimate(widget.playerAge, otherAge);
+    final canGetBack = _bond == 'ex' &&
+        !widget.playerHasPartner &&
+        otherAge >= 0 &&
+        LoveRules.canDate(widget.playerAge, otherAge) &&
+        _score >= LoveRules.getBackAt;
     final love = [
       if (canDate) 'Start Dating',
+      if (canGetBack) 'Get Back Together',
       if (isPartner) ...[
         'Go on a Date',
         if (canBeIntimate) 'Have Sex',

@@ -132,6 +132,8 @@ class LifeScreen extends StatefulWidget {
     this.playerName = '',
     this.onSpendTimeAll,
     this.canSpendTimeAll,
+    this.readHideDeceased,
+    this.onHideDeceased,
     super.key,
   });
 
@@ -166,6 +168,10 @@ class LifeScreen extends StatefulWidget {
   final Result<String> Function()? onSpendTimeAll;
   final bool Function()? canSpendTimeAll;
 
+  /// Whether deceased family is hidden, and how to change it.
+  final bool Function()? readHideDeceased;
+  final void Function({required bool hide})? onHideDeceased;
+
   @override
   State<LifeScreen> createState() => _LifeScreenState();
 }
@@ -176,6 +182,7 @@ class _LifeScreenState extends State<LifeScreen> {
   late List<SchoolNpc> _friends = widget.friends;
   late LoveState _love = widget.love;
   late bool _canSpendAll = widget.canSpendTimeAll?.call() ?? false;
+  late bool _hideDeceased = widget.readHideDeceased?.call() ?? false;
 
   void _refreshNpcData() {
     if (!mounted) return;
@@ -261,7 +268,9 @@ class _LifeScreenState extends State<LifeScreen> {
   @override
   Widget build(BuildContext context) {
     final zoom = widget.zoom;
-    final parents = _parents;
+    final parents = _hideDeceased
+        ? _parents.where((parent) => parent.isAlive).toList(growable: false)
+        : _parents;
     final currentYear = widget.currentYear;
     final playerBirthYear = widget.playerBirthYear;
     final onNpcInteraction = widget.onNpcInteraction;
@@ -278,7 +287,11 @@ class _LifeScreenState extends State<LifeScreen> {
         if (_love.exIds.contains(friend.id)) friend,
     ];
     final visibleSiblings = _siblings
-        .where((sibling) => sibling.birthYear <= currentYear)
+        .where(
+          (sibling) =>
+              sibling.birthYear <= currentYear &&
+              (!_hideDeceased || sibling.isAlive),
+        )
         .toList(growable: false);
 
     return MediaQuery(
@@ -297,18 +310,11 @@ class _LifeScreenState extends State<LifeScreen> {
                 backKey: const Key('life-back-button'),
               ),
               Expanded(
-                child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                padding: EdgeInsets.zero,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.zero,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                         if (partner != null || _love.pregnancy != null)
                           _CategoryCard(
                             title: 'Love',
@@ -392,7 +398,7 @@ class _LifeScreenState extends State<LifeScreen> {
                                     homeCityId: widget.homeCityId,
                                     key: ValueKey('parent-card-${parent.id}'),
                                     parent: parent,
-                                    marital: _parentMarital(parent, parents),
+                                    marital: _parentMarital(parent, _parents),
                                     playerBirthYear: playerBirthYear,
                                     currentYear: currentYear,
                                     zoom: zoom,
@@ -454,7 +460,11 @@ class _LifeScreenState extends State<LifeScreen> {
                               ],
                             ),
                           ),
-                        const Spacer(),
+                    ],
+                  ),
+                ),
+              ),
+              // Pinned: these never move, however long the list above is.
                         if (exes.isNotEmpty)
                           Padding(
                             padding: EdgeInsets.fromLTRB(
@@ -506,14 +516,19 @@ class _LifeScreenState extends State<LifeScreen> {
                               ),
                             ),
                           ),
-                      ],
-                    ),
-                  ),
+              if (widget.onHideDeceased != null)
+                SwitchListTile(
+                  key: const Key('hide-deceased'),
+                  dense: true,
+                  contentPadding: EdgeInsets.symmetric(horizontal: zoom * 16),
+                  title: const Text('Hide deceased'),
+                  secondary: const Icon(Icons.visibility_off_rounded),
+                  value: _hideDeceased,
+                  onChanged: (value) {
+                    widget.onHideDeceased?.call(hide: value);
+                    setState(() => _hideDeceased = value);
+                  },
                 ),
-              );
-            },
-          ),
-              ),
             ],
           ),
         ),

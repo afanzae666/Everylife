@@ -110,22 +110,36 @@ class _GameScreenState extends State<GameScreen> {
 
   void _scrollLifeEventsToBottom({
     bool jump = false,
+    int attempt = 0,
   }) {
+    WidgetsBinding.instance.scheduleFrame();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_lifeEventsScrollController.hasClients) {
+      if (!mounted) {
+        return;
+      }
+
+      final ready = _lifeEventsScrollController.hasClients &&
+          _lifeEventsScrollController.position.maxScrollExtent > 0;
+
+      if (!ready) {
+        if (jump && attempt < 4) {
+          _scrollLifeEventsToBottom(jump: true, attempt: attempt + 1);
+        }
         return;
       }
 
       final position = _lifeEventsScrollController.position;
 
-      if (position.maxScrollExtent <= 0) {
-        return;
-      }
-
       if (jump) {
         _lifeEventsScrollController.jumpTo(
           position.maxScrollExtent,
         );
+
+        // The list measures its rows lazily, so the end can still move
+        // after the first jump. Settle on the newest entry over a few frames.
+        if (attempt < 4) {
+          _scrollLifeEventsToBottom(jump: true, attempt: attempt + 1);
+        }
         return;
       }
 
@@ -932,6 +946,9 @@ class _GameScreenState extends State<GameScreen> {
     return result;
   },
   readCurrentLove: () => engine.state.lifeProgress.love,
+  readHideDeceased: () => engine.hideDeceased,
+  onHideDeceased: ({required bool hide}) =>
+      engine.setHideDeceased(hide: hide),
 ),
       ),
     );
