@@ -8,6 +8,7 @@ import '../../domain/event/life_event.dart';
 import '../../domain/event/life_progress.dart';
 import '../../domain/family/parent_npc.dart';
 import '../../domain/family/sibling_npc.dart';
+import '../../domain/love/love_state.dart';
 import '../../domain/world/world_state.dart';
 
 /// Picks the real person a life event is about and applies relationship
@@ -50,6 +51,18 @@ abstract final class EventSubjects {
             npc,
       ];
 
+  static SchoolNpc? _partner(WorldState state) {
+    final id = state.lifeProgress.love.partnerId;
+
+    if (id == null) return null;
+
+    for (final friend in state.lifeProgress.friends) {
+      if (friend.id == id) return friend;
+    }
+
+    return null;
+  }
+
   /// Whether a person of [kind] exists for this player right now.
   static bool isAvailable(EventSubjectKind kind, WorldState state) {
     return switch (kind) {
@@ -63,6 +76,7 @@ abstract final class EventSubjects {
         state.lifeProgress.education.classmates.isNotEmpty,
       EventSubjectKind.teacher => _teachers(state).isNotEmpty,
       EventSubjectKind.friend => state.lifeProgress.friends.isNotEmpty,
+      EventSubjectKind.partner => _partner(state) != null,
     };
   }
 
@@ -156,6 +170,18 @@ abstract final class EventSubjects {
           gender: friend.gender,
           npcId: friend.id,
           person: friend,
+        );
+      case EventSubjectKind.partner:
+        final partner = _partner(state);
+        if (partner == null) return base;
+        final stage = state.lifeProgress.love.stage;
+        return withPerson(
+          role: 'my ${LoveRules.partnerLabel(stage, partner.gender).toLowerCase()}',
+          name: partner.fullName,
+          first: partner.firstName,
+          gender: partner.gender,
+          npcId: partner.id,
+          person: partner,
         );
       case EventSubjectKind.stranger:
       case EventSubjectKind.coworker:
