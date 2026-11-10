@@ -5,6 +5,7 @@ import '../narrative/npc_interaction_narratives.dart';
 import '../../core/result/result.dart';
 import '../../data/repositories/save_repository.dart';
 import '../../data/services/save_manager.dart';
+import 'package:everylife/core/money/money.dart';
 import '../../domain/character/character.dart';
 import '../../domain/career/job_catalog.dart';
 import '../../domain/character/life_stage.dart';
@@ -19,6 +20,7 @@ import '../../domain/social/social_rules.dart';
 import '../narrative/school_narratives.dart';
 import '../narrative/infant_narratives.dart';
 import '../narrative/love_narratives.dart';
+import '../narrative/marriage_narratives.dart';
 import '../narrative/relationship_narratives.dart';
 import '../school/school_appearance.dart';
 import '../../domain/character/fertility.dart';
@@ -35,6 +37,7 @@ import '../career/career_actions.dart';
 import '../career/school_actions.dart';
 import '../school/school_setup.dart';
 import '../events/event_subjects.dart';
+import '../events/money_text.dart';
 import '../events/life_effect_applier.dart';
 import '../events/life_event_catalog.dart';
 import '../generation/family_household_generator.dart';
@@ -342,6 +345,9 @@ class SimulationEngine {
       return Failure(message);
     }
 
+    // A spouse who asked for a divorce gets one.
+    _processMarriageFlags();
+
     return Success(
       LifeChoiceResult(
         eventTitle: definition.title,
@@ -539,6 +545,7 @@ class SimulationEngine {
           romance:
               _state.lifeProgress.love.partnerId == npcId ? 'partner' : 'none',
           progressed: false,
+          refused: true,
         );
       }
     }
@@ -879,7 +886,12 @@ class SimulationEngine {
       final updated = _scored(
         progress.copyWith(
           friends: friends,
-          love: love.copyWith(partnerId: npcId, partnerSince: year),
+          love: love.copyWith(
+            partnerId: npcId,
+            partnerSince: year,
+            stage: LoveRules.stageDating,
+            stageSince: year,
+          ),
         ),
         npcId,
         next,
@@ -925,6 +937,7 @@ class SimulationEngine {
           love: love.copyWith(
             partnerId: npcId,
             partnerSince: year,
+            stageSince: year,
             exIds: exes,
           ),
         ),
@@ -960,9 +973,15 @@ class SimulationEngine {
     };
 
     if (action == 'Break Up') {
+      if (love.isMarried) {
+        return const Failure(
+          'We are married. The only way out is a divorce.',
+        );
+      }
+
       // The relationship collapses, and they move to the Exes page.
       final next = (score - 70).clamp(-100, 100).toInt();
-      final updated = _scored(
+      final broken = _scored(
         progress.copyWith(
           love: love.copyWith(
             clearPartner: true,
@@ -971,6 +990,9 @@ class SimulationEngine {
         ),
         npcId,
         next,
+      );
+      final updated = broken.copyWith(
+        flags: {...broken.flags}..remove(SystemFlags.engaged),
       );
 
       return _socialOutcome(
@@ -1665,6 +1687,471 @@ class SimulationEngine {
     );
   }
 
+  // ------------------------------------------------------------ Milestones
+  //
+  // Engagement, marriage (with a prenup) and divorce. The pop-ups live in
+  // the NPC screen; these methods hold the rules.
+
+  /// Money in the player's own currency for the pop-ups ("$300").
+  String costLabel(int costBase) {
+    if (costBase == 0) return 'Free';
+
+    return MoneyText.of(
+      _state,
+      LifeEffectApplier.scaleMoney(_state, costBase.abs()),
+    );
+  }
+
+  /// A varied scene for the milestone pop-up: 'engage', 'prenup', 'wedding'
+  /// or 'divorce'.
+  String milestoneScene(String kind, String npcId) {
+    final name = _personById(npcId)?.fullName ?? 'my partner';
+
+    return switch (kind) {
+      'engage' => MarriageNarratives.proposalScene(_random, name),
+      'prenup' => MarriageNarratives.prenupScene(_random, name),
+      'wedding' => MarriageNarratives.weddingScene(_random, name),
+      _ => MarriageNarratives.divorceScene(_random, name),
+    };
+  }
+
+  /// Years since the current stage began.
+  int _yearsInStage(LoveState love) {
+    final since = love.stageSince ?? love.partnerSince;
+
+    return since == null ? 0 : _state.clock.currentYear - since;
+  }
+
+  int _ageOf(SchoolNpc person) =>
+      _state.clock.currentYear - person.birthYear;
+
+  /// Whether the player may propose to [npcId] right now.
+  bool canGetEngaged(String npcId) {
+    final love = _state.lifeProgress.love;
+    final person = _personById(npcId);
+
+    if (person == null || love.partnerId != npcId) return false;
+
+    final year = _state.clock.currentYear;
+
+    return love.stage == LoveRules.stageDating &&
+        LoveRules.canBeIntimate(
+          year - _state.player.birthYear,
+          _ageOf(person),
+        ) &&
+        _yearsInStage(love) >= LoveRules.yearsBeforeEngagement &&
+        person.relationshipPercent >= LoveRules.engageAt &&
+        (_state.lifeProgress.interactionCounts['$year:$npcId:Get Engaged'] ??
+                0) ==
+            0;
+  }
+
+  /// Whether the player may marry [npcId] right now.
+  bool canGetMarried(String npcId) {
+    final love = _state.lifeProgress.love;
+    final person = _personById(npcId);
+
+    if (person == null || love.partnerId != npcId) return false;
+
+    return love.stage == LoveRules.stageEngaged &&
+        _yearsInStage(love) >= LoveRules.yearsBeforeWedding &&
+        person.relationshipPercent >= LoveRules.marryAt;
+  }
+
+  bool canDivorce(String npcId) {
+    final love = _state.lifeProgress.love;
+
+    return love.isMarried && love.partnerId == npcId;
+  }
+
+  WorldState _spend(WorldState state, int costBase) {
+    if (costBase == 0) return state;
+
+    return LifeEffectApplier.applyOutcome(
+      state: state,
+      outcome: LifeOutcome(text: '', moneyBase: costBase),
+    );
+  }
+
+  /// Moves [minorUnits] (negative pays) with debt if cash runs out.
+  WorldState _moveMoney(WorldState state, int minorUnits) {
+    if (minorUnits == 0) return state;
+
+    var money = state.player.money.minorUnits;
+    var debt = state.player.debt.minorUnits;
+
+    if (minorUnits > 0) {
+      money += minorUnits;
+    } else if (money >= -minorUnits) {
+      money += minorUnits;
+    } else {
+      debt += -minorUnits - money;
+      money = 0;
+    }
+
+    return state.copyWith(
+      player: state.player.copyWith(
+        money: Money.fromMinorUnits(money),
+        debt: Money.fromMinorUnits(debt),
+      ),
+    );
+  }
+
+  WorldState _happier(WorldState state, int happiness) => state.copyWith(
+        player: state.player.copyWith(
+          stats: state.player.stats.copyWith(
+            happiness: state.player.stats.happiness + happiness,
+          ),
+        ),
+      );
+
+  /// "Get Engaged": [ringId] is picked from [LoveRules.rings].
+  Result<NpcInteractionOutcome> proposeEngagement({
+    required String npcId,
+    required String ringId,
+  }) {
+    final person = _personById(npcId);
+    final ring = LoveRules.option(LoveRules.rings, ringId);
+
+    if (person == null || ring == null) {
+      return const Failure('I cannot find this person.');
+    }
+
+    if (!canGetEngaged(npcId)) {
+      return const Failure(
+        'It is too soon to propose. We need more time together.',
+      );
+    }
+
+    final year = _state.clock.currentYear;
+    final progress = _state.lifeProgress;
+    final chance =
+        (person.relationshipPercent - 5 + ring.bonus).clamp(25, 100).toInt();
+    final yes = _random.nextInt(100) < chance;
+    final counts = {
+      for (final entry in progress.interactionCounts.entries)
+        if (entry.key.startsWith('$year:')) entry.key: entry.value,
+      '$year:$npcId:Get Engaged': 1,
+    };
+    final their = person.gender == Gender.female ? 'her' : 'his';
+
+    if (!yes) {
+      final score = (person.relationshipPercent - 12).clamp(-100, 100).toInt();
+      final updated = _scored(
+        progress.copyWith(interactionCounts: counts),
+        npcId,
+        score,
+      );
+
+      return _socialOutcome(
+        npcId: npcId,
+        action: 'Get Engaged',
+        narrative: '${MarriageNarratives.declined(_random, person.fullName)} '
+            'I kept the ring. Maybe next year.',
+        score: score,
+        bond: 'friend',
+        romance: 'partner',
+        next: _happier(_state.copyWith(lifeProgress: updated), -6),
+      );
+    }
+
+    final score = (person.relationshipPercent + 10).clamp(-100, 100).toInt();
+    final scored = _scored(
+      progress.copyWith(
+        interactionCounts: counts,
+        flags: {...progress.flags, SystemFlags.engaged},
+        love: progress.love.copyWith(
+          stage: LoveRules.stageEngaged,
+          stageSince: year,
+        ),
+      ),
+      npcId,
+      score,
+    );
+    final paid = _spend(_state.copyWith(lifeProgress: scored), ring.costBase);
+    final cost = ring.costBase == 0 ? '' : ' (${costLabel(ring.costBase)})';
+
+    return _socialOutcome(
+      npcId: npcId,
+      action: 'Get Engaged',
+      narrative: '${MarriageNarratives.accepted(
+        _random,
+        person.fullName,
+        their,
+      )} I bought the ${ring.label.toLowerCase()}$cost.',
+      score: score,
+      bond: 'friend',
+      romance: 'partner',
+      next: _happier(paid, 8),
+    );
+  }
+
+  /// "Get Married": [prenupId] from [LoveRules.prenups] and [weddingId]
+  /// from [LoveRules.weddings].
+  Result<NpcInteractionOutcome> marry({
+    required String npcId,
+    required String prenupId,
+    required String weddingId,
+  }) {
+    final person = _personById(npcId);
+    final prenup = LoveRules.option(LoveRules.prenups, prenupId);
+    final wedding = LoveRules.option(LoveRules.weddings, weddingId);
+
+    if (person == null || prenup == null || wedding == null) {
+      return const Failure('I cannot find this person.');
+    }
+
+    if (!canGetMarried(npcId)) {
+      return const Failure(
+        'We are not ready to marry yet. We need more time as a couple.',
+      );
+    }
+
+    final year = _state.clock.currentYear;
+    final progress = _state.lifeProgress;
+    final score = (person.relationshipPercent + 12 + prenup.relation)
+        .clamp(-100, 100)
+        .toInt();
+    final flags = {...progress.flags, SystemFlags.married}
+      ..remove(SystemFlags.engaged);
+    final scored = _scored(
+      progress.copyWith(
+        flags: flags,
+        love: progress.love.copyWith(
+          stage: LoveRules.stageMarried,
+          stageSince: year,
+          prenup: prenup.id,
+        ),
+      ),
+      npcId,
+      score,
+    );
+    final paid = _spend(
+      _spend(_state.copyWith(lifeProgress: scored), wedding.costBase),
+      prenup.costBase,
+    );
+    final prenupNote = switch (prenup.id) {
+      'none' => ' We signed nothing but the marriage certificate.',
+      'fair' => ' The prenup was signed without drama.',
+      _ => ' ${person.firstName} signed the ironclad prenup with a very '
+          'tight smile.',
+    };
+
+    return _socialOutcome(
+      npcId: npcId,
+      action: 'Get Married',
+      narrative: '${MarriageNarratives.wedded(
+        _random,
+        wedding.id,
+        person.fullName,
+      )}$prenupNote',
+      score: score,
+      bond: 'friend',
+      romance: 'partner',
+      next: _happier(paid, wedding.happiness),
+    );
+  }
+
+  /// What a divorce would cost right now, in plain words.
+  String divorcePreview(String npcId) {
+    final terms = _divorceTerms(playerFiles: true, clearGrounds: false);
+    final flags = _state.lifeProgress.flags;
+
+    if (flags.contains(SystemFlags.spouseCheated)) {
+      return 'My spouse cheated, so the grounds are clear: no fine, and '
+          'nothing to split.';
+    }
+
+    final prenup = LoveRules.option(
+      LoveRules.prenups,
+      _state.lifeProgress.love.prenup ?? 'none',
+    );
+    final cash = _state.player.money.minorUnits;
+    final share = cash > 0 ? cash * terms.sharePct ~/ 100 : 0;
+
+    return 'Without clear grounds I pay a fine to my spouse '
+        '(${MoneyText.of(_state, -terms.fine)}). '
+        '${prenup?.label ?? 'No prenup'}: my spouse takes '
+        '${terms.sharePct}% of my cash '
+        '(${MoneyText.of(_state, share)}).';
+  }
+
+  /// Share of my cash and the fine for a divorce. A positive [fine] is paid
+  /// to me, a negative one is paid by me.
+  ({int sharePct, int fine}) _divorceTerms({
+    required bool playerFiles,
+    required bool clearGrounds,
+  }) {
+    final love = _state.lifeProgress.love;
+    final flags = _state.lifeProgress.flags;
+    final prenupShare =
+        LoveRules.option(LoveRules.prenups, love.prenup ?? 'none')?.share ??
+            50;
+    final cash = _state.player.money.minorUnits;
+    final amount = LifeEffectApplier.scaleMoney(_state, 500000);
+    final fine = cash * 10 ~/ 100 > amount ? cash * 10 ~/ 100 : amount;
+
+    if (playerFiles) {
+      if (flags.contains(SystemFlags.spouseCheated)) {
+        return (sharePct: 0, fine: 0);
+      }
+
+      return (sharePct: prenupShare, fine: -fine);
+    }
+
+    return (sharePct: prenupShare, fine: clearGrounds ? 0 : fine);
+  }
+
+  /// Ends the marriage with [npcId]. Returns the new state and the story.
+  (WorldState, String) _endMarriage({
+    required String npcId,
+    required bool playerFiles,
+    required bool clearGrounds,
+  }) {
+    final person = _personById(npcId);
+    final name = person?.fullName ?? 'my spouse';
+    final terms = _divorceTerms(
+      playerFiles: playerFiles,
+      clearGrounds: clearGrounds,
+    );
+    final cash = _state.player.money.minorUnits;
+    final share = cash > 0 ? cash * terms.sharePct ~/ 100 : 0;
+    final progress = _state.lifeProgress;
+    final love = progress.love;
+    final flags = {...progress.flags, SystemFlags.divorced}
+      ..removeAll(const [
+        SystemFlags.married,
+        SystemFlags.spouseCheated,
+        SystemFlags.playerCheated,
+        SystemFlags.divorceFiledClear,
+        SystemFlags.divorceFiledUnclear,
+      ]);
+    final scored = _scored(
+      progress.copyWith(
+        flags: flags,
+        love: love.copyWith(
+          clearPartner: true,
+          divorced: true,
+          exIds: {...love.exIds, npcId},
+          exSpouseIds: {...love.exSpouseIds, npcId},
+        ),
+      ),
+      npcId,
+      0,
+    );
+    final atFault = playerFiles &&
+        progress.flags.contains(SystemFlags.spouseCheated);
+    var next = _moveMoney(
+      _state.copyWith(lifeProgress: scored),
+      -share + terms.fine,
+    );
+
+    next = _happier(next, atFault ? -4 : -10);
+
+    final parts = <String>[
+      MarriageNarratives.divorced(_random, name),
+    ];
+
+    if (share > 0) {
+      parts.add(
+        'Under the prenup rules my ex took ${terms.sharePct}% of my cash '
+        '(${MoneyText.of(_state, share)}).',
+      );
+    } else if (love.prenup != null || terms.sharePct == 0) {
+      parts.add('There was nothing to split.');
+    }
+
+    if (terms.fine < 0) {
+      parts.add(
+        'There were no clear grounds, so I paid my ex a fine of '
+        '${MoneyText.of(_state, -terms.fine)}.',
+      );
+    } else if (terms.fine > 0) {
+      parts.add(
+        'My ex left without a clear reason, so they paid me a fine of '
+        '${MoneyText.of(_state, terms.fine)}.',
+      );
+    } else if (playerFiles) {
+      parts.add('My ex gave me clear grounds, so there was no fine.');
+    } else {
+      parts.add('I gave my ex clear grounds, so there was no fine.');
+    }
+
+    if (next.player.debt.minorUnits > _state.player.debt.minorUnits) {
+      parts.add('I had to borrow money to cover it.');
+    }
+
+    return (next, parts.join(' '));
+  }
+
+  /// "Divorce": I file for divorce.
+  Result<NpcInteractionOutcome> divorce({required String npcId}) {
+    if (!canDivorce(npcId)) {
+      return const Failure('I am not married to this person.');
+    }
+
+    final (next, story) = _endMarriage(
+      npcId: npcId,
+      playerFiles: true,
+      clearGrounds: false,
+    );
+
+    return _socialOutcome(
+      npcId: npcId,
+      action: 'Divorce',
+      narrative: story,
+      score: 0,
+      bond: 'ex',
+      next: next,
+    );
+  }
+
+  /// Carries out a divorce that an event started (the spouse asked).
+  void _processMarriageFlags() {
+    final progress = _state.lifeProgress;
+    final love = progress.love;
+    final clear = progress.flags.contains(SystemFlags.divorceFiledClear);
+    final unclear = progress.flags.contains(SystemFlags.divorceFiledUnclear);
+
+    if (!clear && !unclear) return;
+
+    final id = love.partnerId;
+
+    if (id == null || !love.isMarried) {
+      // The flag is stale (no spouse any more). Drop it.
+      _commit(
+        _state.copyWith(
+          lifeProgress: progress.copyWith(
+            flags: {...progress.flags}..removeAll(const [
+                SystemFlags.divorceFiledClear,
+                SystemFlags.divorceFiledUnclear,
+              ]),
+          ),
+        ),
+      );
+      return;
+    }
+
+    final (next, story) = _endMarriage(
+      npcId: id,
+      playerFiles: false,
+      clearGrounds: clear,
+    );
+    final year = _state.clock.currentYear;
+
+    _commit(
+      next.addEvent(
+        SimulationEvent(
+          id: 'divorce-${next.events.length + 1}-$year',
+          type: SimulationEventType.npcInteraction,
+          year: year,
+          title: 'Divorce',
+          description: story,
+        ),
+      ),
+    );
+  }
+
   Result<NpcInteractionOutcome> _socialOutcome({
     required String npcId,
     required String action,
@@ -1675,6 +2162,7 @@ class SimulationEngine {
     String romance = 'none',
     bool progressed = true,
     String? prompt,
+    bool refused = false,
   }) {
     final year = _state.clock.currentYear;
     final state = (next ?? _state).copyWith(
@@ -1702,6 +2190,10 @@ class SimulationEngine {
       romance: romance,
       prompt: prompt,
       onBirthControl: state.lifeProgress.love.birthControl.contains(npcId),
+      stage: state.lifeProgress.love.partnerId == npcId
+          ? state.lifeProgress.love.stage
+          : LoveRules.stageDating,
+      refused: refused,
       progressed: progressed,
       year: year,
       age: (year - _state.player.birthYear).clamp(0, 150),
