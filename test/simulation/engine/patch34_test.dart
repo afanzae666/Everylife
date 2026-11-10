@@ -121,6 +121,7 @@ void main() {
     var refused = 0;
 
     for (var i = 0; i < 10; i++) {
+      final before = scoreOf(engine, 'pal-1').relationshipPercent;
       final result = engine.interactWithNpc(npcId: 'pal-1', action: 'Talk');
 
       expect(result.isSuccess, isTrue);
@@ -129,7 +130,8 @@ void main() {
 
       if (!outcome.progressed) {
         refused++;
-        expect(outcome.relationshipPercent, 0);
+        expect(outcome.relationshipPercent, before);
+        expect(scoreOf(engine, 'pal-1').relationshipPercent, before);
       }
     }
 
