@@ -14,6 +14,7 @@ class LoveMilestones {
     required this.canMarry,
     required this.scene,
     required this.costLabel,
+    required this.canAfford,
     required this.divorcePreview,
     required this.engage,
     required this.marry,
@@ -28,6 +29,9 @@ class LoveMilestones {
 
   /// Money of a baseline cost in the player's currency.
   final String Function(int costBase) costLabel;
+
+  /// Whether my cash covers a baseline cost (negative amount).
+  final bool Function(int costBase) canAfford;
   final String Function(String npcId) divorcePreview;
 
   final Result<NpcInteractionOutcome> Function({
@@ -54,6 +58,8 @@ Future<String?> showMilestoneChoice(
   required String scene,
   required List<LoveOption> options,
   required String Function(int costBase) costLabel,
+  required bool Function(int costBase) canAfford,
+  int reserveBase = 0,
   String cancelLabel = 'NOT YET',
   Widget? avatar,
 }) {
@@ -96,7 +102,9 @@ Future<String?> showMilestoneChoice(
                 for (final option in options) ...[
                   OutlinedButton(
                     key: Key('milestone-option-${option.id}'),
-                    onPressed: () => Navigator.of(dialogContext).pop(option.id),
+                    onPressed: canAfford(option.costBase + reserveBase)
+                        ? () => Navigator.of(dialogContext).pop(option.id)
+                        : null,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       child: Column(
@@ -108,7 +116,9 @@ Future<String?> showMilestoneChoice(
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            option.blurb,
+                            canAfford(option.costBase + reserveBase)
+                                ? option.blurb
+                                : 'Not enough cash.',
                             textAlign: TextAlign.center,
                             style: theme.textTheme.bodySmall,
                           ),
