@@ -189,7 +189,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
           _score = value.relationshipPercent;
           _bond = value.bond;
           _romance = value.romance;
-          _stage = value.stage;
+          if (value.romance == 'partner') _stage = value.stage;
           _onPill = value.onBirthControl;
           if (action == 'Divorce') _wasSpouse = true;
           if (action == 'Argue') _hadArgument = true;
@@ -206,7 +206,9 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
           action: action,
         ).then((_) {
           if (!mounted) return;
-          if (value.prompt == 'bestFriend') _askBestFriend();
+          if (value.prompt == 'bestFriend' && value.romance != 'partner') {
+            _askBestFriend();
+          }
           if (value.prompt == 'pregnancy') _askPregnancy();
         });
       case Failure<NpcInteractionOutcome>(:final message):
@@ -270,6 +272,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
           scene: milestones.scene('engage', id),
           options: LoveRules.rings,
           costLabel: milestones.costLabel,
+          canAfford: milestones.canAfford,
           avatar: _dialogAvatar,
         );
 
@@ -284,6 +287,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
           scene: milestones.scene('prenup', id),
           options: LoveRules.prenups,
           costLabel: milestones.costLabel,
+          canAfford: milestones.canAfford,
           cancelLabel: 'NOT YET',
         );
 
@@ -296,6 +300,8 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
           scene: milestones.scene('wedding', id),
           options: LoveRules.weddings,
           costLabel: milestones.costLabel,
+          canAfford: milestones.canAfford,
+          reserveBase: LoveRules.option(LoveRules.prenups, prenup)?.costBase ?? 0,
           cancelLabel: 'NOT YET',
           avatar: _dialogAvatar,
         );

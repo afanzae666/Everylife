@@ -954,6 +954,7 @@ class _GameScreenState extends State<GameScreen> {
     canMarry: engine.canGetMarried,
     scene: engine.milestoneScene,
     costLabel: engine.costLabel,
+    canAfford: engine.canAfford,
     divorcePreview: engine.divorcePreview,
     engage: engine.proposeEngagement,
     marry: engine.marry,
