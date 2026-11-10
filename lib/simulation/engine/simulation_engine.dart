@@ -658,7 +658,9 @@ class SimulationEngine {
 
       bond = friend.bestFriend ? 'best friend' : 'friend';
 
+      // A partner is already more than a best friend, so no prompt.
       if (progressed &&
+          _state.lifeProgress.love.partnerId != npcId &&
           !friend.bestFriend &&
           !friend.bestFriendAsked &&
           nextScore >= SocialRules.bestFriendAt) {
@@ -675,6 +677,9 @@ class SimulationEngine {
       prompt: prompt,
       romance:
           _state.lifeProgress.love.partnerId == npcId ? 'partner' : 'none',
+      stage: _state.lifeProgress.love.partnerId == npcId
+          ? _state.lifeProgress.love.stage
+          : LoveRules.stageDating,
       onBirthControl: _state.lifeProgress.love.birthControl.contains(npcId),
       progressed: progressed,
       year: _state.clock.currentYear,
@@ -1764,6 +1769,13 @@ class SimulationEngine {
     return love.isMarried && love.partnerId == npcId;
   }
 
+  /// Whether my cash covers [costBase] (a negative baseline amount). Big
+  /// purchases are never put on credit.
+  bool canAfford(int costBase) =>
+      costBase >= 0 ||
+      _state.player.money.minorUnits >=
+          LifeEffectApplier.scaleMoney(_state, costBase).abs();
+
   WorldState _spend(WorldState state, int costBase) {
     if (costBase == 0) return state;
 
@@ -1821,6 +1833,10 @@ class SimulationEngine {
       return const Failure(
         'It is too soon to propose. We need more time together.',
       );
+    }
+
+    if (!canAfford(ring.costBase)) {
+      return const Failure('I cannot afford this ring.');
     }
 
     final year = _state.clock.currentYear;
@@ -1905,6 +1921,10 @@ class SimulationEngine {
       return const Failure(
         'We are not ready to marry yet. We need more time as a couple.',
       );
+    }
+
+    if (!canAfford(prenup.costBase + wedding.costBase)) {
+      return const Failure('I cannot afford this wedding.');
     }
 
     final year = _state.clock.currentYear;
