@@ -113,8 +113,16 @@ abstract final class MarriageNarratives {
         'family chat. {n} and I are married, and my bank account is crying.',
   ];
 
+  static const List<String> _weddedElope = [
+    'No guests, no flowers, just two signatures and a free coffee. {n} and '
+        'I are married, and broke in the best way.',
+    'We signed the papers in our everyday clothes and shared one '
+        'sandwich. {n} and I are married!',
+  ];
+
   static String wedded(SeededRandom r, String id, String name) {
     final pool = switch (id) {
+      'elope' => _weddedElope,
       'courthouse' => _weddedCourthouse,
       'backyard' => _weddedBackyard,
       _ => _weddedGrand,
