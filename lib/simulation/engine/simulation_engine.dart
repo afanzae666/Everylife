@@ -9,6 +9,8 @@ import '../../domain/character/character.dart';
 import '../../domain/career/job_catalog.dart';
 import '../../domain/character/life_stage.dart';
 import '../../domain/event/life_event.dart';
+import '../../domain/family/parent_npc.dart';
+import '../../domain/family/sibling_npc.dart';
 import '../../domain/event/life_progress.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/career/school_npc.dart';
