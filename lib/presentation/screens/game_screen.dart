@@ -245,6 +245,23 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  /// The "Marital Status" and "Children" rows of the player's own info.
+  List<MapEntry<String, String>> _playerMaritalRows() {
+    final state = engine.state;
+    final love = state.lifeProgress.love;
+    final partner = love.partnerId == null
+        ? null
+        : state.lifeProgress.friends
+            .where((friend) => friend.id == love.partnerId)
+            .firstOrNull;
+
+    return MaritalInfo.rows(
+      age: state.player.ageAt(state.clock.currentYear),
+      partnerName: partner?.fullName,
+      children: love.children.length,
+    );
+  }
+
   /// A baby was born on this birthday: choose its name (type one, roll the
   /// dice, or take a suggestion from the other parent), then announce it.
   Future<void> _announceNewborn() async {

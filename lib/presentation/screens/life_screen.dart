@@ -15,7 +15,7 @@ import '../../domain/character/fertility.dart';
 import '../../domain/love/love_state.dart';
 import '../../simulation/school/npc_place.dart';
 import '../../simulation/school/school_appearance.dart';
-import '../widgets/modal_cards.dart';
+import '../widgets/life_event_dialogs.dart';
 import '../widgets/npc_avatar.dart';
 import '../widgets/themed_cards.dart';
 import '../widgets/character_avatar.dart';
