@@ -25,6 +25,125 @@ abstract final class LoveRules {
   /// Relationship needed before the relationship can get intimate.
   static const int intimacyAt = 70;
 
+  // ------------------------------------------------------------ Milestones
+
+  static const String stageDating = 'dating';
+  static const String stageEngaged = 'engaged';
+  static const String stageMarried = 'married';
+
+  /// Relationship needed to propose, and years of dating before it.
+  static const int engageAt = 75;
+  static const int yearsBeforeEngagement = 1;
+
+  /// Relationship needed to marry, and years engaged before the wedding.
+  static const int marryAt = 80;
+  static const int yearsBeforeWedding = 1;
+
+  /// Prenup choices. [share] is the part of the player's cash the spouse
+  /// takes in a divorce.
+  static const List<LoveOption> prenups = [
+    LoveOption(
+      id: 'none',
+      label: 'No prenup',
+      blurb: 'Everything is shared. Romantic, and risky.',
+      share: 50,
+    ),
+    LoveOption(
+      id: 'fair',
+      label: 'Fair prenup',
+      blurb: 'A sensible agreement for both of us.',
+      costBase: -150000,
+      share: 20,
+    ),
+    LoveOption(
+      id: 'ironclad',
+      label: 'Ironclad prenup',
+      blurb: 'My lawyers wrote it. My partner may feel hurt.',
+      costBase: -300000,
+      share: 0,
+      relation: -10,
+    ),
+  ];
+
+  static const List<LoveOption> rings = [
+    LoveOption(
+      id: 'promise',
+      label: 'Promise ring',
+      blurb: 'Cheap and sweet. The thought counts.',
+      costBase: -5000,
+    ),
+    LoveOption(
+      id: 'simple',
+      label: 'Simple band',
+      blurb: 'Tasteful and simple.',
+      costBase: -30000,
+      bonus: 3,
+    ),
+    LoveOption(
+      id: 'diamond',
+      label: 'Diamond ring',
+      blurb: 'It sparkles. So does my debt.',
+      costBase: -300000,
+      bonus: 8,
+    ),
+    LoveOption(
+      id: 'luxury',
+      label: 'Luxury ring',
+      blurb: 'Ridiculously expensive. Impossible to say no to.',
+      costBase: -1500000,
+      bonus: 14,
+    ),
+  ];
+
+  static const List<LoveOption> weddings = [
+    LoveOption(
+      id: 'courthouse',
+      label: 'Courthouse wedding',
+      blurb: 'Quick, quiet and cheap.',
+      costBase: -30000,
+      happiness: 4,
+    ),
+    LoveOption(
+      id: 'backyard',
+      label: 'Backyard party',
+      blurb: 'Friends, family and a very ambitious barbecue.',
+      costBase: -400000,
+      happiness: 8,
+    ),
+    LoveOption(
+      id: 'grand',
+      label: 'Grand wedding',
+      blurb: 'A hall, a band and far too many cousins.',
+      costBase: -2500000,
+      happiness: 12,
+    ),
+  ];
+
+  static LoveOption? option(List<LoveOption> list, String id) {
+    for (final item in list) {
+      if (item.id == id) return item;
+    }
+
+    return null;
+  }
+
+  /// "Girlfriend", "Fiancée", "Husband"... the word for a partner.
+  static String partnerLabel(String stage, Gender gender) {
+    final female = gender == Gender.female;
+
+    return switch (stage) {
+      stageMarried => female ? 'Wife' : 'Husband',
+      stageEngaged => female ? 'Fiancée' : 'Fiancé',
+      _ => female ? 'Girlfriend' : 'Boyfriend',
+    };
+  }
+
+  static String exLabel(Gender gender, {bool wasSpouse = false}) {
+    if (!wasSpouse) return 'Ex';
+
+    return gender == Gender.female ? 'Ex-wife' : 'Ex-husband';
+  }
+
   static bool canDate(int playerAge, int otherAge) {
     if (playerAge < minDatingAge || otherAge < minDatingAge) return false;
 
@@ -37,6 +156,39 @@ abstract final class LoveRules {
 
   static bool canBeIntimate(int playerAge, int otherAge) =>
       playerAge >= adultAge && otherAge >= adultAge;
+}
+
+/// One choice in an engagement, prenup or wedding pop-up.
+class LoveOption {
+  const LoveOption({
+    required this.id,
+    required this.label,
+    required this.blurb,
+    this.costBase = 0,
+    this.share = 0,
+    this.bonus = 0,
+    this.relation = 0,
+    this.happiness = 0,
+  });
+
+  final String id;
+  final String label;
+  final String blurb;
+
+  /// Money change in baseline cents (negative spends money).
+  final int costBase;
+
+  /// Prenups: percent of the player's cash the spouse takes in a divorce.
+  final int share;
+
+  /// Rings: extra chance of a yes.
+  final int bonus;
+
+  /// Change in the relationship when picked.
+  final int relation;
+
+  /// Weddings: happiness gained.
+  final int happiness;
 }
 
 /// A child of the player. Looks, smarts and fertility come from both parents
@@ -223,7 +375,30 @@ class LoveState {
     this.children = const <ChildNpc>[],
     this.birthControl = const <String>{},
     this.exIds = const <String>{},
+    this.stage = LoveRules.stageDating,
+    this.stageSince,
+    this.prenup,
+    this.exSpouseIds = const <String>{},
+    this.divorced = false,
   });
+
+  /// 'dating', 'engaged' or 'married' for the current partner.
+  final String stage;
+
+  /// Year the current stage began.
+  final int? stageSince;
+
+  /// Prenup id chosen before the wedding ('none', 'fair', 'ironclad').
+  final String? prenup;
+
+  /// Exes who were once married to the player.
+  final Set<String> exSpouseIds;
+
+  /// True after the player went through a divorce.
+  final bool divorced;
+
+  bool get isEngaged => hasPartner && stage == LoveRules.stageEngaged;
+  bool get isMarried => hasPartner && stage == LoveRules.stageMarried;
 
   /// People the player broke up with. They live on the Exes page, not in
   /// the friends list.
@@ -246,7 +421,9 @@ class LoveState {
       pregnancy == null &&
       children.isEmpty &&
       birthControl.isEmpty &&
-      exIds.isEmpty;
+      exIds.isEmpty &&
+      exSpouseIds.isEmpty &&
+      !divorced;
 
   LoveState copyWith({
     String? partnerId,
@@ -257,8 +434,19 @@ class LoveState {
     List<ChildNpc>? children,
     Set<String>? birthControl,
     Set<String>? exIds,
+    String? stage,
+    int? stageSince,
+    String? prenup,
+    Set<String>? exSpouseIds,
+    bool? divorced,
   }) =>
       LoveState(
+        stage: clearPartner ? LoveRules.stageDating : (stage ?? this.stage),
+        stageSince:
+            clearPartner ? null : (stageSince ?? this.stageSince),
+        prenup: clearPartner ? null : (prenup ?? this.prenup),
+        exSpouseIds: exSpouseIds ?? this.exSpouseIds,
+        divorced: divorced ?? this.divorced,
         partnerId: clearPartner ? null : (partnerId ?? this.partnerId),
         partnerSince: clearPartner ? null : (partnerSince ?? this.partnerSince),
         pregnancy: clearPregnancy ? null : (pregnancy ?? this.pregnancy),
@@ -275,6 +463,11 @@ class LoveState {
           'children': [for (final child in children) child.toJson()],
         if (birthControl.isNotEmpty) 'birthControl': birthControl.toList()..sort(),
         if (exIds.isNotEmpty) 'exIds': exIds.toList()..sort(),
+        if (stage != LoveRules.stageDating) 'stage': stage,
+        if (stageSince != null) 'stageSince': stageSince,
+        if (prenup != null) 'prenup': prenup,
+        if (exSpouseIds.isNotEmpty) 'exSpouseIds': exSpouseIds.toList()..sort(),
+        if (divorced) 'divorced': true,
       };
 
   factory LoveState.fromJson(Object? json) {
@@ -299,6 +492,15 @@ class LoveState {
       exIds: json['exIds'] is List
           ? (json['exIds'] as List).whereType<String>().toSet()
           : const <String>{},
+      stage: json['stage'] is String
+          ? json['stage'] as String
+          : LoveRules.stageDating,
+      stageSince: json['stageSince'] is int ? json['stageSince'] as int : null,
+      prenup: json['prenup'] is String ? json['prenup'] as String : null,
+      exSpouseIds: json['exSpouseIds'] is List
+          ? (json['exSpouseIds'] as List).whereType<String>().toSet()
+          : const <String>{},
+      divorced: json['divorced'] == true,
     );
   }
 }
@@ -316,21 +518,27 @@ abstract final class MaritalInfo {
     String? partnerName,
     bool married = false,
     bool widowed = false,
+    bool divorced = false,
+    String stage = LoveRules.stageDating,
     int children = 0,
   }) {
     if (age < minAge) return const [];
 
+    final isMarried = married || stage == LoveRules.stageMarried;
     final status = widowed
         ? 'Widowed'
         : partnerName == null
-            ? 'Single'
-            : married
+            ? (divorced ? 'Divorced' : 'Single')
+            : isMarried
                 ? 'Married to $partnerName'
-                : 'Dating $partnerName';
+                : stage == LoveRules.stageEngaged
+                    ? 'Engaged to $partnerName'
+                    : 'Dating $partnerName';
 
     return [
       MapEntry('Marital Status', status),
-      if (married || children > 0) MapEntry('Children', '$children'),
+      if (isMarried || children > 0)
+        MapEntry('Children', '$children'),
     ];
   }
 }
