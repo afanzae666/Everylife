@@ -11,6 +11,8 @@ class NpcInteractionOutcome {
     this.prompt,
     this.romance = 'none',
     this.onBirthControl = false,
+    this.stage = 'dating',
+    this.refused = false,
   });
 
   final String npcId;
@@ -38,6 +40,12 @@ class NpcInteractionOutcome {
 
   /// True when this partner uses birth control.
   final bool onBirthControl;
+
+  /// 'dating', 'engaged' or 'married' when [romance] is 'partner'.
+  final String stage;
+
+  /// True when the person refused to talk. Nothing changed.
+  final bool refused;
 
   static const String pregnancyKeep = 'Pregnancy: keep';
   static const String pregnancyEnd = 'Pregnancy: end';

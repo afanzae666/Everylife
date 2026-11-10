@@ -20,6 +20,21 @@ abstract final class SystemFlags {
   static const String lostSibling = 'lost_sibling';
   static const String bankrupt = 'bankrupt';
 
+  /// Love life. 'married' and 'engaged' follow the current partner.
+  static const String engaged = 'engaged';
+  static const String married = 'married';
+  static const String divorced = 'divorced';
+
+  /// My spouse was unfaithful / I was unfaithful. These are the "clear
+  /// grounds" for a divorce without a fine.
+  static const String spouseCheated = 'spouse_cheated';
+  static const String playerCheated = 'player_cheated';
+
+  /// Set by events when a spouse asks for a divorce. The game then carries
+  /// it out: with clear grounds (no fine) or without (the spouse pays).
+  static const String divorceFiledClear = 'divorce_filed_clear';
+  static const String divorceFiledUnclear = 'divorce_filed_unclear';
+
   static const Set<String> all = {
     employed,
     student,
@@ -31,6 +46,13 @@ abstract final class SystemFlags {
     lostParent,
     lostSibling,
     bankrupt,
+    engaged,
+    married,
+    divorced,
+    spouseCheated,
+    playerCheated,
+    divorceFiledClear,
+    divorceFiledUnclear,
   };
 }
 

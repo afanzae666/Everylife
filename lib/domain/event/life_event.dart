@@ -14,6 +14,9 @@ enum EventSubjectKind {
   stranger,
   coworker,
   friend,
+
+  /// The player's partner (boyfriend, girlfriend, fiancé(e) or spouse).
+  partner,
 }
 
 /// Player stats that an event outcome can change.
