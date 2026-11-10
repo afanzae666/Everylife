@@ -2,12 +2,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:everylife/core/money/money.dart';
 import 'package:everylife/core/random/seeded_random.dart';
+import 'package:everylife/core/result/result.dart';
 import 'package:everylife/data/repositories/save_repository.dart';
 import 'package:everylife/domain/career/school_npc.dart';
 import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/character/gender.dart';
 import 'package:everylife/domain/event/life_event.dart';
 import 'package:everylife/domain/event/life_progress.dart';
+import 'package:everylife/domain/event/npc_interaction_outcome.dart';
 import 'package:everylife/domain/love/love_state.dart';
 import 'package:everylife/domain/time/simulation_clock.dart';
 import 'package:everylife/simulation/engine/simulation_engine.dart';
@@ -117,7 +119,7 @@ void main() {
   });
 
   test('a long, close couple can get engaged, and it costs the ring', () {
-    final engine = engineWith(progress: progressFor());
+    final engine = engineWith(progress: progressFor(), cash: 100000000);
 
     expect(engine.canGetEngaged('pal-1'), isTrue);
 
@@ -126,7 +128,8 @@ void main() {
     expect(result.isSuccess, isTrue);
     expect(engine.state.lifeProgress.love.stage, 'engaged');
     expect(engine.state.lifeProgress.flags, contains('engaged'));
-    expect(engine.state.player.debt.minorUnits, greaterThan(0));
+    expect(engine.state.player.money.minorUnits, lessThan(100000000));
+    expect(engine.state.player.debt.minorUnits, 0);
     expect(engine.canGetEngaged('pal-1'), isFalse);
   });
 
@@ -159,7 +162,7 @@ void main() {
 
     expect(
       ready
-          .marry(npcId: 'pal-1', prenupId: 'fair', weddingId: 'courthouse')
+          .marry(npcId: 'pal-1', prenupId: 'none', weddingId: 'elope')
           .isSuccess,
       isTrue,
     );
@@ -167,9 +170,55 @@ void main() {
     final love = ready.state.lifeProgress.love;
 
     expect(love.isMarried, isTrue);
-    expect(love.prenup, 'fair');
+    expect(love.prenup, 'none');
+    expect(ready.state.player.debt.minorUnits, 0);
     expect(ready.state.lifeProgress.flags, contains('married'));
     expect(ready.state.lifeProgress.flags, isNot(contains('engaged')));
+  });
+
+  test('nothing is bought on credit: no cash, no ring and no big wedding', () {
+    final broke = engineWith(progress: progressFor());
+
+    expect(
+      broke.proposeEngagement(npcId: 'pal-1', ringId: 'luxury').isFailure,
+      isTrue,
+    );
+    expect(broke.state.lifeProgress.love.stage, 'dating');
+
+    final noWedding = engineWith(
+      progress: progressFor(stage: 'engaged', since: 2024),
+    );
+
+    expect(
+      noWedding
+          .marry(npcId: 'pal-1', prenupId: 'fair', weddingId: 'grand')
+          .isFailure,
+      isTrue,
+    );
+    expect(noWedding.state.player.debt.minorUnits, 0);
+  });
+
+  test('chatting with an engaged partner keeps the engaged label', () {
+    final engine = engineWith(
+      progress: progressFor(stage: 'engaged', since: 2024, score: 60),
+    );
+    final result = engine.interactWithNpc(npcId: 'pal-1', action: 'Talk');
+    final outcome = (result as Success<NpcInteractionOutcome>).value;
+
+    expect(outcome.stage, 'engaged');
+    expect(outcome.romance, 'partner');
+    expect(outcome.prompt, isNull);
+  });
+
+  test('a partner is never asked to become a best friend', () {
+    final engine = engineWith(
+      progress: progressFor(stage: 'married', prenup: 'none', score: 99),
+    );
+    final result = engine.interactWithNpc(npcId: 'pal-1', action: 'Talk');
+    final outcome = (result as Success<NpcInteractionOutcome>).value;
+
+    expect(outcome.prompt, isNull);
+    expect(outcome.stage, 'married');
   });
 
   test('a married couple cannot simply break up', () {
