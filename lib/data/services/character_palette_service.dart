@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class CharacterPaletteService {
@@ -26,29 +27,31 @@ final Map<String, Color> _skinColors;
 final Map<String, Color> _eyeColors;
 final Map<String, Color> _hairColors;
 
-static Future<CharacterPaletteService> load() async {
-final Future<CharacterPaletteService>? cached =
-_cachedLoad;
+/// Once loaded, this hands back an already-completed future. A
+/// [FutureBuilder] then paints the avatar on its very first frame instead
+/// of flashing a placeholder every time its parent rebuilds.
+static CharacterPaletteService? _loaded;
 
-if (cached != null) {
-  return cached;
-}
+static Future<CharacterPaletteService> load() {
+  final CharacterPaletteService? loaded = _loaded;
 
-final Future<CharacterPaletteService> future =
-    _loadFromAssets();
-
-_cachedLoad = future;
-
-try {
-  return await future;
-} catch (_) {
-  if (identical(_cachedLoad, future)) {
-    _cachedLoad = null;
+  if (loaded != null) {
+    return SynchronousFuture<CharacterPaletteService>(loaded);
   }
 
-  rethrow;
+  return _cachedLoad ??= _loadOnce();
 }
 
+static Future<CharacterPaletteService> _loadOnce() async {
+  final Future<CharacterPaletteService> future = _loadFromAssets();
+
+  try {
+    return _loaded = await future;
+  } catch (_) {
+    _cachedLoad = null;
+
+    rethrow;
+  }
 }
 
 static Future<CharacterPaletteService>
