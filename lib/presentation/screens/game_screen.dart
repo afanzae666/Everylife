@@ -15,6 +15,7 @@ import '../../simulation/events/life_effect_applier.dart';
 import '../../domain/event/life_event.dart';
 import '../../domain/character/character_stats.dart';
 import '../../simulation/school/school_appearance.dart';
+import '../widgets/love_milestones.dart';
 import '../widgets/npc_avatar.dart';
 import '../widgets/person_avatar.dart';
 import '../widgets/themed_app_bar.dart';
@@ -272,6 +273,8 @@ class _GameScreenState extends State<GameScreen> {
     return MaritalInfo.rows(
       age: state.player.ageAt(state.clock.currentYear),
       partnerName: partner?.fullName,
+      stage: love.stage,
+      divorced: love.divorced,
       children: love.children.length,
     );
   }
@@ -946,6 +949,16 @@ class _GameScreenState extends State<GameScreen> {
     return result;
   },
   readCurrentLove: () => engine.state.lifeProgress.love,
+  milestones: LoveMilestones(
+    canEngage: engine.canGetEngaged,
+    canMarry: engine.canGetMarried,
+    scene: engine.milestoneScene,
+    costLabel: engine.costLabel,
+    divorcePreview: engine.divorcePreview,
+    engage: engine.proposeEngagement,
+    marry: engine.marry,
+    divorce: engine.divorce,
+  ),
   readHideDeceased: () => engine.hideDeceased,
   onHideDeceased: ({required bool hide}) =>
       engine.setHideDeceased(hide: hide),

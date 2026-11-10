@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/result/result.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
 import '../../domain/character/fertility.dart';
+import '../../domain/character/gender.dart';
 import '../../domain/character/life_stage.dart';
 import '../../domain/love/love_state.dart';
 import '../../domain/social/social_rules.dart';
@@ -11,6 +12,7 @@ import '../widgets/themed_cards.dart';
 import '../widgets/animated_dialog.dart';
 import '../widgets/id_card_frame.dart';
 import '../widgets/life_labels.dart' show countryFlag;
+import '../widgets/love_milestones.dart';
 import '../widgets/modal_cards.dart';
 import '../widgets/page_top_bar.dart';
 
@@ -40,6 +42,12 @@ class NpcInteractionScreen extends StatefulWidget {
     this.countryCode,
     this.zoom = 1,
     this.headerBuilder,
+    this.milestones,
+    this.gender,
+    this.stage = LoveRules.stageDating,
+    this.playerName,
+    this.wasSpouse = false,
+    this.childrenCount = 0,
     super.key,
   });
 
@@ -93,6 +101,22 @@ class NpcInteractionScreen extends StatefulWidget {
   final double zoom;
   final WidgetBuilder? headerBuilder;
 
+  /// Engagement, marriage and divorce (partners only).
+  final LoveMilestones? milestones;
+
+  /// Used for words like girlfriend, fiancé and ex-wife.
+  final Gender? gender;
+
+  /// 'dating', 'engaged' or 'married' when this is the player's partner.
+  final String stage;
+  final String? playerName;
+
+  /// True for an ex who was once married to the player.
+  final bool wasSpouse;
+
+  /// Children the player has with this person.
+  final int childrenCount;
+
   @override
   State<NpcInteractionScreen> createState() => _NpcInteractionScreenState();
 }
@@ -104,6 +128,8 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
   late String _bond = widget.bond;
   late String _romance = widget.romance;
   late bool _onPill = widget.onBirthControl;
+  late String _stage = widget.stage;
+  late bool _wasSpouse = widget.wasSpouse;
 
   /// True when both the player and this person are at least 18.
   bool get _bothAdults {
@@ -118,9 +144,18 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
   /// The current relationship, which changes as the person becomes a
   /// friend, a best friend or a partner.
   String get _relationshipLabel {
-    if (_romance == 'partner') return 'partner';
+    final gender = widget.gender;
 
-    if (_bond == 'ex') return 'ex';
+    if (_romance == 'partner') {
+      return gender == null
+          ? 'partner'
+          : LoveRules.partnerLabel(_stage, gender).toLowerCase();
+    }
+
+    if (_bond == 'ex') {
+      return LoveRules.exLabel(gender ?? Gender.male, wasSpouse: _wasSpouse)
+          .toLowerCase();
+    }
 
     if (_bond == 'best friend') return 'best friend';
 
@@ -133,14 +168,30 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
 
   void _interact(String action) {
     if (!widget.isAlive || _showingNarrative) return;
-    final result = widget.onInteraction(npcId: widget.npcId, action: action);
+
+    if (action == 'Get Engaged' ||
+        action == 'Get Married' ||
+        action == 'Divorce') {
+      _milestone(action);
+      return;
+    }
+
+    _handle(
+      action,
+      widget.onInteraction(npcId: widget.npcId, action: action),
+    );
+  }
+
+  void _handle(String action, Result<NpcInteractionOutcome> result) {
     switch (result) {
       case Success<NpcInteractionOutcome>(:final value):
         setState(() {
           _score = value.relationshipPercent;
           _bond = value.bond;
           _romance = value.romance;
+          _stage = value.stage;
           _onPill = value.onBirthControl;
+          if (action == 'Divorce') _wasSpouse = true;
           if (action == 'Argue') _hadArgument = true;
           if (action == 'Apologize') _hadArgument = false;
         });
@@ -151,7 +202,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
         setState(() => _showingNarrative = true);
         _showNarrative(
           value.narrative,
-          progressed: value.progressed,
+          progressed: value.progressed || value.refused,
           action: action,
         ).then((_) {
           if (!mounted) return;
@@ -160,6 +211,115 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
         });
       case Failure<NpcInteractionOutcome>(:final message):
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  Widget? get _dialogAvatar => widget.avatar;
+
+  /// The facts in the information overlay, with the marital status kept
+  /// up to date after an engagement, a wedding or a divorce.
+  List<MapEntry<String, String>> get _detailEntries {
+    final entries = [...widget.details];
+    final index = entries.indexWhere((entry) => entry.key == 'Marital Status');
+
+    if (index < 0) return entries;
+
+    final name = widget.playerName;
+
+    if (_romance == 'partner' && name != null) {
+      entries[index] = MapEntry(
+        'Marital Status',
+        switch (_stage) {
+          LoveRules.stageMarried => 'Married to $name',
+          LoveRules.stageEngaged => 'Engaged to $name',
+          _ => 'Dating $name',
+        },
+      );
+
+      if (_stage == LoveRules.stageMarried &&
+          !entries.any((entry) => entry.key == 'Children')) {
+        entries.insert(
+          index + 1,
+          MapEntry('Children', '${widget.childrenCount}'),
+        );
+      }
+    } else if (_bond == 'ex') {
+      entries[index] = MapEntry(
+        'Marital Status',
+        _wasSpouse ? 'Divorced' : 'Single',
+      );
+    }
+
+    return entries;
+  }
+
+  /// Engagement, marriage and divorce: pop-ups first, then the result.
+  Future<void> _milestone(String action) async {
+    final milestones = widget.milestones;
+
+    if (milestones == null) return;
+
+    final id = widget.npcId;
+
+    switch (action) {
+      case 'Get Engaged':
+        final ring = await showMilestoneChoice(
+          context,
+          title: 'PROPOSE',
+          emoji: '💍',
+          scene: milestones.scene('engage', id),
+          options: LoveRules.rings,
+          costLabel: milestones.costLabel,
+          avatar: _dialogAvatar,
+        );
+
+        if (ring == null || !mounted) return;
+
+        _handle(action, milestones.engage(npcId: id, ringId: ring));
+      case 'Get Married':
+        final prenup = await showMilestoneChoice(
+          context,
+          title: 'PRENUP',
+          emoji: '📜',
+          scene: milestones.scene('prenup', id),
+          options: LoveRules.prenups,
+          costLabel: milestones.costLabel,
+          cancelLabel: 'NOT YET',
+        );
+
+        if (prenup == null || !mounted) return;
+
+        final wedding = await showMilestoneChoice(
+          context,
+          title: 'WEDDING',
+          emoji: '👰',
+          scene: milestones.scene('wedding', id),
+          options: LoveRules.weddings,
+          costLabel: milestones.costLabel,
+          cancelLabel: 'NOT YET',
+          avatar: _dialogAvatar,
+        );
+
+        if (wedding == null || !mounted) return;
+
+        _handle(
+          action,
+          milestones.marry(npcId: id, prenupId: prenup, weddingId: wedding),
+        );
+      default:
+        final yes = await showMilestoneConfirm(
+          context,
+          title: 'DIVORCE',
+          emoji: '📄',
+          scene: milestones.scene('divorce', id),
+          detail: milestones.divorcePreview(id),
+          confirmLabel: 'FILE FOR DIVORCE',
+          cancelLabel: 'KEEP TRYING',
+        );
+
+        if (!yes || !mounted) return;
+
+        _handle(action, milestones.divorce(npcId: id));
     }
   }
 
@@ -332,6 +492,9 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
     'Have Sex': ('🔥', 'Get intimate'),
     'Break Up': ('💔', 'End the relationship'),
     'Get Back Together': ('💞', 'Give us another chance'),
+    'Get Engaged': ('💍', 'Propose'),
+    'Get Married': ('👰', 'Plan the wedding'),
+    'Divorce': ('📄', 'File for divorce'),
     'Birth Control': ('💊', 'Talk about birth control'),
     'Pregnancy: keep': ('👶', 'Keep the baby'),
     'Pregnancy: end': ('💔', 'End the pregnancy'),
@@ -451,10 +614,10 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
                       const SizedBox(height: 2),
                       ...withThinLines(context, [
                         if (age != null) InfoLine(label: 'Age', value: '$age'),
-                        for (final entry in widget.details)
+                        for (final entry in _detailEntries)
                           InfoLine(label: entry.key, value: entry.value),
                       ]),
-                      if (widget.subtitle != null && widget.details.isEmpty)
+                      if (widget.subtitle != null && _detailEntries.isEmpty)
                         Text(widget.subtitle!),
                     ],
                   ),
@@ -554,7 +717,16 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
         'Go on a Date',
         if (canBeIntimate) 'Have Sex',
         if (widget.canUseBirthControl && canBeIntimate) 'Birth Control',
-        'Break Up',
+        if (_stage == LoveRules.stageDating &&
+            widget.milestones?.canEngage(widget.npcId) == true)
+          'Get Engaged',
+        if (_stage == LoveRules.stageEngaged &&
+            widget.milestones?.canMarry(widget.npcId) == true)
+          'Get Married',
+        if (_stage == LoveRules.stageMarried)
+          'Divorce'
+        else
+          'Break Up',
       ],
     ];
     final basic = [

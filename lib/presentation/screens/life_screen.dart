@@ -16,6 +16,7 @@ import '../../domain/love/love_state.dart';
 import '../../simulation/school/npc_place.dart';
 import '../../simulation/school/school_appearance.dart';
 import '../widgets/life_event_dialogs.dart';
+import '../widgets/love_milestones.dart';
 import '../widgets/npc_avatar.dart';
 import '../widgets/themed_cards.dart';
 import '../widgets/character_avatar.dart';
@@ -134,6 +135,7 @@ class LifeScreen extends StatefulWidget {
     this.canSpendTimeAll,
     this.readHideDeceased,
     this.onHideDeceased,
+    this.milestones,
     super.key,
   });
 
@@ -171,6 +173,9 @@ class LifeScreen extends StatefulWidget {
   /// Whether deceased family is hidden, and how to change it.
   final bool Function()? readHideDeceased;
   final void Function({required bool hide})? onHideDeceased;
+
+  /// Engagement, marriage and divorce, handed to the partner's page.
+  final LoveMilestones? milestones;
 
   @override
   State<LifeScreen> createState() => _LifeScreenState();
@@ -220,6 +225,11 @@ class _LifeScreenState extends State<LifeScreen> {
     if (!identical(oldWidget.friends, widget.friends)) _friends = widget.friends;
     if (!identical(oldWidget.love, widget.love)) _love = widget.love;
   }
+
+  /// Children the player has with [person].
+  int _childrenWith(SchoolNpc person) => _love.children
+      .where((child) => child.otherParentName == person.fullName)
+      .length;
 
   List<MapEntry<String, String>> _parentMarital(
     ParentNpc parent,
@@ -330,14 +340,13 @@ class _LifeScreenState extends State<LifeScreen> {
                                     marital: MaritalInfo.rows(
                                       age: currentYear - partner.birthYear,
                                       partnerName: widget.playerName,
-                                      children: _love.children
-                                          .where(
-                                            (c) =>
-                                                c.otherParentName ==
-                                                partner.fullName,
-                                          )
-                                          .length,
+                                      stage: _love.stage,
+                                      children: _childrenWith(partner),
                                     ),
+                                    stage: _love.stage,
+                                    milestones: widget.milestones,
+                                    playerName: widget.playerName,
+                                    childrenCount: _childrenWith(partner),
                                     isPartner: true,
                                     hasPartner: true,
                                     onBirthControl: _love.birthControl
@@ -942,9 +951,19 @@ class _FriendNpcCard extends StatelessWidget {
     this.isEx = false,
     this.hasPartner = false,
     this.onBirthControl = false,
+    this.stage = LoveRules.stageDating,
+    this.milestones,
+    this.playerName,
+    this.childrenCount = 0,
+    this.wasSpouse = false,
     super.key,
   });
 
+  final String stage;
+  final LoveMilestones? milestones;
+  final String? playerName;
+  final int childrenCount;
+  final bool wasSpouse;
   final String? homeCityId;
   final List<MapEntry<String, String>> marital;
   final bool onBirthControl;
@@ -977,18 +996,20 @@ class _FriendNpcCard extends StatelessWidget {
                   name: friend.fullName,
                   onInteraction: onNpcInteraction,
                   relationship: isEx
-                      ? 'ex'
+                      ? LoveRules.exLabel(friend.gender, wasSpouse: wasSpouse)
+                          .toLowerCase()
                       : isPartner
-                          ? 'partner'
+                          ? LoveRules.partnerLabel(stage, friend.gender)
+                              .toLowerCase()
                           : 'friend',
                   relationshipPercent: friend.relationshipPercent,
                   playerAge: currentYear - playerBirthYear,
                   currentYear: currentYear,
                   birthYear: friend.birthYear,
                   subtitle: isEx
-                      ? 'Ex'
+                      ? LoveRules.exLabel(friend.gender, wasSpouse: wasSpouse)
                       : isPartner
-                          ? 'Partner'
+                          ? LoveRules.partnerLabel(stage, friend.gender)
                           : 'Friend',
                   details: [
                     MapEntry('Gender', _genderLabel(friend.gender)),
@@ -1024,6 +1045,12 @@ class _FriendNpcCard extends StatelessWidget {
                           : 'friend',
                   romanceEligible: friend.role.isStudent && !isEx,
                   romance: isPartner ? 'partner' : 'none',
+                  stage: stage,
+                  gender: friend.gender,
+                  milestones: milestones,
+                  playerName: playerName,
+                  wasSpouse: wasSpouse,
+                  childrenCount: childrenCount,
                   playerHasPartner: hasPartner,
                   canUseBirthControl:
                       isPartner && friend.gender == Gender.female,
@@ -1069,9 +1096,9 @@ class _FriendNpcCard extends StatelessWidget {
                         SizedBox(width: s(4)),
                         Text(
                           isEx
-                              ? '(EX)'
+                              ? '(${LoveRules.exLabel(friend.gender, wasSpouse: wasSpouse).toUpperCase()})'
                               : isPartner
-                              ? '(PARTNER)'
+                              ? '(${LoveRules.partnerLabel(stage, friend.gender).toUpperCase()})'
                               : friend.bestFriend
                                   ? '(BEST FRIEND)'
                                   : '(FRIEND)',
@@ -1469,7 +1496,9 @@ class _ExesScreenState extends State<_ExesScreen> {
                               homeCityId: widget.homeCityId,
                               marital: MaritalInfo.rows(
                                 age: widget.currentYear - ex.birthYear,
+                                divorced: love.exSpouseIds.contains(ex.id),
                               ),
+                              wasSpouse: love.exSpouseIds.contains(ex.id),
                               friend: ex,
                               isEx: true,
                               hasPartner: love.hasPartner,
