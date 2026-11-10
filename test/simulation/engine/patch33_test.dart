@@ -64,7 +64,8 @@ void main() {
     );
 
     expect(married.first.value, 'Married to Budi');
-    expect(married.last, const MapEntry('Children', '2'));
+    expect(married.last.key, 'Children');
+    expect(married.last.value, '2');
   });
 
   test('a breakup moves the person to the exes for good', () {

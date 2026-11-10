@@ -221,7 +221,7 @@ void main() {
       firstName: 'Mira',
       lastName: 'Lestari',
       gender: Gender.female,
-      birthYear: 2026,
+      birthYear: 2020,
       looks: 70,
       smarts: 70,
       fertilityBase: 80,
