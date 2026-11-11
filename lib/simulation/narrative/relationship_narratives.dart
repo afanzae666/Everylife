@@ -39,6 +39,30 @@ abstract final class RelationshipNarratives {
   static String drift(int salt, String name) =>
       _drift[salt.abs() % _drift.length].replaceAll('{n}', name);
 
+  static const List<String> _hookUp = [
+    '{n} and I lost track of time. Things got intimate, and neither of us '
+        'regretted it in the moment.',
+    'One thing led to another with {n}. The evening ended very, very '
+        'differently than planned.',
+    'The chemistry with {n} finally won. We spent the night together.',
+    'We were only supposed to talk, {n} and I. We did not talk much.',
+    'A look, a smile, a quiet room. {n} and I gave in to the moment.',
+  ];
+
+  static const List<String> _guilt = [
+    'Walking home, I felt a knot in my stomach. I was not free to do this.',
+    'The guilt arrived before the sun did. I have a partner, and I did '
+        'this anyway.',
+    'I told myself nobody would ever find out. I did not believe it.',
+    'My phone buzzed with a sweet message from my partner. I could not '
+        'bring myself to read it.',
+  ];
+
+  static String hookUp(SeededRandom r, String name) =>
+      _hookUp[r.nextInt(_hookUp.length)].replaceAll('{n}', name);
+
+  static String guilt(SeededRandom r) => _guilt[r.nextInt(_guilt.length)];
+
   static const List<String> _getBack = [
     '{n} and I talked for hours, and the old spark came right back. We are together again!',
     'I asked {n} for a second chance. After a long pause, the answer was yes.',
