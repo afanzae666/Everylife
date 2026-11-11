@@ -183,7 +183,8 @@ void main() {
 
       outcomeOf(engine.interactWithNpc(npcId: 'fr-2', action: 'Have Sex'));
 
-      if (engine.state.lifeProgress.pending?.eventId == 'cheating_caught') {
+      if ((engine.state.lifeProgress.pending?.eventId ?? '')
+              .startsWith('cheating_caught')) {
         caught++;
       }
     }
