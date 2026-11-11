@@ -662,9 +662,31 @@ class SimulationEngine {
       if (progressed &&
           _state.lifeProgress.love.partnerId != npcId &&
           !friend.bestFriend &&
-          !friend.bestFriendAsked &&
           nextScore >= SocialRules.bestFriendAt) {
-        prompt = 'bestFriend';
+        if (!friend.bestFriendAsked) {
+          prompt = 'bestFriend';
+        } else if (nextScore >= 100) {
+          // I said no once. A perfect friendship asks again now and then,
+          // at most once a year.
+          final year = _state.clock.currentYear;
+          final askedKey = '$year:$npcId:bf-asked';
+          final progress = _state.lifeProgress;
+
+          if ((progress.interactionCounts[askedKey] ?? 0) == 0 &&
+              _random.nextInt(100) < 35) {
+            prompt = 'bestFriend';
+            _commit(
+              _state.copyWith(
+                lifeProgress: progress.copyWith(
+                  interactionCounts: {
+                    ...progress.interactionCounts,
+                    askedKey: 1,
+                  },
+                ),
+              ),
+            );
+          }
+        }
       }
     }
 
@@ -964,13 +986,23 @@ class SimulationEngine {
       );
     }
 
-    if (love.partnerId != npcId) {
+    if (action == 'Have Sex' && love.partnerId != npcId) {
+      return _hookUp(npcId, person);
+    }
+
+    final answersPregnancy = (action == NpcInteractionOutcome.pregnancyKeep ||
+            action == NpcInteractionOutcome.pregnancyEnd) &&
+        love.pregnancy?.partner.id == npcId;
+
+    if (love.partnerId != npcId && !answersPregnancy) {
       return const Failure('This person is not my partner.');
     }
 
     final key = '$year:$npcId:$action';
     final times = progress.interactionCounts[key] ?? 0;
-    final first = times == 0;
+
+    // Getting intimate counts twice a year. Everything else, once.
+    final first = action == 'Have Sex' ? times < 2 : times == 0;
     final counts = {
       for (final entry in progress.interactionCounts.entries)
         if (entry.key.startsWith('$year:')) entry.key: entry.value,
@@ -997,7 +1029,12 @@ class SimulationEngine {
         next,
       );
       final updated = broken.copyWith(
-        flags: {...broken.flags}..remove(SystemFlags.engaged),
+        flags: {...broken.flags}
+          ..removeAll(const [
+            SystemFlags.engaged,
+            SystemFlags.playerCheated,
+            SystemFlags.spouseCheated,
+          ]),
       );
 
       return _socialOutcome(
@@ -1065,7 +1102,7 @@ class SimulationEngine {
                 'hurt, and we held each other through it.',
         score: score,
         bond: 'friend',
-        romance: 'partner',
+        romance: love.partnerId == npcId ? 'partner' : 'none',
         next: withStats(
           _state.copyWith(
             lifeProgress: progress.copyWith(
@@ -1118,7 +1155,7 @@ class SimulationEngine {
         if (!canConceive) {
           narrative = '$narrative ${LoveNarratives.noBaby(name)}';
         } else {
-          var chance = (mine * theirs / 100 * 0.35).round();
+          var chance = (mine * theirs / 100 * 0.6).round();
 
           final protected = love.birthControl.contains(npcId) ||
               (player.gender == Gender.female &&
@@ -2126,12 +2163,287 @@ class SimulationEngine {
     );
   }
 
+  /// Getting intimate with someone who is not my partner. With a partner
+  /// that is cheating, and it may be found out.
+  Result<NpcInteractionOutcome> _hookUp(String npcId, SchoolNpc person) {
+    final year = _state.clock.currentYear;
+    final playerAge = year - _state.player.birthYear;
+    final progress = _state.lifeProgress;
+    final love = progress.love;
+    final age = year - person.birthYear;
+    final name = person.fullName;
+    final score = person.relationshipPercent;
+
+    if (!person.role.isStudent) {
+      return const Failure('I cannot get intimate with this person.');
+    }
+
+    if (!LoveRules.canBeIntimate(playerAge, age)) {
+      return const Failure('We are not old enough for that.');
+    }
+
+    if (score < LoveRules.hookUpAt) {
+      return const Failure('We are not close enough for that.');
+    }
+
+    final key = '$year:$npcId:Have Sex';
+    final times = progress.interactionCounts[key] ?? 0;
+    final effective = times < 2;
+    final cheating = love.hasPartner;
+    final counts = {
+      for (final entry in progress.interactionCounts.entries)
+        if (entry.key.startsWith('$year:')) entry.key: entry.value,
+      key: times + 1,
+    };
+    var narrative = RelationshipNarratives.hookUp(_random, name);
+    var next = score;
+    var pregnancy = love.pregnancy;
+    var asksAboutBaby = false;
+    var caught = false;
+    final flags = {...progress.flags};
+
+    if (cheating) {
+      narrative = '$narrative ${RelationshipNarratives.guilt(_random)}';
+    }
+
+    if (effective) {
+      next = (score + 3).clamp(-100, 100).toInt();
+
+      final player = _state.player;
+
+      if (pregnancy == null && player.gender != person.gender) {
+        final mine = Fertility.effective(
+          player.stats.fertility,
+          playerAge,
+          player.gender,
+        );
+        final theirs = NpcTraits.forPerson(
+          id: person.id,
+          gender: person.gender,
+          birthYear: person.birthYear,
+          currentYear: year,
+        ).fertility;
+        var chance = (mine * theirs / 100 * 0.6).round();
+        final protected = love.birthControl.contains(npcId) ||
+            (player.gender == Gender.female &&
+                love.birthControl.contains(player.id));
+
+        if (protected) chance = chance ~/ 10;
+
+        if (_random.nextInt(100) < chance) {
+          pregnancy = Pregnancy(conceivedYear: year, partner: person);
+          asksAboutBaby = true;
+          narrative = '$narrative ${LoveNarratives.pregnancy(
+            playerCarries: player.gender == Gender.female,
+            name: name,
+          )}';
+        }
+      }
+
+      if (cheating) {
+        flags.add(SystemFlags.playerCheated);
+        caught = _random.nextInt(100) < LoveRules.caughtChance;
+      }
+    }
+
+    var updated = _scored(
+      progress.copyWith(
+        interactionCounts: counts,
+        flags: flags,
+        love: pregnancy == love.pregnancy
+            ? love
+            : love.copyWith(pregnancy: pregnancy),
+      ),
+      npcId,
+      next,
+    );
+
+    var state = _state.copyWith(
+      lifeProgress: updated,
+      player: _state.player.copyWith(
+        stats: _state.player.stats.copyWith(
+          happiness: _state.player.stats.happiness +
+              (effective ? (cheating ? 1 : 3) : 0),
+        ),
+      ),
+    );
+
+    // Found out: my partner confronts me as soon as I come back.
+    if (caught && updated.pending == null) {
+      final id = love.isMarried ? 'marriage_caught' : 'cheating_caught';
+      final definition = LifeEventCatalog.byId(id);
+
+      if (definition != null) {
+        updated = updated.copyWith(
+          pending: EventSubjects.start(
+            definition: definition,
+            state: state,
+            random: _random,
+          ),
+        );
+        state = state.copyWith(lifeProgress: updated);
+      }
+    }
+
+    final friends = progress.friends;
+    final friendIndex = friends.indexWhere((friend) => friend.id == npcId);
+
+    return _socialOutcome(
+      npcId: npcId,
+      action: 'Have Sex',
+      narrative: narrative,
+      score: next,
+      bond: love.exIds.contains(npcId)
+          ? 'ex'
+          : friendIndex >= 0
+              ? (friends[friendIndex].bestFriend ? 'best friend' : 'friend')
+              : 'none',
+      progressed: effective,
+      prompt: asksAboutBaby ? 'pregnancy' : null,
+      next: state,
+    );
+  }
+
+  /// Gives me a scene to decide on: stay with a cheating spouse or leave.
+  void _queueDivorceChoice() {
+    final progress = _state.lifeProgress;
+
+    if (progress.pending != null) return;
+
+    const ids = [
+      'marriage_divorce_choice_a',
+      'marriage_divorce_choice_b',
+      'marriage_divorce_choice_c',
+    ];
+    final definition = LifeEventCatalog.byId(ids[_random.nextInt(ids.length)]);
+
+    if (definition == null) return;
+
+    _commit(
+      _state.copyWith(
+        lifeProgress: progress.copyWith(
+          pending: EventSubjects.start(
+            definition: definition,
+            state: _state,
+            random: _random,
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Carries out a divorce that an event started (the spouse asked).
   void _processMarriageFlags() {
     final progress = _state.lifeProgress;
     final love = progress.love;
-    final clear = progress.flags.contains(SystemFlags.divorceFiledClear);
-    final unclear = progress.flags.contains(SystemFlags.divorceFiledUnclear);
+    final flags = progress.flags;
+
+    // The cheating was proven: ask me what to do about it.
+    if (flags.contains(SystemFlags.cheatingProven)) {
+      _commit(
+        _state.copyWith(
+          lifeProgress: progress.copyWith(
+            flags: {...flags}..remove(SystemFlags.cheatingProven),
+          ),
+        ),
+      );
+
+      if (love.isMarried) _queueDivorceChoice();
+
+      return;
+    }
+
+    // I decided to divorce a cheating spouse.
+    if (flags.contains(SystemFlags.divorceByPlayer)) {
+      final id = love.partnerId;
+
+      _commit(
+        _state.copyWith(
+          lifeProgress: progress.copyWith(
+            flags: {...flags}..remove(SystemFlags.divorceByPlayer),
+          ),
+        ),
+      );
+
+      if (id != null && love.isMarried) {
+        final (next, story) = _endMarriage(
+          npcId: id,
+          playerFiles: true,
+          clearGrounds: true,
+        );
+        final year = _state.clock.currentYear;
+
+        _commit(
+          next.addEvent(
+            SimulationEvent(
+              id: 'divorce-${next.events.length + 1}-$year',
+              type: SimulationEventType.npcInteraction,
+              year: year,
+              title: 'Divorce',
+              description: story,
+            ),
+          ),
+        );
+      }
+
+      return;
+    }
+
+    // My partner left me after finding out about the affair.
+    if (flags.contains(SystemFlags.breakupFiled)) {
+      final id = love.partnerId;
+      final person = id == null ? null : _personById(id);
+
+      if (id != null && person != null && !love.isMarried) {
+        final broken = _scored(
+          progress.copyWith(
+            love: love.copyWith(
+              clearPartner: true,
+              exIds: {...love.exIds, id},
+            ),
+            flags: {...flags}..removeAll(const [
+                SystemFlags.breakupFiled,
+                SystemFlags.engaged,
+                SystemFlags.playerCheated,
+                SystemFlags.spouseCheated,
+              ]),
+          ),
+          id,
+          0,
+        );
+        final year = _state.clock.currentYear;
+
+        _commit(
+          _state.copyWith(
+            lifeProgress: broken,
+            events: [
+              ..._state.events,
+              SimulationEvent(
+                id: 'breakup-${_state.events.length + 1}-$year',
+                type: SimulationEventType.npcInteraction,
+                year: year,
+                title: 'Break Up',
+                description: '${person.fullName} found out about my '
+                    'cheating and ended things for good. We are exes now.',
+              ),
+            ],
+          ),
+        );
+      } else {
+        _commit(
+          _state.copyWith(
+            lifeProgress: progress.copyWith(
+              flags: {...flags}..remove(SystemFlags.breakupFiled),
+            ),
+          ),
+        );
+      }
+
+      return;
+    }
+
+    final clear = flags.contains(SystemFlags.divorceFiledClear);
+    final unclear = flags.contains(SystemFlags.divorceFiledUnclear);
 
     if (!clear && !unclear) return;
 
