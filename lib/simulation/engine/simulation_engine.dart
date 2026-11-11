@@ -20,6 +20,7 @@ import '../../domain/social/social_rules.dart';
 import '../narrative/school_narratives.dart';
 import '../narrative/infant_narratives.dart';
 import '../narrative/love_narratives.dart';
+import '../narrative/breakup_narratives.dart';
 import '../narrative/marriage_narratives.dart';
 import '../narrative/relationship_narratives.dart';
 import '../school/school_appearance.dart';
@@ -27,6 +28,8 @@ import '../../domain/character/fertility.dart';
 import '../../domain/character/gender.dart';
 import '../../domain/character/cultural_randomizer_catalog.dart';
 import 'dart:math' as math;
+import '../../domain/love/breakup_summary.dart';
+import '../../domain/love/cheating_rules.dart';
 import '../../domain/love/genetics.dart';
 import '../../domain/love/love_state.dart';
 import '../../domain/time/simulation_clock.dart';
@@ -234,6 +237,17 @@ class SimulationEngine {
 
     return Success(action.message);
   }
+
+  /// Endings (divorce, breakup, called-off engagement) that the screen has
+  /// not shown yet, oldest first.
+  final List<BreakupSummary> _breakups = <BreakupSummary>[];
+
+  /// True while an ending is waiting to be shown.
+  bool get hasBreakup => _breakups.isNotEmpty;
+
+  /// The next ending to show, removed from the queue. Null when none.
+  BreakupSummary? takeBreakup() =>
+      _breakups.isEmpty ? null : _breakups.removeAt(0);
 
   /// The event currently waiting for the player's decision, if any.
   LifeEventDefinition? get pendingLifeEvent {
@@ -800,6 +814,9 @@ class SimulationEngine {
     NpcInteractionOutcome.pregnancyEnd,
   };
 
+  /// A friend or classmate by id (used to show their picture).
+  SchoolNpc? npcById(String id) => _personById(id);
+
   SchoolNpc? _personById(String id) {
     for (final friend in _state.lifeProgress.friends) {
       if (friend.id == id) return friend;
@@ -1017,6 +1034,8 @@ class SimulationEngine {
       }
 
       // The relationship collapses, and they move to the Exes page.
+      final engaged = love.stage == LoveRules.stageEngaged;
+      final kind = engaged ? BreakupKind.engagement : BreakupKind.breakup;
       final next = (score - 70).clamp(-100, 100).toInt();
       final broken = _scored(
         progress.copyWith(
@@ -1036,16 +1055,36 @@ class SimulationEngine {
             SystemFlags.spouseCheated,
           ]),
       );
+      final story = BreakupNarratives.story(
+        _random,
+        name,
+        kind: kind,
+        cause: BreakupCause.iEndedIt,
+      );
+      final drop = _breakupDrop(love, kind, BreakupCause.iEndedIt);
+
+      _enqueueBreakup(
+        npcId: npcId,
+        name: name,
+        gender: person.gender,
+        kind: kind,
+        cause: BreakupCause.iEndedIt,
+        story: story,
+        middle: _breakupDurations(love, kind),
+        drop: drop,
+        scoreBefore: score,
+        scoreAfter: next,
+      );
 
       return _socialOutcome(
         npcId: npcId,
         action: action,
-        narrative: LoveNarratives.breakUp(_random, name),
+        narrative: story,
         score: next,
         bond: 'ex',
         next: withStats(
           _state.copyWith(lifeProgress: updated),
-          happiness: -6,
+          happiness: -drop,
         ),
       );
     }
@@ -2059,7 +2098,121 @@ class SimulationEngine {
     return (sharePct: prenupShare, fine: clearGrounds ? 0 : fine);
   }
 
+  /// How hurt I am when a dating or engagement relationship ends.
+  int _breakupDrop(LoveState love, BreakupKind kind, BreakupCause cause) {
+    final year = _state.clock.currentYear;
+
+    return _heartbreak(
+      years: year - (love.partnerSince ?? year),
+      children: love.children.length,
+      cause: cause,
+      kind: kind,
+    );
+  }
+
+  /// "Together for" (and "Engaged for") facts of a dating or engagement
+  /// that ended.
+  List<MapEntry<String, String>> _breakupDurations(
+    LoveState love,
+    BreakupKind kind,
+  ) {
+    final year = _state.clock.currentYear;
+
+    return [
+      MapEntry('Together for', _yearsText(year - (love.partnerSince ?? year))),
+      if (kind == BreakupKind.engagement)
+        MapEntry(
+          'Engaged for',
+          _yearsText(year - (love.stageSince ?? year)),
+        ),
+    ];
+  }
+
+  static String _yearsText(int years) => years <= 0
+      ? 'Less than a year'
+      : years == 1
+          ? '1 year'
+          : '$years years';
+
+  /// How much an ending hurts: longer relationships, children and being
+  /// left hurt more, and leaving a cheater hurts less.
+  int _heartbreak({
+    required int years,
+    required int children,
+    required BreakupCause cause,
+    required BreakupKind kind,
+  }) {
+    var drop = switch (kind) {
+      BreakupKind.divorce => 6,
+      BreakupKind.engagement => 5,
+      BreakupKind.breakup => 3,
+    };
+
+    drop += years.clamp(0, 12) ~/ 2;
+    drop += children.clamp(0, 4).toInt();
+    drop += switch (cause) {
+      BreakupCause.iEndedIt => 0,
+      BreakupCause.iLeftCheater => -3,
+      BreakupCause.theyLeftMe => 2,
+      BreakupCause.theyLeftNoReason => 3,
+    };
+
+    return drop < 2 ? 2 : drop;
+  }
+
+  String _causeText(BreakupCause cause, String name, BreakupKind kind) =>
+      switch (cause) {
+        BreakupCause.iEndedIt =>
+          kind == BreakupKind.divorce ? 'I filed for divorce' : 'I ended it',
+        BreakupCause.iLeftCheater => '$name cheated on me',
+        BreakupCause.theyLeftMe => 'I cheated on $name',
+        BreakupCause.theyLeftNoReason => '$name left, no reason given',
+      };
+
+  /// Queues the overlay for an ending. [middle] holds the facts that depend
+  /// on the kind of ending (how long, money, children).
+  void _enqueueBreakup({
+    required String npcId,
+    required String name,
+    required Gender gender,
+    required BreakupKind kind,
+    required BreakupCause cause,
+    required String story,
+    required List<MapEntry<String, String>> middle,
+    required int drop,
+    required int scoreBefore,
+    required int scoreAfter,
+  }) {
+    _breakups.add(
+      BreakupSummary(
+        npcId: npcId,
+        name: name,
+        kind: kind,
+        title: BreakupNarratives.title(_random, kind),
+        story: story,
+        quip: BreakupNarratives.quip(_random, kind),
+        facts: [
+          MapEntry('Why', _causeText(cause, name, kind)),
+          ...middle,
+          MapEntry('Happiness', '-$drop'),
+          MapEntry(
+            'Now',
+            LoveRules.exLabel(
+              gender,
+              wasSpouse: kind == BreakupKind.divorce,
+            ),
+          ),
+          MapEntry(
+            'Relationship',
+            '$scoreBefore% \u2192 $scoreAfter%, moved to Exes',
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Ends the marriage with [npcId]. Returns the new state and the story.
+  /// The overlay for it is queued (see [takeBreakup]).
   (WorldState, String) _endMarriage({
     required String npcId,
     required bool playerFiles,
@@ -2071,6 +2224,7 @@ class SimulationEngine {
       playerFiles: playerFiles,
       clearGrounds: clearGrounds,
     );
+    final year = _state.clock.currentYear;
     final cash = _state.player.money.minorUnits;
     final share = cash > 0 ? cash * terms.sharePct ~/ 100 : 0;
     final progress = _state.lifeProgress;
@@ -2083,6 +2237,18 @@ class SimulationEngine {
         SystemFlags.divorceFiledClear,
         SystemFlags.divorceFiledUnclear,
       ]);
+    final cause = playerFiles
+        ? (clearGrounds || progress.flags.contains(SystemFlags.spouseCheated)
+            ? BreakupCause.iLeftCheater
+            : BreakupCause.iEndedIt)
+        : (clearGrounds
+            ? BreakupCause.theyLeftMe
+            : BreakupCause.theyLeftNoReason);
+    final married = year - (love.stageSince ?? love.partnerSince ?? year);
+    final total = year - (love.partnerSince ?? year);
+    final children = love.children.length;
+    final before = person?.relationshipPercent ?? 0;
+    final prenup = LoveRules.option(LoveRules.prenups, love.prenup ?? 'none');
     final scored = _scored(
       progress.copyWith(
         flags: flags,
@@ -2096,18 +2262,26 @@ class SimulationEngine {
       npcId,
       0,
     );
-    final atFault = playerFiles &&
-        progress.flags.contains(SystemFlags.spouseCheated);
+    final drop = _heartbreak(
+      years: married,
+      children: children,
+      cause: cause,
+      kind: BreakupKind.divorce,
+    );
     var next = _moveMoney(
       _state.copyWith(lifeProgress: scored),
       -share + terms.fine,
     );
 
-    next = _happier(next, atFault ? -4 : -10);
+    next = _happier(next, -drop);
 
-    final parts = <String>[
-      MarriageNarratives.divorced(_random, name),
-    ];
+    final scene = BreakupNarratives.story(
+      _random,
+      name,
+      kind: BreakupKind.divorce,
+      cause: cause,
+    );
+    final parts = <String>[scene];
 
     if (share > 0) {
       parts.add(
@@ -2134,9 +2308,49 @@ class SimulationEngine {
       parts.add('I gave my ex clear grounds, so there was no fine.');
     }
 
-    if (next.player.debt.minorUnits > _state.player.debt.minorUnits) {
+    final borrowed =
+        next.player.debt.minorUnits > _state.player.debt.minorUnits;
+
+    if (borrowed) {
       parts.add('I had to borrow money to cover it.');
     }
+
+    _enqueueBreakup(
+      npcId: npcId,
+      name: name,
+      gender: person?.gender ?? Gender.male,
+      kind: BreakupKind.divorce,
+      cause: cause,
+      story: scene,
+      middle: [
+        MapEntry('Married for', _yearsText(married)),
+        if (total > married) MapEntry('Together in total', _yearsText(total)),
+        MapEntry('Children', children == 0 ? 'None' : '$children'),
+        MapEntry('Prenup', prenup?.label ?? 'None'),
+        MapEntry(
+          'Property split',
+          share > 0
+              ? '${terms.sharePct}% of my cash (${MoneyText.of(_state, share)})'
+              : 'Nothing to split',
+        ),
+        MapEntry(
+          'Fine',
+          terms.fine < 0
+              ? 'I paid ${MoneyText.of(_state, -terms.fine)}'
+              : terms.fine > 0
+                  ? '$name paid me ${MoneyText.of(_state, terms.fine)}'
+                  : 'None, clear grounds',
+        ),
+        MapEntry(
+          'Cash left',
+          '${MoneyText.of(next, next.player.money.minorUnits)}'
+              '${borrowed ? ' (I had to borrow)' : ''}',
+        ),
+      ],
+      drop: drop,
+      scoreBefore: before,
+      scoreAfter: 0,
+    );
 
     return (next, parts.join(' '));
   }
@@ -2242,9 +2456,18 @@ class SimulationEngine {
 
       if (cheating) {
         flags.add(SystemFlags.playerCheated);
-        caught = _random.nextInt(100) < LoveRules.caughtChance;
+
+        final roll = _random.nextInt(100);
+
+        // Only one scene at a time: with a decision already waiting, nobody
+        // confronts me yet.
+        caught = progress.pending == null &&
+            roll < _catchChance(npcId, times);
       }
     }
+
+    // My lover is not happy about being dragged into this.
+    if (caught) next = (next - 15).clamp(-100, 100).toInt();
 
     var updated = _scored(
       progress.copyWith(
@@ -2268,9 +2491,15 @@ class SimulationEngine {
       ),
     );
 
-    // Found out: my partner confronts me as soon as I come back.
-    if (caught && updated.pending == null) {
-      final id = love.isMarried ? 'marriage_caught' : 'cheating_caught';
+    // Found out: my partner confronts me as soon as I come back, in the
+    // way that fits their temperament.
+    if (caught) {
+      final base = love.isMarried ? 'marriage_caught' : 'cheating_caught';
+      final id = switch (Temperament.of(love.partnerId ?? npcId)) {
+        Temperament.steady => base,
+        Temperament.hothead => '${base}_hothead',
+        Temperament.tender => '${base}_tender',
+      };
       final definition = LifeEventCatalog.byId(id);
 
       if (definition != null) {
@@ -2283,6 +2512,8 @@ class SimulationEngine {
         );
         state = state.copyWith(lifeProgress: updated);
       }
+
+      state = _spreadTheNews(state, npcId: npcId, name: name);
     }
 
     final friends = progress.friends;
@@ -2301,6 +2532,95 @@ class SimulationEngine {
       progressed: effective,
       prompt: asksAboutBaby ? 'pregnancy' : null,
       next: state,
+    );
+  }
+
+  /// Percent chance that my partner finds out about an affair with [lover].
+  int _catchChance(String loverId, int timesWithLover) {
+    final year = _state.clock.currentYear;
+    final progress = _state.lifeProgress;
+    final partnerId = progress.love.partnerId;
+    final partner = partnerId == null ? null : _personById(partnerId);
+
+    if (partnerId == null || partner == null) return CheatingRules.base;
+
+    final classmates = {
+      for (final npc in progress.education.classmates) npc.id,
+    };
+    final mine = '$year:$loverId:Have Sex';
+    final partners = '$year:$partnerId:Have Sex';
+    final others = progress.interactionCounts.keys
+        .where(
+          (key) =>
+              key.startsWith('$year:') &&
+              key.endsWith(':Have Sex') &&
+              key != mine &&
+              key != partners,
+        )
+        .length;
+
+    return CheatingRules.chance(
+      sharedCircle:
+          classmates.contains(loverId) && classmates.contains(partnerId),
+      timesWithLover: timesWithLover,
+      otherAffairs: others,
+      partnerSmarts: NpcTraits.forPerson(
+        id: partner.id,
+        gender: partner.gender,
+        birthYear: partner.birthYear,
+        currentYear: year,
+      ).smarts,
+      partner: Temperament.of(partnerId),
+    );
+  }
+
+  /// Word gets around: up to two of my other friends think less of me.
+  WorldState _spreadTheNews(
+    WorldState state, {
+    required String npcId,
+    required String name,
+  }) {
+    final year = state.clock.currentYear;
+    final partnerId = state.lifeProgress.love.partnerId;
+    final pool = [
+      for (final friend in state.lifeProgress.friends)
+        if (friend.id != npcId &&
+            friend.id != partnerId &&
+            friend.relationshipPercent > -50)
+          friend,
+    ];
+    var progress = state.lifeProgress;
+    final told = <String>[];
+
+    while (told.length < 2 && pool.isNotEmpty) {
+      final friend = pool.removeAt(_random.nextInt(pool.length));
+
+      progress = _scored(
+        progress,
+        friend.id,
+        (friend.relationshipPercent - 5).clamp(-100, 100).toInt(),
+      );
+      told.add(friend.fullName);
+    }
+
+    final others = told.isEmpty
+        ? ''
+        : ' ${told.join(' and ')} think${told.length == 1 ? 's' : ''} less '
+            'of me now.';
+
+    return state.copyWith(
+      lifeProgress: progress,
+      events: [
+        ...state.events,
+        SimulationEvent(
+          id: 'gossip-${state.events.length + 1}-$year',
+          type: SimulationEventType.npcInteraction,
+          year: year,
+          title: 'Word Got Around',
+          description: '$name wants nothing to do with me after the news '
+              'came out.$others',
+        ),
+      ],
     );
   }
 
@@ -2395,6 +2715,9 @@ class SimulationEngine {
       final person = id == null ? null : _personById(id);
 
       if (id != null && person != null && !love.isMarried) {
+        final kind = love.stage == LoveRules.stageEngaged
+            ? BreakupKind.engagement
+            : BreakupKind.breakup;
         final broken = _scored(
           progress.copyWith(
             love: love.copyWith(
@@ -2412,21 +2735,45 @@ class SimulationEngine {
           0,
         );
         final year = _state.clock.currentYear;
+        final story = BreakupNarratives.story(
+          _random,
+          person.fullName,
+          kind: kind,
+          cause: BreakupCause.theyLeftMe,
+        );
+        final drop = _breakupDrop(love, kind, BreakupCause.theyLeftMe);
+
+        _enqueueBreakup(
+          npcId: id,
+          name: person.fullName,
+          gender: person.gender,
+          kind: kind,
+          cause: BreakupCause.theyLeftMe,
+          story: story,
+          middle: _breakupDurations(love, kind),
+          drop: drop,
+          scoreBefore: person.relationshipPercent,
+          scoreAfter: 0,
+        );
 
         _commit(
-          _state.copyWith(
-            lifeProgress: broken,
-            events: [
-              ..._state.events,
-              SimulationEvent(
-                id: 'breakup-${_state.events.length + 1}-$year',
-                type: SimulationEventType.npcInteraction,
-                year: year,
-                title: 'Break Up',
-                description: '${person.fullName} found out about my '
-                    'cheating and ended things for good. We are exes now.',
-              ),
-            ],
+          _happier(
+            _state.copyWith(
+              lifeProgress: broken,
+              events: [
+                ..._state.events,
+                SimulationEvent(
+                  id: 'breakup-${_state.events.length + 1}-$year',
+                  type: SimulationEventType.npcInteraction,
+                  year: year,
+                  title: kind == BreakupKind.engagement
+                      ? 'Engagement Off'
+                      : 'Break Up',
+                  description: story,
+                ),
+              ],
+            ),
+            -drop,
           ),
         );
       } else {
@@ -2715,6 +3062,7 @@ class SimulationEngine {
     final checkpoint = _checkpoints[index];
 
     _rewindCount++;
+    _breakups.clear();
     _state = checkpoint.state;
     _nextTickId = checkpoint.nextTickId;
     _random.restoreState(
@@ -2930,6 +3278,7 @@ class SimulationEngine {
         data.randomState,
       );
 
+      _breakups.clear();
       _state = data.state;
       _nextTickId = data.nextTickId;
       _activeSlot = slot;
