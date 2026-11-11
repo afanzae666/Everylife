@@ -136,6 +136,7 @@ class LifeScreen extends StatefulWidget {
     this.readHideDeceased,
     this.onHideDeceased,
     this.milestones,
+    this.onReturnedToLife,
     super.key,
   });
 
@@ -177,6 +178,10 @@ class LifeScreen extends StatefulWidget {
   /// Engagement, marriage and divorce, handed to the partner's page.
   final LoveMilestones? milestones;
 
+  /// Called when I come back from a person's page, so a decision an event
+  /// queued there (like being caught cheating) can be shown.
+  final VoidCallback? onReturnedToLife;
+
   @override
   State<LifeScreen> createState() => _LifeScreenState();
 }
@@ -198,6 +203,24 @@ class _LifeScreenState extends State<LifeScreen> {
       _love = widget.readCurrentLove?.call() ?? _love;
       _canSpendAll = widget.canSpendTimeAll?.call() ?? _canSpendAll;
     });
+
+    final callback = widget.onReturnedToLife;
+
+    if (callback != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => callback());
+    }
+  }
+
+  ButtonStyle get _pillStyle => FilledButton.styleFrom(
+        padding: EdgeInsets.zero,
+        minimumSize: Size(0, widget.zoom * 40),
+      );
+
+  void _toggleHideDeceased() {
+    final hide = !_hideDeceased;
+
+    widget.onHideDeceased?.call(hide: hide);
+    setState(() => _hideDeceased = hide);
   }
 
   Future<void> _spendTimeAll() async {
@@ -511,33 +534,63 @@ class _LifeScreenState extends State<LifeScreen> {
                               ),
                             ),
                           ),
-                        if (widget.onSpendTimeAll != null)
-                          Padding(
-                            padding: EdgeInsets.all(zoom * 8),
-                            child: FilledButton.icon(
+              Padding(
+                padding: EdgeInsets.all(zoom * 8),
+                child: Row(
+                  children: [
+                    // Left: hide deceased (a small pill).
+                    SizedBox(
+                      width: zoom * 52,
+                      child: widget.onHideDeceased == null
+                          ? null
+                          : Tooltip(
+                              message: _hideDeceased
+                                  ? 'Show deceased'
+                                  : 'Hide deceased',
+                              child: _hideDeceased
+                                  ? FilledButton(
+                                      key: const Key('hide-deceased'),
+                                      onPressed: _toggleHideDeceased,
+                                      style: _pillStyle,
+                                      child: const Icon(
+                                        Icons.visibility_off_rounded,
+                                      ),
+                                    )
+                                  : FilledButton.tonal(
+                                      key: const Key('hide-deceased'),
+                                      onPressed: _toggleHideDeceased,
+                                      style: _pillStyle,
+                                      child: const Icon(
+                                        Icons.visibility_rounded,
+                                      ),
+                                    ),
+                            ),
+                    ),
+                    SizedBox(width: zoom * 8),
+                    // Middle: spend time with everyone, the longest.
+                    Expanded(
+                      child: widget.onSpendTimeAll == null
+                          ? const SizedBox.shrink()
+                          : FilledButton.icon(
                               key: const Key('spend-time-all'),
                               onPressed: _canSpendAll ? _spendTimeAll : null,
                               icon: const Icon(Icons.groups_rounded),
-                              label: Text(
-                                _canSpendAll
-                                    ? 'SPEND TIME WITH EVERYONE'
-                                    : 'SPENT TIME THIS YEAR',
+                              label: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  _canSpendAll
+                                      ? 'SPEND TIME WITH EVERYONE'
+                                      : 'SPENT TIME THIS YEAR',
+                                ),
                               ),
                             ),
-                          ),
-              if (widget.onHideDeceased != null)
-                SwitchListTile(
-                  key: const Key('hide-deceased'),
-                  dense: true,
-                  contentPadding: EdgeInsets.symmetric(horizontal: zoom * 16),
-                  title: const Text('Hide deceased'),
-                  secondary: const Icon(Icons.visibility_off_rounded),
-                  value: _hideDeceased,
-                  onChanged: (value) {
-                    widget.onHideDeceased?.call(hide: value);
-                    setState(() => _hideDeceased = value);
-                  },
+                    ),
+                    SizedBox(width: zoom * 8),
+                    // Right: kept free for a feature that is coming.
+                    SizedBox(width: zoom * 52),
+                  ],
                 ),
+              ),
             ],
           ),
         ),
@@ -1044,6 +1097,7 @@ class _FriendNpcCard extends StatelessWidget {
                           ? 'best friend'
                           : 'friend',
                   romanceEligible: friend.role.isStudent && !isEx,
+                  hookUpEligible: friend.role.isStudent,
                   romance: isPartner ? 'partner' : 'none',
                   stage: stage,
                   gender: friend.gender,

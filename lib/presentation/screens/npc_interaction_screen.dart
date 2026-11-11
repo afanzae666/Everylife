@@ -35,6 +35,7 @@ class NpcInteractionScreen extends StatefulWidget {
     this.befriendable = false,
     this.bond = 'none',
     this.romanceEligible = false,
+    this.hookUpEligible = false,
     this.romance = 'none',
     this.playerHasPartner = false,
     this.canUseBirthControl = false,
@@ -83,6 +84,10 @@ class NpcInteractionScreen extends StatefulWidget {
 
   /// True for people the player may date (classmates and friends).
   final bool romanceEligible;
+
+  /// Anyone who is not family can be a one-time lover (cheating, if I have
+  /// a partner).
+  final bool hookUpEligible;
 
   /// 'partner' when this person is the player's boyfriend or girlfriend.
   final String romance;
@@ -719,6 +724,11 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
     final love = [
       if (canDate) 'Start Dating',
       if (canGetBack) 'Get Back Together',
+      if (widget.hookUpEligible &&
+          !isPartner &&
+          canBeIntimate &&
+          _score >= LoveRules.hookUpAt)
+        'Have Sex',
       if (isPartner) ...[
         'Go on a Date',
         if (canBeIntimate) 'Have Sex',

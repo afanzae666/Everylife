@@ -9,6 +9,7 @@ import '../../core/money/currency_formatter.dart';
 import '../../core/result/result.dart';
 import '../../data/services/character_palette_service.dart';
 import '../../domain/character/life_stage.dart';
+import '../../domain/event/npc_interaction_outcome.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
@@ -495,6 +496,20 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  /// After an NPC action: show it in the life log and save it, so leaving
+  /// the game right away never loses it.
+  Result<NpcInteractionOutcome> _afterNpcAction(
+    Result<NpcInteractionOutcome> result,
+  ) {
+    if (result.isSuccess && mounted) {
+      setState(() {});
+      _scrollLifeEventsToBottom();
+      engine.save().ignore();
+    }
+
+    return result;
+  }
+
   Future<void> _ageUp() async {
     if (_isProcessingTurn) {
       return;
@@ -924,14 +939,9 @@ class _GameScreenState extends State<GameScreen> {
   siblings: engine.state.familyHousehold?.siblings ?? const [],
   playerBirthYear: engine.state.player.birthYear,
   currentYear: engine.state.clock.currentYear,
-  onNpcInteraction: ({required npcId, required action}) {
-    final result = engine.interactWithNpc(npcId: npcId, action: action);
-    if (result.isSuccess && mounted) {
-      setState(() {});
-      _scrollLifeEventsToBottom();
-    }
-    return result;
-  },
+  onNpcInteraction: ({required npcId, required action}) =>
+      _afterNpcAction(engine.interactWithNpc(npcId: npcId, action: action)),
+  onReturnedToLife: _handleLifeFlow,
   readCurrentParents: () => engine.state.familyHousehold?.parents ?? const [],
   readCurrentSiblings: () => engine.state.familyHousehold?.siblings ?? const [],
   friends: engine.state.lifeProgress.friends,
@@ -945,6 +955,7 @@ class _GameScreenState extends State<GameScreen> {
 
     setState(() {});
     _scrollLifeEventsToBottom();
+    engine.save().ignore();
 
     return result;
   },
@@ -956,13 +967,26 @@ class _GameScreenState extends State<GameScreen> {
     costLabel: engine.costLabel,
     canAfford: engine.canAfford,
     divorcePreview: engine.divorcePreview,
-    engage: engine.proposeEngagement,
-    marry: engine.marry,
-    divorce: engine.divorce,
+    engage: ({required npcId, required ringId}) => _afterNpcAction(
+      engine.proposeEngagement(npcId: npcId, ringId: ringId),
+    ),
+    marry: ({required npcId, required prenupId, required weddingId}) =>
+        _afterNpcAction(
+      engine.marry(
+        npcId: npcId,
+        prenupId: prenupId,
+        weddingId: weddingId,
+      ),
+    ),
+    divorce: ({required npcId}) => _afterNpcAction(
+      engine.divorce(npcId: npcId),
+    ),
   ),
   readHideDeceased: () => engine.hideDeceased,
-  onHideDeceased: ({required bool hide}) =>
-      engine.setHideDeceased(hide: hide),
+  onHideDeceased: ({required bool hide}) {
+    engine.setHideDeceased(hide: hide);
+    engine.save().ignore();
+  },
 ),
       ),
     );

@@ -786,6 +786,7 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
               bond: _bondOf(npc),
               romanceEligible: npc.role.isStudent &&
                   !state.lifeProgress.love.exIds.contains(npc.id),
+              hookUpEligible: npc.role.isStudent,
               romance: state.lifeProgress.love.partnerId == npc.id
                   ? 'partner'
                   : 'none',
