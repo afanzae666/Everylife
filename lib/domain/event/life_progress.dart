@@ -35,6 +35,11 @@ abstract final class SystemFlags {
   static const String divorceFiledClear = 'divorce_filed_clear';
   static const String divorceFiledUnclear = 'divorce_filed_unclear';
 
+  /// Short-lived markers an event leaves for the game to act on.
+  static const String cheatingProven = 'cheating_proven';
+  static const String divorceByPlayer = 'divorce_by_player';
+  static const String breakupFiled = 'breakup_filed';
+
   static const Set<String> all = {
     employed,
     student,
@@ -53,6 +58,9 @@ abstract final class SystemFlags {
     playerCheated,
     divorceFiledClear,
     divorceFiledUnclear,
+    cheatingProven,
+    divorceByPlayer,
+    breakupFiled,
   };
 }
 
