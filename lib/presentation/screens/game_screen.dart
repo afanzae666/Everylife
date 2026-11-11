@@ -16,6 +16,7 @@ import '../../simulation/events/life_effect_applier.dart';
 import '../../domain/event/life_event.dart';
 import '../../domain/character/character_stats.dart';
 import '../../simulation/school/school_appearance.dart';
+import '../widgets/breakup_overlay.dart';
 import '../widgets/love_milestones.dart';
 import '../widgets/npc_avatar.dart';
 import '../widgets/person_avatar.dart';
@@ -163,6 +164,45 @@ class _GameScreenState extends State<GameScreen> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
+  /// Shows the overlay of every divorce, breakup or called-off engagement
+  /// that has not been shown yet.
+  Future<void> _showBreakups() async {
+    while (mounted) {
+      final summary = engine.takeBreakup();
+
+      if (summary == null) return;
+
+      final person = engine.npcById(summary.npcId);
+
+      await showBreakupOverlay(
+        context,
+        summary,
+        avatar: person == null
+            ? null
+            : NpcAvatar(
+                character: SchoolAppearance.characterFor(person),
+                currentYear: engine.state.clock.currentYear,
+                size: 112,
+              ),
+      );
+
+      if (!mounted) return;
+
+      setState(() {});
+      _scrollLifeEventsToBottom();
+    }
+  }
+
+  /// What runs when an NPC page's story closes, and when it is left: any
+  /// ending overlay first, then a decision that is waiting (such as being
+  /// caught cheating).
+  Future<void> _playScenes() async {
+    if (_isShowingLifeDialog) return;
+
+    await _showBreakups();
+    await _handleLifeFlow();
+  }
+
   /// Shows the pending decision or the ending dialog, if there is one.
   Future<void> _handleLifeFlow() async {
     if (_isShowingLifeDialog || !mounted) {
@@ -173,6 +213,10 @@ class _GameScreenState extends State<GameScreen> {
 
     try {
       while (mounted) {
+        await _showBreakups();
+
+        if (!mounted) return;
+
         final progress = engine.state.lifeProgress;
 
         if (progress.ending != null) {
@@ -920,6 +964,7 @@ class _GameScreenState extends State<GameScreen> {
 
             await engine.save();
           },
+          onSceneEnd: _playScenes,
         ),
       ),
     );
@@ -941,7 +986,7 @@ class _GameScreenState extends State<GameScreen> {
   currentYear: engine.state.clock.currentYear,
   onNpcInteraction: ({required npcId, required action}) =>
       _afterNpcAction(engine.interactWithNpc(npcId: npcId, action: action)),
-  onReturnedToLife: _handleLifeFlow,
+  onReturnedToLife: _playScenes,
   readCurrentParents: () => engine.state.familyHousehold?.parents ?? const [],
   readCurrentSiblings: () => engine.state.familyHousehold?.siblings ?? const [],
   friends: engine.state.lifeProgress.friends,
@@ -981,6 +1026,7 @@ class _GameScreenState extends State<GameScreen> {
     divorce: ({required npcId}) => _afterNpcAction(
       engine.divorce(npcId: npcId),
     ),
+    afterScene: _playScenes,
   ),
   readHideDeceased: () => engine.hideDeceased,
   onHideDeceased: ({required bool hide}) {

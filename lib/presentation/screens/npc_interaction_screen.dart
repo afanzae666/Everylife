@@ -44,6 +44,7 @@ class NpcInteractionScreen extends StatefulWidget {
     this.zoom = 1,
     this.headerBuilder,
     this.milestones,
+    this.onSceneEnd,
     this.gender,
     this.stage = LoveRules.stageDating,
     this.playerName,
@@ -109,6 +110,11 @@ class NpcInteractionScreen extends StatefulWidget {
   /// Engagement, marriage and divorce (partners only).
   final LoveMilestones? milestones;
 
+  /// Runs once an interaction's story is closed, so a follow-up scene (being
+  /// caught cheating, the overlay of a breakup) shows right then. Falls back
+  /// to the one in [milestones].
+  final Future<void> Function()? onSceneEnd;
+
   /// Used for words like girlfriend, fiancé and ex-wife.
   final Gender? gender;
 
@@ -171,6 +177,9 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
     return widget.relationship;
   }
 
+  Future<void> Function()? get _sceneEnd =>
+      widget.onSceneEnd ?? widget.milestones?.afterScene;
+
   void _interact(String action) {
     if (!widget.isAlive || _showingNarrative) return;
 
@@ -205,16 +214,44 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
         if (action == NpcInteractionOutcome.bestFriendNo) return;
 
         setState(() => _showingNarrative = true);
+
+        final scene = _sceneEnd;
+
+        // The end of a relationship has its own overlay with the story.
+        if ((action == 'Divorce' || action == 'Break Up') && scene != null) {
+          scene().whenComplete(() {
+            if (mounted) setState(() => _showingNarrative = false);
+          });
+
+          return;
+        }
+
         _showNarrative(
           value.narrative,
           progressed: value.progressed || value.refused,
           action: action,
-        ).then((_) {
+        ).then((_) async {
           if (!mounted) return;
+
           if (value.prompt == 'bestFriend' && value.romance != 'partner') {
-            _askBestFriend();
+            await _askBestFriend();
           }
-          if (value.prompt == 'pregnancy') _askPregnancy();
+
+          if (!mounted) return;
+
+          if (value.prompt == 'pregnancy') {
+            // The answer ends with its own story and scene.
+            await _askPregnancy();
+
+            return;
+          }
+
+          if (scene == null) return;
+
+          // Right after the story: being caught, a breakup, and so on.
+          setState(() => _showingNarrative = true);
+          await scene();
+          if (mounted) setState(() => _showingNarrative = false);
         });
       case Failure<NpcInteractionOutcome>(:final message):
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));

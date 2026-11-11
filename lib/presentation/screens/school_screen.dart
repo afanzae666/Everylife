@@ -195,6 +195,7 @@ class SchoolScreen extends StatefulWidget {
     required this.engine,
     required this.zoom,
     this.onChanged,
+    this.onSceneEnd,
     this.headerBuilder,
     super.key,
   });
@@ -202,6 +203,7 @@ class SchoolScreen extends StatefulWidget {
   final SimulationEngine engine;
   final double zoom;
   final Future<void> Function()? onChanged;
+  final Future<void> Function()? onSceneEnd;
   final WidgetBuilder? headerBuilder;
 
   @override
@@ -570,6 +572,7 @@ class _SchoolScreenState extends State<SchoolScreen> {
               zoom: widget.zoom,
               faculty: faculty,
               onChanged: widget.onChanged,
+              onSceneEnd: widget.onSceneEnd,
               headerBuilder: widget.headerBuilder,
             ),
           ),
@@ -710,6 +713,7 @@ class SchoolPeopleScreen extends StatefulWidget {
     required this.zoom,
     required this.faculty,
     this.onChanged,
+    this.onSceneEnd,
     this.headerBuilder,
     super.key,
   });
@@ -718,6 +722,7 @@ class SchoolPeopleScreen extends StatefulWidget {
   final double zoom;
   final bool faculty;
   final Future<void> Function()? onChanged;
+  final Future<void> Function()? onSceneEnd;
   final WidgetBuilder? headerBuilder;
 
   @override
@@ -796,6 +801,7 @@ class _SchoolPeopleScreenState extends State<SchoolPeopleScreen> {
               onBirthControl:
                   state.lifeProgress.love.birthControl.contains(npc.id),
               zoom: widget.zoom,
+              onSceneEnd: widget.onSceneEnd,
               headerBuilder: widget.headerBuilder,
               details: [
                 MapEntry('Gender', npc.gender.name == 'male' ? 'Male' : 'Female'),
