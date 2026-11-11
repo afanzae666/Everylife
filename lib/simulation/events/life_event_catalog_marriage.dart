@@ -73,7 +73,8 @@ abstract final class LifeEventCatalogMarriage {
       title: 'Suspicious Messages',
       description:
           'A late-night message lit up {name}\'s phone: "Last night was '
-          'amazing. Same time tomorrow?" It was not from me.',
+          'amazing. Same time tomorrow?" It was not from me. Or was it '
+          'meant for someone else?',
       minAge: 18,
       maxAge: 120,
       about: EventSubjectKind.partner,
@@ -87,18 +88,27 @@ abstract final class LifeEventCatalogMarriage {
           label: 'Confront {name}',
           outcomes: [
             LifeOutcome(
-              weight: 3,
+              weight: 2,
               text: '{first} went pale and admitted everything. I have '
                   'clear proof now, and a broken heart.',
-              addFlags: ['spouse_cheated'],
+              addFlags: ['spouse_cheated', 'cheating_proven'],
               subjectRelation: -30,
               stats: [StatEffect(StatKey.happiness, -12)],
             ),
             LifeOutcome(
+              weight: 2,
               text: 'It was my surprise party being planned. I now feel '
                   'terrible, and {first} is hurt that I did not trust '
                   '{him}.',
-              subjectRelation: -6,
+              subjectRelation: -8,
+              stats: [StatEffect(StatKey.happiness, -2)],
+            ),
+            LifeOutcome(
+              weight: 2,
+              text: 'The message was a wrong number. {first} showed me '
+                  'the whole chat and was not amused that I accused '
+                  '{him}.',
+              subjectRelation: -10,
               stats: [StatEffect(StatKey.happiness, -2)],
             ),
           ],
@@ -109,20 +119,30 @@ abstract final class LifeEventCatalogMarriage {
           requiresMoneyBase: 30000,
           outcomes: [
             LifeOutcome(
-              weight: 3,
+              weight: 2,
               text: 'The investigator returned with photos. {first} was '
                   'cheating, and now I can prove it.',
               moneyBase: -30000,
-              addFlags: ['spouse_cheated'],
+              addFlags: ['spouse_cheated', 'cheating_proven'],
               subjectRelation: -25,
               stats: [StatEffect(StatKey.happiness, -10)],
             ),
             LifeOutcome(
+              weight: 3,
               text: 'The investigator found nothing but a secret pottery '
                   'class. {first} was planning to surprise me with a '
                   'mug. I paid for nothing.',
               moneyBase: -30000,
-              subjectRelation: 3,
+              subjectRelation: -4,
+            ),
+            LifeOutcome(
+              weight: 2,
+              text: 'Three weeks of surveillance proved nothing. {first} '
+                  'found the investigator\'s invoice and was deeply '
+                  'offended.',
+              moneyBase: -30000,
+              subjectRelation: -12,
+              stats: [StatEffect(StatKey.happiness, -2)],
             ),
           ],
         ),
@@ -369,6 +389,183 @@ abstract final class LifeEventCatalogMarriage {
               addFlags: ['divorce_filed_unclear'],
             ),
           ],
+        ),
+      ],
+    ),
+    LifeEventDefinition(
+      id: 'marriage_divorce_choice_a',
+      title: 'The Proof',
+      description:
+          'The evidence is on the table and {name} cannot look me in the '
+          'eye. Everything I believed about our marriage feels fake.',
+      minAge: 18,
+      maxAge: 120,
+      about: EventSubjectKind.partner,
+      requiredFlags: ['married', 'spouse_cheated'],
+      weight: 1,
+      scripted: true,
+      choices: _divorceChoices,
+    ),
+    LifeEventDefinition(
+      id: 'marriage_divorce_choice_b',
+      title: 'Betrayed',
+      description:
+          'I stare at the ring on my finger. {name} betrayed me, and now '
+          'the question is whether I can ever trust {him} again.',
+      minAge: 18,
+      maxAge: 120,
+      about: EventSubjectKind.partner,
+      requiredFlags: ['married', 'spouse_cheated'],
+      weight: 1,
+      scripted: true,
+      choices: _divorceChoices,
+    ),
+    LifeEventDefinition(
+      id: 'marriage_divorce_choice_c',
+      title: 'Crossroads',
+      description:
+          'The house is silent after the truth came out. {name} is '
+          'waiting for my answer, and so is the rest of my life.',
+      minAge: 18,
+      maxAge: 120,
+      about: EventSubjectKind.partner,
+      requiredFlags: ['married', 'spouse_cheated'],
+      weight: 1,
+      scripted: true,
+      choices: _divorceChoices,
+    ),
+    LifeEventDefinition(
+      id: 'cheating_caught',
+      title: 'Caught Cheating',
+      description:
+          '{Name} stood in front of me, holding proof of what I did. '
+          'There was no easy way out of this one.',
+      minAge: 18,
+      maxAge: 120,
+      about: EventSubjectKind.partner,
+      requiredFlags: ['player_cheated'],
+      forbiddenFlags: ['married'],
+      weight: 20,
+      cooldownYears: 1,
+      choices: [
+        LifeChoice(
+          id: 'apologize',
+          label: 'Apologize sincerely',
+          outcomes: [
+            LifeOutcome(
+              weight: 2,
+              text: '{first} cried, then forgave me. Trust will take a '
+                  'long time to rebuild.',
+              removeFlags: ['player_cheated'],
+              subjectRelation: -20,
+              stats: [StatEffect(StatKey.happiness, -5)],
+            ),
+            LifeOutcome(
+              weight: 2,
+              text: '"Sorry does not undo it," said {first}. We are '
+                  'over.',
+              addFlags: ['breakup_filed'],
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'flowers',
+          label: 'Beg with flowers and a gift',
+          requiresMoneyBase: 10000,
+          outcomes: [
+            LifeOutcome(
+              weight: 3,
+              text: 'The flowers were a mess, the speech worse, but '
+                  '{first} laughed through the tears and gave me one '
+                  'more chance.',
+              moneyBase: -10000,
+              removeFlags: ['player_cheated'],
+              subjectRelation: -15,
+              stats: [StatEffect(StatKey.happiness, -2)],
+            ),
+            LifeOutcome(
+              weight: 1,
+              text: '{first} threw the flowers in the trash and walked '
+                  'out. It is finished.',
+              moneyBase: -10000,
+              addFlags: ['breakup_filed'],
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'deny',
+          label: 'Deny everything',
+          outcomes: [
+            LifeOutcome(
+              weight: 3,
+              text: '{first} played the voice message out loud. The '
+                  'silence afterwards ended our relationship.',
+              addFlags: ['breakup_filed'],
+            ),
+            LifeOutcome(
+              weight: 1,
+              text: 'I lied so confidently that {first} half believed '
+                  'me. The doubt will not go away.',
+              subjectRelation: -12,
+              stats: [StatEffect(StatKey.happiness, -3)],
+            ),
+          ],
+        ),
+      ],
+    ),
+  ];
+
+  static const List<LifeChoice> _divorceChoices = [
+    LifeChoice(
+      id: 'divorce',
+      label: 'File for divorce',
+      outcomes: [
+        LifeOutcome(
+          text: 'I called a lawyer the same afternoon. The marriage is '
+              'over, and I have clear grounds.',
+          addFlags: ['divorce_by_player'],
+        ),
+        LifeOutcome(
+          text: 'I packed a bag and filed the papers. No more lies, no '
+              'more excuses.',
+          addFlags: ['divorce_by_player'],
+        ),
+        LifeOutcome(
+          text: 'I took off my ring, put it on the table, and said one '
+              'word: "Goodbye." The papers followed.',
+          addFlags: ['divorce_by_player'],
+        ),
+      ],
+    ),
+    LifeChoice(
+      id: 'stay',
+      label: 'Give {him} another chance',
+      outcomes: [
+        LifeOutcome(
+          text: 'I chose to stay, for now. Trust does not return '
+              'overnight, but we are trying.',
+          removeFlags: ['spouse_cheated'],
+          subjectRelation: 8,
+          stats: [StatEffect(StatKey.happiness, -3)],
+        ),
+        LifeOutcome(
+          text: 'We talked until sunrise. I am staying, but {first} knows '
+              'this is the last chance.',
+          removeFlags: ['spouse_cheated'],
+          subjectRelation: 5,
+          stats: [StatEffect(StatKey.happiness, -2)],
+        ),
+      ],
+    ),
+    LifeChoice(
+      id: 'time',
+      label: 'I need time to think',
+      outcomes: [
+        LifeOutcome(
+          text: 'I slept in the guest room. The question will not go '
+              'away, and neither will the pain.',
+          subjectRelation: -5,
+          stats: [StatEffect(StatKey.happiness, -4)],
         ),
       ],
     ),
