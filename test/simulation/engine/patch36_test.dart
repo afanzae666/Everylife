@@ -7,7 +7,6 @@ import 'package:everylife/data/repositories/save_repository.dart';
 import 'package:everylife/domain/career/school_npc.dart';
 import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/character/gender.dart';
-import 'package:everylife/domain/event/life_event.dart';
 import 'package:everylife/domain/event/life_progress.dart';
 import 'package:everylife/domain/event/npc_interaction_outcome.dart';
 import 'package:everylife/domain/love/love_state.dart';
