@@ -19,6 +19,7 @@ class LoveMilestones {
     required this.engage,
     required this.marry,
     required this.divorce,
+    this.afterScene,
   });
 
   final bool Function(String npcId) canEngage;
@@ -47,6 +48,10 @@ class LoveMilestones {
 
   final Result<NpcInteractionOutcome> Function({required String npcId})
       divorce;
+
+  /// Shows what follows a story right away: a decision after being caught,
+  /// or the overlay of an ending.
+  final Future<void> Function()? afterScene;
 }
 
 /// A pop-up with a scene and a list of options, each with its cost.
