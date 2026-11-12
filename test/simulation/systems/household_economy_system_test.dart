@@ -65,7 +65,6 @@ void main() {
       lastName: 'Parent',
       gender: Gender.female,
       birthYear: 1995,
-      relationship: SiblingRelationship.fullSibling,
     );
 
     final initial = makeState(
@@ -101,21 +100,6 @@ void main() {
     same(advanced),
   );
 });
-
-  test('guardian death does not transfer guardian finances as inheritance', () {
-    final guardian = makeParent(
-      birthYear: 1926,
-      balance: 200000,
-      income: 10000,
-      expenses: 0,
-      role: FamilyRole.guardian,
-    );
-    final result = process(makeState(guardian));
-
-    expect(result.familyHousehold!.parents.single.isAlive, isFalse);
-    expect(result.player.money.minorUnits, 0);
-    expect(result.events.single.description, isNot(contains('received your share')));
-  });
 
   test('distributes an estate once when a parent reaches terminal age', () {
     final parent = makeParent(

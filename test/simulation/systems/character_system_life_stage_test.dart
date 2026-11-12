@@ -35,7 +35,6 @@ void main() {
             lastName: 'Morgan',
             gender: Gender.female,
             birthYear: 2029,
-            relationship: SiblingRelationship.fullSibling,
             isTwin: true,
           ),
           SiblingNpc(
@@ -44,7 +43,6 @@ void main() {
             lastName: 'Morgan',
             gender: Gender.female,
             birthYear: 2029,
-            relationship: SiblingRelationship.fullSibling,
             isTwin: true,
           ),
         ],
