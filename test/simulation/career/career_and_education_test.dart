@@ -58,7 +58,6 @@ void main() {
       highest: EducationLevel.highSchool,
       grades: 77,
       yearsInStage: 2,
-      lastUniversityApplicationYear: 2018,
     );
 
     final copy = EducationState.fromJson(state.toJson());
@@ -67,7 +66,6 @@ void main() {
     expect(copy.highest, EducationLevel.highSchool);
     expect(copy.grades, 77);
     expect(copy.yearsInStage, 2);
-    expect(copy.lastUniversityApplicationYear, 2018);
     expect(EducationState.fromJson(null).initialized, isFalse);
   });
 

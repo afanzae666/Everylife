@@ -200,6 +200,27 @@ void main() {
       expect(accepted, greaterThan(0));
     });
 
+    test('a turned down student can apply again in the same year', () {
+      var retried = false;
+
+      for (var seed = 0; seed < 200 && !retried; seed++) {
+        final engine = _engineAt(
+          age: 18,
+          seed: seed,
+          progress: const LifeProgress(education: _graduate),
+        );
+
+        expect(engine.applyForUniversity('business').isSuccess, isTrue);
+
+        if (engine.state.lifeProgress.education.isStudent) continue;
+
+        expect(engine.applyForUniversity('education').isSuccess, isTrue);
+        retried = true;
+      }
+
+      expect(retried, isTrue);
+    });
+
     test('leaving university forgets the major', () {
       final engine = _engineAt(
         age: 19,
