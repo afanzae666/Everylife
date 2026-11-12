@@ -26,8 +26,6 @@ void main() {
         housingStatus: HousingStatus.rented,
         annualLivingCosts: const Money.fromMinorUnits(100),
         totalDebt: const Money.fromMinorUnits(50),
-        isAffairConception: true,
-        raisedByFather: true,
       );
 
   test('copyWith without arguments keeps every field', () {
@@ -42,8 +40,6 @@ void main() {
     expect(copy.housingStatus, original.housingStatus);
     expect(copy.annualLivingCosts, original.annualLivingCosts);
     expect(copy.totalDebt, original.totalDebt);
-    expect(copy.isAffairConception, isTrue);
-    expect(copy.raisedByFather, isTrue);
   });
 
   test('copyWith replaces only the requested fields', () {
@@ -54,8 +50,6 @@ void main() {
 
     expect(copy.housingStatus, HousingStatus.providedByOthers);
     expect(copy.parents.single.id, 'parent-father-other');
-    expect(copy.isAffairConception, isTrue);
-    expect(copy.raisedByFather, isTrue);
     expect(copy.cashSavings, const Money.fromMinorUnits(500));
   });
 }
