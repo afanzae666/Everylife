@@ -327,6 +327,8 @@ abstract final class CareerActions {
     }
 
     final accepted = random.nextInt(100) < universityChance(state);
+    final scholarship =
+        MajorCatalog.scholarshipPercentFor(education.grades);
 
     final flags = {...state.lifeProgress.flags};
     if (accepted) {
@@ -343,6 +345,7 @@ abstract final class CareerActions {
             stage: accepted ? SchoolStage.university : null,
             yearsInStage: accepted ? 0 : null,
             majorId: accepted ? major.id : null,
+            scholarshipPercent: accepted ? scholarship : null,
           ),
           flags: flags,
         ),
@@ -352,6 +355,7 @@ abstract final class CareerActions {
       text: accepted
           ? 'I was accepted to study ${major.name}. Tuition is '
               '${MoneyText.of(state, tuitionFor(state, major))} a year.'
+              '${scholarship > 0 ? ' My grades earned a $scholarship% scholarship.' : ''}'
           : 'My application to study ${major.name} was turned down.',
     );
 
