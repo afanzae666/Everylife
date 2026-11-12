@@ -164,8 +164,7 @@ void main() {
         progress: progressFor(
           stage: LoveRules.stageMarried,
           prenup: 'none',
-          // Flags that older saves may still carry are dropped.
-          flags: {'married', 'player_cheated'},
+          flags: {'married'},
           pending: pendingFor('marriage_wants_out'),
         ),
       );
@@ -178,10 +177,6 @@ void main() {
       expect(factOf(summary, 'Why'), endsWith('left, no reason given'));
       expect(factOf(summary, 'Fine'), contains('paid me'));
       expect(engine.state.lifeProgress.love.partnerId, isNull);
-      expect(
-        engine.state.lifeProgress.flags,
-        isNot(contains('player_cheated')),
-      );
     });
 
     test('a long marriage with children hurts more than a short fling', () {

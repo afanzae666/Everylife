@@ -141,11 +141,7 @@ void main() {
 
     expect(parents, isNotEmpty);
     for (final parent in parents) {
-      if (parent.role != FamilyRole.guardian) {
-        expect(parent.lastName, 'Zaenal');
-      } else {
-        expect(parent.lastName, isNot('Zaenal'));
-      }
+      expect(parent.lastName, 'Zaenal');
       expect(parent.countryCode, 'ID');
       expect(parent.cashBalance.minorUnits, greaterThanOrEqualTo(0));
       expect(parent.annualExpenses.minorUnits, greaterThanOrEqualTo(0));
@@ -217,9 +213,6 @@ void main() {
         final roleLabel = switch (parent.role) {
           FamilyRole.father => 'My father, ${parent.fullName},',
           FamilyRole.mother => 'My mother, ${parent.fullName},',
-          FamilyRole.guardian => 'My guardian, ${parent.fullName},',
-          FamilyRole.stepFather => 'My stepfather, ${parent.fullName},',
-          FamilyRole.stepMother => 'My stepmother, ${parent.fullName},',
         };
 
         expect(economyDescription, contains(roleLabel));

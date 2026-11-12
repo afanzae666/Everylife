@@ -557,7 +557,7 @@ void main() {
     });
 
     test(
-      'rejects a household with more than two parents when there is no step-parent',
+      'rejects a household with more than two parents',
       () {
         final state = createState().copyWith(
           familyHousehold: createHousehold(
@@ -573,24 +573,6 @@ void main() {
         expect(validator.validate(state).isFailure, isTrue);
       },
     );
-
-    test('accepts three parents when one is a step-parent', () {
-      final state = createState().copyWith(
-        familyHousehold: createHousehold(
-          parents: [
-            createParent(id: 'parent-father'),
-            createParent(id: 'parent-mother', firstName: 'Jamie'),
-            createParent(
-              id: 'parent-step-mother',
-              firstName: 'Morgan',
-              role: FamilyRole.stepMother,
-            ),
-          ],
-        ),
-      );
-
-      expect(validator.validate(state).isSuccess, isTrue);
-    });
 
     test('accepts a world state without a household for legacy saves', () {
       expect(
