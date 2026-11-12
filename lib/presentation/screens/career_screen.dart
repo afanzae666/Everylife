@@ -109,6 +109,9 @@ class _CareerScreenState extends State<CareerScreen> {
       grades: state.lifeProgress.education.grades,
       intelligence: state.player.stats.intelligence,
       chance: engine.universityChance,
+      scholarship: MajorCatalog.scholarshipPercentFor(
+        state.lifeProgress.education.grades,
+      ),
       year: state.clock.currentYear,
     );
 
