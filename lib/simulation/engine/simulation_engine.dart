@@ -2443,28 +2443,10 @@ class SimulationEngine {
     );
   }
 
-  /// Flags that older saves may still carry from removed features. They do
-  /// nothing now, so they are dropped.
-  static const List<String> _removedFlags = [
-    'spouse_cheated',
-    'player_cheated',
-    'cheating_proven',
-    'divorce_by_player',
-    'divorce_filed_clear',
-    'breakup_filed',
-  ];
-
   /// Carries out a divorce that an event started (the spouse asked).
   void _processMarriageFlags() {
-    var progress = _state.lifeProgress;
+    final progress = _state.lifeProgress;
     final love = progress.love;
-
-    if (_removedFlags.any(progress.flags.contains)) {
-      progress = progress.copyWith(
-        flags: {...progress.flags}..removeAll(_removedFlags),
-      );
-      _commit(_state.copyWith(lifeProgress: progress));
-    }
 
     if (!progress.flags.contains(SystemFlags.divorceFiledUnclear)) return;
 
