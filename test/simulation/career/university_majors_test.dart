@@ -8,17 +8,53 @@ import 'package:everylife/domain/career/job_catalog.dart';
 import 'package:everylife/domain/career/major_catalog.dart';
 import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/event/life_progress.dart';
+import 'package:everylife/domain/family/family_household.dart';
+import 'package:everylife/domain/family/parent_npc.dart';
+import 'package:everylife/domain/character/gender.dart';
 import 'package:everylife/domain/time/simulation_clock.dart';
 import 'package:everylife/domain/world/world_state.dart';
 import 'package:everylife/simulation/commands/age_up_command.dart';
 import 'package:everylife/simulation/engine/simulation_engine.dart';
+import 'package:everylife/simulation/events/life_event_catalog.dart';
 import 'package:everylife/simulation/systems/education_system.dart';
+
+ParentNpc _parent({
+  required String id,
+  required FamilyRole role,
+  int cash = 0,
+  int relationship = 80,
+}) {
+  return ParentNpc(
+    id: id,
+    firstName: role == FamilyRole.mother ? 'Grace' : 'Henry',
+    lastName: 'Wilson',
+    gender: role == FamilyRole.mother ? Gender.female : Gender.male,
+    birthYear: 1965,
+    role: role,
+    employmentStatus: EmploymentStatus.employed,
+    annualIncome: const Money.zero(),
+    incomeStability: IncomeStability.stable,
+    cashBalance: Money.fromMinorUnits(cash),
+    relationshipPercent: relationship,
+  );
+}
+
+FamilyHousehold _household(List<ParentNpc> parents) => FamilyHousehold(
+      id: 'household-test',
+      parents: parents,
+      cashSavings: const Money.zero(),
+      assets: const [],
+      housingStatus: HousingStatus.rented,
+      annualLivingCosts: const Money.zero(),
+      totalDebt: const Money.zero(),
+    );
 
 SimulationEngine _engineAt({
   required int age,
   required LifeProgress progress,
   int money = 0,
   int seed = 1,
+  List<ParentNpc> parents = const [],
 }) {
   final base = SimulationEngine.create(
     player: Character.create(id: 'p', name: 'Test Player', birthYear: 2000),
@@ -31,6 +67,7 @@ SimulationEngine _engineAt({
       clock: SimulationClock(currentYear: 2000 + age),
       player: base.state.player.copyWith(money: Money.fromMinorUnits(money)),
       lifeProgress: progress,
+      familyHousehold: _household(parents),
     ),
     random: SeededRandom(seed),
     saveRepository: InMemorySaveRepository(),
@@ -307,6 +344,221 @@ void main() {
 
       expect(next.player.money.minorUnits, 500);
       expect(next.player.debt.minorUnits, 0);
+    });
+  });
+
+  group('scholarships and help from parents', () {
+    final business = MajorCatalog.byId('business')!;
+
+    WorldState payOneYear(SimulationEngine engine) =>
+        EducationSystem(random: SeededRandom(1)).process(
+          state: engine.state,
+          command: const AgeUpCommand(),
+        );
+
+    test('scholarships grow with grades', () {
+      expect(MajorCatalog.scholarshipPercentFor(60), 0);
+      expect(MajorCatalog.scholarshipPercentFor(70), 20);
+      expect(MajorCatalog.scholarshipPercentFor(80), 40);
+      expect(MajorCatalog.scholarshipPercentFor(95), 70);
+    });
+
+    test('a scholarship covers part of the tuition', () {
+      final engine = _engineAt(
+        age: 19,
+        progress: const LifeProgress(
+          education: EducationState(
+            initialized: true,
+            stage: SchoolStage.university,
+            highest: EducationLevel.highSchool,
+            majorId: 'business',
+            grades: 85,
+            scholarshipPercent: 40,
+          ),
+        ),
+      );
+      final tuition = engine.tuitionFor(business);
+
+      final next = payOneYear(engine);
+
+      expect(next.player.debt.minorUnits, tuition - tuition * 40 ~/ 100);
+    });
+
+    test('a scholarship is lost when grades slip', () {
+      final engine = _engineAt(
+        age: 19,
+        progress: const LifeProgress(
+          education: EducationState(
+            initialized: true,
+            stage: SchoolStage.university,
+            highest: EducationLevel.highSchool,
+            majorId: 'business',
+            grades: 40,
+            scholarshipPercent: 40,
+          ),
+        ),
+      );
+      final tuition = engine.tuitionFor(business);
+
+      final next = payOneYear(engine);
+
+      expect(next.lifeProgress.education.scholarshipPercent, 0);
+      expect(next.player.debt.minorUnits, tuition);
+      expect(
+        next.events.any((event) => event.title == 'Scholarship lost'),
+        isTrue,
+      );
+    });
+
+    test('close parents with savings pay a share of the tuition', () {
+      final engine = _engineAt(
+        age: 19,
+        parents: [
+          _parent(id: 'm', role: FamilyRole.mother, cash: 10000000),
+          _parent(id: 'f', role: FamilyRole.father, cash: 10000000),
+        ],
+        progress: const LifeProgress(education: _businessStudent),
+      );
+      final tuition = engine.tuitionFor(business);
+      final each = tuition * 30 ~/ 100;
+
+      final next = payOneYear(engine);
+      final parents = next.familyHousehold!.parents;
+
+      expect(parents[0].cashBalance.minorUnits, 10000000 - each);
+      expect(parents[1].cashBalance.minorUnits, 10000000 - each);
+      expect(next.player.debt.minorUnits, tuition - 2 * each);
+    });
+
+    test('a parent never gives more than half of their savings', () {
+      final engine = _engineAt(
+        age: 19,
+        parents: [_parent(id: 'm', role: FamilyRole.mother, cash: 100000)],
+        progress: const LifeProgress(education: _businessStudent),
+      );
+      final tuition = engine.tuitionFor(business);
+
+      final next = payOneYear(engine);
+
+      expect(next.familyHousehold!.parents.single.cashBalance.minorUnits, 50000);
+      expect(next.player.debt.minorUnits, tuition - 50000);
+    });
+
+    test('a distant parent does not help', () {
+      final engine = _engineAt(
+        age: 19,
+        parents: [
+          _parent(
+            id: 'm',
+            role: FamilyRole.mother,
+            cash: 10000000,
+            relationship: 10,
+          ),
+        ],
+        progress: const LifeProgress(education: _businessStudent),
+      );
+      final tuition = engine.tuitionFor(business);
+
+      final next = payOneYear(engine);
+
+      expect(
+        next.familyHousehold!.parents.single.cashBalance.minorUnits,
+        10000000,
+      );
+      expect(next.player.debt.minorUnits, tuition);
+    });
+
+    test('an accepted student with top grades gets the best scholarship', () {
+      for (var seed = 0; seed < 40; seed++) {
+        final engine = _engineAt(
+          age: 18,
+          seed: seed,
+          progress: const LifeProgress(education: _graduate),
+        );
+
+        engine.applyForUniversity('business');
+
+        final education = engine.state.lifeProgress.education;
+
+        if (education.isStudent) {
+          expect(education.scholarshipPercent, 70);
+          return;
+        }
+      }
+
+      fail('Nobody was accepted in 40 tries.');
+    });
+
+    test('the scholarship ends with the degree', () {
+      final engine = _engineAt(
+        age: 19,
+        money: 100000000,
+        progress: const LifeProgress(
+          education: EducationState(
+            initialized: true,
+            stage: SchoolStage.university,
+            highest: EducationLevel.highSchool,
+            majorId: 'business',
+            grades: 90,
+            scholarshipPercent: 70,
+          ),
+        ),
+      );
+      final system = EducationSystem(random: SeededRandom(1));
+      var state = engine.state;
+
+      for (var year = 0; year < business.years; year++) {
+        state = _advanceYear(
+          system.process(state: state, command: const AgeUpCommand()),
+        );
+      }
+
+      expect(state.lifeProgress.education.highest, EducationLevel.bachelor);
+      expect(state.lifeProgress.education.scholarshipPercent, 0);
+    });
+  });
+
+  group('field of study flags and events', () {
+    test('a student carries the flag of the major they study', () {
+      final engine = _engineAt(
+        age: 19,
+        money: 100000000,
+        progress: const LifeProgress(education: _businessStudent),
+      );
+
+      final next = EducationSystem(random: SeededRandom(1)).process(
+        state: engine.state,
+        command: const AgeUpCommand(),
+      );
+
+      expect(
+        next.lifeProgress.flags,
+        contains(SystemFlags.studying(StudyField.business)),
+      );
+      expect(next.lifeProgress.flags, contains(SystemFlags.universityStudent));
+      expect(
+        next.lifeProgress.flags,
+        isNot(contains(SystemFlags.studying(StudyField.law))),
+      );
+    });
+
+    test('every field has its own university events', () {
+      for (final field in StudyField.values) {
+        final flag = SystemFlags.studying(field);
+        final events = LifeEventCatalog.all
+            .where((event) => event.requiredFlags.contains(flag));
+
+        expect(events.length, greaterThanOrEqualTo(2), reason: field.name);
+
+        for (final event in events) {
+          expect(event.id, startsWith('uni_'));
+          expect(
+            event.requiredFlags,
+            contains(SystemFlags.universityStudent),
+            reason: event.id,
+          );
+        }
+      }
     });
   });
 }
