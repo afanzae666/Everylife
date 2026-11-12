@@ -3,13 +3,6 @@ import '../character/cultural_name_catalog.dart';
 import '../character/gender.dart';
 import 'npc_finance.dart';
 
-/// Relationship of a sibling NPC to the player character.
-enum SiblingRelationship {
-  fullSibling,
-  halfSibling,
-  stepSibling,
-}
-
 /// Persistent identity for a sibling shown in the existing Siblings card.
 class SiblingNpc {
   const SiblingNpc({
@@ -18,7 +11,6 @@ class SiblingNpc {
     required this.lastName,
     required this.gender,
     required this.birthYear,
-    required this.relationship,
     this.appearance = const CharacterAppearance(),
     this.countryCode = 'ID',
     this.relationshipPercent = 50,
@@ -33,7 +25,6 @@ class SiblingNpc {
   final String lastName;
   final Gender gender;
   final int birthYear;
-  final SiblingRelationship relationship;
   final CharacterAppearance appearance;
   final String countryCode;
 
@@ -70,7 +61,6 @@ class SiblingNpc {
         lastName: lastName,
         gender: gender,
         birthYear: birthYear,
-        relationship: relationship,
         appearance: appearance,
         countryCode: countryCode,
         relationshipPercent: relationshipPercent ?? this.relationshipPercent,
