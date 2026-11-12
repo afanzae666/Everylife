@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:everylife/core/random/seeded_random.dart';
 import 'package:everylife/domain/character/gender.dart';
 import 'package:everylife/domain/family/parent_npc.dart';
-import 'package:everylife/domain/family/sibling_npc.dart';
 import 'package:everylife/simulation/generation/family_household_generator.dart';
 
 void main() {
