@@ -32,7 +32,6 @@ Future<String?> showUniversityPicker(
   required int intelligence,
   required int chance,
   required int scholarship,
-  required int year,
 }) {
   final size = MediaQuery.of(context).size;
   final width = (size.width - 44).clamp(280.0, 600.0).toDouble();
@@ -51,7 +50,6 @@ Future<String?> showUniversityPicker(
           intelligence: intelligence,
           chance: chance,
           scholarship: scholarship,
-          year: year,
           onApply: (majorId) => Navigator.of(dialogContext).pop(majorId),
         ),
       ),
@@ -70,7 +68,6 @@ class UniversityPickerBody extends StatefulWidget {
     required this.intelligence,
     required this.chance,
     required this.scholarship,
-    required this.year,
     required this.onApply,
   });
 
@@ -84,7 +81,6 @@ class UniversityPickerBody extends StatefulWidget {
 
   /// Percent of tuition a scholarship would cover for these grades.
   final int scholarship;
-  final int year;
   final ValueChanged<String> onApply;
 
   @override
@@ -92,37 +88,6 @@ class UniversityPickerBody extends StatefulWidget {
 }
 
 class _UniversityPickerBodyState extends State<UniversityPickerBody> {
-  static const List<String> _intros = [
-    'The last bell of high school rang a while ago, and the quiet after it '
-        'is louder than I expected. A stack of glossy brochures sits on my '
-        'desk, each one promising to turn me into somebody. Everyone has '
-        'advice. Today I get to decide what I want.',
-    'Campus tours, open days, free tote bags. Every university swears it is '
-        'the place where my life really begins. All I have to do is choose '
-        'a door and walk through it.',
-    'My friends are already arguing about it in the group chat. I mute it, '
-        'stare at the ceiling and ask the one question no brochure can '
-        'answer: what do I want to be doing in ten years?',
-    'The application page is open and the cursor keeps blinking. Somewhere '
-        'out there is a lecture hall with a seat that could be mine. Time to '
-        'find it.',
-    'My parents pretend not to hover. The kettle has boiled three times. '
-        'The future is a form with exactly one blank that matters, and I '
-        'have to fill it in myself.',
-  ];
-
-  String get _gradesLine {
-    if (widget.grades >= 80) {
-      return 'My grades are strong, so I can aim high.';
-    }
-
-    if (widget.grades >= 60) {
-      return 'My grades are decent, and I have real options.';
-    }
-
-    return 'My grades are not great, but nobody ever got in by not trying.';
-  }
-
   InstitutionType? _type;
   UniversityMajorOption? _picked;
 
@@ -161,10 +126,12 @@ class _UniversityPickerBodyState extends State<UniversityPickerBody> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Center(child: Text('🎓', style: TextStyle(fontSize: 44))),
+          const Center(child: Icon(Icons.school_outlined, size: 44)),
           const SizedBox(height: 8),
           Text(
-            '${_intros[widget.year % _intros.length]}\n\n$_gradesLine',
+            'Choose where you want to study. A general university offers many '
+            'majors in one place. A specialized institution trains you for '
+            'one profession.',
             key: const Key('university-intro'),
             style: theme.textTheme.bodyLarge,
           ),
