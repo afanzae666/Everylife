@@ -223,7 +223,6 @@ class _CareerScreenState extends State<CareerScreen> {
     final canApply = !education.isStudent &&
         education.highest == EducationLevel.highSchool &&
         age >= 18;
-    final appliedThisYear = education.lastUniversityApplicationYear == year;
     final canDropOut = education.stage == SchoolStage.high ||
         education.stage == SchoolStage.university;
 
@@ -267,13 +266,40 @@ class _CareerScreenState extends State<CareerScreen> {
                 ),
               ),
             if (canApply)
-              FilledButton.tonal(
-                key: const Key('apply-university'),
-                onPressed: appliedThisYear || hasJob ? null : _openUniversityPicker,
-                child: Text(
-                  appliedThisYear
-                      ? 'Applied already'
-                      : 'APPLY TO UNIVERSITY (${engine.universityChance}% chance)',
+              Opacity(
+                opacity: hasJob ? 0.5 : 1,
+                child: Card(
+                  key: const Key('university-card'),
+                  margin: EdgeInsets.zero,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  child: InkWell(
+                    onTap: hasJob ? null : _openUniversityPicker,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: EdgeInsets.all(s(8)),
+                      child: Row(
+                        children: [
+                          Text('🎓', style: TextStyle(fontSize: s(26))),
+                          SizedBox(width: s(8)),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'University',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium,
+                                ),
+                                const Text('Tap to see where I could study'),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             if (canDropOut)
