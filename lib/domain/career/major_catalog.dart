@@ -69,6 +69,18 @@ abstract final class MajorCatalog {
   /// Length used when the major is unknown.
   static const int defaultYears = 4;
 
+  /// Grades a student must keep to keep a scholarship.
+  static const int scholarshipKeepGrades = 60;
+
+  /// Share of tuition (percent) a scholarship covers for these grades.
+  static int scholarshipPercentFor(int grades) {
+    if (grades >= 90) return 70;
+    if (grades >= 80) return 40;
+    if (grades >= 70) return 20;
+
+    return 0;
+  }
+
   static MajorDefinition? byId(String? id) {
     if (id == null) return null;
 
