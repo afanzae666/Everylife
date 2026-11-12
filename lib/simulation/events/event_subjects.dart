@@ -17,9 +17,6 @@ abstract final class EventSubjects {
   static String _parentRole(ParentNpc parent) => switch (parent.role) {
         FamilyRole.father => 'my father',
         FamilyRole.mother => 'my mother',
-        FamilyRole.stepFather => 'my stepfather',
-        FamilyRole.stepMother => 'my stepmother',
-        FamilyRole.guardian => 'my guardian',
       };
 
   static String _facultyRole(SchoolRole role) => switch (role) {
