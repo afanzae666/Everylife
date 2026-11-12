@@ -151,7 +151,7 @@ void main() {
         ),
       );
 
-      final result = engine.applyForUniversity();
+      final result = engine.applyForUniversity('business');
 
       expect(result.isFailure, isTrue);
       expect(engine.state.lifeProgress.education.isStudent, isFalse);
