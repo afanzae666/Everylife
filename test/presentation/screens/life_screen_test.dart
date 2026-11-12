@@ -126,27 +126,26 @@ void main() {
     expect(find.byIcon(Icons.chevron_right_rounded), findsNothing);
   });
 
-  testWidgets('Life screen places step-parents and step-siblings in existing cards', (
+  testWidgets('Life screen places parents and siblings in existing cards', (
     tester,
   ) async {
-    final stepParent = ParentNpc(
-      id: 'step-parent-test',
+    final mother = ParentNpc(
+      id: 'mother-test',
       firstName: 'Alex',
       lastName: 'Morgan',
       gender: Gender.female,
       birthYear: 1980,
-      role: FamilyRole.stepMother,
+      role: FamilyRole.mother,
       employmentStatus: EmploymentStatus.unemployed,
       annualIncome: Money.zero(),
       incomeStability: IncomeStability.none,
     );
-    const stepSibling = SiblingNpc(
-      id: 'step-sibling-test',
+    const sister = SiblingNpc(
+      id: 'younger-sister-test',
       firstName: 'Jordan',
       lastName: 'Lee',
       gender: Gender.female,
       birthYear: 2030,
-      relationship: SiblingRelationship.stepSibling,
     );
 
     await tester.pumpWidget(MaterialApp(
@@ -154,14 +153,14 @@ void main() {
         zoom: 1,
         currentYear: 2030,
         playerBirthYear: 2026,
-        parents: [stepParent],
-        siblings: const [stepSibling],
+        parents: [mother],
+        siblings: const [sister],
       ),
     ));
     await tester.pump();
 
-    expect(find.text('(STEPMOTHER)'), findsOneWidget);
-    expect(find.text('(YOUNGER STEPSISTER)'), findsOneWidget);
+    expect(find.text('(MOTHER)'), findsOneWidget);
+    expect(find.text('(YOUNGER SISTER)'), findsOneWidget);
     expect(find.text('Parents'), findsOneWidget);
     expect(find.text('Siblings'), findsOneWidget);
   });
@@ -175,7 +174,6 @@ void main() {
       lastName: 'Lee',
       gender: Gender.male,
       birthYear: 2010,
-      relationship: SiblingRelationship.fullSibling,
     );
     const unbornSibling = SiblingNpc(
       id: 'unborn-sister-test',
@@ -183,7 +181,6 @@ void main() {
       lastName: 'Lee',
       gender: Gender.female,
       birthYear: 2030,
-      relationship: SiblingRelationship.fullSibling,
     );
 
     await tester.pumpWidget(
@@ -253,7 +250,6 @@ void main() {
               lastName: 'Taylor',
               gender: Gender.female,
               birthYear: 2026,
-              relationship: SiblingRelationship.fullSibling,
             ),
           ],
         ),
