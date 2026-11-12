@@ -7,6 +7,7 @@ import '../career/school_actions.dart';
 import '../narrative/school_narratives.dart';
 import '../../domain/event/life_progress.dart';
 import '../../domain/event/simulation_event.dart';
+import '../../domain/family/parent_npc.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
@@ -144,6 +145,13 @@ class EducationSystem implements SimulationSystem {
 
     flags.remove(SystemFlags.schoolStudent);
     flags.remove(SystemFlags.universityStudent);
+    flags.removeAll([
+      for (final field in StudyField.values) SystemFlags.studying(field),
+    ]);
+
+    if (education.stage == SchoolStage.university && education.major != null) {
+      flags.add(SystemFlags.studying(education.major!.field));
+    }
 
     if (education.isStudent) {
       flags.add(
@@ -169,7 +177,7 @@ class EducationSystem implements SimulationSystem {
     final major = progress.education.major;
 
     if (studiedAtUniversity && major != null) {
-      next = _payTuition(next, major, logs, year);
+      next = _payTuition(next, major, progress.education, logs, year);
     }
 
     for (final entry in logs) {
@@ -179,40 +187,122 @@ class EducationSystem implements SimulationSystem {
     return next;
   }
 
-  /// Takes a year of tuition from the player's cash. Whatever cash cannot
-  /// cover becomes student debt.
+  /// Pays a year of tuition. A scholarship covers part of it (and is lost
+  /// when grades slip), parents who are close and have savings chip in, and
+  /// the player pays the rest from cash. Whatever cash cannot cover becomes
+  /// student debt.
   WorldState _payTuition(
     WorldState state,
     MajorDefinition major,
+    EducationState studied,
     List<SimulationEvent> logs,
     int year,
   ) {
     final countryCode = state.player.location?.countryCode ?? '';
     final tuition = CountryEconomicProfile.forCountryCode(countryCode)
         .scaleAmount(major.tuitionPerYear);
-    final cash = state.player.money.minorUnits;
-    final paid = cash < tuition ? (cash < 0 ? 0 : cash) : tuition;
-    final borrowed = tuition - paid;
+    var next = state;
+    var scholarship = studied.scholarshipPercent;
 
-    logs.add(
-      SimulationEvent(
-        id: 'education-tuition-$year',
-        type: SimulationEventType.education,
-        year: year,
-        title: 'Tuition',
-        description: borrowed == 0
-            ? 'I paid ${MoneyText.of(state, tuition)} in tuition for '
-                '${major.name}.'
-            : 'Tuition for ${major.name} was '
-                '${MoneyText.of(state, tuition)}. I could pay '
-                '${MoneyText.of(state, paid)} and borrowed the rest.',
-      ),
+    void log(String id, String title, String text) {
+      logs.add(
+        SimulationEvent(
+          id: 'education-$id-$year',
+          type: SimulationEventType.education,
+          year: year,
+          title: title,
+          description: text,
+        ),
+      );
+    }
+
+    if (scholarship > 0 && studied.grades < MajorCatalog.scholarshipKeepGrades) {
+      scholarship = 0;
+      next = next.copyWith(
+        lifeProgress: next.lifeProgress.copyWith(
+          education: next.lifeProgress.education.copyWith(scholarshipPercent: 0),
+        ),
+      );
+      log(
+        'scholarship-lost',
+        'Scholarship lost',
+        'My grades slipped and the scholarship office took my scholarship back.',
+      );
+    }
+
+    final owed = tuition - tuition * scholarship ~/ 100;
+    var fromParents = 0;
+    final helpers = <String>[];
+    final household = next.familyHousehold;
+
+    if (household != null && owed > 0) {
+      final updated = <ParentNpc>[];
+
+      for (final parent in household.parents) {
+        var current = parent;
+
+        if (parent.isAlive && parent.relationshipPercent >= 30) {
+          // Each parent offers up to 30% of what is owed, and never more
+          // than half of their savings.
+          final offer = owed * 30 ~/ 100;
+          final spare = parent.cashBalance.minorUnits ~/ 2;
+          final give = offer < spare ? offer : spare;
+
+          if (give > 0) {
+            fromParents += give;
+            helpers.add(parent.firstName);
+            current = parent.copyWith(
+              cashBalance:
+                  Money.fromMinorUnits(parent.cashBalance.minorUnits - give),
+            );
+          }
+        }
+
+        updated.add(current);
+      }
+
+      if (fromParents > 0) {
+        next = next.copyWith(
+          familyHousehold: household.copyWith(parents: updated),
+        );
+      }
+    }
+
+    final mine = owed - fromParents;
+    final cash = next.player.money.minorUnits;
+    final paid = cash <= 0 ? 0 : (cash < mine ? cash : mine);
+    final borrowed = mine - paid;
+
+    final text = StringBuffer(
+      'Tuition for ${major.name} was ${MoneyText.of(next, tuition)}.',
     );
 
-    return state.copyWith(
-      player: state.player.copyWith(
+    if (scholarship > 0) {
+      text.write(' My scholarship covered $scholarship% of it.');
+    }
+
+    if (fromParents > 0) {
+      text.write(
+        ' ${helpers.join(' and ')} helped with '
+        '${MoneyText.of(next, fromParents)}.',
+      );
+    }
+
+    if (mine > 0) {
+      text.write(
+        borrowed == 0
+            ? ' I paid ${MoneyText.of(next, mine)} myself.'
+            : ' I could pay ${MoneyText.of(next, paid)} and borrowed '
+                '${MoneyText.of(next, borrowed)}.',
+      );
+    }
+
+    log('tuition', 'Tuition', text.toString());
+
+    return next.copyWith(
+      player: next.player.copyWith(
         money: Money.fromMinorUnits(cash - paid),
-        debt: Money.fromMinorUnits(state.player.debt.minorUnits + borrowed),
+        debt: Money.fromMinorUnits(next.player.debt.minorUnits + borrowed),
       ),
     );
   }
@@ -343,6 +433,7 @@ class EducationSystem implements SimulationSystem {
               highest: EducationLevel.bachelor,
               stage: SchoolStage.none,
               yearsInStage: 0,
+              scholarshipPercent: 0,
             );
             flags.add(SystemFlags.graduatedUniversity);
             log(
