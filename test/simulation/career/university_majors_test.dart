@@ -31,9 +31,9 @@ ParentNpc _parent({
     gender: role == FamilyRole.mother ? Gender.female : Gender.male,
     birthYear: 1965,
     role: role,
-    employmentStatus: EmploymentStatus.employed,
+    employmentStatus: EmploymentStatus.unemployed,
     annualIncome: const Money.zero(),
-    incomeStability: IncomeStability.stable,
+    incomeStability: IncomeStability.none,
     cashBalance: Money.fromMinorUnits(cash),
     relationshipPercent: relationship,
   );
