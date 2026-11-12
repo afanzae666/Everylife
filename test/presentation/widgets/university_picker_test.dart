@@ -29,7 +29,6 @@ Future<List<String>> _pump(WidgetTester tester) async {
             intelligence: 60,
             chance: 70,
             scholarship: 40,
-            year: 2026,
             onApply: applied.add,
           ),
         ),
