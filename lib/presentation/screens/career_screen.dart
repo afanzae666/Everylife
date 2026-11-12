@@ -32,8 +32,8 @@ class CareerScreen extends StatefulWidget {
   final SimulationEngine engine;
   final double zoom;
 
-  /// Runs after a story closes, to show what follows (being caught, the
-  /// overlay of a breakup).
+  /// Runs after a story closes, to show what follows (the overlay of a
+  /// breakup or divorce).
   final Future<void> Function()? onSceneEnd;
 
   /// Called after an action changed the game (the caller can auto-save).

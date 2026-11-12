@@ -194,8 +194,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   /// What runs when an NPC page's story closes, and when it is left: any
-  /// ending overlay first, then a decision that is waiting (such as being
-  /// caught cheating).
+  /// ending overlay first, then a decision that is waiting.
   Future<void> _playScenes() async {
     if (_isShowingLifeDialog) return;
 

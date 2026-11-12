@@ -179,7 +179,7 @@ class LifeScreen extends StatefulWidget {
   final LoveMilestones? milestones;
 
   /// Called when I come back from a person's page, so a decision an event
-  /// queued there (like being caught cheating) can be shown.
+  /// queued there, or an ending overlay, can be shown.
   final VoidCallback? onReturnedToLife;
 
   @override

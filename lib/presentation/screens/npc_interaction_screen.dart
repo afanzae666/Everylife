@@ -86,8 +86,7 @@ class NpcInteractionScreen extends StatefulWidget {
   /// True for people the player may date (classmates and friends).
   final bool romanceEligible;
 
-  /// Anyone who is not family can be a one-time lover (cheating, if I have
-  /// a partner).
+  /// Anyone who is not family can be a one-time lover, while I am single.
   final bool hookUpEligible;
 
   /// 'partner' when this person is the player's boyfriend or girlfriend.
@@ -110,9 +109,9 @@ class NpcInteractionScreen extends StatefulWidget {
   /// Engagement, marriage and divorce (partners only).
   final LoveMilestones? milestones;
 
-  /// Runs once an interaction's story is closed, so a follow-up scene (being
-  /// caught cheating, the overlay of a breakup) shows right then. Falls back
-  /// to the one in [milestones].
+  /// Runs once an interaction's story is closed, so a follow-up scene (the
+  /// overlay of a breakup or divorce) shows right then. Falls back to the
+  /// one in [milestones].
   final Future<void> Function()? onSceneEnd;
 
   /// Used for words like girlfriend, fiancé and ex-wife.
@@ -248,7 +247,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
 
           if (scene == null) return;
 
-          // Right after the story: being caught, a breakup, and so on.
+          // Right after the story: an ending overlay, a waiting decision.
           setState(() => _showingNarrative = true);
           await scene();
           if (mounted) setState(() => _showingNarrative = false);
@@ -763,6 +762,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
       if (canGetBack) 'Get Back Together',
       if (widget.hookUpEligible &&
           !isPartner &&
+          !widget.playerHasPartner &&
           canBeIntimate &&
           _score >= LoveRules.hookUpAt)
         'Have Sex',
