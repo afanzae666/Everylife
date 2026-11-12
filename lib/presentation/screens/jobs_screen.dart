@@ -6,7 +6,6 @@ import 'package:everylife/presentation/widgets/page_top_bar.dart';
 
 import '../../core/money/currency_formatter.dart';
 import '../../core/result/result.dart';
-import '../../domain/career/education_state.dart';
 import '../../domain/career/job_catalog.dart';
 import '../../domain/world/country_catalog.dart';
 import '../../simulation/engine/simulation_engine.dart';
@@ -49,14 +48,6 @@ class _JobsScreenState extends State<JobsScreen> {
       currencyCode: currency,
     );
   }
-
-  static String _educationLabel(EducationLevel level) => switch (level) {
-        EducationLevel.none => 'No diploma needed',
-        EducationLevel.elementary => 'Elementary school',
-        EducationLevel.middle => 'Middle school',
-        EducationLevel.highSchool => 'High school diploma',
-        EducationLevel.bachelor => "Bachelor's degree",
-      };
 
   void _apply(JobDefinition job) {
     final result = engine.applyForJob(job.id);
@@ -121,7 +112,7 @@ class _JobsScreenState extends State<JobsScreen> {
         final qualifies = available.contains(job.id);
 
         final agePart = job.minAge != 18 ? 'Age ${job.minAge}+ · ' : '';
-        final requirement = '$agePart${_educationLabel(job.requiredEducation)}';
+        final requirement = '$agePart${JobCatalog.requirementLabel(job)}';
 
         children.add(
           Card(

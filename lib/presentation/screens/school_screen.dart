@@ -55,7 +55,7 @@ String schoolProgressLabel(EducationState education) {
     SchoolStage.high =>
       'Grade ${at(EducationSystem.highYears)} of ${EducationSystem.highYears}',
     SchoolStage.university =>
-      'Year ${at(EducationSystem.universityYears)} of ${EducationSystem.universityYears}',
+      'Year ${at(education.programYears)} of ${education.programYears}',
     SchoolStage.none => 'Not enrolled',
   };
 }

@@ -7,6 +7,7 @@ import 'package:everylife/core/money/money.dart';
 import '../../core/result/result.dart';
 import '../../domain/career/education_state.dart';
 import '../../domain/career/job_catalog.dart';
+import '../../domain/career/major_catalog.dart';
 import '../../domain/world/country_catalog.dart';
 import 'jobs_screen.dart';
 import 'school_screen.dart';
@@ -14,6 +15,7 @@ import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
 import '../../simulation/systems/education_system.dart';
 import '../widgets/themed_cards.dart';
+import '../widgets/university_picker.dart';
 
 /// School (ages 6-17) or occupation (18+): status, actions, and history.
 ///
@@ -87,6 +89,34 @@ class _CareerScreenState extends State<CareerScreen> {
     }
   }
 
+  /// The university overlay: kind of institution, then major, then apply.
+  Future<void> _openUniversityPicker() async {
+    final state = engine.state;
+    final options = [
+      for (final major in MajorCatalog.all)
+        UniversityMajorOption(
+          major: major,
+          tuitionLabel: _formatMoney(
+            Money.fromMinorUnits(engine.tuitionFor(major)),
+          ),
+          blocker: engine.majorBlocker(major),
+        ),
+    ];
+
+    final majorId = await showUniversityPicker(
+      context,
+      options: options,
+      grades: state.lifeProgress.education.grades,
+      intelligence: state.player.stats.intelligence,
+      chance: engine.universityChance,
+      year: state.clock.currentYear,
+    );
+
+    if (!mounted || majorId == null) return;
+
+    _run(engine.applyForUniversity(majorId));
+  }
+
   String _stageLabel(EducationState education) {
     int grade(int total) => (education.yearsInStage + 1).clamp(1, total).toInt();
 
@@ -102,8 +132,8 @@ class _CareerScreenState extends State<CareerScreen> {
         'High school (grade ${grade(EducationSystem.highYears)} '
             'of ${EducationSystem.highYears})',
       SchoolStage.university =>
-        'University (year ${grade(EducationSystem.universityYears)} '
-            'of ${EducationSystem.universityYears})',
+        'University (year ${grade(education.programYears)} '
+            'of ${education.programYears})',
     };
   }
 
@@ -216,7 +246,10 @@ class _CareerScreenState extends State<CareerScreen> {
             ),
             SizedBox(height: s(4)),
             Text('Now: ${_stageLabel(education)}'),
-            Text('Highest completed: ${_levelLabel(education.highest)}'),
+            Text(
+              'Highest completed: ${_levelLabel(education.highest)}'
+              '${education.degreeField == null ? '' : ' in ${education.degreeField!.label}'}',
+            ),
             if (education.isStudent) ...[
               SizedBox(height: s(4)),
               Text('Grades: ${education.grades}/100'),
@@ -236,9 +269,7 @@ class _CareerScreenState extends State<CareerScreen> {
             if (canApply)
               FilledButton.tonal(
                 key: const Key('apply-university'),
-                onPressed: appliedThisYear || hasJob
-                    ? null
-                    : () => _run(engine.applyForUniversity()),
+                onPressed: appliedThisYear || hasJob ? null : _openUniversityPicker,
                 child: Text(
                   appliedThisYear
                       ? 'Applied already'
