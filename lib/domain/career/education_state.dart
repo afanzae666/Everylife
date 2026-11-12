@@ -38,7 +38,6 @@ class EducationState {
     this.majorId,
     this.grades = 60,
     this.yearsInStage = 0,
-    this.lastUniversityApplicationYear,
     this.schoolName,
     this.isPrivateSchool = false,
     this.schoolStage = SchoolStage.none,
@@ -67,7 +66,6 @@ class EducationState {
   final int grades;
 
   final int yearsInStage;
-  final int? lastUniversityApplicationYear;
 
   /// Name of the school or university, for example "Oakridge High School".
   final String? schoolName;
@@ -126,7 +124,6 @@ class EducationState {
     bool clearMajor = false,
     int? grades,
     int? yearsInStage,
-    int? lastUniversityApplicationYear,
     String? schoolName,
     bool? isPrivateSchool,
     SchoolStage? schoolStage,
@@ -148,8 +145,6 @@ class EducationState {
       majorId: clearMajor ? null : (majorId ?? this.majorId),
       grades: (grades ?? this.grades).clamp(0, 100).toInt(),
       yearsInStage: yearsInStage ?? this.yearsInStage,
-      lastUniversityApplicationYear:
-          lastUniversityApplicationYear ?? this.lastUniversityApplicationYear,
       schoolName: schoolName ?? this.schoolName,
       isPrivateSchool: isPrivateSchool ?? this.isPrivateSchool,
       schoolStage: schoolStage ?? this.schoolStage,
@@ -175,8 +170,6 @@ class EducationState {
         if (majorId != null) 'majorId': majorId,
         'grades': grades,
         'yearsInStage': yearsInStage,
-        if (lastUniversityApplicationYear != null)
-          'lastUniversityApplicationYear': lastUniversityApplicationYear,
         if (schoolName != null) 'schoolName': schoolName,
         if (isPrivateSchool) 'privateSchool': true,
         'schoolStage': schoolStage.name,
@@ -195,7 +188,6 @@ class EducationState {
 
     final grades = json['grades'];
     final years = json['yearsInStage'];
-    final applied = json['lastUniversityApplicationYear'];
 
     return EducationState(
       initialized: json['initialized'] == true,
@@ -217,7 +209,6 @@ class EducationState {
       majorId: json['majorId'] is String ? json['majorId'] as String : null,
       grades: grades is int ? grades.clamp(0, 100).toInt() : 60,
       yearsInStage: years is int ? years : 0,
-      lastUniversityApplicationYear: applied is int ? applied : null,
       schoolName: json['schoolName'] is String ? json['schoolName'] as String : null,
       isPrivateSchool: json['privateSchool'] == true,
       schoolStage: _enumByName(
