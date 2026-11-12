@@ -43,8 +43,8 @@ Future<String?> showUniversityPicker(
       child: SizedBox(
         key: const Key('university-picker'),
         width: width,
-        height: size.height * 0.78,
         child: UniversityPickerBody(
+          height: size.height * 0.72,
           options: options,
           grades: grades,
           intelligence: intelligence,
@@ -62,6 +62,7 @@ Future<String?> showUniversityPicker(
 class UniversityPickerBody extends StatefulWidget {
   const UniversityPickerBody({
     super.key,
+    required this.height,
     required this.options,
     required this.grades,
     required this.intelligence,
@@ -70,6 +71,9 @@ class UniversityPickerBody extends StatefulWidget {
     required this.onApply,
   });
 
+  /// Height of the major list and the summary. The first step only takes
+  /// the room it needs.
+  final double height;
   final List<UniversityMajorOption> options;
   final int grades;
   final int intelligence;
@@ -83,14 +87,35 @@ class UniversityPickerBody extends StatefulWidget {
 
 class _UniversityPickerBodyState extends State<UniversityPickerBody> {
   static const List<String> _intros = [
-    'Graduation is behind me, and the future is a blank page. Brochures '
-        'cover my desk, and every campus promises to change my life. It is '
-        'time to decide where I want to study.',
-    'The envelope on the table is thin, the choices are thick. Everyone has '
-        'an opinion about what I should study. Today I get to have my own.',
-    'The campus tour guide walked backwards for an hour and never tripped. '
-        'If I can pick a place to study, I can surely pick a path in life.',
+    'The last bell of high school rang a while ago, and the quiet after it '
+        'is louder than I expected. A stack of glossy brochures sits on my '
+        'desk, each one promising to turn me into somebody. Everyone has '
+        'advice. Today I get to decide what I want.',
+    'Campus tours, open days, free tote bags. Every university swears it is '
+        'the place where my life really begins. All I have to do is choose '
+        'a door and walk through it.',
+    'My friends are already arguing about it in the group chat. I mute it, '
+        'stare at the ceiling and ask the one question no brochure can '
+        'answer: what do I want to be doing in ten years?',
+    'The application page is open and the cursor keeps blinking. Somewhere '
+        'out there is a lecture hall with a seat that could be mine. Time to '
+        'find it.',
+    'My parents pretend not to hover. The kettle has boiled three times. '
+        'The future is a form with exactly one blank that matters, and I '
+        'have to fill it in myself.',
   ];
+
+  String get _gradesLine {
+    if (widget.grades >= 80) {
+      return 'My grades are strong, so I can aim high.';
+    }
+
+    if (widget.grades >= 60) {
+      return 'My grades are decent, and I have real options.';
+    }
+
+    return 'My grades are not great, but nobody ever got in by not trying.';
+  }
 
   InstitutionType? _type;
   UniversityMajorOption? _picked;
@@ -107,8 +132,13 @@ class _UniversityPickerBodyState extends State<UniversityPickerBody> {
 
   @override
   Widget build(BuildContext context) {
-    if (_picked != null) return _detail(context, _picked!);
-    if (_type != null) return _majorList(context, _type!);
+    if (_picked != null) {
+      return SizedBox(height: widget.height, child: _detail(context, _picked!));
+    }
+
+    if (_type != null) {
+      return SizedBox(height: widget.height, child: _majorList(context, _type!));
+    }
 
     return _intro(context);
   }
@@ -119,36 +149,41 @@ class _UniversityPickerBodyState extends State<UniversityPickerBody> {
         .where((o) => o.major.institution == InstitutionType.general)
         .length;
 
-    return ListView(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(12),
-      children: [
-        const Center(child: Text('🎓', style: TextStyle(fontSize: 44))),
-        const SizedBox(height: 8),
-        Text(
-          _intros[widget.year % _intros.length],
-          key: const Key('university-intro'),
-          style: theme.textTheme.bodyLarge,
-        ),
-        const SizedBox(height: 14),
-        const SectionDivider(title: 'WHERE TO STUDY'),
-        OptionTile(
-          key: const Key('institution-general'),
-          emoji: '🏛️',
-          title: InstitutionType.general.label,
-          subtitle: 'One campus, $generalCount majors to choose from.',
-          selected: false,
-          onTap: () => setState(() => _type = InstitutionType.general),
-        ),
-        OptionTile(
-          key: const Key('institution-specialized'),
-          emoji: '🩺',
-          title: InstitutionType.specialized.label,
-          subtitle: 'Medical school, aviation academy and other '
-              'professional schools.',
-          selected: false,
-          onTap: () => setState(() => _type = InstitutionType.specialized),
-        ),
-      ],
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Center(child: Text('🎓', style: TextStyle(fontSize: 44))),
+          const SizedBox(height: 8),
+          Text(
+            '${_intros[widget.year % _intros.length]}\n\n$_gradesLine',
+            key: const Key('university-intro'),
+            style: theme.textTheme.bodyLarge,
+          ),
+          const SizedBox(height: 14),
+          const SectionDivider(title: 'WHERE TO STUDY'),
+          OptionTile(
+            key: const Key('institution-general'),
+            emoji: '🏛️',
+            title: InstitutionType.general.label,
+            subtitle: 'One big campus with $generalCount majors: business, '
+                'engineering, law, design and more.',
+            selected: false,
+            onTap: () => setState(() => _type = InstitutionType.general),
+          ),
+          OptionTile(
+            key: const Key('institution-specialized'),
+            emoji: '🩺',
+            title: InstitutionType.specialized.label,
+            subtitle: 'Professional schools built around one career, such as '
+                'medicine, nursing or aviation. Opening soon.',
+            selected: false,
+            onTap: () => setState(() => _type = InstitutionType.specialized),
+          ),
+        ],
+      ),
     );
   }
 
