@@ -54,7 +54,7 @@ SimulationEngine _engineAt({
   required LifeProgress progress,
   int money = 0,
   int seed = 1,
-  List<ParentNpc> parents = const [],
+  List<ParentNpc>? parents,
 }) {
   final base = SimulationEngine.create(
     player: Character.create(id: 'p', name: 'Test Player', birthYear: 2000),
@@ -67,7 +67,9 @@ SimulationEngine _engineAt({
       clock: SimulationClock(currentYear: 2000 + age),
       player: base.state.player.copyWith(money: Money.fromMinorUnits(money)),
       lifeProgress: progress,
-      familyHousehold: _household(parents),
+      familyHousehold: _household(
+        parents ?? [_parent(id: 'default-mother', role: FamilyRole.mother)],
+      ),
     ),
     random: SeededRandom(seed),
     saveRepository: InMemorySaveRepository(),
