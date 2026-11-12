@@ -112,7 +112,6 @@ class _CareerScreenState extends State<CareerScreen> {
       scholarship: MajorCatalog.scholarshipPercentFor(
         state.lifeProgress.education.grades,
       ),
-      year: state.clock.currentYear,
     );
 
     if (!mounted || majorId == null) return;
@@ -229,12 +228,19 @@ class _CareerScreenState extends State<CareerScreen> {
     final canDropOut = education.stage == SchoolStage.high ||
         education.stage == SchoolStage.university;
 
+    final scheme = Theme.of(context).colorScheme;
+    final degreeField = education.degreeField;
+    final highest = degreeField == null
+        ? _levelLabel(education.highest)
+        : '${_levelLabel(education.highest)} in ${degreeField.label}';
+
     return Card(
+      key: const Key('education-card'),
       margin: EdgeInsets.zero,
       child: Padding(
         padding: EdgeInsets.all(s(8)),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
@@ -246,73 +252,86 @@ class _CareerScreenState extends State<CareerScreen> {
                 ),
               ],
             ),
-            SizedBox(height: s(4)),
-            Text('Now: ${_stageLabel(education)}'),
-            Text(
-              'Highest completed: ${_levelLabel(education.highest)}'
-              '${education.degreeField == null ? '' : ' in ${education.degreeField!.label}'}',
+            SizedBox(height: s(6)),
+            _infoRow(
+              Icons.menu_book_outlined,
+              'Now',
+              _stageLabel(education),
             ),
-            if (education.isStudent) ...[
+            _infoRow(
+              Icons.workspace_premium_outlined,
+              'Highest',
+              highest,
+            ),
+            if (canApply) ...[
               SizedBox(height: s(4)),
-              Text('Grades: ${education.grades}/100'),
-              SizedBox(height: s(2)),
-              PipBar(value: education.grades / 100),
-            ],
-            if (canApply || canDropOut) SizedBox(height: s(6)),
-            if (canApply && hasJob)
-              Padding(
-                padding: EdgeInsets.only(bottom: s(4)),
-                child: const Text(
-                  'I cannot study and work full time. '
-                  'I would have to quit my job first.',
-                  key: Key('university-needs-quit'),
-                ),
-              ),
-            if (canApply)
-              Opacity(
-                opacity: hasJob ? 0.5 : 1,
-                child: Card(
-                  key: const Key('university-card'),
-                  margin: EdgeInsets.zero,
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  child: InkWell(
-                    onTap: hasJob ? null : _openUniversityPicker,
-                    borderRadius: BorderRadius.circular(12),
-                    child: Padding(
-                      padding: EdgeInsets.all(s(8)),
-                      child: Row(
-                        children: [
-                          Text('🎓', style: TextStyle(fontSize: s(26))),
-                          SizedBox(width: s(8)),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'University',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium,
-                                ),
-                                const Text('Tap to see where I could study'),
-                              ],
-                            ),
-                          ),
-                          const Icon(Icons.chevron_right),
-                        ],
+              Divider(height: 1, color: scheme.outlineVariant),
+              if (hasJob)
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: s(6)),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.info_outline, size: 18),
+                      SizedBox(width: s(6)),
+                      const Expanded(
+                        child: Text(
+                          'I cannot study and work full time. '
+                          'I would have to quit my job first.',
+                          key: Key('university-needs-quit'),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
+              ListTile(
+                key: const Key('university-card'),
+                contentPadding: EdgeInsets.zero,
+                enabled: !hasJob,
+                leading: const Icon(Icons.account_balance_outlined),
+                title: const Text('University'),
+                subtitle: const Text('Choose where and what to study'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: _openUniversityPicker,
               ),
-            if (canDropOut)
-              TextButton(
-                key: const Key('drop-out'),
-                onPressed: () => _run(engine.dropOutOfSchool()),
-                child: const Text('LEAVE SCHOOL'),
+            ],
+            if (canDropOut) ...[
+              Divider(height: 1, color: scheme.outlineVariant),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  key: const Key('drop-out'),
+                  onPressed: () => _run(engine.dropOutOfSchool()),
+                  icon: const Icon(Icons.logout, size: 18),
+                  label: const Text('Leave school'),
+                ),
               ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+
+  /// One line of the education card: icon, label and value.
+  Widget _infoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: s(3)),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18),
+          SizedBox(width: s(8)),
+          Text(label),
+          SizedBox(width: s(8)),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
       ),
     );
   }
