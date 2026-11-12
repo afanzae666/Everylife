@@ -31,6 +31,7 @@ Future<String?> showUniversityPicker(
   required int grades,
   required int intelligence,
   required int chance,
+  required int scholarship,
   required int year,
 }) {
   final size = MediaQuery.of(context).size;
@@ -49,6 +50,7 @@ Future<String?> showUniversityPicker(
           grades: grades,
           intelligence: intelligence,
           chance: chance,
+          scholarship: scholarship,
           year: year,
           onApply: (majorId) => Navigator.of(dialogContext).pop(majorId),
         ),
@@ -67,6 +69,7 @@ class UniversityPickerBody extends StatefulWidget {
     required this.grades,
     required this.intelligence,
     required this.chance,
+    required this.scholarship,
     required this.year,
     required this.onApply,
   });
@@ -78,6 +81,9 @@ class UniversityPickerBody extends StatefulWidget {
   final int grades;
   final int intelligence;
   final int chance;
+
+  /// Percent of tuition a scholarship would cover for these grades.
+  final int scholarship;
   final int year;
   final ValueChanged<String> onApply;
 
@@ -293,6 +299,12 @@ class _UniversityPickerBodyState extends State<UniversityPickerBody> {
                   '${major.minGrades}+ (you: ${widget.grades})'),
               row('Intelligence needed',
                   '${major.minIntelligence}+ (you: ${widget.intelligence})'),
+              row(
+                'Scholarship',
+                widget.scholarship > 0
+                    ? '${widget.scholarship}% of tuition'
+                    : 'None at these grades',
+              ),
               row('Chance of getting in',
                   option.blocker == null ? '${widget.chance}%' : 'Not yet'),
               const Divider(height: 1),
