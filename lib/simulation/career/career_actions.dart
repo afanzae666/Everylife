@@ -2,9 +2,12 @@ import '../../core/random/seeded_random.dart';
 import '../../core/result/result.dart';
 import '../../domain/career/education_state.dart';
 import '../../domain/career/job_catalog.dart';
+import '../../domain/career/major_catalog.dart';
 import '../../domain/event/life_progress.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/world/world_state.dart';
+import '../events/money_text.dart';
+import '../generation/country_economic_profile.dart';
 
 /// The new world and a message for the player after a career action.
 class CareerActionResult {
@@ -28,13 +31,11 @@ abstract final class CareerActions {
     }
 
     final age = state.player.ageAt(state.clock.currentYear);
-    final education = state.lifeProgress.education.highest;
+    final education = state.lifeProgress.education;
 
     return [
       for (final job in JobCatalog.all)
-        if (age >= job.minAge &&
-            JobCatalog.meetsEducation(education, job.requiredEducation))
-          job,
+        if (age >= job.minAge && JobCatalog.qualifies(education, job)) job,
     ];
   }
 
@@ -52,6 +53,30 @@ abstract final class CareerActions {
     }
 
     return chance.clamp(10, 90).toInt();
+  }
+
+  /// Yearly tuition for [major] in the player's country.
+  static int tuitionFor(WorldState state, MajorDefinition major) {
+    final code = state.player.location?.countryCode ?? '';
+
+    return CountryEconomicProfile.forCountryCode(code)
+        .scaleAmount(major.tuitionPerYear);
+  }
+
+  /// Why the player cannot apply for [major], or null when they can.
+  static String? majorBlocker(WorldState state, MajorDefinition major) {
+    final grades = state.lifeProgress.education.grades;
+    final intelligence = state.player.stats.intelligence;
+
+    if (grades < major.minGrades) {
+      return 'Needs grades ${major.minGrades}+';
+    }
+
+    if (intelligence < major.minIntelligence) {
+      return 'Needs intelligence ${major.minIntelligence}+';
+    }
+
+    return null;
   }
 
   /// Chance (percent) that university accepts the player.
@@ -261,6 +286,7 @@ abstract final class CareerActions {
   static Result<CareerActionResult> applyForUniversity({
     required WorldState state,
     required SeededRandom random,
+    required String majorId,
   }) {
     final guard = _ensureActive(state);
 
@@ -293,6 +319,18 @@ abstract final class CareerActions {
       return const Failure('I already applied this year. I can try again after my next birthday.');
     }
 
+    final major = MajorCatalog.byId(majorId);
+
+    if (major == null) {
+      return const Failure('I need to pick a major first.');
+    }
+
+    final blocker = majorBlocker(state, major);
+
+    if (blocker != null) {
+      return Failure('I cannot apply for ${major.name} yet. $blocker.');
+    }
+
     final accepted = random.nextInt(100) < universityChance(state);
 
     final flags = {...state.lifeProgress.flags};
@@ -310,6 +348,7 @@ abstract final class CareerActions {
             lastUniversityApplicationYear: year,
             stage: accepted ? SchoolStage.university : null,
             yearsInStage: accepted ? 0 : null,
+            majorId: accepted ? major.id : null,
           ),
           flags: flags,
         ),
@@ -317,15 +356,16 @@ abstract final class CareerActions {
       type: SimulationEventType.education,
       title: accepted ? 'Accepted to university' : 'University said no',
       text: accepted
-          ? 'I was accepted to university and will start soon.'
-          : 'My university application was turned down.',
+          ? 'I was accepted to study ${major.name}. Tuition is '
+              '${MoneyText.of(state, tuitionFor(state, major))} a year.'
+          : 'My application to study ${major.name} was turned down.',
     );
 
     return Success(
       CareerActionResult(
         state: next,
         message: accepted
-            ? 'You are in! University starts now.'
+            ? 'You are in! ${major.name} starts now.'
             : 'The university turned you down. You can apply again after your next birthday.',
       ),
     );
@@ -354,7 +394,11 @@ abstract final class CareerActions {
     final next = _log(
       state.copyWith(
         lifeProgress: state.lifeProgress.copyWith(
-          education: education.copyWith(stage: SchoolStage.none, yearsInStage: 0),
+          education: education.copyWith(
+            stage: SchoolStage.none,
+            yearsInStage: 0,
+            clearMajor: education.stage == SchoolStage.university,
+          ),
           flags: flags,
         ),
       ),
