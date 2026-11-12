@@ -920,18 +920,13 @@ abstract final class LifeEventCatalog {
       choices: [
         LifeChoice(
           id: 'university',
-          label: 'Apply to university',
+          label: 'Look into university',
           outcomes: [
             LifeOutcome(
-              weight: 7,
-              text: 'The acceptance letter arrived. The next chapter begins.',
-              stats: [StatEffect(StatKey.intelligence, 5), StatEffect(StatKey.happiness, 3)],
-              addFlags: ['university'],
-            ),
-            LifeOutcome(
-              weight: 3,
-              text: 'They turned me down. I had to rethink everything.',
-              stats: [StatEffect(StatKey.happiness, -5), StatEffect(StatKey.willpower, 2)],
+              text: 'I spent weeks reading brochures and visiting campuses. '
+                  'When I am ready, I can pick a major and apply from the '
+                  'Education page.',
+              stats: [StatEffect(StatKey.intelligence, 2), StatEffect(StatKey.happiness, 1)],
             ),
           ],
         ),
