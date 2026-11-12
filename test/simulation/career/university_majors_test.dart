@@ -1,0 +1,291 @@
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:everylife/core/money/money.dart';
+import 'package:everylife/core/random/seeded_random.dart';
+import 'package:everylife/data/repositories/save_repository.dart';
+import 'package:everylife/domain/career/education_state.dart';
+import 'package:everylife/domain/career/job_catalog.dart';
+import 'package:everylife/domain/career/major_catalog.dart';
+import 'package:everylife/domain/character/character.dart';
+import 'package:everylife/domain/event/life_progress.dart';
+import 'package:everylife/domain/time/simulation_clock.dart';
+import 'package:everylife/domain/world/world_state.dart';
+import 'package:everylife/simulation/commands/age_up_command.dart';
+import 'package:everylife/simulation/engine/simulation_engine.dart';
+import 'package:everylife/simulation/systems/education_system.dart';
+
+SimulationEngine _engineAt({
+  required int age,
+  required LifeProgress progress,
+  int money = 0,
+  int seed = 1,
+}) {
+  final base = SimulationEngine.create(
+    player: Character.create(id: 'p', name: 'Test Player', birthYear: 2000),
+    seed: 5,
+    saveRepository: InMemorySaveRepository(),
+  );
+
+  return SimulationEngine(
+    initialState: base.state.copyWith(
+      clock: SimulationClock(currentYear: 2000 + age),
+      player: base.state.player.copyWith(money: Money.fromMinorUnits(money)),
+      lifeProgress: progress,
+    ),
+    random: SeededRandom(seed),
+    saveRepository: InMemorySaveRepository(),
+  );
+}
+
+WorldState _advanceYear(WorldState state) =>
+    state.copyWith(clock: state.clock.advanceYear());
+
+const EducationState _graduate = EducationState(
+  initialized: true,
+  highest: EducationLevel.highSchool,
+  grades: 100,
+);
+
+const EducationState _businessStudent = EducationState(
+  initialized: true,
+  stage: SchoolStage.university,
+  highest: EducationLevel.highSchool,
+  majorId: 'business',
+  grades: 80,
+);
+
+void main() {
+  group('major catalog', () {
+    test('every major has a unique id and sensible numbers', () {
+      final ids = MajorCatalog.all.map((major) => major.id).toSet();
+
+      expect(ids.length, MajorCatalog.all.length);
+
+      for (final major in MajorCatalog.all) {
+        expect(major.years, inInclusiveRange(1, 8), reason: major.id);
+        expect(major.tuitionPerYear, greaterThan(0), reason: major.id);
+        expect(MajorCatalog.byId(major.id), same(major));
+      }
+
+      expect(MajorCatalog.byId('nope'), isNull);
+      expect(MajorCatalog.byId(null), isNull);
+    });
+
+    test('majors differ in length and cost', () {
+      expect(MajorCatalog.all.map((m) => m.years).toSet().length, greaterThan(1));
+      expect(
+        MajorCatalog.all.map((m) => m.tuitionPerYear).toSet().length,
+        greaterThan(1),
+      );
+    });
+
+    test('there are no specialized programs yet', () {
+      expect(MajorCatalog.at(InstitutionType.specialized), isEmpty);
+      expect(MajorCatalog.at(InstitutionType.general), MajorCatalog.all);
+    });
+  });
+
+  group('education state', () {
+    test('the major survives a JSON round trip', () {
+      final copy = EducationState.fromJson(_businessStudent.toJson());
+
+      expect(copy.majorId, 'business');
+      expect(copy.programYears, 3);
+      expect(copy.degreeField, isNull, reason: 'not graduated yet');
+    });
+
+    test('the degree field exists only after graduating', () {
+      const graduated = EducationState(
+        highest: EducationLevel.bachelor,
+        majorId: 'law',
+      );
+
+      expect(graduated.degreeField, StudyField.law);
+      expect(graduated.copyWith(clearMajor: true).majorId, isNull);
+    });
+  });
+
+  group('jobs and degrees', () {
+    JobDefinition job(String id) => JobCatalog.byId(id)!;
+
+    const lawDegree = EducationState(
+      highest: EducationLevel.bachelor,
+      majorId: 'law',
+    );
+    const csDegree = EducationState(
+      highest: EducationLevel.bachelor,
+      majorId: 'computer_science',
+    );
+
+    test('a lawyer needs a law degree', () {
+      expect(JobCatalog.qualifies(lawDegree, job('lawyer')), isTrue);
+      expect(JobCatalog.qualifies(csDegree, job('lawyer')), isFalse);
+      expect(JobCatalog.qualifies(_graduate, job('lawyer')), isFalse);
+    });
+
+    test('a software engineer needs computer science or engineering', () {
+      expect(JobCatalog.qualifies(csDegree, job('software_engineer')), isTrue);
+      expect(JobCatalog.qualifies(lawDegree, job('software_engineer')), isFalse);
+    });
+
+    test('jobs without a field accept any degree but not no degree', () {
+      expect(JobCatalog.qualifies(lawDegree, job('doctor')), isTrue);
+      expect(JobCatalog.qualifies(_graduate, job('doctor')), isFalse);
+    });
+
+    test('the requirement text names the field', () {
+      expect(
+        JobCatalog.requirementLabel(job('lawyer')),
+        "Bachelor's degree in Law",
+      );
+      expect(
+        JobCatalog.requirementLabel(job('cashier')),
+        'No diploma needed',
+      );
+    });
+  });
+
+  group('applying', () {
+    test('an unknown major is refused', () {
+      final engine = _engineAt(
+        age: 18,
+        progress: const LifeProgress(education: _graduate),
+      );
+
+      expect(engine.applyForUniversity('nope').isFailure, isTrue);
+      expect(engine.state.lifeProgress.education.isStudent, isFalse);
+    });
+
+    test('low grades block a demanding major', () {
+      final engine = _engineAt(
+        age: 18,
+        progress: const LifeProgress(
+          education: EducationState(
+            initialized: true,
+            highest: EducationLevel.highSchool,
+            grades: 20,
+          ),
+        ),
+      );
+      final law = MajorCatalog.byId('law')!;
+
+      expect(engine.majorBlocker(law), isNotNull);
+      expect(engine.applyForUniversity('law').isFailure, isTrue);
+      expect(engine.state.lifeProgress.education.isStudent, isFalse);
+    });
+
+    test('an accepted student is enrolled in the chosen major', () {
+      var accepted = 0;
+
+      for (var seed = 0; seed < 40; seed++) {
+        final engine = _engineAt(
+          age: 18,
+          seed: seed,
+          progress: const LifeProgress(education: _graduate),
+        );
+
+        expect(engine.applyForUniversity('business').isSuccess, isTrue);
+
+        final education = engine.state.lifeProgress.education;
+
+        if (education.isStudent) {
+          accepted++;
+          expect(education.stage, SchoolStage.university);
+          expect(education.majorId, 'business');
+        } else {
+          expect(education.majorId, isNull);
+        }
+      }
+
+      expect(accepted, greaterThan(0));
+    });
+
+    test('leaving university forgets the major', () {
+      final engine = _engineAt(
+        age: 19,
+        progress: const LifeProgress(education: _businessStudent),
+      );
+
+      expect(engine.dropOutOfSchool().isSuccess, isTrue);
+      expect(engine.state.lifeProgress.education.majorId, isNull);
+    });
+  });
+
+  group('studying', () {
+    final business = MajorCatalog.byId('business')!;
+
+    test('a student with cash pays tuition from it', () {
+      final engine = _engineAt(
+        age: 19,
+        money: 10000000,
+        progress: const LifeProgress(education: _businessStudent),
+      );
+      final tuition = engine.tuitionFor(business);
+
+      final next = EducationSystem(random: SeededRandom(1)).process(
+        state: engine.state,
+        command: const AgeUpCommand(),
+      );
+
+      expect(next.player.money.minorUnits, 10000000 - tuition);
+      expect(next.player.debt.minorUnits, 0);
+      expect(next.events.any((event) => event.title == 'Tuition'), isTrue);
+    });
+
+    test('a student without cash borrows the tuition', () {
+      final engine = _engineAt(
+        age: 19,
+        progress: const LifeProgress(education: _businessStudent),
+      );
+      final tuition = engine.tuitionFor(business);
+
+      final next = EducationSystem(random: SeededRandom(1)).process(
+        state: engine.state,
+        command: const AgeUpCommand(),
+      );
+
+      expect(next.player.money.minorUnits, 0);
+      expect(next.player.debt.minorUnits, tuition);
+    });
+
+    test('a three year major ends with a degree in that field', () {
+      final engine = _engineAt(
+        age: 19,
+        money: 100000000,
+        progress: const LifeProgress(education: _businessStudent),
+      );
+      final system = EducationSystem(random: SeededRandom(1));
+      var state = engine.state;
+
+      for (var year = 0; year < business.years; year++) {
+        state = system.process(
+          state: state,
+          command: const AgeUpCommand(),
+        );
+        state = _advanceYear(state);
+      }
+
+      final education = state.lifeProgress.education;
+
+      expect(education.highest, EducationLevel.bachelor);
+      expect(education.isStudent, isFalse);
+      expect(education.degreeField, StudyField.business);
+    });
+
+    test('nobody pays tuition outside university', () {
+      final engine = _engineAt(
+        age: 19,
+        money: 500,
+        progress: const LifeProgress(education: _graduate),
+      );
+
+      final next = EducationSystem(random: SeededRandom(1)).process(
+        state: engine.state,
+        command: const AgeUpCommand(),
+      );
+
+      expect(next.player.money.minorUnits, 500);
+      expect(next.player.debt.minorUnits, 0);
+    });
+  });
+}
