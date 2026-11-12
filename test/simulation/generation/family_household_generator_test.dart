@@ -169,8 +169,6 @@ void main() {
       expect(roles, [FamilyRole.father, FamilyRole.mother],
           reason: 'seed $seed');
       expect(household.parents.every((p) => p.isAlive), isTrue);
-      expect(household.isAffairConception, isFalse);
-      expect(household.raisedByFather, isFalse);
     }
   });
 

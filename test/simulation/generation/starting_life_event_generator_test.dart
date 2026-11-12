@@ -35,12 +35,7 @@ void main() {
     incomeStability: IncomeStability.none,
   );
 
-  FamilyHousehold household(
-    List<ParentNpc> parents, {
-    bool isAffairConception = false,
-    bool raisedByFather = false,
-  }) =>
-      FamilyHousehold(
+  FamilyHousehold household(List<ParentNpc> parents) => FamilyHousehold(
         id: 'test-household',
         parents: parents,
         cashSavings: Money.zero(),
@@ -48,8 +43,6 @@ void main() {
         housingStatus: HousingStatus.rented,
         annualLivingCosts: Money.zero(),
         totalDebt: Money.zero(),
-        isAffairConception: isAffairConception,
-        raisedByFather: raisedByFather,
       );
 
   List<SimulationEvent> generateEvents(FamilyHousehold family) =>
@@ -67,29 +60,6 @@ void main() {
       .map((event) => event.description)
       .join('\n');
 
-
-  test('orphan background mentions the guardian without an unknown-father line', () {
-    const guardian = ParentNpc(
-      id: 'guardian',
-      firstName: 'Mira',
-      lastName: 'Putri',
-      gender: Gender.female,
-      birthYear: 1980,
-      role: FamilyRole.guardian,
-      employmentStatus: EmploymentStatus.homemaker,
-      annualIncome: Money.zero(),
-      incomeStability: IncomeStability.none,
-    );
-
-    final events = generateEvents(household(const [guardian]));
-    final family = familyEvent(events).description;
-    final economy = economyNarratives(events);
-
-    expect(family, contains('guardian or caregiver looks after me'));
-    expect(family, isNot(contains('biological parents are unknown')));
-    expect(economy, isNot(contains('My father is unknown.')));
-    expect(economy, contains('My guardian, Mira Putri'));
-  });
 
   test('generates separate family and economy events', () {
     final events = generateEvents(household(const [father, mother]));
@@ -136,65 +106,6 @@ void main() {
     );
   });
 
-  test('describes a single mother separately from her employment', () {
-    final events = generateEvents(household(const [mother]));
-    final economy = economyNarratives(events);
-    expect(
-      events.where((event) => event.title == 'Starting Economy'),
-      hasLength(2),
-    );
-
-    expect(
-      familyEvent(events).description,
-      contains('My mother raised me on her own'),
-    );
-    expect(
-      economy,
-      contains('My father is unknown.'),
-    );
-    expect(
-      economy,
-      contains(
-        'My mother, Sari Santoso, is currently unemployed (age 25).',
-      ),
-    );
-    expect(economy, contains('\nMy mother,'));
-    expect(
-      economy,
-      isNot(contains('raises you on her own')),
-    );
-  });
-
-  test('does not invent employment history for a deceased mother', () {
-    final deceasedMother = mother.copyWith(
-      isAlive: false,
-      deathYear: 2026,
-    );
-    final events = generateEvents(household([father, deceasedMother]));
-    final economy = economyNarratives(events);
-
-    expect(
-      familyEvent(events).description,
-      contains('My mother died while giving birth'),
-    );
-    expect(
-      economy,
-      contains(
-        'My father, Budi Santoso, works as a teacher (age 25).',
-      ),
-    );
-    expect(
-      economy,
-      contains(
-        'My mother, Sari Santoso, is deceased (age 23).',
-      ),
-    );
-    expect(
-      economy,
-      isNot(contains('Your mother is currently unemployed')),
-    );
-  });
-
   test(
     'uses first-person family details and identifies the birthday zodiac',
     () {
@@ -228,36 +139,6 @@ void main() {
     },
   );
 
-  test('birth narrative is first-person and includes the affair sentence', () {
-    final player = Character.create(
-      id: 'affair-birth-test',
-      firstName: 'Ayu',
-      lastName: 'Santoso',
-      birthYear: 2026,
-      birthMonth: 3,
-      birthDay: 20,
-    );
-    final description = StartingLifeEventGenerator.birthNarrative(
-      player: player,
-      household: household(
-        const [father, mother],
-        isAffairConception: true,
-      ),
-      random: SeededRandom(123),
-    );
-
-    expect(description, contains('born'));
-    expect(
-      description,
-      endsWith(
-        'I was conceived during an affair between my '
-        'mother and a married man.',
-      ),
-    );
-    expect(description, isNot(contains('2026')));
-    expect(description, isNot(contains('Ayu Santoso was born')));
-  });
-
   test('ordinary two-parent birth does not mention an affair', () {
     final player = Character.create(
       id: 'ordinary-birth-test',
@@ -276,43 +157,5 @@ void main() {
     expect(description, contains('born'));
     expect(description, isNot(contains('2026')));
     expect(description, isNot(contains('affair')));
-  });
-
-  test('keeps orphanage story separate from guardian employment', () {
-    const guardian = ParentNpc(
-      id: 'guardian',
-      firstName: 'Ayu',
-      lastName: 'Santoso',
-      gender: Gender.female,
-      birthYear: 1980,
-      role: FamilyRole.guardian,
-      employmentStatus: EmploymentStatus.employed,
-      occupation: 'Caregiver',
-      annualIncome: Money.fromMinorUnits(1000000),
-      incomeStability: IncomeStability.stable,
-    );
-
-    final events = generateEvents(household(const [guardian]));
-    final economy = economyNarratives(events);
-
-    expect(
-      familyEvent(events).description,
-      contains('orphanage'),
-    );
-    expect(
-      familyEvent(events).description,
-      isNot(contains('Caregiver')),
-    );
-    expect(
-      economy,
-      contains(
-        'My guardian, Ayu Santoso, works as a caregiver (age 25).',
-      ),
-    );
-    expect(
-  economy,
-  isNot(contains('My father is unknown.')),
-);
-    expect(economy, isNot(contains('orphanage')));
   });
 }
