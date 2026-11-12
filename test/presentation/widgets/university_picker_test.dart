@@ -23,6 +23,7 @@ Future<List<String>> _pump(WidgetTester tester) async {
           width: 420,
           height: 800,
           child: UniversityPickerBody(
+            height: 600,
             options: _options(),
             grades: 60,
             intelligence: 60,
