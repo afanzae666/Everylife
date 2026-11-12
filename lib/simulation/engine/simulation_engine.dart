@@ -29,7 +29,6 @@ import '../../domain/character/gender.dart';
 import '../../domain/character/cultural_randomizer_catalog.dart';
 import 'dart:math' as math;
 import '../../domain/love/breakup_summary.dart';
-import '../../domain/love/cheating_rules.dart';
 import '../../domain/love/genetics.dart';
 import '../../domain/love/love_state.dart';
 import '../../domain/time/simulation_clock.dart';
@@ -1049,11 +1048,7 @@ class SimulationEngine {
       );
       final updated = broken.copyWith(
         flags: {...broken.flags}
-          ..removeAll(const [
-            SystemFlags.engaged,
-            SystemFlags.playerCheated,
-            SystemFlags.spouseCheated,
-          ]),
+          ..remove(SystemFlags.engaged),
       );
       final story = BreakupNarratives.story(
         _random,
@@ -2050,14 +2045,7 @@ class SimulationEngine {
 
   /// What a divorce would cost right now, in plain words.
   String divorcePreview(String npcId) {
-    final terms = _divorceTerms(playerFiles: true, clearGrounds: false);
-    final flags = _state.lifeProgress.flags;
-
-    if (flags.contains(SystemFlags.spouseCheated)) {
-      return 'My spouse cheated, so the grounds are clear: no fine, and '
-          'nothing to split.';
-    }
-
+    final terms = _divorceTerms(playerFiles: true);
     final prenup = LoveRules.option(
       LoveRules.prenups,
       _state.lifeProgress.love.prenup ?? 'none',
@@ -2073,13 +2061,9 @@ class SimulationEngine {
   }
 
   /// Share of my cash and the fine for a divorce. A positive [fine] is paid
-  /// to me, a negative one is paid by me.
-  ({int sharePct, int fine}) _divorceTerms({
-    required bool playerFiles,
-    required bool clearGrounds,
-  }) {
+  /// to me (my spouse filed with no reason), a negative one is paid by me.
+  ({int sharePct, int fine}) _divorceTerms({required bool playerFiles}) {
     final love = _state.lifeProgress.love;
-    final flags = _state.lifeProgress.flags;
     final prenupShare =
         LoveRules.option(LoveRules.prenups, love.prenup ?? 'none')?.share ??
             50;
@@ -2087,15 +2071,7 @@ class SimulationEngine {
     final amount = LifeEffectApplier.scaleMoney(_state, 500000);
     final fine = cash * 10 ~/ 100 > amount ? cash * 10 ~/ 100 : amount;
 
-    if (playerFiles) {
-      if (flags.contains(SystemFlags.spouseCheated)) {
-        return (sharePct: 0, fine: 0);
-      }
-
-      return (sharePct: prenupShare, fine: -fine);
-    }
-
-    return (sharePct: prenupShare, fine: clearGrounds ? 0 : fine);
+    return (sharePct: prenupShare, fine: playerFiles ? -fine : fine);
   }
 
   /// How hurt I am when a dating or engagement relationship ends.
@@ -2135,7 +2111,7 @@ class SimulationEngine {
           : '$years years';
 
   /// How much an ending hurts: longer relationships, children and being
-  /// left hurt more, and leaving a cheater hurts less.
+  /// left hurt more.
   int _heartbreak({
     required int years,
     required int children,
@@ -2152,8 +2128,6 @@ class SimulationEngine {
     drop += children.clamp(0, 4).toInt();
     drop += switch (cause) {
       BreakupCause.iEndedIt => 0,
-      BreakupCause.iLeftCheater => -3,
-      BreakupCause.theyLeftMe => 2,
       BreakupCause.theyLeftNoReason => 3,
     };
 
@@ -2164,8 +2138,6 @@ class SimulationEngine {
       switch (cause) {
         BreakupCause.iEndedIt =>
           kind == BreakupKind.divorce ? 'I filed for divorce' : 'I ended it',
-        BreakupCause.iLeftCheater => '$name cheated on me',
-        BreakupCause.theyLeftMe => 'I cheated on $name',
         BreakupCause.theyLeftNoReason => '$name left, no reason given',
       };
 
@@ -2216,14 +2188,10 @@ class SimulationEngine {
   (WorldState, String) _endMarriage({
     required String npcId,
     required bool playerFiles,
-    required bool clearGrounds,
   }) {
     final person = _personById(npcId);
     final name = person?.fullName ?? 'my spouse';
-    final terms = _divorceTerms(
-      playerFiles: playerFiles,
-      clearGrounds: clearGrounds,
-    );
+    final terms = _divorceTerms(playerFiles: playerFiles);
     final year = _state.clock.currentYear;
     final cash = _state.player.money.minorUnits;
     final share = cash > 0 ? cash * terms.sharePct ~/ 100 : 0;
@@ -2232,18 +2200,10 @@ class SimulationEngine {
     final flags = {...progress.flags, SystemFlags.divorced}
       ..removeAll(const [
         SystemFlags.married,
-        SystemFlags.spouseCheated,
-        SystemFlags.playerCheated,
-        SystemFlags.divorceFiledClear,
         SystemFlags.divorceFiledUnclear,
       ]);
-    final cause = playerFiles
-        ? (clearGrounds || progress.flags.contains(SystemFlags.spouseCheated)
-            ? BreakupCause.iLeftCheater
-            : BreakupCause.iEndedIt)
-        : (clearGrounds
-            ? BreakupCause.theyLeftMe
-            : BreakupCause.theyLeftNoReason);
+    final cause =
+        playerFiles ? BreakupCause.iEndedIt : BreakupCause.theyLeftNoReason;
     final married = year - (love.stageSince ?? love.partnerSince ?? year);
     final total = year - (love.partnerSince ?? year);
     final children = love.children.length;
@@ -2302,10 +2262,6 @@ class SimulationEngine {
         'My ex left without a clear reason, so they paid me a fine of '
         '${MoneyText.of(_state, terms.fine)}.',
       );
-    } else if (playerFiles) {
-      parts.add('My ex gave me clear grounds, so there was no fine.');
-    } else {
-      parts.add('I gave my ex clear grounds, so there was no fine.');
     }
 
     final borrowed =
@@ -2339,7 +2295,7 @@ class SimulationEngine {
               ? 'I paid ${MoneyText.of(_state, -terms.fine)}'
               : terms.fine > 0
                   ? '$name paid me ${MoneyText.of(_state, terms.fine)}'
-                  : 'None, clear grounds',
+                  : 'None',
         ),
         MapEntry(
           'Cash left',
@@ -2361,11 +2317,7 @@ class SimulationEngine {
       return const Failure('I am not married to this person.');
     }
 
-    final (next, story) = _endMarriage(
-      npcId: npcId,
-      playerFiles: true,
-      clearGrounds: false,
-    );
+    final (next, story) = _endMarriage(npcId: npcId, playerFiles: true);
 
     return _socialOutcome(
       npcId: npcId,
@@ -2377,8 +2329,8 @@ class SimulationEngine {
     );
   }
 
-  /// Getting intimate with someone who is not my partner. With a partner
-  /// that is cheating, and it may be found out.
+  /// Getting intimate with someone who is not my partner. Only possible
+  /// while I am single.
   Result<NpcInteractionOutcome> _hookUp(String npcId, SchoolNpc person) {
     final year = _state.clock.currentYear;
     final playerAge = year - _state.player.birthYear;
@@ -2392,6 +2344,12 @@ class SimulationEngine {
       return const Failure('I cannot get intimate with this person.');
     }
 
+    if (love.hasPartner) {
+      return const Failure(
+        'I already have a partner. I am only intimate with them.',
+      );
+    }
+
     if (!LoveRules.canBeIntimate(playerAge, age)) {
       return const Failure('We are not old enough for that.');
     }
@@ -2403,7 +2361,6 @@ class SimulationEngine {
     final key = '$year:$npcId:Have Sex';
     final times = progress.interactionCounts[key] ?? 0;
     final effective = times < 2;
-    final cheating = love.hasPartner;
     final counts = {
       for (final entry in progress.interactionCounts.entries)
         if (entry.key.startsWith('$year:')) entry.key: entry.value,
@@ -2413,12 +2370,6 @@ class SimulationEngine {
     var next = score;
     var pregnancy = love.pregnancy;
     var asksAboutBaby = false;
-    var caught = false;
-    final flags = {...progress.flags};
-
-    if (cheating) {
-      narrative = '$narrative ${RelationshipNarratives.guilt(_random)}';
-    }
 
     if (effective) {
       next = (score + 3).clamp(-100, 100).toInt();
@@ -2453,26 +2404,11 @@ class SimulationEngine {
           )}';
         }
       }
-
-      if (cheating) {
-        flags.add(SystemFlags.playerCheated);
-
-        final roll = _random.nextInt(100);
-
-        // Only one scene at a time: with a decision already waiting, nobody
-        // confronts me yet.
-        caught = progress.pending == null &&
-            roll < _catchChance(npcId, times);
-      }
     }
 
-    // My lover is not happy about being dragged into this.
-    if (caught) next = (next - 15).clamp(-100, 100).toInt();
-
-    var updated = _scored(
+    final updated = _scored(
       progress.copyWith(
         interactionCounts: counts,
-        flags: flags,
         love: pregnancy == love.pregnancy
             ? love
             : love.copyWith(pregnancy: pregnancy),
@@ -2480,42 +2416,14 @@ class SimulationEngine {
       npcId,
       next,
     );
-
-    var state = _state.copyWith(
+    final state = _state.copyWith(
       lifeProgress: updated,
       player: _state.player.copyWith(
         stats: _state.player.stats.copyWith(
-          happiness: _state.player.stats.happiness +
-              (effective ? (cheating ? 1 : 3) : 0),
+          happiness: _state.player.stats.happiness + (effective ? 3 : 0),
         ),
       ),
     );
-
-    // Found out: my partner confronts me as soon as I come back, in the
-    // way that fits their temperament.
-    if (caught) {
-      final base = love.isMarried ? 'marriage_caught' : 'cheating_caught';
-      final id = switch (Temperament.of(love.partnerId ?? npcId)) {
-        Temperament.steady => base,
-        Temperament.hothead => '${base}_hothead',
-        Temperament.tender => '${base}_tender',
-      };
-      final definition = LifeEventCatalog.byId(id);
-
-      if (definition != null) {
-        updated = updated.copyWith(
-          pending: EventSubjects.start(
-            definition: definition,
-            state: state,
-            random: _random,
-          ),
-        );
-        state = state.copyWith(lifeProgress: updated);
-      }
-
-      state = _spreadTheNews(state, npcId: npcId, name: name);
-    }
-
     final friends = progress.friends;
     final friendIndex = friends.indexWhere((friend) => friend.id == npcId);
 
@@ -2535,264 +2443,30 @@ class SimulationEngine {
     );
   }
 
-  /// Percent chance that my partner finds out about an affair with [lover].
-  int _catchChance(String loverId, int timesWithLover) {
-    final year = _state.clock.currentYear;
-    final progress = _state.lifeProgress;
-    final partnerId = progress.love.partnerId;
-    final partner = partnerId == null ? null : _personById(partnerId);
-
-    if (partnerId == null || partner == null) return CheatingRules.base;
-
-    final classmates = {
-      for (final npc in progress.education.classmates) npc.id,
-    };
-    final mine = '$year:$loverId:Have Sex';
-    final partners = '$year:$partnerId:Have Sex';
-    final others = progress.interactionCounts.keys
-        .where(
-          (key) =>
-              key.startsWith('$year:') &&
-              key.endsWith(':Have Sex') &&
-              key != mine &&
-              key != partners,
-        )
-        .length;
-
-    return CheatingRules.chance(
-      sharedCircle:
-          classmates.contains(loverId) && classmates.contains(partnerId),
-      timesWithLover: timesWithLover,
-      otherAffairs: others,
-      partnerSmarts: NpcTraits.forPerson(
-        id: partner.id,
-        gender: partner.gender,
-        birthYear: partner.birthYear,
-        currentYear: year,
-      ).smarts,
-      partner: Temperament.of(partnerId),
-    );
-  }
-
-  /// Word gets around: up to two of my other friends think less of me.
-  WorldState _spreadTheNews(
-    WorldState state, {
-    required String npcId,
-    required String name,
-  }) {
-    final year = state.clock.currentYear;
-    final partnerId = state.lifeProgress.love.partnerId;
-    final pool = [
-      for (final friend in state.lifeProgress.friends)
-        if (friend.id != npcId &&
-            friend.id != partnerId &&
-            friend.relationshipPercent > -50)
-          friend,
-    ];
-    var progress = state.lifeProgress;
-    final told = <String>[];
-
-    while (told.length < 2 && pool.isNotEmpty) {
-      final friend = pool.removeAt(_random.nextInt(pool.length));
-
-      progress = _scored(
-        progress,
-        friend.id,
-        (friend.relationshipPercent - 5).clamp(-100, 100).toInt(),
-      );
-      told.add(friend.fullName);
-    }
-
-    final others = told.isEmpty
-        ? ''
-        : ' ${told.join(' and ')} think${told.length == 1 ? 's' : ''} less '
-            'of me now.';
-
-    return state.copyWith(
-      lifeProgress: progress,
-      events: [
-        ...state.events,
-        SimulationEvent(
-          id: 'gossip-${state.events.length + 1}-$year',
-          type: SimulationEventType.npcInteraction,
-          year: year,
-          title: 'Word Got Around',
-          description: '$name wants nothing to do with me after the news '
-              'came out.$others',
-        ),
-      ],
-    );
-  }
-
-  /// Gives me a scene to decide on: stay with a cheating spouse or leave.
-  void _queueDivorceChoice() {
-    final progress = _state.lifeProgress;
-
-    if (progress.pending != null) return;
-
-    const ids = [
-      'marriage_divorce_choice_a',
-      'marriage_divorce_choice_b',
-      'marriage_divorce_choice_c',
-    ];
-    final definition = LifeEventCatalog.byId(ids[_random.nextInt(ids.length)]);
-
-    if (definition == null) return;
-
-    _commit(
-      _state.copyWith(
-        lifeProgress: progress.copyWith(
-          pending: EventSubjects.start(
-            definition: definition,
-            state: _state,
-            random: _random,
-          ),
-        ),
-      ),
-    );
-  }
+  /// Flags that older saves may still carry from removed features. They do
+  /// nothing now, so they are dropped.
+  static const List<String> _removedFlags = [
+    'spouse_cheated',
+    'player_cheated',
+    'cheating_proven',
+    'divorce_by_player',
+    'divorce_filed_clear',
+    'breakup_filed',
+  ];
 
   /// Carries out a divorce that an event started (the spouse asked).
   void _processMarriageFlags() {
-    final progress = _state.lifeProgress;
+    var progress = _state.lifeProgress;
     final love = progress.love;
-    final flags = progress.flags;
 
-    // The cheating was proven: ask me what to do about it.
-    if (flags.contains(SystemFlags.cheatingProven)) {
-      _commit(
-        _state.copyWith(
-          lifeProgress: progress.copyWith(
-            flags: {...flags}..remove(SystemFlags.cheatingProven),
-          ),
-        ),
+    if (_removedFlags.any(progress.flags.contains)) {
+      progress = progress.copyWith(
+        flags: {...progress.flags}..removeAll(_removedFlags),
       );
-
-      if (love.isMarried) _queueDivorceChoice();
-
-      return;
+      _commit(_state.copyWith(lifeProgress: progress));
     }
 
-    // I decided to divorce a cheating spouse.
-    if (flags.contains(SystemFlags.divorceByPlayer)) {
-      final id = love.partnerId;
-
-      _commit(
-        _state.copyWith(
-          lifeProgress: progress.copyWith(
-            flags: {...flags}..remove(SystemFlags.divorceByPlayer),
-          ),
-        ),
-      );
-
-      if (id != null && love.isMarried) {
-        final (next, story) = _endMarriage(
-          npcId: id,
-          playerFiles: true,
-          clearGrounds: true,
-        );
-        final year = _state.clock.currentYear;
-
-        _commit(
-          next.addEvent(
-            SimulationEvent(
-              id: 'divorce-${next.events.length + 1}-$year',
-              type: SimulationEventType.npcInteraction,
-              year: year,
-              title: 'Divorce',
-              description: story,
-            ),
-          ),
-        );
-      }
-
-      return;
-    }
-
-    // My partner left me after finding out about the affair.
-    if (flags.contains(SystemFlags.breakupFiled)) {
-      final id = love.partnerId;
-      final person = id == null ? null : _personById(id);
-
-      if (id != null && person != null && !love.isMarried) {
-        final kind = love.stage == LoveRules.stageEngaged
-            ? BreakupKind.engagement
-            : BreakupKind.breakup;
-        final broken = _scored(
-          progress.copyWith(
-            love: love.copyWith(
-              clearPartner: true,
-              exIds: {...love.exIds, id},
-            ),
-            flags: {...flags}..removeAll(const [
-                SystemFlags.breakupFiled,
-                SystemFlags.engaged,
-                SystemFlags.playerCheated,
-                SystemFlags.spouseCheated,
-              ]),
-          ),
-          id,
-          0,
-        );
-        final year = _state.clock.currentYear;
-        final story = BreakupNarratives.story(
-          _random,
-          person.fullName,
-          kind: kind,
-          cause: BreakupCause.theyLeftMe,
-        );
-        final drop = _breakupDrop(love, kind, BreakupCause.theyLeftMe);
-
-        _enqueueBreakup(
-          npcId: id,
-          name: person.fullName,
-          gender: person.gender,
-          kind: kind,
-          cause: BreakupCause.theyLeftMe,
-          story: story,
-          middle: _breakupDurations(love, kind),
-          drop: drop,
-          scoreBefore: person.relationshipPercent,
-          scoreAfter: 0,
-        );
-
-        _commit(
-          _happier(
-            _state.copyWith(
-              lifeProgress: broken,
-              events: [
-                ..._state.events,
-                SimulationEvent(
-                  id: 'breakup-${_state.events.length + 1}-$year',
-                  type: SimulationEventType.npcInteraction,
-                  year: year,
-                  title: kind == BreakupKind.engagement
-                      ? 'Engagement Off'
-                      : 'Break Up',
-                  description: story,
-                ),
-              ],
-            ),
-            -drop,
-          ),
-        );
-      } else {
-        _commit(
-          _state.copyWith(
-            lifeProgress: progress.copyWith(
-              flags: {...flags}..remove(SystemFlags.breakupFiled),
-            ),
-          ),
-        );
-      }
-
-      return;
-    }
-
-    final clear = flags.contains(SystemFlags.divorceFiledClear);
-    final unclear = flags.contains(SystemFlags.divorceFiledUnclear);
-
-    if (!clear && !unclear) return;
+    if (!progress.flags.contains(SystemFlags.divorceFiledUnclear)) return;
 
     final id = love.partnerId;
 
@@ -2801,21 +2475,15 @@ class SimulationEngine {
       _commit(
         _state.copyWith(
           lifeProgress: progress.copyWith(
-            flags: {...progress.flags}..removeAll(const [
-                SystemFlags.divorceFiledClear,
-                SystemFlags.divorceFiledUnclear,
-              ]),
+            flags: {...progress.flags}
+              ..remove(SystemFlags.divorceFiledUnclear),
           ),
         ),
       );
       return;
     }
 
-    final (next, story) = _endMarriage(
-      npcId: id,
-      playerFiles: false,
-      clearGrounds: clear,
-    );
+    final (next, story) = _endMarriage(npcId: id, playerFiles: false);
     final year = _state.clock.currentYear;
 
     _commit(
