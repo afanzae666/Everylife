@@ -1,4 +1,5 @@
 import 'education_state.dart';
+import 'major_catalog.dart';
 
 /// Groups of jobs, shown as headers in the job list.
 enum JobSector {
@@ -29,6 +30,7 @@ class JobDefinition {
     required this.sector,
     this.minAge = 18,
     this.requiredEducation = EducationLevel.none,
+    this.requiredFields = const <StudyField>[],
   });
 
   final String id;
@@ -50,6 +52,9 @@ class JobDefinition {
 
   final int minAge;
   final EducationLevel requiredEducation;
+
+  /// Fields a degree may be in for this job. Empty: any degree will do.
+  final List<StudyField> requiredFields;
 
   /// Salary at [rank], in baseline minor units.
   int salaryAt(int rank) {
@@ -79,6 +84,33 @@ abstract final class JobCatalog {
 
   static bool meetsEducation(EducationLevel have, EducationLevel need) {
     return have.index >= need.index;
+  }
+
+  /// Whether the player's schooling and degree qualify for [job].
+  static bool qualifies(EducationState education, JobDefinition job) {
+    if (!meetsEducation(education.highest, job.requiredEducation)) {
+      return false;
+    }
+
+    if (job.requiredFields.isEmpty) return true;
+
+    return job.requiredFields.contains(education.degreeField);
+  }
+
+  /// Short text for what the job asks for, for example
+  /// "Bachelor's degree in Law".
+  static String requirementLabel(JobDefinition job) {
+    final level = switch (job.requiredEducation) {
+      EducationLevel.none => 'No diploma needed',
+      EducationLevel.elementary => 'Elementary school',
+      EducationLevel.middle => 'Middle school',
+      EducationLevel.highSchool => 'High school diploma',
+      EducationLevel.bachelor => "Bachelor's degree",
+    };
+
+    if (job.requiredFields.isEmpty) return level;
+
+    return '$level in ${job.requiredFields.map((f) => f.label).join(' or ')}';
   }
 
   static const List<JobDefinition> all = [
@@ -256,6 +288,7 @@ abstract final class JobCatalog {
       sector: JobSector.office,
       minAge: 22,
       requiredEducation: EducationLevel.bachelor,
+      requiredFields: [StudyField.business],
     ),
     JobDefinition(
       id: 'marketing',
@@ -266,6 +299,7 @@ abstract final class JobCatalog {
       sector: JobSector.office,
       minAge: 22,
       requiredEducation: EducationLevel.bachelor,
+      requiredFields: [StudyField.business, StudyField.artsDesign],
     ),
     JobDefinition(
       id: 'banker',
@@ -276,6 +310,7 @@ abstract final class JobCatalog {
       sector: JobSector.office,
       minAge: 22,
       requiredEducation: EducationLevel.bachelor,
+      requiredFields: [StudyField.business],
     ),
     JobDefinition(
       id: 'lawyer',
@@ -286,6 +321,7 @@ abstract final class JobCatalog {
       sector: JobSector.office,
       minAge: 24,
       requiredEducation: EducationLevel.bachelor,
+      requiredFields: [StudyField.law],
     ),
     JobDefinition(
       id: 'nurse',
@@ -326,6 +362,7 @@ abstract final class JobCatalog {
       sector: JobSector.education,
       minAge: 22,
       requiredEducation: EducationLevel.bachelor,
+      requiredFields: [StudyField.education],
     ),
     JobDefinition(
       id: 'professor',
@@ -346,6 +383,7 @@ abstract final class JobCatalog {
       sector: JobSector.education,
       minAge: 32,
       requiredEducation: EducationLevel.bachelor,
+      requiredFields: [StudyField.education],
     ),
     JobDefinition(
       id: 'dean',
@@ -366,6 +404,7 @@ abstract final class JobCatalog {
       sector: JobSector.tech,
       minAge: 22,
       requiredEducation: EducationLevel.bachelor,
+      requiredFields: [StudyField.computerScience, StudyField.engineering],
     ),
     JobDefinition(
       id: 'civil_engineer',
@@ -376,6 +415,7 @@ abstract final class JobCatalog {
       sector: JobSector.tech,
       minAge: 22,
       requiredEducation: EducationLevel.bachelor,
+      requiredFields: [StudyField.engineering],
     ),
     JobDefinition(
       id: 'police',
@@ -415,6 +455,7 @@ abstract final class JobCatalog {
       sector: JobSector.creative,
       minAge: 22,
       requiredEducation: EducationLevel.bachelor,
+      requiredFields: [StudyField.artsDesign, StudyField.business],
     ),
   ];
 

@@ -1,3 +1,4 @@
+import 'major_catalog.dart';
 import 'school_npc.dart';
 
 /// Where the player currently studies.
@@ -34,6 +35,7 @@ class EducationState {
     this.initialized = false,
     this.stage = SchoolStage.none,
     this.highest = EducationLevel.none,
+    this.majorId,
     this.grades = 60,
     this.yearsInStage = 0,
     this.lastUniversityApplicationYear,
@@ -57,6 +59,9 @@ class EducationState {
 
   final SchoolStage stage;
   final EducationLevel highest;
+
+  /// The major being studied, or the one the degree is in.
+  final String? majorId;
 
   /// Academic performance from 0 to 100.
   final int grades;
@@ -103,10 +108,22 @@ class EducationState {
 
   bool get isStudent => stage != SchoolStage.none;
 
+  /// The major, when [majorId] is set.
+  MajorDefinition? get major => MajorCatalog.byId(majorId);
+
+  /// How many years the current university program lasts.
+  int get programYears => major?.years ?? MajorCatalog.defaultYears;
+
+  /// The field of the degree, when there is one.
+  StudyField? get degreeField =>
+      highest == EducationLevel.bachelor ? major?.field : null;
+
   EducationState copyWith({
     bool? initialized,
     SchoolStage? stage,
     EducationLevel? highest,
+    String? majorId,
+    bool clearMajor = false,
     int? grades,
     int? yearsInStage,
     int? lastUniversityApplicationYear,
@@ -128,6 +145,7 @@ class EducationState {
       initialized: initialized ?? this.initialized,
       stage: stage ?? this.stage,
       highest: highest ?? this.highest,
+      majorId: clearMajor ? null : (majorId ?? this.majorId),
       grades: (grades ?? this.grades).clamp(0, 100).toInt(),
       yearsInStage: yearsInStage ?? this.yearsInStage,
       lastUniversityApplicationYear:
@@ -154,6 +172,7 @@ class EducationState {
         'initialized': initialized,
         'stage': stage.name,
         'highest': highest.name,
+        if (majorId != null) 'majorId': majorId,
         'grades': grades,
         'yearsInStage': yearsInStage,
         if (lastUniversityApplicationYear != null)
@@ -195,6 +214,7 @@ class EducationState {
           'secondary': 'highSchool',
         },
       ),
+      majorId: json['majorId'] is String ? json['majorId'] as String : null,
       grades: grades is int ? grades.clamp(0, 100).toInt() : 60,
       yearsInStage: years is int ? years : 0,
       lastUniversityApplicationYear: applied is int ? applied : null,
