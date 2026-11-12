@@ -76,16 +76,14 @@ void main() {
             lastName: 'Morgan',
             gender: Gender.female,
             birthYear: 2020,
-            relationship: SiblingRelationship.fullSibling,
             isTwin: true,
           ),
           SiblingNpc(
-            id: 'sibling-round-trip-step',
+            id: 'sibling-round-trip-younger',
             firstName: 'Jordan',
             lastName: 'Lee',
             gender: Gender.male,
             birthYear: 2030,
-            relationship: SiblingRelationship.stepSibling,
           ),
         ],
         housingStatus: HousingStatus.ownedWithMortgage,
@@ -164,7 +162,6 @@ void main() {
         expect(actual.fullName, expected.fullName);
         expect(actual.gender, expected.gender);
         expect(actual.birthYear, expected.birthYear);
-        expect(actual.relationship, expected.relationship);
         expect(actual.isTwin, expected.isTwin);
       }
 
