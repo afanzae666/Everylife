@@ -294,7 +294,6 @@ abstract final class CareerActions {
       return Failure(message);
     }
 
-    final year = state.clock.currentYear;
     final education = state.lifeProgress.education;
 
     if (education.isStudent) {
@@ -313,10 +312,6 @@ abstract final class CareerActions {
       return const Failure(
         'I cannot study and work full time. I would have to quit my job first.',
       );
-    }
-
-    if (education.lastUniversityApplicationYear == year) {
-      return const Failure('I already applied this year. I can try again after my next birthday.');
     }
 
     final major = MajorCatalog.byId(majorId);
@@ -345,7 +340,6 @@ abstract final class CareerActions {
       state.copyWith(
         lifeProgress: state.lifeProgress.copyWith(
           education: education.copyWith(
-            lastUniversityApplicationYear: year,
             stage: accepted ? SchoolStage.university : null,
             yearsInStage: accepted ? 0 : null,
             majorId: accepted ? major.id : null,
