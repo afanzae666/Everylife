@@ -49,8 +49,8 @@ class LoveMilestones {
   final Result<NpcInteractionOutcome> Function({required String npcId})
       divorce;
 
-  /// Shows what follows a story right away: a decision after being caught,
-  /// or the overlay of an ending.
+  /// Shows what follows a story right away: the overlay of an ending, or a
+  /// decision that is waiting.
   final Future<void> Function()? afterScene;
 }
 
