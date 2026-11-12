@@ -23,9 +23,8 @@ abstract final class LoveRules {
   static const int refuseAtOrBelow = 10;
 
   /// Relationship needed to get intimate with someone who is not my
-  /// partner, and the chance (percent) that a partner finds out.
+  /// partner (only possible while I am single).
   static const int hookUpAt = 50;
-  static const int caughtChance = 30;
 
   /// Relationship needed before the relationship can get intimate.
   static const int intimacyAt = 70;
