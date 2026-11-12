@@ -31,10 +31,6 @@ void main() {
           reason: 'Seed $seed produced a sibling too far from the player.',
         );
 
-        if (sibling.relationship != SiblingRelationship.fullSibling) {
-          continue;
-        }
-
         for (final parent in biologicalParents) {
           final ageAtBirth = sibling.birthYear - parent.birthYear;
           final maxAge = parent.gender == Gender.female ? 45 : 60;

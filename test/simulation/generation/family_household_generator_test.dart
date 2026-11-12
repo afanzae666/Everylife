@@ -37,12 +37,7 @@ void main() {
     expect(first.parents, isNotEmpty);
 
     for (final parent in first.parents) {
-      if (parent.role == FamilyRole.guardian) {
-        expect(parent.lastName, isNot('Santoso'));
-        expect(parent.siblingCount, 0);
-      } else {
-        expect(parent.lastName, 'Santoso');
-      }
+      expect(parent.lastName, 'Santoso');
 
       expect(parent.countryCode, 'ID');
       expect(parent.cashBalance.minorUnits, greaterThanOrEqualTo(0));
@@ -73,7 +68,6 @@ void main() {
       expect(sibling.firstName, isNotEmpty);
       expect(sibling.lastName, isNotEmpty);
       expect(sibling.birthYear, isNot(2026));
-      expect(SiblingRelationship.values, contains(sibling.relationship));
     }
   });
 
@@ -111,24 +105,15 @@ void main() {
     );
   });
 
-  test('does not generate half or step siblings without a step-parent context',
-      () {
+  test('every sibling shares the family name', () {
     for (var seed = 0; seed < 100; seed++) {
       final household = generate(seed: seed);
-      final hasStepParent = household.parents.any(
-        (parent) =>
-            parent.role == FamilyRole.stepFather ||
-            parent.role == FamilyRole.stepMother,
-      );
 
-      if (!hasStepParent) {
+      for (final sibling in household.siblings) {
         expect(
-          household.siblings.every(
-            (sibling) =>
-                sibling.relationship == SiblingRelationship.fullSibling,
-          ),
-          isTrue,
-          reason: 'Unexpected half/step sibling for seed $seed',
+          sibling.lastName,
+          household.parents.first.lastName,
+          reason: 'Sibling with another family name for seed $seed',
         );
       }
     }
@@ -142,11 +127,7 @@ void main() {
       );
 
       for (final parent in household.parents) {
-        if (parent.role == FamilyRole.guardian) {
-          expect(parent.lastName, isNot('Wang'));
-        } else {
-          expect(parent.fullName, 'Wang ${parent.firstName}');
-        }
+        expect(parent.fullName, 'Wang ${parent.firstName}');
 
         expect(
           parent.fullName,

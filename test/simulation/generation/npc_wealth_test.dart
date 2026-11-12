@@ -14,7 +14,6 @@ void main() {
       lastName: 'B',
       gender: Gender.male,
       birthYear: 2010,
-      relationship: SiblingRelationship.fullSibling,
     );
     const student = SchoolNpc(
       id: 'c',
