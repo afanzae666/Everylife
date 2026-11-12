@@ -771,12 +771,6 @@ class _ParentNpcCard extends StatelessWidget {
         return 'father';
       case FamilyRole.mother:
         return 'mother';
-      case FamilyRole.guardian:
-        return 'guardian';
-      case FamilyRole.stepFather:
-        return 'stepfather';
-      case FamilyRole.stepMother:
-        return 'stepmother';
     }
   }
 }
@@ -813,14 +807,7 @@ class _SiblingNpcCard extends StatelessWidget {
     final theme = Theme.of(context);
     final older = sibling.isOlderThan(playerBirthYear);
 
-    final siblingKind = switch (sibling.relationship) {
-      SiblingRelationship.fullSibling =>
-        sibling.gender == Gender.male ? 'brother' : 'sister',
-      SiblingRelationship.halfSibling =>
-        sibling.gender == Gender.male ? 'half-brother' : 'half-sister',
-      SiblingRelationship.stepSibling =>
-        sibling.gender == Gender.male ? 'stepbrother' : 'stepsister',
-    };
+    final siblingKind = sibling.gender == Gender.male ? 'brother' : 'sister';
 
     final ageLabel = older ? 'older' : 'younger';
 
@@ -838,7 +825,7 @@ class _SiblingNpcCard extends StatelessWidget {
               playerAge: currentYear - playerBirthYear,
               currentYear: currentYear,
               birthYear: sibling.birthYear,
-              subtitle: 'Sibling · ${sibling.relationship.name}',
+              subtitle: 'Sibling',
               details: _siblingDetailList(sibling, siblingKind, homeCityId, marital),
               netWorth: npcMoneyLabel(
                 NpcWealth.forSibling(sibling),
