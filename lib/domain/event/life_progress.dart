@@ -25,20 +25,9 @@ abstract final class SystemFlags {
   static const String married = 'married';
   static const String divorced = 'divorced';
 
-  /// My spouse was unfaithful / I was unfaithful. These are the "clear
-  /// grounds" for a divorce without a fine.
-  static const String spouseCheated = 'spouse_cheated';
-  static const String playerCheated = 'player_cheated';
-
-  /// Set by events when a spouse asks for a divorce. The game then carries
-  /// it out: with clear grounds (no fine) or without (the spouse pays).
-  static const String divorceFiledClear = 'divorce_filed_clear';
+  /// Set by an event when a spouse asks for a divorce. The game then
+  /// carries it out: with no clear reason, so the spouse pays a fine.
   static const String divorceFiledUnclear = 'divorce_filed_unclear';
-
-  /// Short-lived markers an event leaves for the game to act on.
-  static const String cheatingProven = 'cheating_proven';
-  static const String divorceByPlayer = 'divorce_by_player';
-  static const String breakupFiled = 'breakup_filed';
 
   static const Set<String> all = {
     employed,
@@ -54,13 +43,7 @@ abstract final class SystemFlags {
     engaged,
     married,
     divorced,
-    spouseCheated,
-    playerCheated,
-    divorceFiledClear,
     divorceFiledUnclear,
-    cheatingProven,
-    divorceByPlayer,
-    breakupFiled,
   };
 }
 
