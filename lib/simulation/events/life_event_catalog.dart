@@ -1,7 +1,6 @@
 import '../../domain/event/life_event.dart';
 import '../../domain/world/world_state.dart';
 import 'event_subjects.dart';
-import 'life_event_catalog_caught.dart';
 import 'life_event_catalog_marriage.dart';
 import 'life_event_catalog_more.dart';
 import 'life_event_catalog_social.dart';
@@ -70,7 +69,6 @@ abstract final class LifeEventCatalog {
     ...LifeEventCatalogMore.all,
     ...LifeEventCatalogSocial.all,
     ...LifeEventCatalogMarriage.all,
-    ...LifeEventCatalogCaught.all,
     ...ScriptedEvents.all,
   ];
 
