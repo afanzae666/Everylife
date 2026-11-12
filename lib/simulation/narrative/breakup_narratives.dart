@@ -3,14 +3,8 @@ import '../../domain/love/breakup_summary.dart';
 
 /// Why a relationship ended, from the player's point of view.
 enum BreakupCause {
-  /// I ended it with no big reason.
+  /// I ended it.
   iEndedIt,
-
-  /// I left because my partner cheated and it was proven.
-  iLeftCheater,
-
-  /// My partner left because I cheated.
-  theyLeftMe,
 
   /// My partner left and gave no reason.
   theyLeftNoReason,
@@ -74,33 +68,6 @@ abstract final class BreakupNarratives {
         'my mistake to make.',
   ];
 
-  static const List<String> _divorceILeftCheater = [
-    'The evidence was undeniable, and so was my decision. {n} cheated, and '
-        'I will not build my life on a lie. The judge barely looked up.',
-    'I handed {n} the printed messages and then the divorce papers. Both '
-        'were stapled. I wanted to be efficient.',
-    '"Clear grounds," my lawyer said, smiling for the first time in weeks. '
-        '{n} betrayed me, and the court agreed that I owe nothing for '
-        'leaving.',
-    'I did not scream. I did not cry. I changed the locks, packed {n}\'s '
-        'things, and let the paperwork do the shouting.',
-    'Loyalty goes both ways. {n} forgot that, and now our marriage is a '
-        'case file.',
-  ];
-
-  static const List<String> _divorceTheyLeftMe = [
-    '{n} did not even raise a voice. The papers just arrived, with a '
-        'sticky note: "You know why." I did.',
-    '"I trusted you," said {n}, sliding the divorce papers across the '
-        'table. My own mess had finally caught up with me.',
-    '{n} left before sunrise and a lawyer called by noon. The affair cost '
-        'me my marriage, and my pride came with it.',
-    'The photos were enough for the judge. {n} walked out of the '
-        'courthouse lighter, and I walked out alone.',
-    '{n} filed with clear grounds. I would have argued, but I had nothing '
-        'to argue with.',
-  ];
-
   static const List<String> _divorceTheyLeftNoReason = [
     '{n} said there was no one else, no fight, no reason. "It is just '
         'over." The papers were already filled in.',
@@ -138,30 +105,6 @@ abstract final class BreakupNarratives {
         '"I do" later.',
   ];
 
-  static const List<String> _datingTheyLeft = [
-    '"Sorry does not undo it," said {n}. The relationship ended right '
-        'there, in the middle of the street.',
-    '{n} listened to my excuses, shook their head and walked away. This '
-        'time I did not follow.',
-    'The message read: "I know everything. Do not call me." {n} blocked '
-        'me within the minute.',
-    '{n} found out about my cheating and ended things for good. Honestly, '
-        'I earned that.',
-    '{n} looked at me like a stranger and said, "I thought I knew you." '
-        'That sentence is going to follow me around for a while.',
-  ];
-
-  static const List<String> _engagementTheyLeft = [
-    '{n} put the ring on the table, very gently, which was worse than '
-        'throwing it. The engagement is over, and I caused it.',
-    '"I cannot marry someone who does this," said {n}. The invitations '
-        'are going in the bin.',
-    '{n} cancelled the venue before I even stood up. The ring is gone, '
-        'and so is the future we were planning.',
-    '{n} called off the wedding after finding out. I deserve every awkward '
-        'phone call that follows.',
-  ];
-
   static const List<String> _datingTheyLeftNoReason = [
     '{n} said the spark was gone. No drama, no third person, just a quiet '
         'goodbye.',
@@ -185,22 +128,14 @@ abstract final class BreakupNarratives {
     final pool = switch (kind) {
       BreakupKind.divorce => switch (cause) {
           BreakupCause.iEndedIt => _divorceIEndedIt,
-          BreakupCause.iLeftCheater => _divorceILeftCheater,
-          BreakupCause.theyLeftMe => _divorceTheyLeftMe,
           BreakupCause.theyLeftNoReason => _divorceTheyLeftNoReason,
         },
       BreakupKind.engagement => switch (cause) {
-          BreakupCause.iEndedIt ||
-          BreakupCause.iLeftCheater =>
-            _engagementIEndedIt,
-          BreakupCause.theyLeftMe => _engagementTheyLeft,
+          BreakupCause.iEndedIt => _engagementIEndedIt,
           BreakupCause.theyLeftNoReason => _engagementTheyLeftNoReason,
         },
       BreakupKind.breakup => switch (cause) {
-          BreakupCause.iEndedIt ||
-          BreakupCause.iLeftCheater =>
-            _datingIEndedIt,
-          BreakupCause.theyLeftMe => _datingTheyLeft,
+          BreakupCause.iEndedIt => _datingIEndedIt,
           BreakupCause.theyLeftNoReason => _datingTheyLeftNoReason,
         },
     };

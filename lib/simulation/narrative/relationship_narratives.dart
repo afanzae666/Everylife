@@ -49,19 +49,8 @@ abstract final class RelationshipNarratives {
     'A look, a smile, a quiet room. {n} and I gave in to the moment.',
   ];
 
-  static const List<String> _guilt = [
-    'Walking home, I felt a knot in my stomach. I was not free to do this.',
-    'The guilt arrived before the sun did. I have a partner, and I did '
-        'this anyway.',
-    'I told myself nobody would ever find out. I did not believe it.',
-    'My phone buzzed with a sweet message from my partner. I could not '
-        'bring myself to read it.',
-  ];
-
   static String hookUp(SeededRandom r, String name) =>
       _hookUp[r.nextInt(_hookUp.length)].replaceAll('{n}', name);
-
-  static String guilt(SeededRandom r) => _guilt[r.nextInt(_guilt.length)];
 
   static const List<String> _getBack = [
     '{n} and I talked for hours, and the old spark came right back. We are together again!',
