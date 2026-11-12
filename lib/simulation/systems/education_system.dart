@@ -1,5 +1,8 @@
+import 'package:everylife/core/money/money.dart';
+
 import '../../core/random/seeded_random.dart';
 import '../../domain/career/education_state.dart';
+import '../../domain/career/major_catalog.dart';
 import '../career/school_actions.dart';
 import '../narrative/school_narratives.dart';
 import '../../domain/event/life_progress.dart';
@@ -7,24 +10,24 @@ import '../../domain/event/simulation_event.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
+import '../events/money_text.dart';
+import '../generation/country_economic_profile.dart';
 import 'simulation_system.dart';
 import 'system_priority.dart';
 
 /// Moves the player through school and university once a year.
 ///
 /// School starts at 6: elementary school (6-11), middle school (12-14) and
-/// high school (15-17). Graduation is at 18. University (4 years) starts when
-/// the player was accepted (the "university" flag from an event, or an
-/// application on the occupation screen) and is only possible without a
-/// full-time job.
+/// high school (15-17). Graduation is at 18. University starts when the
+/// player was accepted to a major (an application on the occupation screen)
+/// and is only possible without a full-time job. Its length and tuition
+/// depend on the major.
 class EducationSystem implements SimulationSystem {
   EducationSystem({
     required SeededRandom random,
   }) : _random = random;
 
   final SeededRandom _random;
-
-  static const int universityYears = 4;
 
   /// Ages at which the player moves up.
   static const int elementaryStartAge = 6;
@@ -65,6 +68,10 @@ class EducationSystem implements SimulationSystem {
 
     var education = progress.education;
 
+    // A year of university that just ended has to be paid for.
+    final studiedAtUniversity =
+        education.initialized && education.stage == SchoolStage.university;
+
     void log(String key, String title, String text) {
       logs.add(
         SimulationEvent(
@@ -86,7 +93,6 @@ class EducationSystem implements SimulationSystem {
         flags: flags,
         stats: state.player.stats.intelligence,
         will: state.player.stats.willpower,
-        hasJob: progress.career.hasJob,
         log: log,
       );
     }
@@ -96,6 +102,7 @@ class EducationSystem implements SimulationSystem {
       education = education.copyWith(
         stage: SchoolStage.none,
         yearsInStage: 0,
+        clearMajor: education.stage == SchoolStage.university,
       );
       flags.add(SystemFlags.schoolDropout);
       log('dropout', 'I left school', 'I walked away from my studies for now.');
@@ -159,11 +166,55 @@ class EducationSystem implements SimulationSystem {
       ),
     );
 
+    final major = progress.education.major;
+
+    if (studiedAtUniversity && major != null) {
+      next = _payTuition(next, major, logs, year);
+    }
+
     for (final entry in logs) {
       next = next.addEvent(entry);
     }
 
     return next;
+  }
+
+  /// Takes a year of tuition from the player's cash. Whatever cash cannot
+  /// cover becomes student debt.
+  WorldState _payTuition(
+    WorldState state,
+    MajorDefinition major,
+    List<SimulationEvent> logs,
+    int year,
+  ) {
+    final countryCode = state.player.location?.countryCode ?? '';
+    final tuition = CountryEconomicProfile.forCountryCode(countryCode)
+        .scaleAmount(major.tuitionPerYear);
+    final cash = state.player.money.minorUnits;
+    final paid = cash < tuition ? (cash < 0 ? 0 : cash) : tuition;
+    final borrowed = tuition - paid;
+
+    logs.add(
+      SimulationEvent(
+        id: 'education-tuition-$year',
+        type: SimulationEventType.education,
+        year: year,
+        title: 'Tuition',
+        description: borrowed == 0
+            ? 'I paid ${MoneyText.of(state, tuition)} in tuition for '
+                '${major.name}.'
+            : 'Tuition for ${major.name} was '
+                '${MoneyText.of(state, tuition)}. I could pay '
+                '${MoneyText.of(state, paid)} and borrowed the rest.',
+      ),
+    );
+
+    return state.copyWith(
+      player: state.player.copyWith(
+        money: Money.fromMinorUnits(cash - paid),
+        debt: Money.fromMinorUnits(state.player.debt.minorUnits + borrowed),
+      ),
+    );
   }
 
   /// Fits schooling to the player's age for a life that has no record yet.
@@ -219,7 +270,6 @@ class EducationSystem implements SimulationSystem {
     required Set<String> flags,
     required int stats,
     required int will,
-    required bool hasJob,
     required void Function(String key, String title, String text) log,
   }) {
     var current = education;
@@ -253,24 +303,6 @@ class EducationSystem implements SimulationSystem {
             'First day of elementary school',
             'I started elementary school.',
           );
-        } else if (current.highest == EducationLevel.highSchool &&
-            flags.contains('university')) {
-          flags.remove('university');
-
-          if (hasJob) {
-            // Nobody studies full time and works full time.
-            log(
-              'university-blocked',
-              'No time for university',
-              'I could not start university because I work full time.',
-            );
-          } else {
-            current = current.copyWith(
-              stage: SchoolStage.university,
-              yearsInStage: 0,
-            );
-            log('university', 'University begins', 'I started university.');
-          }
         }
       case SchoolStage.elementary:
         if (age >= middleStartAge) {
@@ -305,7 +337,7 @@ class EducationSystem implements SimulationSystem {
           );
         }
       case SchoolStage.university:
-        if (current.yearsInStage >= universityYears) {
+        if (current.yearsInStage >= current.programYears) {
           if (current.grades >= 35) {
             current = current.copyWith(
               highest: EducationLevel.bachelor,
@@ -316,12 +348,13 @@ class EducationSystem implements SimulationSystem {
             log(
               'degree',
               'University graduation',
-              'I earned my bachelor degree.',
+              'I earned my bachelor degree in ${current.major?.name ?? 'my field'}.',
             );
           } else {
             current = current.copyWith(
               stage: SchoolStage.none,
               yearsInStage: 0,
+              clearMajor: true,
             );
             flags.add(SystemFlags.schoolDropout);
             log(
