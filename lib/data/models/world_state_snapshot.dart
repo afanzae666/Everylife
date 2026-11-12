@@ -493,7 +493,6 @@ parent.incomeStability.name,
   'isTwin': sibling.isTwin,
   'isAlive': sibling.isAlive,
   'deathYear': sibling.deathYear,
-  'relationship': sibling.relationship.name,
   'countryCode': sibling.countryCode,
   if (sibling.finance != null) 'finance': sibling.finance!.toJson(),
   'appearance': {
@@ -691,7 +690,6 @@ final siblings = siblingsJson is List
           isTwin: sibling['isTwin'] == true,
           isAlive: sibling['isAlive'] != false,
           deathYear: sibling['deathYear'] is int ? sibling['deathYear'] as int : null,
-          relationship: _parseSiblingRelationship(sibling['relationship']),
           countryCode: _optionalString(sibling['countryCode']).isEmpty
               ? 'ID' : _optionalString(sibling['countryCode']),
           appearance: sibling['appearance'] == null
@@ -788,13 +786,6 @@ throw FormatException(
   'Unknown income stability: $value',
 );
 
-}
-
-static SiblingRelationship _parseSiblingRelationship(Object? value) {
-  for (final relationship in SiblingRelationship.values) {
-    if (relationship.name == value) return relationship;
-  }
-  throw FormatException('Unknown sibling relationship: $value');
 }
 
 static HousingStatus _parseHousingStatus(
