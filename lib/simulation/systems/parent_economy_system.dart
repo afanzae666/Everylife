@@ -143,9 +143,8 @@ class ParentEconomySystem implements SimulationSystem {
                 household.housingStatus == HousingStatus.ownedWithMortgage)
         ? HousingStatus.providedByOthers
         : household.housingStatus;
-    // copyWith keeps every other field, including the story flags
-    // isAffairConception and raisedByFather. The legacy aggregate money
-    // fields are intentionally left untouched.
+    // copyWith keeps every other field. The legacy aggregate money fields
+    // are intentionally left untouched.
     final updatedHousehold = household.copyWith(
       parents: updatedParents,
       assets: updatedAssets,
