@@ -50,7 +50,6 @@ class FamilyHouseholdGenerator {
       familyName: normalizedFamilyName,
       countryCode: countryCode,
       parents: parents,
-      hasStepParent: false,
       childAppearance: childAppearance,
     );
 
@@ -159,7 +158,6 @@ class FamilyHouseholdGenerator {
     required String familyName,
     required String countryCode,
     required List<ParentNpc> parents,
-    required bool hasStepParent,
     CharacterAppearance? childAppearance,
     int? latestAllowedBirthYear,
   }) {
@@ -168,34 +166,16 @@ class FamilyHouseholdGenerator {
     final usedNames = <String>{};
     for (var i = 0; i < count; i++) {
       final gender = random.nextBool() ? Gender.male : Gender.female;
-      final relationshipRoll = random.nextInt(100);
-      final relationship = !hasStepParent
-          ? SiblingRelationship.fullSibling
-          : relationshipRoll < 55
-              ? SiblingRelationship.halfSibling
-              : SiblingRelationship.stepSibling;
       final joinsTwinBirth = i > 0 && random.nextInt(100) < 12;
-      // A twin always shares the previous sibling's relationship so the
-      // pair has the same parents and the same plausible birth window.
-      final effectiveRelationship =
-          joinsTwinBirth ? siblings.last.relationship : relationship;
       final siblingBirthYear = joinsTwinBirth
           ? siblings.last.birthYear
           : _pickSiblingBirthYear(
               random: random,
               playerBirthYear: birthYear,
-              relationship: effectiveRelationship,
               parents: parents,
               latestAllowedBirthYear: latestAllowedBirthYear,
             );
-      final siblingLastName = effectiveRelationship == SiblingRelationship.stepSibling ||
-              (effectiveRelationship == SiblingRelationship.halfSibling &&
-                  random.nextBool())
-          ? CulturalRandomizerCatalog.randomLastName(
-              countryCode: countryCode,
-              random: math.Random(random.nextInt(0x7fffffff)),
-            )
-          : familyName;
+      final siblingLastName = familyName;
       var firstName = _firstName(random, gender, countryCode);
       var fullNameKey = '${firstName.toLowerCase()} ${siblingLastName.toLowerCase()}';
       var attempts = 0;
@@ -215,7 +195,6 @@ class FamilyHouseholdGenerator {
         lastName: siblingLastName,
         gender: gender,
         birthYear: siblingBirthYear,
-        relationship: effectiveRelationship,
         countryCode: countryCode,
         appearance: _generateAppearance(
           random: random,
@@ -238,7 +217,6 @@ class FamilyHouseholdGenerator {
           lastName: sibling.lastName,
           gender: sibling.gender,
           birthYear: sibling.birthYear,
-          relationship: sibling.relationship,
           appearance: sibling.appearance,
           countryCode: sibling.countryCode,
           relationshipPercent: sibling.relationshipPercent,
@@ -288,37 +266,19 @@ class FamilyHouseholdGenerator {
 
   /// Picks a sibling birth year that is biologically plausible.
   ///
-  /// Full siblings must fit the birth window of every biological parent.
-  /// Half and step siblings are bound by the step-parent when one exists.
+  /// The year must fit the birth window of both parents.
   /// The year is within 18 years of the player and is never the player's
   /// own birth year (same-year siblings are generated explicitly as twins).
   static int _pickSiblingBirthYear({
     required SeededRandom random,
     required int playerBirthYear,
-    required SiblingRelationship relationship,
     required List<ParentNpc> parents,
     int? latestAllowedBirthYear,
   }) {
-    final Iterable<ParentNpc> bindingParents;
-    if (relationship == SiblingRelationship.fullSibling) {
-      bindingParents = parents.where(
-        (parent) =>
-            parent.role == FamilyRole.father ||
-            parent.role == FamilyRole.mother,
-      );
-    } else {
-      final stepParents = parents.where(
-        (parent) =>
-            parent.role == FamilyRole.stepMother ||
-            parent.role == FamilyRole.stepFather,
-      );
-      bindingParents = stepParents.isNotEmpty ? stepParents : parents;
-    }
-
     var earliest = playerBirthYear - 18;
     var latest = playerBirthYear + 18;
 
-    for (final parent in bindingParents) {
+    for (final parent in parents) {
       final window = _parentBirthWindow(parent);
       if (window.$1 > earliest) earliest = window.$1;
       if (window.$2 < latest) latest = window.$2;
