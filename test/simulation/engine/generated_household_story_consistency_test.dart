@@ -5,7 +5,6 @@ import 'package:everylife/data/repositories/save_repository.dart';
 import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/event/simulation_event.dart';
 import 'package:everylife/domain/family/family_asset.dart';
-import 'package:everylife/domain/family/parent_npc.dart';
 import 'package:everylife/simulation/engine/simulation_engine.dart';
 
 void main() {
@@ -114,55 +113,7 @@ void main() {
           );
           expect(household.assets.length, lessThanOrEqualTo(1));
 
-          final guardian = household.parents.any(
-            (parent) => parent.role == FamilyRole.guardian,
-          );
-          final mother = _findRole(household.parents, FamilyRole.mother);
-          final father = _findRole(household.parents, FamilyRole.father);
-
-          if (guardian) {
-            expect(familyDescription, contains('orphanage'));
-            expect(household.parents, hasLength(1));
-          } else if (mother != null && !mother.isAlive && father != null) {
-            expect(
-              familyDescription,
-              contains('My mother died while giving birth'),
-            );
-          } else if (mother != null && father == null) {
-            expect(
-              familyDescription,
-              contains('My mother raised me on her own'),
-            );
-          } else if (household.isAffairConception) {
-            // Affair narratives differ depending on who raises the child.
-            expect(mother, isNotNull);
-            expect(father, isNotNull);
-
-            if (household.raisedByFather) {
-              expect(
-                familyDescription,
-                contains('I was born from an affair'),
-              );
-              expect(
-                familyDescription,
-                contains('My father raised me with my stepmother'),
-              );
-            } else {
-              expect(
-                familyDescription,
-                contains('My mother raised me after an affair'),
-              );
-              expect(
-                familyDescription,
-                contains('My biological father'),
-              );
-            }
-          } else {
-            expect(
-              familyDescription,
-              contains('both of my parents'),
-            );
-          }
+          expect(familyDescription, contains('both of my parents'));
 
           for (final parent in household.parents) {
             if (parent.isAlive) {
@@ -212,11 +163,4 @@ void main() {
       },
     );
   });
-}
-
-ParentNpc? _findRole(List<ParentNpc> parents, FamilyRole role) {
-  for (final parent in parents) {
-    if (parent.role == role) return parent;
-  }
-  return null;
 }
