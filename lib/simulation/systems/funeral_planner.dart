@@ -14,9 +14,6 @@ abstract final class FuneralPlanner {
   static String roleName(FamilyRole role) => switch (role) {
         FamilyRole.father => 'father',
         FamilyRole.mother => 'mother',
-        FamilyRole.guardian => 'guardian',
-        FamilyRole.stepFather => 'stepfather',
-        FamilyRole.stepMother => 'stepmother',
       };
 
   static String subjectFor(ParentNpc parent) =>
