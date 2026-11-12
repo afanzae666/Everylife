@@ -60,7 +60,7 @@ class StartingLifeEventGenerator {
     required FamilyHousehold? household,
     required SeededRandom random,
   }) {
-    final conception = _conceptionNarrative(household, random);
+    final conception = _conceptionNarrative(random);
 
     return '${_birthScene(player)} $conception';
   }
@@ -102,9 +102,6 @@ class StartingLifeEventGenerator {
     }
 
     final parents = household.parents;
-    final guardian = parents.any(
-      (parent) => parent.role == FamilyRole.guardian,
-    );
     final mother = _findRole(parents, FamilyRole.mother);
     final father = _findRole(parents, FamilyRole.father);
 
@@ -137,38 +134,6 @@ class StartingLifeEventGenerator {
       return ' I have ${_joinPhrases(phrases)}.';
     }
 
-    if (guardian) {
-      return 'I was placed in an orphanage, where a guardian or caregiver '
-          'looks after me.';
-    }
-
-    if (household.isAffairConception && mother != null && father != null) {
-      if (household.raisedByFather) {
-        return 'I was born from an affair. My father raised me with my '
-            'stepmother, while my biological mother remained part of my '
-            'family history.'
-            '${siblingSummary()}';
-      }
-
-      return 'My mother raised me after an affair with a married man. '
-          'My biological father was not my primary caregiver.'
-          '${siblingSummary()}';
-    }
-
-    if (mother != null &&
-        !mother.isAlive &&
-        father != null &&
-        father.isAlive) {
-      return 'My mother died while giving birth to me. '
-          'My father raised me without her presence from the beginning '
-          'of my life.${siblingSummary()}';
-    }
-
-    if (mother != null && father == null) {
-      return 'My mother raised me on her own from birth. '
-          'My father is unknown.${siblingSummary()}';
-    }
-
     if (mother != null && father != null) {
       return 'I was born into a family with both of my parents. '
           'They tried to provide the best life they could for me.'
@@ -189,29 +154,11 @@ class StartingLifeEventGenerator {
     }
 
     final descriptions = <String>[];
-    final hasFather = household.parents.any(
-      (parent) => parent.role == FamilyRole.father,
-    );
-    final hasGuardian = household.parents.any(
-      (parent) => parent.role == FamilyRole.guardian,
-    );
-
-    if (!hasFather && !hasGuardian) {
-      descriptions.add('My father is unknown.');
-    }
 
     for (final parent in household.parents) {
       final role = _roleLabel(parent.role);
       final name = parent.fullName;
       final ageText = 'age ${_parentAgeAtChildBirth(parent, household)}';
-
-      if (!parent.isAlive) {
-        descriptions.add(
-          'My $role, $name, is deceased ($ageText).',
-        );
-        continue;
-      }
-
       final employment = _employmentDescription(parent);
       if (employment == null) {
         descriptions.add('My $role, $name ($ageText).');
@@ -287,45 +234,7 @@ class StartingLifeEventGenerator {
     }
   }
 
-  static String _conceptionNarrative(
-    FamilyHousehold? household,
-    SeededRandom random,
-  ) {
-    final parents = household?.parents ?? const <ParentNpc>[];
-
-    final guardian = parents.any(
-      (parent) => parent.role == FamilyRole.guardian,
-    );
-    final hasMother = parents.any(
-      (parent) => parent.role == FamilyRole.mother,
-    );
-    final hasFather = parents.any(
-      (parent) => parent.role == FamilyRole.father,
-    );
-
-    if (guardian || (!hasMother && !hasFather)) {
-      return 'The circumstances of my conception are unknown.';
-    }
-
-    if (household?.isAffairConception == true && hasMother && hasFather) {
-      return 'I was conceived during an affair between my mother and a '
-          'married man.';
-    }
-
-    if (hasMother && !hasFather) {
-      const stories = <String>[
-        'My conception happened when my mother hooked up with someone '
-            'at a concert. It is unknown whether the drummer or the singer '
-            'was my father.',
-        'My mother had a brief encounter with someone whose identity was '
-            'never confirmed. My father is unknown.',
-        'My mother never revealed who my biological father was, so the '
-            'circumstances of my conception remain a mystery.',
-      ];
-
-      return stories[random.nextInt(stories.length)];
-    }
-
+  static String _conceptionNarrative(SeededRandom random) {
     const stories = <String>[
       'My parents planned to start a family and were happy when they '
           'learned I was on the way.',
