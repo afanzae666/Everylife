@@ -1,5 +1,6 @@
 import '../career/career_state.dart';
 import '../career/education_state.dart';
+import '../career/major_catalog.dart';
 import '../career/school_npc.dart';
 import '../love/love_state.dart';
 
@@ -29,7 +30,12 @@ abstract final class SystemFlags {
   /// carries it out: with no clear reason, so the spouse pays a fine.
   static const String divorceFiledUnclear = 'divorce_filed_unclear';
 
-  static const Set<String> all = {
+  /// Set while a university student studies this field, for example
+  /// `studying_law`.
+  static String studying(StudyField field) => 'studying_${field.name}';
+
+  static final Set<String> all = {
+    for (final field in StudyField.values) studying(field),
     employed,
     student,
     schoolStudent,
