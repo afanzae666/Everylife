@@ -26,22 +26,12 @@ class FamilyHousehold {
     required this.annualLivingCosts,
     required this.totalDebt,
     List<SiblingNpc> siblings = const <SiblingNpc>[],
-    this.isAffairConception = false,
-    this.raisedByFather = false,
   })  : parents = List.unmodifiable(parents),
         siblings = List.unmodifiable(siblings),
         assets = List.unmodifiable(assets);
 
   final String id;
   final List<ParentNpc> parents;
-
-  /// True when the starting-life story establishes conception during an affair.
-  /// Defaults to false when loading saves created before this field existed.
-  final bool isAffairConception;
-
-  /// Whether the father is the primary caregiver in the affair scenario.
-  /// A stepmother may be generated only for this branch.
-  final bool raisedByFather;
 
   /// Siblings generated once at new-life creation and persisted in saves.
   final List<SiblingNpc> siblings;
@@ -61,9 +51,8 @@ class FamilyHousehold {
   /// Returns a copy with the given fields replaced.
   ///
   /// Always prefer this over calling the constructor directly: it keeps
-  /// every field (including [isAffairConception] and [raisedByFather]) so
-  /// systems cannot accidentally reset story flags when they update the
-  /// household.
+  /// every field, so systems cannot accidentally reset one when they update
+  /// the household.
   FamilyHousehold copyWith({
     List<ParentNpc>? parents,
     List<SiblingNpc>? siblings,
@@ -72,8 +61,6 @@ class FamilyHousehold {
     HousingStatus? housingStatus,
     Money? annualLivingCosts,
     Money? totalDebt,
-    bool? isAffairConception,
-    bool? raisedByFather,
   }) {
     return FamilyHousehold(
       id: id,
@@ -84,8 +71,6 @@ class FamilyHousehold {
       housingStatus: housingStatus ?? this.housingStatus,
       annualLivingCosts: annualLivingCosts ?? this.annualLivingCosts,
       totalDebt: totalDebt ?? this.totalDebt,
-      isAffairConception: isAffairConception ?? this.isAffairConception,
-      raisedByFather: raisedByFather ?? this.raisedByFather,
     );
   }
 
