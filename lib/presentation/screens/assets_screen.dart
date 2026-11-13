@@ -291,17 +291,6 @@ final String value;
 final double zoom;
 final bool emphasized;
 
-List<Widget> _ruledFinanceLines(BuildContext context, List<Widget> lines) => [
-      for (var i = 0; i < lines.length; i++) ...[
-        if (i > 0)
-          Divider(
-            height: 10,
-            thickness: 1,
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
-          ),
-        lines[i],
-      ],
-    ];
 
 @override
 Widget build(BuildContext context) {
@@ -358,17 +347,6 @@ final IconData icon;
 final String formattedValue;
 final double zoom;
 
-List<Widget> _ruledFinanceLines(BuildContext context, List<Widget> lines) => [
-      for (var i = 0; i < lines.length; i++) ...[
-        if (i > 0)
-          Divider(
-            height: 10,
-            thickness: 1,
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
-          ),
-        lines[i],
-      ],
-    ];
 
 @override
 Widget build(BuildContext context) {
