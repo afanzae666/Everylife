@@ -75,6 +75,103 @@ class AccentCard extends StatelessWidget {
   }
 }
 
+/// A card in the style of the school card: an icon tile, a title, a short
+/// line under it and a round arrow. [footer] adds anything below the header.
+/// Used for the university and job cards.
+class ActionCard extends StatelessWidget {
+  const ActionCard({
+    required this.emoji,
+    required this.title,
+    this.subtitle,
+    this.subtitleKey,
+    this.onTap,
+    this.enabled = true,
+    this.footer,
+    this.zoom = 1,
+    super.key,
+  });
+
+  final String emoji;
+  final String title;
+  final String? subtitle;
+  final Key? subtitleKey;
+  final VoidCallback? onTap;
+
+  /// A disabled card is dimmed.
+  final bool enabled;
+  final Widget? footer;
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    double s(double value) => value * zoom;
+
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+
+    return Opacity(
+      opacity: enabled ? 1 : 0.55,
+      child: AccentCard(
+        zoom: zoom,
+        child: InkWell(
+          onTap: enabled ? onTap : null,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(s(8), s(6), s(8), s(7)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(s(5)),
+                      decoration: BoxDecoration(
+                        color: primary.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(s(10)),
+                        border: Border.all(color: primary, width: 1.5),
+                      ),
+                      child: Text(emoji, style: TextStyle(fontSize: s(22))),
+                    ),
+                    SizedBox(width: s(8)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          if (subtitle != null)
+                            Text(
+                              subtitle!,
+                              key: subtitleKey,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (onTap != null && enabled) ...[
+                      SizedBox(width: s(6)),
+                      ChevronBadge(zoom: zoom),
+                    ],
+                  ],
+                ),
+                if (footer != null) ...[
+                  SizedBox(height: s(7)),
+                  footer!,
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// A small green round arrow that shows a card can be opened.
 class ChevronBadge extends StatelessWidget {
   const ChevronBadge({this.zoom = 1, super.key});
