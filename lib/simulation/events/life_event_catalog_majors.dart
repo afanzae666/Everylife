@@ -498,5 +498,153 @@ abstract final class LifeEventCatalogMajors {
         ),
       ],
     ),
+    LifeEventDefinition(
+      id: 'uni_medicine_anatomy',
+      title: 'The Anatomy Exam',
+      description:
+          'The anatomy exam covers every bone, muscle and nerve in the human body, in Latin.',
+      minAge: 18,
+      maxAge: 30,
+      weight: 12,
+      requiredFlags: ['university_student', 'studying_medicine'],
+      choices: [
+        LifeChoice(
+          id: 'flashcards',
+          label: 'Memorise it with flashcards',
+          outcomes: [
+            LifeOutcome(
+              weight: 3,
+              text:
+                  'Three hundred flashcards later, I could name a muscle in my sleep. I passed with room to spare.',
+              stats: [StatEffect(StatKey.intelligence, 3), StatEffect(StatKey.happiness, 2)],
+            ),
+            LifeOutcome(
+              text:
+                  'I mixed up two nerves on the exam. My notes say that is a very expensive mistake.',
+              stats: [StatEffect(StatKey.intelligence, 1), StatEffect(StatKey.happiness, -2)],
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'study_group',
+          label: 'Study with my group',
+          outcomes: [
+            LifeOutcome(
+              text:
+                  'We quizzed each other until midnight. Everyone passed, and we ate far too much pizza.',
+              stats: [StatEffect(StatKey.charisma, 2), StatEffect(StatKey.happiness, 3)],
+            ),
+          ],
+        ),
+      ],
+    ),
+    LifeEventDefinition(
+      id: 'uni_medicine_rounds',
+      title: 'First Hospital Rounds',
+      description:
+          'For the first time I walked the hospital ward in a white coat that was slightly too big.',
+      minAge: 18,
+      maxAge: 30,
+      weight: 12,
+      requiredFlags: ['university_student', 'studying_medicine'],
+      choices: [
+        LifeChoice(
+          id: 'ask',
+          label: 'Ask the doctor questions',
+          outcomes: [
+            LifeOutcome(
+              text:
+                  'The senior doctor answered every question and added three more I had not thought of. I left tired and thrilled.',
+              stats: [StatEffect(StatKey.intelligence, 3), StatEffect(StatKey.willpower, 1)],
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'watch',
+          label: 'Stay quiet and watch',
+          outcomes: [
+            LifeOutcome(
+              text:
+                  'I watched a procedure from the back and felt a little dizzy. I learned a lot, mostly about standing up slowly.',
+              stats: [StatEffect(StatKey.willpower, 2), StatEffect(StatKey.health, -1)],
+            ),
+          ],
+        ),
+      ],
+    ),
+    LifeEventDefinition(
+      id: 'uni_nursing_ward',
+      title: 'My First Ward Shift',
+      description:
+          'My first real shift on the ward: a patient who was scared, a nurse who was busy and me in between.',
+      minAge: 18,
+      maxAge: 30,
+      weight: 12,
+      requiredFlags: ['university_student', 'studying_nursing'],
+      choices: [
+        LifeChoice(
+          id: 'comfort',
+          label: 'Sit with the scared patient',
+          outcomes: [
+            LifeOutcome(
+              weight: 3,
+              text:
+                  'I held his hand and talked about nothing for ten minutes. He thanked me twice, and I went home with a full heart.',
+              stats: [StatEffect(StatKey.happiness, 4), StatEffect(StatKey.charisma, 2)],
+            ),
+            LifeOutcome(
+              text:
+                  'The patient was angry and took it out on me. It hurt, but the head nurse said it happens to everyone.',
+              stats: [StatEffect(StatKey.willpower, 3), StatEffect(StatKey.happiness, -2)],
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'help_nurse',
+          label: 'Help the busy nurse',
+          outcomes: [
+            LifeOutcome(
+              text:
+                  'I ran errands for hours. My feet hurt, and the nurse said I had earned my place on the ward.',
+              stats: [StatEffect(StatKey.fitness, 2), StatEffect(StatKey.health, -1)],
+            ),
+          ],
+        ),
+      ],
+    ),
+    LifeEventDefinition(
+      id: 'uni_nursing_night',
+      title: 'The Night Shift',
+      description:
+          'The ward training included a night shift. The corridor lights hummed, and the coffee machine became my best friend.',
+      minAge: 18,
+      maxAge: 30,
+      weight: 12,
+      requiredFlags: ['university_student', 'studying_nursing'],
+      choices: [
+        LifeChoice(
+          id: 'push_through',
+          label: 'Push through on coffee',
+          outcomes: [
+            LifeOutcome(
+              text:
+                  'I stayed awake until dawn and caught a wrong dose before it reached the patient. My supervisor noticed.',
+              stats: [StatEffect(StatKey.intelligence, 2), StatEffect(StatKey.health, -2)],
+            ),
+          ],
+        ),
+        LifeChoice(
+          id: 'swap',
+          label: 'Swap the shift with a classmate',
+          outcomes: [
+            LifeOutcome(
+              text:
+                  'I got a full night of sleep and an uneasy conscience. My classmate did not let me forget it.',
+              stats: [StatEffect(StatKey.happiness, -2), StatEffect(StatKey.health, 2)],
+            ),
+          ],
+        ),
+      ],
+    ),
   ];
 }
