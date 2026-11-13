@@ -1,8 +1,6 @@
 import 'package:everylife/core/money/money.dart';
 import '../../core/random/seeded_random.dart';
-import '../../domain/career/education_state.dart';
 import '../../domain/career/job_catalog.dart';
-import '../generation/country_economic_profile.dart';
 import '../../domain/event/life_progress.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/world/world_state.dart';
@@ -13,7 +11,7 @@ import '../events/money_text.dart';
 import 'simulation_system.dart';
 import 'system_priority.dart';
 
-/// Pays salary and pension, charges living costs and tuition, and handles
+/// Pays salary and pension, charges living costs, and handles
 /// promotions, layoffs, retirement, debt interest, and bankruptcy.
 ///
 /// All money amounts are baseline values scaled by country cost of living.
@@ -33,8 +31,6 @@ class CareerSystem implements SimulationSystem {
   /// Baseline yearly state pension, the minimum for a retired player.
   static const int statePensionBase = 500000;
 
-  /// Baseline yearly university tuition.
-  static const int tuitionBase = 800000;
 
   static const int retirementAge = 65;
   static const int forcedRetirementAge = 70;
@@ -171,18 +167,6 @@ class CareerSystem implements SimulationSystem {
 
     // --- Costs -------------------------------------------------------------
     final education = progress.education;
-    var tuition = 0;
-
-    if (education.stage == SchoolStage.university) {
-      final parentsPay = _parentsCoverTuition(state);
-
-      if (!parentsPay) {
-        var base = tuitionBase;
-        if (flags.contains('scholarship')) base ~/= 2;
-        tuition = scale(base);
-      }
-    }
-
     var living = 0;
 
     if (age >= 18) {
@@ -199,7 +183,7 @@ class CareerSystem implements SimulationSystem {
 
     // --- Settle the year ---------------------------------------------------
     money += income;
-    final outflow = living + tuition;
+    final outflow = living;
 
     if (money >= outflow) {
       money -= outflow;
@@ -209,15 +193,10 @@ class CareerSystem implements SimulationSystem {
       debt += borrowed;
       money = 0;
 
-      final reasons = [
-        if (living > 0) 'living costs',
-        if (tuition > 0) 'tuition',
-      ].join(' and ');
-
       log(
         'borrowed',
         'Went into debt',
-        'My $reasons this year were more than I earned and saved, so I had '
+        'My living costs this year were more than I earned and saved, so I had '
             'to borrow ${MoneyText.of(state, borrowed)}.',
       );
     }
@@ -283,22 +262,5 @@ class CareerSystem implements SimulationSystem {
 
   bool _hasLivingParent(WorldState state) {
     return state.familyHousehold?.parents.any((parent) => parent.isAlive) ?? false;
-  }
-
-  /// Well-off parents (a high income for their country) pay for university
-  /// while they are alive.
-  bool _parentsCoverTuition(WorldState state) {
-    final household = state.familyHousehold;
-    if (household == null) return false;
-
-    final countryCode =
-        state.player.location?.countryCode ?? 'ID';
-    final threshold = CountryEconomicProfile.forCountryCode(countryCode)
-        .scaleAmount(12000000);
-
-    return household.parents.any(
-      (parent) =>
-          parent.isAlive && parent.annualIncome.minorUnits >= threshold,
-    );
   }
 }
