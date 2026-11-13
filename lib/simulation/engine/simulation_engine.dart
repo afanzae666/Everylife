@@ -9,6 +9,7 @@ import 'package:everylife/core/money/money.dart';
 import '../../domain/character/character.dart';
 import '../../domain/career/job_catalog.dart';
 import '../../domain/career/major_catalog.dart';
+import '../../domain/career/tuition_funding.dart';
 import '../../domain/character/life_stage.dart';
 import '../../domain/event/life_event.dart';
 import '../../domain/family/parent_npc.dart';
@@ -141,16 +142,13 @@ class SimulationEngine {
   /// Chance (percent) of being hired for [job].
   int hiringChance(JobDefinition job) => CareerActions.hiringChance(_state, job);
 
-  /// Chance (percent) that a university application succeeds.
-  int get universityChance => CareerActions.universityChance(_state);
-
-  /// Yearly tuition of [major] in the player's country, in minor units.
+  /// Total tuition of [major] in the player's country, in minor units.
   int tuitionFor(MajorDefinition major) =>
       CareerActions.tuitionFor(_state, major);
 
-  /// Why the player cannot apply for [major], or null when they can.
-  String? majorBlocker(MajorDefinition major) =>
-      CareerActions.majorBlocker(_state, major);
+  /// Whether [how] can pay for [majorId], with a scene when it cannot.
+  TuitionAnswer askTuitionFunding(String majorId, TuitionFunding how) =>
+      CareerActions.fundingAnswer(_state, majorId, how);
 
   Result<String> applyForJob(String jobId) => _commitAction(
         CareerActions.applyForJob(
@@ -166,11 +164,13 @@ class SimulationEngine {
         CareerActions.askForRaise(state: _state, random: _random),
       );
 
-  Result<String> applyForUniversity(String majorId) => _commitAction(
+  Result<String> applyForUniversity(String majorId, TuitionFunding funding) =>
+      _commitAction(
         CareerActions.applyForUniversity(
           state: _state,
           random: _random,
           majorId: majorId,
+          funding: funding,
         ),
       );
 
