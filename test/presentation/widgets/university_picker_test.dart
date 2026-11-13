@@ -58,13 +58,15 @@ void main() {
     await tester.tap(find.byKey(const Key('institution-general')));
     await tester.pump();
 
-    for (final major in MajorCatalog.all) {
+    for (final major in MajorCatalog.at(InstitutionType.general)) {
       expect(find.byKey(Key('major-${major.id}')), findsOneWidget);
     }
+
+    expect(find.byKey(const Key('major-medicine')), findsNothing);
     expect(find.byKey(const Key('university-intro')), findsNothing);
   });
 
-  testWidgets('choosing a specialized institution keeps the overlay open', (
+  testWidgets('choosing a specialized institution lists its programs', (
     tester,
   ) async {
     await _pump(tester);
@@ -72,7 +74,10 @@ void main() {
     await tester.tap(find.byKey(const Key('institution-specialized')));
     await tester.pump();
 
-    expect(find.byKey(const Key('no-programs')), findsOneWidget);
+    expect(find.byKey(const Key('major-medicine')), findsOneWidget);
+    expect(find.byKey(const Key('major-nursing')), findsOneWidget);
+    expect(find.byKey(const Key('major-business')), findsNothing);
+    expect(find.byKey(const Key('no-programs')), findsNothing);
     expect(find.byKey(const Key('university-back')), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('university-back')));
