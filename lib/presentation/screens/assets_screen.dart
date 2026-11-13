@@ -138,27 +138,43 @@ void _showFinance(BuildContext context) {
             ],
           ),
           const Divider(height: 16),
-          InfoLine(label: 'Employment', value: careerStatus),
-          if (annualIncome.minorUnits > 0)
-            InfoLine(label: career.retired ? 'Annual pension' : 'Annual salary', value: _formatMoney(annualIncome)),
-          InfoLine(label: 'Cash', value: _formatMoney(player.money)),
-          InfoLine(label: 'Owned assets', value: _formatMoney(player.totalAssets - player.money)),
-          InfoLine(label: 'Total assets', value: _formatMoney(player.totalAssets)),
-          InfoLine(label: 'Outstanding debt', value: _formatMoney(player.debt)),
-          InfoLine(label: 'Net worth', value: _formatMoney(player.netWorth)),
+          ..._ruledFinanceLines(context, [
+            InfoLine(label: 'Employment', value: careerStatus),
+            if (annualIncome.minorUnits > 0)
+              InfoLine(
+                label: career.retired ? 'Annual pension' : 'Annual salary',
+                value: _formatMoney(annualIncome),
+              ),
+            InfoLine(label: 'Cash', value: _formatMoney(player.money)),
+            InfoLine(
+              label: 'Owned assets',
+              value: _formatMoney(player.totalAssets - player.money),
+            ),
+            InfoLine(label: 'Total assets', value: _formatMoney(player.totalAssets)),
+            InfoLine(label: 'Outstanding debt', value: _formatMoney(player.debt)),
+            InfoLine(label: 'Net worth', value: _formatMoney(player.netWorth)),
+          ]),
         ],
       ),
     ),
   );
 }
 
+List<Widget> _ruledFinanceLines(BuildContext context, List<Widget> lines) => [
+      for (var i = 0; i < lines.length; i++) ...[
+        if (i > 0)
+          Divider(
+            height: 10,
+            thickness: 1,
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+          ),
+        lines[i],
+      ],
+    ];
+
 @override
 Widget build(BuildContext context) {
 double s(double value) => value * zoom;
-
-final cashValue = _formatMoney(player.money);
-final totalAssetsValue = _formatMoney(player.totalAssets);
-final debtValue = _formatMoney(player.debt);
 
 return MediaQuery(
   data: MediaQuery.of(context).copyWith(
@@ -174,37 +190,13 @@ return MediaQuery(
             child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          Card(
-            margin: EdgeInsets.zero,
-            child: Padding(
-              padding: EdgeInsets.all(s(4)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Financial Overview',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                  SizedBox(height: s(3)),
-                  _AssetRow(
-                    label: 'Total Assets',
-                    value: totalAssetsValue,
-                    zoom: zoom,
-                    emphasized: true,
-                  ),
-                  _AssetRow(
-                    label: 'Cash',
-                    value: cashValue,
-                    zoom: zoom,
-                  ),
-                  _AssetRow(
-                    label: 'Debt',
-                    value: debtValue,
-                    zoom: zoom,
-                  ),
-                ],
-              ),
-            ),
+          ActionCard(
+            key: const Key('finance-card'),
+            zoom: zoom,
+            emoji: '💰',
+            title: 'Finance',
+            subtitle: 'View your financial situation',
+            onTap: () => _showFinance(context),
           ),
           SizedBox(height: 0),
           Card(
@@ -232,15 +224,6 @@ return MediaQuery(
                 ],
               ),
             ),
-          ),
-          SizedBox(height: 0),
-          ActionCard(
-            key: const Key('finance-card'),
-            zoom: zoom,
-            emoji: '💰',
-            title: 'Finance',
-            subtitle: 'View your financial situation',
-            onTap: () => _showFinance(context),
           ),
           SizedBox(height: 0),
           Card(
@@ -308,6 +291,18 @@ final String value;
 final double zoom;
 final bool emphasized;
 
+List<Widget> _ruledFinanceLines(BuildContext context, List<Widget> lines) => [
+      for (var i = 0; i < lines.length; i++) ...[
+        if (i > 0)
+          Divider(
+            height: 10,
+            thickness: 1,
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+          ),
+        lines[i],
+      ],
+    ];
+
 @override
 Widget build(BuildContext context) {
 double s(double value) => value * zoom;
@@ -362,6 +357,18 @@ final String categoryLabel;
 final IconData icon;
 final String formattedValue;
 final double zoom;
+
+List<Widget> _ruledFinanceLines(BuildContext context, List<Widget> lines) => [
+      for (var i = 0; i < lines.length; i++) ...[
+        if (i > 0)
+          Divider(
+            height: 10,
+            thickness: 1,
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+          ),
+        lines[i],
+      ],
+    ];
 
 @override
 Widget build(BuildContext context) {

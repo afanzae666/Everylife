@@ -306,10 +306,16 @@ class _SchoolScreenState extends State<SchoolScreen> {
               const Divider(height: 16),
               ..._ruled([
                 InfoLine(label: 'Type', value: schoolStageTitle(stage)),
-                InfoLine(
-                  label: 'School',
-                  value: education.isPrivateSchool ? 'Private' : 'Public',
-                ),
+                if (stage != SchoolStage.university)
+                  InfoLine(
+                    label: 'School',
+                    value: education.isPrivateSchool ? 'Private' : 'Public',
+                  )
+                else
+                  InfoLine(
+                    label: 'Major',
+                    value: education.major?.name ?? 'Undeclared',
+                  ),
                 if (place != null) InfoLine(label: 'Location', value: place),
                 if (head.isNotEmpty)
                   InfoLine(
