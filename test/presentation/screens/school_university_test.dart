@@ -91,11 +91,11 @@ void main() {
     await tester.pumpAndSettle();
 
     final debateClub = find.byKey(const Key('club-debate'));
-    expect(debateClub, findsOneWidget);
     final clubPickerScrollView = find.descendant(
       of: find.byKey(const Key('club-picker')),
       matching: find.byType(Scrollable),
     );
+    expect(clubPickerScrollView, findsOneWidget);
     await tester.scrollUntilVisible(
       debateClub,
       120,
