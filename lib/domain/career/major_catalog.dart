@@ -5,7 +5,9 @@ enum StudyField {
   computerScience('Computer Science'),
   law('Law'),
   education('Education'),
-  artsDesign('Arts & Design');
+  artsDesign('Arts & Design'),
+  medicine('Medicine'),
+  nursing('Nursing');
 
   const StudyField(this.label);
 
@@ -39,6 +41,7 @@ class MajorDefinition {
     required this.minGrades,
     required this.minIntelligence,
     this.institution = InstitutionType.general,
+    this.campusName,
   });
 
   final String id;
@@ -63,6 +66,10 @@ class MajorDefinition {
   final int minIntelligence;
 
   final InstitutionType institution;
+
+  /// The name of the school for specialized programs, for example
+  /// "Medical School". General majors are taught at the university.
+  final String? campusName;
 }
 
 abstract final class MajorCatalog {
@@ -163,6 +170,32 @@ abstract final class MajorCatalog {
       tuitionPerYear: 500000,
       minGrades: 40,
       minIntelligence: 35,
+    ),
+    MajorDefinition(
+      id: 'medicine',
+      name: 'Medicine',
+      emoji: '🩺',
+      field: StudyField.medicine,
+      blurb: 'Long years of study to save lives.',
+      years: 6,
+      tuitionPerYear: 2000000,
+      minGrades: 80,
+      minIntelligence: 70,
+      institution: InstitutionType.specialized,
+      campusName: 'Medical School',
+    ),
+    MajorDefinition(
+      id: 'nursing',
+      name: 'Nursing',
+      emoji: '💉',
+      field: StudyField.nursing,
+      blurb: 'Care for patients on the front line.',
+      years: 3,
+      tuitionPerYear: 700000,
+      minGrades: 55,
+      minIntelligence: 45,
+      institution: InstitutionType.specialized,
+      campusName: 'Nursing College',
     ),
   ];
 }

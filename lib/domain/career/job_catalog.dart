@@ -332,6 +332,7 @@ abstract final class JobCatalog {
       sector: JobSector.health,
       minAge: 22,
       requiredEducation: EducationLevel.bachelor,
+      requiredFields: [StudyField.nursing],
     ),
     JobDefinition(
       id: 'pharmacist',
@@ -342,6 +343,7 @@ abstract final class JobCatalog {
       sector: JobSector.health,
       minAge: 22,
       requiredEducation: EducationLevel.bachelor,
+      requiredFields: [StudyField.medicine, StudyField.nursing],
     ),
     JobDefinition(
       id: 'doctor',
@@ -352,6 +354,7 @@ abstract final class JobCatalog {
       sector: JobSector.health,
       minAge: 24,
       requiredEducation: EducationLevel.bachelor,
+      requiredFields: [StudyField.medicine],
     ),
     JobDefinition(
       id: 'teacher',
