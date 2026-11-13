@@ -283,13 +283,11 @@ const _AssetRow({
 required this.label,
 required this.value,
 required this.zoom,
-this.emphasized = false,
 });
 
 final String label;
 final String value;
 final double zoom;
-final bool emphasized;
 
 
 @override
@@ -307,11 +305,7 @@ return Padding(
       Expanded(
         child: Text(
           label,
-          style: emphasized
-              ? baseStyle?.copyWith(
-                  fontWeight: FontWeight.w700,
-                )
-              : baseStyle,
+          style: baseStyle,
         ),
       ),
       SizedBox(width: s(6)),
