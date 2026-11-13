@@ -14,6 +14,7 @@ import 'school_screen.dart';
 import 'work_screen.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
+import '../../simulation/narrative/tuition_narratives.dart';
 import '../widgets/themed_cards.dart';
 import '../widgets/university_picker.dart';
 
@@ -89,34 +90,38 @@ class _CareerScreenState extends State<CareerScreen> {
     }
   }
 
-  /// The university overlay: kind of institution, then major, then apply.
+  /// The university overlay: one list of majors, then how to pay.
   Future<void> _openUniversityPicker() async {
     final state = engine.state;
+    final year = state.clock.currentYear;
     final options = [
       for (final major in MajorCatalog.all)
-        UniversityMajorOption(
-          major: major,
-          tuitionLabel: _formatMoney(
+        () {
+          final total = _formatMoney(
             Money.fromMinorUnits(engine.tuitionFor(major)),
-          ),
-          blocker: engine.majorBlocker(major),
-        ),
+          );
+
+          return UniversityMajorOption(
+            major: major,
+            tuitionLabel: total,
+            prompt: TuitionNarratives.prompt(
+              seed: year + major.id.length * 7 + major.years,
+              major: major.name,
+              total: total,
+            ),
+          );
+        }(),
     ];
 
-    final majorId = await showUniversityPicker(
+    final choice = await showUniversityPicker(
       context,
       options: options,
-      grades: state.lifeProgress.education.grades,
-      intelligence: state.player.stats.intelligence,
-      chance: engine.universityChance,
-      scholarship: MajorCatalog.scholarshipPercentFor(
-        state.lifeProgress.education.grades,
-      ),
+      ask: engine.askTuitionFunding,
     );
 
-    if (!mounted || majorId == null) return;
+    if (!mounted || choice == null) return;
 
-    _run(engine.applyForUniversity(majorId));
+    _run(engine.applyForUniversity(choice.majorId, choice.funding));
   }
 
   @override
@@ -207,7 +212,6 @@ class _CareerScreenState extends State<CareerScreen> {
           : 'Choose where and what to study',
       subtitleKey: hasJob ? const Key('university-needs-quit') : null,
       enabled: !hasJob,
-      reserveMeter: true,
       onTap: _openUniversityPicker,
     );
   }
@@ -299,7 +303,6 @@ class _CareerScreenState extends State<CareerScreen> {
       subtitleKey: subtitleKey,
       onTap: working ? _openWork : _openJobs,
       footer: footer,
-      reserveMeter: footer == null,
     );
   }
 }
