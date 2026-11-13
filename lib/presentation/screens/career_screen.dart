@@ -13,7 +13,6 @@ import 'jobs_screen.dart';
 import 'school_screen.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
-import '../../simulation/systems/education_system.dart';
 import '../widgets/themed_cards.dart';
 import '../widgets/university_picker.dart';
 
@@ -119,36 +118,6 @@ class _CareerScreenState extends State<CareerScreen> {
     _run(engine.applyForUniversity(majorId));
   }
 
-  String _stageLabel(EducationState education) {
-    int grade(int total) => (education.yearsInStage + 1).clamp(1, total).toInt();
-
-    return switch (education.stage) {
-      SchoolStage.none => 'Not enrolled',
-      SchoolStage.elementary =>
-        'Elementary school (grade ${grade(EducationSystem.elementaryYears)} '
-            'of ${EducationSystem.elementaryYears})',
-      SchoolStage.middle =>
-        'Middle school (grade ${grade(EducationSystem.middleYears)} '
-            'of ${EducationSystem.middleYears})',
-      SchoolStage.high =>
-        'High school (grade ${grade(EducationSystem.highYears)} '
-            'of ${EducationSystem.highYears})',
-      SchoolStage.university =>
-        'University (year ${grade(education.programYears)} '
-            'of ${education.programYears})',
-    };
-  }
-
-  String _levelLabel(EducationLevel level) {
-    return switch (level) {
-      EducationLevel.none => 'None yet',
-      EducationLevel.elementary => 'Elementary school',
-      EducationLevel.middle => 'Middle school',
-      EducationLevel.highSchool => 'High school diploma',
-      EducationLevel.bachelor => "Bachelor's degree",
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
     final state = engine.state;
@@ -222,117 +191,22 @@ class _CareerScreenState extends State<CareerScreen> {
 
     final age = engine.state.player.ageAt(year);
     final hasJob = engine.state.lifeProgress.career.hasJob;
-    final canApply = !education.isStudent &&
-        education.highest == EducationLevel.highSchool &&
-        age >= 18;
-    final canDropOut = education.stage == SchoolStage.high ||
-        education.stage == SchoolStage.university;
+    final canApply =
+        education.highest == EducationLevel.highSchool && age >= 18;
 
-    final scheme = Theme.of(context).colorScheme;
-    final degreeField = education.degreeField;
-    final highest = degreeField == null
-        ? _levelLabel(education.highest)
-        : '${_levelLabel(education.highest)} in ${degreeField.label}';
+    if (!canApply) return const SizedBox.shrink();
 
-    return Card(
-      key: const Key('education-card'),
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: EdgeInsets.all(s(8)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.school_outlined),
-                SizedBox(width: s(6)),
-                Text(
-                  age < 18 ? 'School' : 'Education',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ],
-            ),
-            SizedBox(height: s(6)),
-            _infoRow(
-              Icons.menu_book_outlined,
-              'Now',
-              _stageLabel(education),
-            ),
-            _infoRow(
-              Icons.workspace_premium_outlined,
-              'Highest',
-              highest,
-            ),
-            if (canApply) ...[
-              SizedBox(height: s(4)),
-              Divider(height: 1, color: scheme.outlineVariant),
-              if (hasJob)
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: s(6)),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.info_outline, size: 18),
-                      SizedBox(width: s(6)),
-                      const Expanded(
-                        child: Text(
-                          'I cannot study and work full time. '
-                          'I would have to quit my job first.',
-                          key: Key('university-needs-quit'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ListTile(
-                key: const Key('university-card'),
-                contentPadding: EdgeInsets.zero,
-                enabled: !hasJob,
-                leading: const Icon(Icons.account_balance_outlined),
-                title: const Text('University'),
-                subtitle: const Text('Choose where and what to study'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: _openUniversityPicker,
-              ),
-            ],
-            if (canDropOut) ...[
-              Divider(height: 1, color: scheme.outlineVariant),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  key: const Key('drop-out'),
-                  onPressed: () => _run(engine.dropOutOfSchool()),
-                  icon: const Icon(Icons.logout, size: 18),
-                  label: const Text('Leave school'),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// One line of the education card: icon, label and value.
-  Widget _infoRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: s(3)),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 18),
-          SizedBox(width: s(8)),
-          Text(label),
-          SizedBox(width: s(8)),
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
+    return ActionCard(
+      key: const Key('university-card'),
+      zoom: widget.zoom,
+      emoji: '🎓',
+      title: 'University',
+      subtitle: hasJob
+          ? 'Quit my job first to study full time'
+          : 'Choose where and what to study',
+      subtitleKey: hasJob ? const Key('university-needs-quit') : null,
+      enabled: !hasJob,
+      onTap: _openUniversityPicker,
     );
   }
 
@@ -361,83 +235,87 @@ class _CareerScreenState extends State<CareerScreen> {
     final age = state.player.ageAt(year);
     final career = state.lifeProgress.career;
     final job = career.hasJob ? JobCatalog.byId(career.jobId!) : null;
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
 
-    final children = <Widget>[
-      Row(
-        children: [
-          const Icon(Icons.work_outline),
-          SizedBox(width: s(6)),
-          Expanded(
-            child: Text('Job', style: Theme.of(context).textTheme.titleMedium),
-          ),
-          const Icon(Icons.chevron_right),
-        ],
-      ),
-      SizedBox(height: s(4)),
-    ];
+    var emoji = '💼';
+    var title = 'Job';
+    String? subtitle;
+    Key? subtitleKey;
+    Widget? footer;
 
     if (career.retired) {
-      children.addAll([
-        const Text('Retired'),
-        Text('Pension: ${_formatBase(career.pensionBase)} per year'),
-      ]);
+      emoji = '🏖️';
+      title = 'Retired';
+      subtitle = 'Pension: ${_formatBase(career.pensionBase)} per year';
     } else if (job != null) {
-      children.addAll([
-        Text('${job.emoji} ${job.titleAt(career.rank)}'),
-        Text('Salary: ${_formatBase(career.salaryBase)} per year'),
-        Text('Performance: ${career.performance}/100'),
-        SizedBox(height: s(2)),
-        PipBar(value: career.performance / 100),
-        SizedBox(height: s(6)),
-        Wrap(
-          spacing: s(8),
-          children: [
-            FilledButton.tonal(
-              key: const Key('ask-raise'),
-              onPressed: career.lastRaiseRequestYear == year
-                  ? null
-                  : () => _run(engine.askForRaise()),
-              child: const Text('ASK FOR A RAISE'),
-            ),
-            TextButton(
-              key: const Key('quit-job'),
-              onPressed: () => _run(engine.quitJob()),
-              child: const Text('QUIT'),
-            ),
-          ],
-        ),
-      ]);
+      emoji = job.emoji;
+      title = job.titleAt(career.rank);
+      subtitle = 'Salary: ${_formatBase(career.salaryBase)} per year';
+      footer = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Text(
+                '◆ PERFORMANCE',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: primary,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${career.performance}/100',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: s(3)),
+          PipBar(value: career.performance / 100, height: s(8)),
+          SizedBox(height: s(6)),
+          Wrap(
+            spacing: s(8),
+            children: [
+              FilledButton.tonal(
+                key: const Key('ask-raise'),
+                onPressed: career.lastRaiseRequestYear == year
+                    ? null
+                    : () => _run(engine.askForRaise()),
+                child: const Text('ASK FOR A RAISE'),
+              ),
+              TextButton(
+                key: const Key('quit-job'),
+                onPressed: () => _run(engine.quitJob()),
+                child: const Text('QUIT'),
+              ),
+            ],
+          ),
+        ],
+      );
     } else if (age < 16) {
-      children.add(const Text('I am too young to work.'));
+      subtitle = 'I am too young to work.';
     } else if (state.lifeProgress.education.isStudent) {
-      children.addAll([
-        const Text('Student'),
-        const Text(
-          'I cannot work full time while I am still studying.',
-          key: Key('student-cannot-work'),
-        ),
-      ]);
+      title = 'Student';
+      subtitle = 'I cannot work full time while I am still studying.';
+      subtitleKey = const Key('student-cannot-work');
     } else {
-      children.addAll([
-        const Text('Unemployed'),
-        const Text('Tap to see every job.'),
-      ]);
+      title = 'Unemployed';
+      subtitle = 'Tap to see every job.';
     }
 
-    return Card(
+    return ActionCard(
       key: const Key('job-card'),
-      margin: EdgeInsets.zero,
-      child: InkWell(
-        onTap: _openJobs,
-        child: Padding(
-          padding: EdgeInsets.all(s(8)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: children,
-          ),
-        ),
-      ),
+      zoom: widget.zoom,
+      emoji: emoji,
+      title: title,
+      subtitle: subtitle,
+      subtitleKey: subtitleKey,
+      onTap: _openJobs,
+      footer: footer,
     );
   }
-
 }
