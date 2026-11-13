@@ -36,7 +36,6 @@ class EducationState {
     this.stage = SchoolStage.none,
     this.highest = EducationLevel.none,
     this.majorId,
-    this.scholarshipPercent = 0,
     this.grades = 60,
     this.yearsInStage = 0,
     this.schoolName,
@@ -62,9 +61,6 @@ class EducationState {
 
   /// The major being studied, or the one the degree is in.
   final String? majorId;
-
-  /// Share of tuition (percent) a scholarship covers while studying.
-  final int scholarshipPercent;
 
   /// Academic performance from 0 to 100.
   final int grades;
@@ -125,7 +121,6 @@ class EducationState {
     SchoolStage? stage,
     EducationLevel? highest,
     String? majorId,
-    int? scholarshipPercent,
     bool clearMajor = false,
     int? grades,
     int? yearsInStage,
@@ -148,9 +143,6 @@ class EducationState {
       stage: stage ?? this.stage,
       highest: highest ?? this.highest,
       majorId: clearMajor ? null : (majorId ?? this.majorId),
-      scholarshipPercent: clearMajor
-          ? 0
-          : (scholarshipPercent ?? this.scholarshipPercent),
       grades: (grades ?? this.grades).clamp(0, 100).toInt(),
       yearsInStage: yearsInStage ?? this.yearsInStage,
       schoolName: schoolName ?? this.schoolName,
@@ -176,7 +168,6 @@ class EducationState {
         'stage': stage.name,
         'highest': highest.name,
         if (majorId != null) 'majorId': majorId,
-        if (scholarshipPercent > 0) 'scholarshipPercent': scholarshipPercent,
         'grades': grades,
         'yearsInStage': yearsInStage,
         if (schoolName != null) 'schoolName': schoolName,
@@ -216,9 +207,6 @@ class EducationState {
         },
       ),
       majorId: json['majorId'] is String ? json['majorId'] as String : null,
-      scholarshipPercent: json['scholarshipPercent'] is int
-          ? (json['scholarshipPercent'] as int).clamp(0, 100).toInt()
-          : 0,
       grades: grades is int ? grades.clamp(0, 100).toInt() : 60,
       yearsInStage: years is int ? years : 0,
       schoolName: json['schoolName'] is String ? json['schoolName'] as String : null,

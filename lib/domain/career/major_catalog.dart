@@ -37,7 +37,7 @@ class MajorDefinition {
     required this.field,
     required this.blurb,
     required this.years,
-    required this.tuitionPerYear,
+    required this.tuition,
     required this.minGrades,
     required this.minIntelligence,
     this.institution = InstitutionType.general,
@@ -55,14 +55,14 @@ class MajorDefinition {
   /// How many years the program lasts.
   final int years;
 
-  /// Yearly tuition in baseline minor units (US cents), before the
-  /// country's cost of living is applied.
-  final int tuitionPerYear;
+  /// Total tuition for the whole program, paid once, in baseline minor
+  /// units (US cents), before the country's cost of living is applied.
+  final int tuition;
 
-  /// Grades (0-100) needed to apply.
+  /// Grades (0-100) that make admission likely.
   final int minGrades;
 
-  /// Intelligence (0-100) needed to apply.
+  /// Intelligence (0-100) that makes admission likely.
   final int minIntelligence;
 
   final InstitutionType institution;
@@ -75,18 +75,6 @@ class MajorDefinition {
 abstract final class MajorCatalog {
   /// Length used when the major is unknown.
   static const int defaultYears = 4;
-
-  /// Grades a student must keep to keep a scholarship.
-  static const int scholarshipKeepGrades = 60;
-
-  /// Share of tuition (percent) a scholarship covers for these grades.
-  static int scholarshipPercentFor(int grades) {
-    if (grades >= 90) return 70;
-    if (grades >= 80) return 40;
-    if (grades >= 70) return 20;
-
-    return 0;
-  }
 
   static MajorDefinition? byId(String? id) {
     if (id == null) return null;
@@ -112,7 +100,7 @@ abstract final class MajorCatalog {
       field: StudyField.business,
       blurb: 'Markets, money and management.',
       years: 3,
-      tuitionPerYear: 600000,
+      tuition: 1800000,
       minGrades: 50,
       minIntelligence: 40,
     ),
@@ -123,7 +111,7 @@ abstract final class MajorCatalog {
       field: StudyField.engineering,
       blurb: 'Build bridges, machines and the future.',
       years: 5,
-      tuitionPerYear: 900000,
+      tuition: 4500000,
       minGrades: 65,
       minIntelligence: 60,
     ),
@@ -134,7 +122,7 @@ abstract final class MajorCatalog {
       field: StudyField.computerScience,
       blurb: 'Code, data and clever machines.',
       years: 4,
-      tuitionPerYear: 800000,
+      tuition: 3200000,
       minGrades: 60,
       minIntelligence: 55,
     ),
@@ -145,7 +133,7 @@ abstract final class MajorCatalog {
       field: StudyField.law,
       blurb: 'Argue, read the fine print and win.',
       years: 4,
-      tuitionPerYear: 1200000,
+      tuition: 4800000,
       minGrades: 70,
       minIntelligence: 60,
     ),
@@ -156,7 +144,7 @@ abstract final class MajorCatalog {
       field: StudyField.education,
       blurb: 'Learn how to teach the next generation.',
       years: 4,
-      tuitionPerYear: 500000,
+      tuition: 2000000,
       minGrades: 45,
       minIntelligence: 40,
     ),
@@ -167,7 +155,7 @@ abstract final class MajorCatalog {
       field: StudyField.artsDesign,
       blurb: 'Make things people want to look at.',
       years: 3,
-      tuitionPerYear: 500000,
+      tuition: 1500000,
       minGrades: 40,
       minIntelligence: 35,
     ),
@@ -178,7 +166,7 @@ abstract final class MajorCatalog {
       field: StudyField.medicine,
       blurb: 'Long years of study to save lives.',
       years: 6,
-      tuitionPerYear: 2000000,
+      tuition: 12000000,
       minGrades: 80,
       minIntelligence: 70,
       institution: InstitutionType.specialized,
@@ -191,7 +179,7 @@ abstract final class MajorCatalog {
       field: StudyField.nursing,
       blurb: 'Care for patients on the front line.',
       years: 3,
-      tuitionPerYear: 700000,
+      tuition: 2100000,
       minGrades: 55,
       minIntelligence: 45,
       institution: InstitutionType.specialized,
