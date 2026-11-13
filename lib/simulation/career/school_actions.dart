@@ -7,7 +7,7 @@ import '../../domain/world/world_state.dart';
 import '../narrative/school_narratives.dart';
 import 'career_actions.dart';
 
-/// An after-school club the player can join in middle or high school.
+/// An extracurricular club available in middle school, high school and university.
 class ExtracurricularClub {
   const ExtracurricularClub({
     required this.id,
@@ -360,9 +360,11 @@ abstract final class SchoolActions {
     return education;
   }
 
-  /// Clubs exist for middle school and high school only.
+  /// Clubs are available from middle school through university.
   static bool hasClubs(SchoolStage stage) =>
-      stage == SchoolStage.middle || stage == SchoolStage.high;
+      stage == SchoolStage.middle ||
+      stage == SchoolStage.high ||
+      stage == SchoolStage.university;
 
   static Result<void> _guard(WorldState state) {
     if (state.lifeProgress.ending != null) {
