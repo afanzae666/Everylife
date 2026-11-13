@@ -45,12 +45,16 @@ abstract final class SchoolSetup {
     final country = location == null
         ? null
         : CountryCatalog.findByCode(location.countryCode);
-    final name = SchoolNames.generate(
+    final generatedName = SchoolNames.generate(
       countryCode: location?.countryCode ?? 'US',
       stage: stage,
       cityName: city?.name ?? country?.name ?? 'Springfield',
       random: random,
     );
+    final campus = education.major?.campusName;
+    final name = campus == null
+        ? generatedName
+        : '${city?.name ?? country?.name ?? 'Springfield'} $campus';
     final playerAge = player.ageAt(state.clock.currentYear);
     final isUniversity = stage == SchoolStage.university;
 
