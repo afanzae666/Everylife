@@ -64,6 +64,24 @@ void main() {
     expect(engine.joinClub('art').isFailure, isTrue);
   });
 
+  test('university students can join, train and leave clubs', () {
+    final university = _engine(
+      const EducationState(
+        initialized: true,
+        stage: SchoolStage.university,
+        schoolStage: SchoolStage.university,
+        schoolName: 'Oakridge University',
+        majorId: 'business',
+      ),
+    );
+
+    expect(university.joinClub('debate').isSuccess, isTrue);
+    expect(university.state.lifeProgress.education.club, isNotNull);
+    expect(university.trainClub().isSuccess, isTrue);
+    expect(university.leaveClub().isSuccess, isTrue);
+    expect(university.state.lifeProgress.education.club, isNull);
+  });
+
   test('training raises performance once a year', () {
     final engine = _engine(_withSchool());
 

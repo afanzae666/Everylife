@@ -147,11 +147,11 @@ void main() {
     expect(engine.studyHarder().isFailure, isTrue);
   });
 
-  test('extracurriculars exist only for middle and high school', () {
+  test('extracurriculars exist from middle school through university', () {
     expect(SchoolActions.hasClubs(SchoolStage.elementary), isFalse);
     expect(SchoolActions.hasClubs(SchoolStage.middle), isTrue);
     expect(SchoolActions.hasClubs(SchoolStage.high), isTrue);
-    expect(SchoolActions.hasClubs(SchoolStage.university), isFalse);
+    expect(SchoolActions.hasClubs(SchoolStage.university), isTrue);
   });
 
   test('a school NPC can be interacted with', () {
