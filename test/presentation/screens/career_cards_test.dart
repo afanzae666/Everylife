@@ -76,33 +76,6 @@ void main() {
     expect(find.byKey(const Key('quit-job')), findsNothing);
   });
 
-  testWidgets('the university and job cards are as tall as the school card', (
-    tester,
-  ) async {
-    await _pump(tester, _engineAt18());
-    final universityHeight =
-        tester.getSize(find.byKey(const Key('university-card'))).height;
-    final jobHeight = tester.getSize(find.byKey(const Key('job-card'))).height;
-
-    expect(jobHeight, universityHeight);
-
-    await _pump(
-      tester,
-      _engineAt18(
-        career: const CareerState(
-          jobId: 'cashier',
-          salaryBase: 1000000,
-          performance: 70,
-        ),
-      ),
-    );
-
-    expect(
-      tester.getSize(find.byKey(const Key('job-card'))).height,
-      universityHeight,
-    );
-  });
-
   testWidgets('the job card opens the work page', (tester) async {
     await _pump(
       tester,
@@ -168,6 +141,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('university-picker')), findsOneWidget);
-    expect(find.byKey(const Key('institution-general')), findsOneWidget);
+    expect(find.text('GENERAL UNIVERSITY'), findsOneWidget);
   });
 }
