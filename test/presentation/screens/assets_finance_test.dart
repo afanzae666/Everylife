@@ -52,7 +52,8 @@ void main() {
     await tester.tap(financeCard);
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('finance-overlay')), findsOneWidget);
+    final financeOverlay = find.byKey(const Key('finance-overlay'));
+    expect(financeOverlay, findsOneWidget);
     expect(find.text('FINANCIAL INFORMATION'), findsOneWidget);
     expect(find.text('Personal Finance'), findsOneWidget);
     expect(find.textContaining('Employment: Employed'), findsOneWidget);
@@ -63,8 +64,13 @@ void main() {
     expect(find.textContaining('Outstanding debt:'), findsOneWidget);
     expect(find.textContaining('Net worth:'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.close));
+    final closeButton = find.descendant(
+      of: financeOverlay,
+      matching: find.byIcon(Icons.close),
+    );
+    expect(closeButton, findsOneWidget);
+    await tester.tap(closeButton);
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('finance-overlay')), findsNothing);
+    expect(financeOverlay, findsNothing);
   });
 }
