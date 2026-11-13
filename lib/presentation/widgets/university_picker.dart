@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/career/major_catalog.dart';
+import '../../domain/career/tuition_funding.dart';
 import 'animated_dialog.dart';
+import 'life_event_dialogs.dart';
 import 'themed_cards.dart';
 
 /// One major in the picker, with what it costs this player.
@@ -9,34 +11,44 @@ class UniversityMajorOption {
   const UniversityMajorOption({
     required this.major,
     required this.tuitionLabel,
-    this.blocker,
+    required this.prompt,
   });
 
   final MajorDefinition major;
 
-  /// Yearly tuition, already formatted in the player's currency.
+  /// Total tuition, already formatted in the player's currency.
   final String tuitionLabel;
 
-  /// Why the player cannot apply, or null when they can.
-  final String? blocker;
+  /// The line that asks how to pay.
+  final String prompt;
 }
 
-/// The big university overlay. It never closes on its own after a choice:
-/// first the kind of institution, then the major, then a summary with the
-/// apply button. Returns the id of the major the player applies for, or null
-/// when the overlay is closed.
-Future<String?> showUniversityPicker(
+/// The major and the way of paying the player settled on.
+class UniversityChoice {
+  const UniversityChoice(this.majorId, this.funding);
+
+  final String majorId;
+  final TuitionFunding funding;
+}
+
+/// Asks whether a way of paying works for a major.
+typedef TuitionAsker = TuitionAnswer Function(
+  String majorId,
+  TuitionFunding funding,
+);
+
+/// The big university overlay: one list of majors, then a page for the
+/// major with the four ways to pay. Returns the choice, or null when the
+/// overlay is closed.
+Future<UniversityChoice?> showUniversityPicker(
   BuildContext context, {
   required List<UniversityMajorOption> options,
-  required int grades,
-  required int intelligence,
-  required int chance,
-  required int scholarship,
+  required TuitionAsker ask,
 }) {
   final size = MediaQuery.of(context).size;
   final width = (size.width - 44).clamp(280.0, 600.0).toDouble();
 
-  return showAnimatedDialog<String>(
+  return showAnimatedDialog<UniversityChoice>(
     context: context,
     builder: (dialogContext) => ThemedDialog(
       title: 'University',
@@ -46,169 +58,114 @@ Future<String?> showUniversityPicker(
         child: UniversityPickerBody(
           height: size.height * 0.72,
           options: options,
-          grades: grades,
-          intelligence: intelligence,
-          chance: chance,
-          scholarship: scholarship,
-          onApply: (majorId) => Navigator.of(dialogContext).pop(majorId),
+          ask: ask,
+          onChoose: (choice) => Navigator.of(dialogContext).pop(choice),
         ),
       ),
     ),
   );
 }
 
-/// The three steps of the overlay. Kept apart from the dialog so it can be
-/// tested on its own.
+/// The two pages of the overlay, kept apart from the dialog for testing.
 class UniversityPickerBody extends StatefulWidget {
   const UniversityPickerBody({
     super.key,
     required this.height,
     required this.options,
-    required this.grades,
-    required this.intelligence,
-    required this.chance,
-    required this.scholarship,
-    required this.onApply,
+    required this.ask,
+    required this.onChoose,
   });
 
-  /// Height of the major list and the summary. The first step only takes
-  /// the room it needs.
   final double height;
   final List<UniversityMajorOption> options;
-  final int grades;
-  final int intelligence;
-  final int chance;
-
-  /// Percent of tuition a scholarship would cover for these grades.
-  final int scholarship;
-  final ValueChanged<String> onApply;
+  final TuitionAsker ask;
+  final ValueChanged<UniversityChoice> onChoose;
 
   @override
   State<UniversityPickerBody> createState() => _UniversityPickerBodyState();
 }
 
 class _UniversityPickerBodyState extends State<UniversityPickerBody> {
-  InstitutionType? _type;
   UniversityMajorOption? _picked;
 
-  void _back() {
-    setState(() {
-      if (_picked != null) {
-        _picked = null;
-      } else {
-        _type = null;
-      }
-    });
+  /// Ways of paying that were turned down, as `majorId|funding`.
+  final Set<String> _refused = {};
+
+  String _key(UniversityMajorOption option, TuitionFunding funding) =>
+      '${option.major.id}|${funding.name}';
+
+  Future<void> _tryFunding(
+    UniversityMajorOption option,
+    TuitionFunding funding,
+  ) async {
+    final answer = widget.ask(option.major.id, funding);
+
+    if (answer.approved) {
+      widget.onChoose(UniversityChoice(option.major.id, funding));
+
+      return;
+    }
+
+    // Hide it first, so the choices are already without it when the scene
+    // closes.
+    setState(() => _refused.add(_key(option, funding)));
+
+    await showTapToCloseOverlay(
+      context,
+      dialogKey: const Key('funding-refused'),
+      emoji: funding.emoji,
+      title: answer.title,
+      text: answer.text ?? '',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_picked != null) {
-      return SizedBox(height: widget.height, child: _detail(context, _picked!));
-    }
+    final picked = _picked;
 
-    if (_type != null) {
-      return SizedBox(height: widget.height, child: _majorList(context, _type!));
-    }
-
-    return _intro(context);
-  }
-
-  Widget _intro(BuildContext context) {
-    final theme = Theme.of(context);
-    final generalCount = widget.options
-        .where((o) => o.major.institution == InstitutionType.general)
-        .length;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Center(child: Icon(Icons.school_outlined, size: 44)),
-          const SizedBox(height: 8),
-          Text(
-            'Choose where you want to study. A general university offers many '
-            'majors in one place. A specialized institution trains you for '
-            'one profession.',
-            key: const Key('university-intro'),
-            style: theme.textTheme.bodyLarge,
-          ),
-          const SizedBox(height: 14),
-          const SectionDivider(title: 'WHERE TO STUDY'),
-          OptionTile(
-            key: const Key('institution-general'),
-            emoji: '🏛️',
-            title: InstitutionType.general.label,
-            subtitle: 'One big campus with $generalCount majors: business, '
-                'engineering, law, design and more.',
-            selected: false,
-            onTap: () => setState(() => _type = InstitutionType.general),
-          ),
-          OptionTile(
-            key: const Key('institution-specialized'),
-            emoji: '🩺',
-            title: InstitutionType.specialized.label,
-            subtitle: 'Professional schools built around one career, such as '
-                'medicine and nursing.',
-            selected: false,
-            onTap: () => setState(() => _type = InstitutionType.specialized),
-          ),
-        ],
-      ),
+    return SizedBox(
+      height: widget.height,
+      child: picked == null ? _list(context) : _detail(context, picked),
     );
   }
 
-  Widget _majorList(BuildContext context, InstitutionType type) {
+  Widget _list(BuildContext context) {
     final theme = Theme.of(context);
-    final shown = [
-      for (final option in widget.options)
-        if (option.major.institution == type) option,
-    ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    Iterable<Widget> section(String title, InstitutionType type) sync* {
+      final shown = [
+        for (final option in widget.options)
+          if (option.major.institution == type) option,
+      ];
+
+      if (shown.isEmpty) return;
+
+      yield SectionDivider(title: title);
+
+      for (final option in shown) {
+        yield OptionTile(
+          key: Key('major-${option.major.id}'),
+          emoji: option.major.emoji,
+          title: option.major.name,
+          subtitle: '${option.major.blurb}\n'
+              '${option.major.years} years · ${option.tuitionLabel}',
+          selected: false,
+          onTap: () => setState(() => _picked = option),
+        );
+      }
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(12),
       children: [
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(12),
-            children: [
-              SectionDivider(title: type.label.toUpperCase()),
-              if (shown.isEmpty)
-                Padding(
-                  key: const Key('no-programs'),
-                  padding: const EdgeInsets.all(16),
-                  child: Text(
-                    'The first professional schools are still being built. '
-                    'Come back later, or pick the General University.',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ),
-              for (final option in shown)
-                OptionTile(
-                  key: Key('major-${option.major.id}'),
-                  emoji: option.major.emoji,
-                  title: option.major.name,
-                  subtitle: '${option.major.blurb}\n'
-                      '${option.major.years} years · '
-                      '${option.tuitionLabel} a year'
-                      '${option.blocker == null ? '' : '\n🔒 ${option.blocker}'}',
-                  selected: false,
-                  onTap: () => setState(() => _picked = option),
-                ),
-            ],
-          ),
+        Text(
+          'Pick what you want to study.',
+          key: const Key('university-intro'),
+          style: theme.textTheme.bodyLarge,
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-          child: TextButton(
-            key: const Key('university-back'),
-            onPressed: _back,
-            child: const Text('BACK'),
-          ),
-        ),
+        const SizedBox(height: 8),
+        ...section('GENERAL UNIVERSITY', InstitutionType.general),
+        ...section('PROFESSIONAL SCHOOLS', InstitutionType.specialized),
       ],
     );
   }
@@ -234,6 +191,10 @@ class _UniversityPickerBodyState extends State<UniversityPickerBody> {
             ],
           ),
         );
+
+    final subtitles = <TuitionFunding, String>{
+      for (final funding in TuitionFunding.values) funding: funding.hint,
+    };
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -261,50 +222,36 @@ class _UniversityPickerBodyState extends State<UniversityPickerBody> {
               const Divider(height: 1),
               row('Where', major.campusName ?? major.institution.label),
               row('Duration', '${major.years} years'),
-              row('Tuition', '${option.tuitionLabel} a year'),
-              row('Grades needed',
-                  '${major.minGrades}+ (you: ${widget.grades})'),
-              row('Intelligence needed',
-                  '${major.minIntelligence}+ (you: ${widget.intelligence})'),
-              row(
-                'Scholarship',
-                widget.scholarship > 0
-                    ? '${widget.scholarship}% of tuition'
-                    : 'None at these grades',
-              ),
-              row('Chance of getting in',
-                  option.blocker == null ? '${widget.chance}%' : 'Not yet'),
+              row('Total tuition', option.tuitionLabel),
               const Divider(height: 1),
-              if (option.blocker != null)
-                Padding(
-                  key: const Key('major-blocker'),
-                  padding: const EdgeInsets.only(top: 10),
-                  child: Text(
-                    '🔒 ${option.blocker}',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium,
-                  ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(
+                  option.prompt,
+                  key: const Key('funding-prompt'),
+                  style: theme.textTheme.bodyLarge,
                 ),
+              ),
+              const SectionDivider(title: 'HOW TO PAY'),
+              for (final funding in TuitionFunding.values)
+                if (!_refused.contains(_key(option, funding)))
+                  OptionTile(
+                    key: Key('funding-${funding.name}'),
+                    emoji: funding.emoji,
+                    title: funding.label,
+                    subtitle: subtitles[funding],
+                    selected: false,
+                    onTap: () => _tryFunding(option, funding),
+                  ),
             ],
           ),
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              FilledButton(
-                key: const Key('apply-major'),
-                onPressed:
-                    option.blocker == null ? () => widget.onApply(major.id) : null,
-                child: const Text('APPLY'),
-              ),
-              TextButton(
-                key: const Key('university-back'),
-                onPressed: _back,
-                child: const Text('BACK'),
-              ),
-            ],
+          child: TextButton(
+            key: const Key('university-back'),
+            onPressed: () => setState(() => _picked = null),
+            child: const Text('BACK'),
           ),
         ),
       ],

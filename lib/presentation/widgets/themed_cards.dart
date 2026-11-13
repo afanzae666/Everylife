@@ -141,7 +141,6 @@ class ActionCard extends StatelessWidget {
     this.enabled = true,
     this.showChevron = true,
     this.footer,
-    this.reserveMeter = false,
     this.zoom = 1,
     super.key,
   });
@@ -159,9 +158,6 @@ class ActionCard extends StatelessWidget {
   final bool showChevron;
   final Widget? footer;
 
-  /// Keeps the room of a [MeterFooter] when there is no footer, so cards
-  /// with and without a meter have the same height.
-  final bool reserveMeter;
   final double zoom;
 
   @override
@@ -224,19 +220,6 @@ class ActionCard extends StatelessWidget {
                 if (footer != null) ...[
                   SizedBox(height: s(7)),
                   footer!,
-                ] else if (reserveMeter) ...[
-                  SizedBox(height: s(7)),
-                  ExcludeSemantics(
-                    child: Opacity(
-                      opacity: 0,
-                      child: MeterFooter(
-                        label: ' ',
-                        valueText: ' ',
-                        value: 0,
-                        zoom: zoom,
-                      ),
-                    ),
-                  ),
                 ],
               ],
             ),
