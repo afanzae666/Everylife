@@ -118,9 +118,24 @@ void main() {
       );
     });
 
-    test('there are no specialized programs yet', () {
-      expect(MajorCatalog.at(InstitutionType.specialized), isEmpty);
-      expect(MajorCatalog.at(InstitutionType.general), MajorCatalog.all);
+    test('medicine and nursing are the specialized programs', () {
+      final specialized = MajorCatalog.at(InstitutionType.specialized);
+
+      expect(specialized.map((major) => major.id), ['medicine', 'nursing']);
+      expect(
+        specialized.map((major) => major.campusName),
+        ['Medical School', 'Nursing College'],
+      );
+      expect(MajorCatalog.at(InstitutionType.general), hasLength(6));
+    });
+
+    test('medicine is the longest and hardest program', () {
+      final medicine = MajorCatalog.byId('medicine')!;
+
+      for (final major in MajorCatalog.all) {
+        expect(medicine.years, greaterThanOrEqualTo(major.years));
+        expect(medicine.minGrades, greaterThanOrEqualTo(major.minGrades));
+      }
     });
   });
 
@@ -168,8 +183,40 @@ void main() {
     });
 
     test('jobs without a field accept any degree but not no degree', () {
-      expect(JobCatalog.qualifies(lawDegree, job('doctor')), isTrue);
-      expect(JobCatalog.qualifies(_graduate, job('doctor')), isFalse);
+      expect(JobCatalog.qualifies(lawDegree, job('pilot')), isTrue);
+      expect(JobCatalog.qualifies(_graduate, job('pilot')), isFalse);
+    });
+
+    test('doctors need medicine and nurses need nursing', () {
+      const medicine = EducationState(
+        highest: EducationLevel.bachelor,
+        majorId: 'medicine',
+      );
+      const nursing = EducationState(
+        highest: EducationLevel.bachelor,
+        majorId: 'nursing',
+      );
+
+      expect(JobCatalog.qualifies(medicine, job('doctor')), isTrue);
+      expect(JobCatalog.qualifies(nursing, job('doctor')), isFalse);
+      expect(JobCatalog.qualifies(nursing, job('nurse')), isTrue);
+      expect(JobCatalog.qualifies(medicine, job('nurse')), isFalse);
+      expect(JobCatalog.qualifies(lawDegree, job('doctor')), isFalse);
+    });
+
+    test('a pharmacist may come from medicine or nursing', () {
+      const medicine = EducationState(
+        highest: EducationLevel.bachelor,
+        majorId: 'medicine',
+      );
+      const nursing = EducationState(
+        highest: EducationLevel.bachelor,
+        majorId: 'nursing',
+      );
+
+      expect(JobCatalog.qualifies(medicine, job('pharmacist')), isTrue);
+      expect(JobCatalog.qualifies(nursing, job('pharmacist')), isTrue);
+      expect(JobCatalog.qualifies(lawDegree, job('pharmacist')), isFalse);
     });
 
     test('the requirement text names the field', () {
@@ -268,6 +315,46 @@ void main() {
 
       expect(engine.dropOutOfSchool().isSuccess, isTrue);
       expect(engine.state.lifeProgress.education.majorId, isNull);
+    });
+  });
+
+  group('specialized schools', () {
+    test('medicine asks for strong grades', () {
+      final engine = _engineAt(
+        age: 18,
+        progress: const LifeProgress(
+          education: EducationState(
+            initialized: true,
+            highest: EducationLevel.highSchool,
+            grades: 60,
+          ),
+        ),
+      );
+
+      expect(engine.majorBlocker(MajorCatalog.byId('medicine')!), isNotNull);
+      expect(engine.majorBlocker(MajorCatalog.byId('nursing')!), isNull);
+    });
+
+    test('a medical student attends the medical school', () {
+      final engine = _engineAt(
+        age: 19,
+        progress: const LifeProgress(
+          education: EducationState(
+            initialized: true,
+            stage: SchoolStage.university,
+            highest: EducationLevel.highSchool,
+            majorId: 'medicine',
+            grades: 90,
+          ),
+        ),
+      );
+
+      engine.ensureSchool();
+
+      expect(
+        engine.state.lifeProgress.education.schoolName,
+        endsWith('Medical School'),
+      );
     });
   });
 
