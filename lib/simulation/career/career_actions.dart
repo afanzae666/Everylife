@@ -1,13 +1,20 @@
+import 'dart:math' as math;
+
+import 'package:everylife/core/money/money.dart';
+
 import '../../core/random/seeded_random.dart';
 import '../../core/result/result.dart';
 import '../../domain/career/education_state.dart';
 import '../../domain/career/job_catalog.dart';
 import '../../domain/career/major_catalog.dart';
+import '../../domain/career/tuition_funding.dart';
+import '../../domain/family/parent_npc.dart';
 import '../../domain/event/life_progress.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/world/world_state.dart';
 import '../events/money_text.dart';
 import '../generation/country_economic_profile.dart';
+import '../narrative/tuition_narratives.dart';
 
 /// The new world and a message for the player after a career action.
 class CareerActionResult {
@@ -55,38 +62,158 @@ abstract final class CareerActions {
     return chance.clamp(10, 90).toInt();
   }
 
-  /// Yearly tuition for [major] in the player's country.
+  /// Total tuition for [major] in the player's country, paid once.
   static int tuitionFor(WorldState state, MajorDefinition major) {
     final code = state.player.location?.countryCode ?? '';
 
     return CountryEconomicProfile.forCountryCode(code)
-        .scaleAmount(major.tuitionPerYear);
+        .scaleAmount(major.tuition);
   }
 
-  /// Why the player cannot apply for [major], or null when they can.
-  static String? majorBlocker(WorldState state, MajorDefinition major) {
+  /// Chance (percent) that the university takes the player. Grades and
+  /// intelligence below what the major likes lower it; they never lock it.
+  static int admissionChance(WorldState state, MajorDefinition major) {
     final grades = state.lifeProgress.education.grades;
     final intelligence = state.player.stats.intelligence;
 
-    if (grades < major.minGrades) {
-      return 'Needs grades ${major.minGrades}+';
-    }
+    var chance = 30 + grades ~/ 2 + (intelligence - 50) * 3 ~/ 10;
+
+    if (grades < major.minGrades) chance -= (major.minGrades - grades) ~/ 2;
 
     if (intelligence < major.minIntelligence) {
-      return 'Needs intelligence ${major.minIntelligence}+';
+      chance -= (major.minIntelligence - intelligence) ~/ 2;
     }
 
-    return null;
+    return chance.clamp(5, 95).toInt();
   }
 
-  /// Chance (percent) that university accepts the player.
-  static int universityChance(WorldState state) {
-    final education = state.lifeProgress.education;
+  /// A stable number for the same player, year, major and method, so asking
+  /// twice in a year never changes the answer.
+  static int _stableSeed(WorldState state, String majorId, TuitionFunding how) {
+    var hash = 17;
 
-    final chance =
-        30 + education.grades ~/ 2 + (state.player.stats.intelligence - 50) * 3 ~/ 10;
+    for (final unit in '${state.player.id}|${state.clock.currentYear}|$majorId|${how.name}'
+        .codeUnits) {
+      hash = (hash * 31 + unit) & 0x7fffffff;
+    }
 
-    return chance.clamp(10, 95).toInt();
+    return hash;
+  }
+
+  static int _stableRoll(WorldState state, String majorId, TuitionFunding how) {
+    return math.Random(_stableSeed(state, majorId, how)).nextInt(100);
+  }
+
+  /// The parent most likely to help: alive, closest to the player.
+  static ParentNpc? _closestParent(WorldState state) {
+    final parents = [
+      for (final parent
+          in state.familyHousehold?.parents ?? const <ParentNpc>[])
+        if (parent.isAlive) parent,
+    ];
+
+    if (parents.isEmpty) return null;
+
+    parents.sort(
+      (a, b) => b.relationshipPercent.compareTo(a.relationshipPercent),
+    );
+
+    return parents.first;
+  }
+
+  /// Share (percent) of the tuition a scholarship covers, from grades and
+  /// intelligence. Zero means no scholarship at all.
+  static int scholarshipShare(WorldState state, String majorId) {
+    final score = (state.lifeProgress.education.grades +
+            state.player.stats.intelligence) ~/
+        2;
+
+    if (score < 60) return 0;
+
+    final chance = ((score - 55) * 2).clamp(10, 90).toInt();
+
+    if (_stableRoll(state, majorId, TuitionFunding.scholarship) >= chance) {
+      return 0;
+    }
+
+    if (score >= 90) return 100;
+    if (score >= 80) return 70;
+    if (score >= 70) return 50;
+
+    return 30;
+  }
+
+  /// Whether [how] can pay for [major], with a scene when it cannot.
+  static TuitionAnswer fundingAnswer(
+    WorldState state,
+    String majorId,
+    TuitionFunding how,
+  ) {
+    final major = MajorCatalog.byId(majorId);
+
+    if (major == null) {
+      return const TuitionAnswer.refused(
+        title: 'No Major',
+        text: 'I need to pick a major first.',
+      );
+    }
+
+    final seed = _stableSeed(state, majorId, how);
+    final total = tuitionFor(state, major);
+    final totalText = MoneyText.of(state, total);
+
+    TuitionAnswer refuse(TuitionRefusal reason, {String? parent}) {
+      final (title, text) = TuitionNarratives.refusal(
+        reason,
+        seed: seed,
+        parent: parent ?? 'My parent',
+        total: totalText,
+      );
+
+      return TuitionAnswer.refused(title: title, text: text);
+    }
+
+    switch (how) {
+      case TuitionFunding.loan:
+        return const TuitionAnswer.approved();
+      case TuitionFunding.self:
+        return state.player.money.minorUnits >= total
+            ? const TuitionAnswer.approved()
+            : refuse(TuitionRefusal.noMoney);
+      case TuitionFunding.scholarship:
+        if (scholarshipShare(state, majorId) > 0) {
+          return const TuitionAnswer.approved();
+        }
+
+        final score = (state.lifeProgress.education.grades +
+                state.player.stats.intelligence) ~/
+            2;
+
+        return refuse(
+          score < 60
+              ? TuitionRefusal.scholarshipLow
+              : TuitionRefusal.scholarshipDenied,
+        );
+      case TuitionFunding.parents:
+        final parent = _closestParent(state);
+
+        if (parent == null) return refuse(TuitionRefusal.noParents);
+
+        if (parent.cashBalance.minorUnits < total) {
+          return refuse(TuitionRefusal.parentsCannot, parent: parent.firstName);
+        }
+
+        final willing = 20 + parent.relationshipPercent * 7 ~/ 10;
+
+        if (_stableRoll(state, majorId, how) >= willing) {
+          return refuse(
+            TuitionRefusal.parentsWontHelp,
+            parent: parent.firstName,
+          );
+        }
+
+        return const TuitionAnswer.approved();
+    }
   }
 
   static Result<void> _ensureActive(WorldState state) {
@@ -287,6 +414,7 @@ abstract final class CareerActions {
     required WorldState state,
     required SeededRandom random,
     required String majorId,
+    required TuitionFunding funding,
   }) {
     final guard = _ensureActive(state);
 
@@ -320,51 +448,117 @@ abstract final class CareerActions {
       return const Failure('I need to pick a major first.');
     }
 
-    final blocker = majorBlocker(state, major);
+    final answer = fundingAnswer(state, majorId, funding);
 
-    if (blocker != null) {
-      return Failure('I cannot apply for ${major.name} yet. $blocker.');
+    if (!answer.approved) {
+      return Failure(answer.text ?? 'That way of paying is not possible.');
     }
 
-    final accepted = random.nextInt(100) < universityChance(state);
-    final scholarship =
-        MajorCatalog.scholarshipPercentFor(education.grades);
+    final accepted = random.nextInt(100) < admissionChance(state, major);
 
-    final flags = {...state.lifeProgress.flags};
-    if (accepted) {
-      flags
-        ..add(SystemFlags.student)
-        ..add(SystemFlags.universityStudent)
-        ..remove(SystemFlags.schoolStudent);
+    if (!accepted) {
+      final next = _log(
+        state,
+        type: SimulationEventType.education,
+        title: 'University said no',
+        text: 'My application to study ${major.name} was turned down.',
+      );
+
+      return Success(
+        CareerActionResult(
+          state: next,
+          message:
+              'The university turned you down. You can apply again, nothing was charged.',
+        ),
+      );
     }
+
+    final total = tuitionFor(state, major);
+    var paid = state;
+    final String how;
+
+    switch (funding) {
+      case TuitionFunding.scholarship:
+        final covered = total * scholarshipShare(state, majorId) ~/ 100;
+        final rest = total - covered;
+        final cash = paid.player.money.minorUnits;
+        final fromCash = cash < rest ? cash : rest;
+
+        paid = paid.copyWith(
+          player: paid.player.copyWith(
+            money: Money.fromMinorUnits(cash - fromCash),
+            debt: Money.fromMinorUnits(
+              paid.player.debt.minorUnits + (rest - fromCash),
+            ),
+          ),
+        );
+        how = covered >= total
+            ? 'A scholarship paid all of it.'
+            : 'A scholarship covered ${MoneyText.of(state, covered)}. '
+                'I paid ${MoneyText.of(state, fromCash)} myself'
+                '${rest > fromCash ? ' and borrowed ${MoneyText.of(state, rest - fromCash)}' : ''}.';
+      case TuitionFunding.parents:
+        final parent = _closestParent(state)!;
+        final household = paid.familyHousehold!;
+
+        paid = paid.copyWith(
+          familyHousehold: household.copyWith(
+            parents: [
+              for (final p in household.parents)
+                if (p.id == parent.id)
+                  p.copyWith(
+                    cashBalance: Money.fromMinorUnits(
+                      p.cashBalance.minorUnits - total,
+                    ),
+                  )
+                else
+                  p,
+            ],
+          ),
+        );
+        how = '${parent.firstName} paid all of it.';
+      case TuitionFunding.self:
+        paid = paid.copyWith(
+          player: paid.player.copyWith(
+            money: Money.fromMinorUnits(paid.player.money.minorUnits - total),
+          ),
+        );
+        how = 'I paid all of it from my own savings.';
+      case TuitionFunding.loan:
+        paid = paid.copyWith(
+          player: paid.player.copyWith(
+            debt: Money.fromMinorUnits(paid.player.debt.minorUnits + total),
+          ),
+        );
+        how = 'I took a tuition loan for all of it.';
+    }
+
+    final flags = {...paid.lifeProgress.flags}
+      ..add(SystemFlags.student)
+      ..add(SystemFlags.universityStudent)
+      ..remove(SystemFlags.schoolStudent);
 
     final next = _log(
-      state.copyWith(
-        lifeProgress: state.lifeProgress.copyWith(
+      paid.copyWith(
+        lifeProgress: paid.lifeProgress.copyWith(
           education: education.copyWith(
-            stage: accepted ? SchoolStage.university : null,
-            yearsInStage: accepted ? 0 : null,
-            majorId: accepted ? major.id : null,
-            scholarshipPercent: accepted ? scholarship : null,
+            stage: SchoolStage.university,
+            yearsInStage: 0,
+            majorId: major.id,
           ),
           flags: flags,
         ),
       ),
       type: SimulationEventType.education,
-      title: accepted ? 'Accepted to university' : 'University said no',
-      text: accepted
-          ? 'I was accepted to study ${major.name}. Tuition is '
-              '${MoneyText.of(state, tuitionFor(state, major))} a year.'
-              '${scholarship > 0 ? ' My grades earned a $scholarship% scholarship.' : ''}'
-          : 'My application to study ${major.name} was turned down.',
+      title: 'Accepted to university',
+      text: 'I was accepted to study ${major.name}. Tuition was '
+          '${MoneyText.of(state, total)} for the whole program. $how',
     );
 
     return Success(
       CareerActionResult(
         state: next,
-        message: accepted
-            ? 'You are in! ${major.name} starts now.'
-            : 'The university turned you down. You can apply again after your next birthday.',
+        message: 'You are in! ${major.name} starts now.',
       ),
     );
   }
