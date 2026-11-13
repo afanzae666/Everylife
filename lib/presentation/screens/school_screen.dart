@@ -155,30 +155,12 @@ class SchoolSummaryCard extends StatelessWidget {
                 ],
               ),
               SizedBox(height: s(7)),
-              Row(
-                children: [
-                  Text(
-                    '◆ GRADES',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: primary,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    '${education.grades}/100',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: s(3)),
-              PipBar(
-                barKey: const Key('grades-bar'),
+              MeterFooter(
+                label: '◆ GRADES',
+                valueText: '${education.grades}/100',
                 value: education.grades / 100,
-                height: s(8),
+                barKey: const Key('grades-bar'),
+                zoom: zoom,
               ),
             ],
           ),

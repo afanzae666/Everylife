@@ -11,6 +11,7 @@ import '../../domain/career/major_catalog.dart';
 import '../../domain/world/country_catalog.dart';
 import 'jobs_screen.dart';
 import 'school_screen.dart';
+import 'work_screen.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
 import '../widgets/themed_cards.dart';
@@ -206,8 +207,28 @@ class _CareerScreenState extends State<CareerScreen> {
           : 'Choose where and what to study',
       subtitleKey: hasJob ? const Key('university-needs-quit') : null,
       enabled: !hasJob,
+      reserveMeter: true,
       onTap: _openUniversityPicker,
     );
+  }
+
+  void _openWork() {
+    Navigator.of(context)
+        .push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => WorkScreen(
+              engine: engine,
+              zoom: widget.zoom,
+              onChanged: widget.onChanged,
+              headerBuilder: widget.headerBuilder,
+            ),
+          ),
+        )
+        .then((_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   void _openJobs() {
@@ -231,70 +252,32 @@ class _CareerScreenState extends State<CareerScreen> {
 
   Widget _buildWork() {
     final state = engine.state;
-    final year = state.clock.currentYear;
-    final age = state.player.ageAt(year);
+    final age = state.player.ageAt(state.clock.currentYear);
     final career = state.lifeProgress.career;
     final job = career.hasJob ? JobCatalog.byId(career.jobId!) : null;
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
 
     var emoji = '💼';
     var title = 'Job';
     String? subtitle;
     Key? subtitleKey;
     Widget? footer;
+    var working = false;
 
     if (career.retired) {
       emoji = '🏖️';
       title = 'Retired';
       subtitle = 'Pension: ${_formatBase(career.pensionBase)} per year';
     } else if (job != null) {
+      working = true;
       emoji = job.emoji;
       title = job.titleAt(career.rank);
       subtitle = 'Salary: ${_formatBase(career.salaryBase)} per year';
-      footer = Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Text(
-                '◆ PERFORMANCE',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: primary,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                '${career.performance}/100',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: s(3)),
-          PipBar(value: career.performance / 100, height: s(8)),
-          SizedBox(height: s(6)),
-          Wrap(
-            spacing: s(8),
-            children: [
-              FilledButton.tonal(
-                key: const Key('ask-raise'),
-                onPressed: career.lastRaiseRequestYear == year
-                    ? null
-                    : () => _run(engine.askForRaise()),
-                child: const Text('ASK FOR A RAISE'),
-              ),
-              TextButton(
-                key: const Key('quit-job'),
-                onPressed: () => _run(engine.quitJob()),
-                child: const Text('QUIT'),
-              ),
-            ],
-          ),
-        ],
+      footer = MeterFooter(
+        label: '◆ PERFORMANCE',
+        valueText: '${career.performance}/100',
+        value: career.performance / 100,
+        barKey: const Key('performance-bar'),
+        zoom: widget.zoom,
       );
     } else if (age < 16) {
       subtitle = 'I am too young to work.';
@@ -314,8 +297,9 @@ class _CareerScreenState extends State<CareerScreen> {
       title: title,
       subtitle: subtitle,
       subtitleKey: subtitleKey,
-      onTap: _openJobs,
+      onTap: working ? _openWork : _openJobs,
       footer: footer,
+      reserveMeter: footer == null,
     );
   }
 }
