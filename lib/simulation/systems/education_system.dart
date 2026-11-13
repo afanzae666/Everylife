@@ -1,5 +1,6 @@
 import '../../core/random/seeded_random.dart';
 import '../../domain/career/education_state.dart';
+import '../../domain/career/major_catalog.dart';
 import '../career/school_actions.dart';
 import '../narrative/school_narratives.dart';
 import '../../domain/event/life_progress.dart';
