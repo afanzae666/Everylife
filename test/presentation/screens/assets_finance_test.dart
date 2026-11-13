@@ -47,6 +47,11 @@ void main() {
     final financeCard = find.byKey(const Key('finance-card'));
     expect(financeCard, findsOneWidget);
     expect(find.byType(ActionCard), findsOneWidget);
+    expect(find.text('Financial Overview'), findsNothing);
+    expect(
+      tester.getTopLeft(financeCard).dy,
+      lessThan(tester.getTopLeft(find.text('Asset Categories')).dy),
+    );
     await tester.ensureVisible(financeCard);
 
     await tester.tap(financeCard);
@@ -56,6 +61,7 @@ void main() {
     expect(financeOverlay, findsOneWidget);
     expect(find.text('FINANCIAL INFORMATION'), findsOneWidget);
     expect(find.text('Personal Finance'), findsOneWidget);
+    expect(find.byType(Divider, skipOffstage: false), findsNWidgets(7));
     expect(find.textContaining('Employment: Employed'), findsOneWidget);
     expect(find.textContaining('Annual salary:'), findsOneWidget);
     expect(find.textContaining('Cash:'), findsOneWidget);
