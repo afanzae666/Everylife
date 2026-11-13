@@ -75,6 +75,59 @@ class AccentCard extends StatelessWidget {
   }
 }
 
+/// A label, a value and a bar, for example "GRADES 95/100".
+class MeterFooter extends StatelessWidget {
+  const MeterFooter({
+    required this.label,
+    required this.valueText,
+    required this.value,
+    this.barKey,
+    this.zoom = 1,
+    super.key,
+  });
+
+  final String label;
+  final String valueText;
+
+  /// 0..1.
+  final double value;
+  final Key? barKey;
+  final double zoom;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Text(
+              label,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: primary,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              valueText,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: zoom * 3),
+        PipBar(barKey: barKey, value: value, height: zoom * 8),
+      ],
+    );
+  }
+}
+
 /// A card in the style of the school card: an icon tile, a title, a short
 /// line under it and a round arrow. [footer] adds anything below the header.
 /// Used for the university and job cards.
@@ -86,7 +139,9 @@ class ActionCard extends StatelessWidget {
     this.subtitleKey,
     this.onTap,
     this.enabled = true,
+    this.showChevron = true,
     this.footer,
+    this.reserveMeter = false,
     this.zoom = 1,
     super.key,
   });
@@ -99,7 +154,14 @@ class ActionCard extends StatelessWidget {
 
   /// A disabled card is dimmed.
   final bool enabled;
+
+  /// Shows the round arrow when the card can be opened.
+  final bool showChevron;
   final Widget? footer;
+
+  /// Keeps the room of a [MeterFooter] when there is no footer, so cards
+  /// with and without a meter have the same height.
+  final bool reserveMeter;
   final double zoom;
 
   @override
@@ -153,7 +215,7 @@ class ActionCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (onTap != null && enabled) ...[
+                    if (onTap != null && enabled && showChevron) ...[
                       SizedBox(width: s(6)),
                       ChevronBadge(zoom: zoom),
                     ],
@@ -162,6 +224,19 @@ class ActionCard extends StatelessWidget {
                 if (footer != null) ...[
                   SizedBox(height: s(7)),
                   footer!,
+                ] else if (reserveMeter) ...[
+                  SizedBox(height: s(7)),
+                  ExcludeSemantics(
+                    child: Opacity(
+                      opacity: 0,
+                      child: MeterFooter(
+                        label: ' ',
+                        valueText: ' ',
+                        value: 0,
+                        zoom: zoom,
+                      ),
+                    ),
+                  ),
                 ],
               ],
             ),

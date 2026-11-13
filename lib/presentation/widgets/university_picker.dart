@@ -151,7 +151,7 @@ class _UniversityPickerBodyState extends State<UniversityPickerBody> {
             emoji: '🩺',
             title: InstitutionType.specialized.label,
             subtitle: 'Professional schools built around one career, such as '
-                'medicine, nursing or aviation. Opening soon.',
+                'medicine and nursing.',
             selected: false,
             onTap: () => setState(() => _type = InstitutionType.specialized),
           ),
@@ -259,7 +259,7 @@ class _UniversityPickerBodyState extends State<UniversityPickerBody> {
               ),
               const SizedBox(height: 12),
               const Divider(height: 1),
-              row('Where', major.institution.label),
+              row('Where', major.campusName ?? major.institution.label),
               row('Duration', '${major.years} years'),
               row('Tuition', '${option.tuitionLabel} a year'),
               row('Grades needed',
