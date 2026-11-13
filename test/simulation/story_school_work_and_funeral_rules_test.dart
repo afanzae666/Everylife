@@ -5,6 +5,7 @@ import 'package:everylife/core/random/seeded_random.dart';
 import 'package:everylife/core/result/result.dart';
 import 'package:everylife/domain/event/npc_interaction_outcome.dart';
 import 'package:everylife/data/repositories/save_repository.dart';
+import 'package:everylife/domain/career/tuition_funding.dart';
 import 'package:everylife/domain/career/career_state.dart';
 import 'package:everylife/domain/career/education_state.dart';
 import 'package:everylife/domain/character/character.dart';
@@ -151,7 +152,7 @@ void main() {
         ),
       );
 
-      final result = engine.applyForUniversity('business');
+      final result = engine.applyForUniversity('business', TuitionFunding.loan);
 
       expect(result.isFailure, isTrue);
       expect(engine.state.lifeProgress.education.isStudent, isFalse);
