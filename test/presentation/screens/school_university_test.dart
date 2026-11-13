@@ -67,7 +67,12 @@ void main() {
     expect(find.textContaining('Major: Business & Economics'), findsOneWidget);
     expect(find.textContaining('School: Private'), findsNothing);
 
-    await tester.tap(find.byIcon(Icons.close));
+    final closeSchoolInfo = find.descendant(
+      of: find.byKey(const Key('school-info')),
+      matching: find.byIcon(Icons.close),
+    );
+    expect(closeSchoolInfo, findsOneWidget);
+    await tester.tap(closeSchoolInfo);
     await tester.pumpAndSettle();
   });
 
@@ -87,7 +92,16 @@ void main() {
 
     final debateClub = find.byKey(const Key('club-debate'));
     expect(debateClub, findsOneWidget);
-    await tester.ensureVisible(debateClub);
+    final clubPickerScrollView = find.descendant(
+      of: find.byKey(const Key('club-picker')),
+      matching: find.byType(Scrollable),
+    );
+    await tester.scrollUntilVisible(
+      debateClub,
+      120,
+      scrollable: clubPickerScrollView,
+    );
+    expect(debateClub, findsOneWidget);
     await tester.tap(debateClub);
     await tester.pumpAndSettle();
 
