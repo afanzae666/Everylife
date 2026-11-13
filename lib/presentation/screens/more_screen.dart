@@ -1,4 +1,5 @@
 import 'package:everylife/presentation/widgets/page_top_bar.dart';
+import 'package:everylife/presentation/widgets/themed_cards.dart';
 import 'package:flutter/material.dart';
 
 class MoreScreen extends StatefulWidget {
@@ -56,62 +57,29 @@ class _MoreScreenState extends State<MoreScreen> {
                 child: ListView(
             padding: EdgeInsets.zero,
             children: [
-              Card(
+              ActionCard(
                 key: const Key('time-machine-card'),
-                margin: EdgeInsets.zero,
-                child: InkWell(
-                  onTap: onTimeMachine,
-                  child: Padding(
-                    padding: EdgeInsets.all(s(6)),
-                    child: Row(
-                      children: [
-                        Text('⏳', style: TextStyle(fontSize: s(28))),
-                        SizedBox(width: s(6)),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Time Machine',
-                                key: const Key('more-time-machine'),
-                                style:
-                                    Theme.of(context).textTheme.titleMedium,
-                              ),
-                              Text(
-                                'Go back to an earlier age',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(Icons.chevron_right),
-                      ],
-                    ),
-                  ),
-                ),
+                zoom: zoom,
+                emoji: '⏳',
+                title: 'Time Machine',
+                subtitle: 'Go back to an earlier age',
+                onTap: onTimeMachine,
               ),
               if (widget.showBirthControl)
-                Card(
+                ActionCard(
                   key: const Key('birth-control-card'),
-                  margin: EdgeInsets.zero,
-                  child: SwitchListTile(
-                    secondary: Text('💊', style: TextStyle(fontSize: s(28))),
-                    title: Text(
-                      'Birth Control',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    subtitle: Text(
-                      'Greatly lowers the chance of pregnancy',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    value: _birthControl,
-                    onChanged: (value) {
-                      final saved =
-                          widget.onBirthControl?.call(on: value) ?? value;
-
-                      setState(() => _birthControl = saved);
-                    },
-                  ),
+                  zoom: zoom,
+                  emoji: '💊',
+                  title: 'Birth Control',
+                  subtitle: _birthControl
+                      ? 'Enabled · Greatly lowers the chance of pregnancy'
+                      : 'Disabled · Greatly lowers the chance of pregnancy',
+                  onTap: () {
+                    final requested = !_birthControl;
+                    final saved = widget.onBirthControl?.call(on: requested) ??
+                        requested;
+                    setState(() => _birthControl = saved);
+                  },
                 ),
               Card(
                 margin: EdgeInsets.zero,

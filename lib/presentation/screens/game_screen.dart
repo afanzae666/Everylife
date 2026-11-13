@@ -845,11 +845,25 @@ class _GameScreenState extends State<GameScreen> {
 
     Navigator.of(context).push(
       slideUpRoute<void>(
-        (_) => AssetsScreen(
-          player: engine.state.player,
-          zoom: _uiScaleController.value,
-          headerBuilder: _pageHeader,
-        ),
+        (_) {
+          final career = engine.state.lifeProgress.career;
+          final annualIncomeBase = career.retired
+              ? career.pensionBase
+              : career.hasJob
+                  ? career.salaryBase
+                  : 0;
+          final annualIncome = Money.fromMinorUnits(
+            LifeEffectApplier.scaleMoney(engine.state, annualIncomeBase),
+          );
+
+          return AssetsScreen(
+            player: engine.state.player,
+            career: career,
+            annualIncome: annualIncome,
+            zoom: _uiScaleController.value,
+            headerBuilder: _pageHeader,
+          );
+        },
       ),
     );
   }

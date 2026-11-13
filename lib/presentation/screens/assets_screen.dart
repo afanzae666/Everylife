@@ -5,18 +5,27 @@ import 'package:flutter/material.dart';
 import '../../core/money/currency_formatter.dart';
 import 'package:everylife/core/money/money.dart';
 import '../../domain/character/character.dart';
+import '../../domain/career/career_state.dart';
 import '../../domain/character/player_asset.dart';
 import '../../domain/world/country_catalog.dart';
+import '../widgets/animated_dialog.dart';
+import '../widgets/id_card_frame.dart';
+import '../widgets/info_line.dart';
+import '../widgets/themed_cards.dart';
 
 class AssetsScreen extends StatelessWidget {
 const AssetsScreen({
 required this.player,
+required this.career,
+required this.annualIncome,
 required this.zoom,
 this.headerBuilder,
 super.key,
 });
 
 final Character player;
+final CareerState career;
+final Money annualIncome;
 final double zoom;
 
 /// Builds the character card shown at the top of the page.
@@ -95,6 +104,52 @@ for (final asset in assets) {
 
 return total;
 
+}
+
+void _showFinance(BuildContext context) {
+  final careerStatus = career.retired
+      ? 'Retired'
+      : career.hasJob
+          ? 'Employed'
+          : 'Not employed';
+
+  showAnimatedDialog<void>(
+    context: context,
+    builder: (dialogContext) => IdCardFrame(
+      key: const Key('finance-overlay'),
+      title: 'FINANCIAL INFORMATION',
+      onClose: () => Navigator.of(dialogContext).pop(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              const Text('💰', style: TextStyle(fontSize: 30)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Personal Finance',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 16),
+          InfoLine(label: 'Employment', value: careerStatus),
+          if (annualIncome.minorUnits > 0)
+            InfoLine(label: career.retired ? 'Annual pension' : 'Annual salary', value: _formatMoney(annualIncome)),
+          InfoLine(label: 'Cash', value: _formatMoney(player.money)),
+          InfoLine(label: 'Owned assets', value: _formatMoney(player.totalAssets - player.money)),
+          InfoLine(label: 'Total assets', value: _formatMoney(player.totalAssets)),
+          InfoLine(label: 'Outstanding debt', value: _formatMoney(player.debt)),
+          InfoLine(label: 'Net worth', value: _formatMoney(player.netWorth)),
+        ],
+      ),
+    ),
+  );
 }
 
 @override
@@ -177,6 +232,15 @@ return MediaQuery(
                 ],
               ),
             ),
+          ),
+          SizedBox(height: 0),
+          ActionCard(
+            key: const Key('finance-card'),
+            zoom: zoom,
+            emoji: '💰',
+            title: 'Finance',
+            subtitle: 'View your financial situation',
+            onTap: () => _showFinance(context),
           ),
           SizedBox(height: 0),
           Card(
