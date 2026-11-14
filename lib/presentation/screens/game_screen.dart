@@ -11,6 +11,8 @@ import '../../data/services/character_palette_service.dart';
 import '../../domain/character/life_stage.dart';
 import '../../domain/event/npc_interaction_outcome.dart';
 import '../../domain/world/country_catalog.dart';
+import '../../simulation/economy/expense_breakdown.dart';
+import '../../simulation/economy/income_breakdown.dart';
 import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
 import '../../domain/event/life_event.dart';
@@ -970,6 +972,13 @@ class _GameScreenState extends State<GameScreen> {
             player: engine.state.player,
             career: career,
             annualIncome: annualIncome,
+            expenses: ExpenseBreakdown.of(engine.state),
+            partTimeIncome: Money.fromMinorUnits(
+              IncomeBreakdown.of(engine.state).partTime,
+            ),
+            benefitIncome: Money.fromMinorUnits(
+              IncomeBreakdown.of(engine.state).benefit,
+            ),
             zoom: _uiScaleController.value,
             headerBuilder: _pageHeader,
           );

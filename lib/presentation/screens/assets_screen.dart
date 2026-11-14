@@ -8,6 +8,7 @@ import '../../domain/character/character.dart';
 import '../../domain/career/career_state.dart';
 import '../../domain/character/player_asset.dart';
 import '../../domain/world/country_catalog.dart';
+import '../../simulation/economy/expense_breakdown.dart';
 import '../widgets/animated_dialog.dart';
 import '../widgets/id_card_frame.dart';
 import '../widgets/info_line.dart';
@@ -19,6 +20,9 @@ required this.player,
 required this.career,
 required this.annualIncome,
 required this.zoom,
+this.expenses,
+this.partTimeIncome = const Money.zero(),
+this.benefitIncome = const Money.zero(),
 this.headerBuilder,
 super.key,
 });
@@ -27,6 +31,15 @@ final Character player;
 final CareerState career;
 final Money annualIncome;
 final double zoom;
+
+/// Yearly spending, shown in the finance overlay (null: not shown).
+final ExpenseBreakdown? expenses;
+
+/// Yearly pay of a part-time job.
+final Money partTimeIncome;
+
+/// Yearly benefit of an adult without work.
+final Money benefitIncome;
 
 /// Builds the character card shown at the top of the page.
 final WidgetBuilder? headerBuilder;
@@ -113,6 +126,14 @@ void _showFinance(BuildContext context) {
           ? 'Employed'
           : 'Not employed';
 
+  final spending = expenses;
+  final totalIncome = Money.fromMinorUnits(
+    annualIncome.minorUnits +
+        partTimeIncome.minorUnits +
+        benefitIncome.minorUnits,
+  );
+  final balance = totalIncome.minorUnits - (spending?.total ?? 0);
+
   showAnimatedDialog<void>(
     context: context,
       barrierDismissible: true,
@@ -139,6 +160,7 @@ void _showFinance(BuildContext context) {
             ],
           ),
           const Divider(height: 16),
+          _financeSection(context, 'INCOME'),
           ..._ruledFinanceLines(context, [
             InfoLine(label: 'Employment', value: careerStatus),
             if (annualIncome.minorUnits > 0)
@@ -146,6 +168,48 @@ void _showFinance(BuildContext context) {
                 label: career.retired ? 'Annual pension' : 'Annual salary',
                 value: _formatMoney(annualIncome),
               ),
+            if (partTimeIncome.minorUnits > 0)
+              InfoLine(
+                label: 'Part-time pay',
+                value: _formatMoney(partTimeIncome),
+              ),
+            if (benefitIncome.minorUnits > 0)
+              InfoLine(
+                label: 'Unemployment benefit',
+                value: _formatMoney(benefitIncome),
+              ),
+            InfoLine(label: 'Total income', value: _formatMoney(totalIncome)),
+          ]),
+          if (spending != null) ...[
+            _financeSection(context, 'EXPENSES PER YEAR'),
+            ..._ruledFinanceLines(context, [
+              if (spending.coveredByFamily)
+                const InfoLine(
+                  label: '🏠 Living costs',
+                  value: 'Paid by my family',
+                ),
+              for (final line in spending.lines)
+                InfoLine(
+                  label: '${line.emoji} ${line.label}',
+                  value: _formatMoney(Money.fromMinorUnits(line.amount)),
+                ),
+              if (spending.interest > 0)
+                InfoLine(
+                  label: '📈 Debt interest',
+                  value: _formatMoney(Money.fromMinorUnits(spending.interest)),
+                ),
+              InfoLine(
+                label: 'Total expenses',
+                value: _formatMoney(Money.fromMinorUnits(spending.total)),
+              ),
+              InfoLine(
+                label: balance >= 0 ? 'Left over per year' : 'Short per year',
+                value: _formatMoney(Money.fromMinorUnits(balance.abs())),
+              ),
+            ]),
+          ],
+          _financeSection(context, 'WEALTH'),
+          ..._ruledFinanceLines(context, [
             InfoLine(label: 'Cash', value: _formatMoney(player.money)),
             InfoLine(
               label: 'Owned assets',
@@ -160,6 +224,11 @@ void _showFinance(BuildContext context) {
     ),
   );
 }
+
+Widget _financeSection(BuildContext context, String title) => Padding(
+      padding: const EdgeInsets.only(top: 6, bottom: 4),
+      child: SectionDivider(title: title),
+    );
 
 List<Widget> _ruledFinanceLines(BuildContext context, List<Widget> lines) => [
       for (var i = 0; i < lines.length; i++) ...[

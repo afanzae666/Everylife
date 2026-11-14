@@ -19,6 +19,7 @@ import '../../simulation/narrative/tuition_narratives.dart';
 import '../widgets/themed_cards.dart';
 import '../widgets/resume_dialog.dart';
 import '../widgets/notice_overlay.dart';
+import '../widgets/work_dialogs.dart';
 import '../widgets/university_picker.dart';
 
 /// What the Occupation page opens on its own.
@@ -185,6 +186,8 @@ class _CareerScreenState extends State<CareerScreen> {
                       state.clock.currentYear,
                     ),
                     if (!isSchoolAge) _buildWork(),
+                    _buildGigs(),
+                    _buildPartTime(),
                   ],
                 ),
               ),
@@ -301,6 +304,54 @@ class _CareerScreenState extends State<CareerScreen> {
         setState(() {});
       }
     });
+  }
+
+  /// Called by the gig and part-time lists after something changed.
+  void _changed() {
+    if (mounted) setState(() {});
+
+    widget.onChanged?.call();
+  }
+
+  Widget _buildGigs() {
+    if (engine.availableGigs.isEmpty) return const SizedBox.shrink();
+
+    return ActionCard(
+      key: const Key('gigs-card'),
+      zoom: widget.zoom,
+      emoji: '💸',
+      title: 'Gigs',
+      subtitle: gigsSummary(engine),
+      onTap: () => showGigsDialog(
+        context,
+        engine: engine,
+        formatBase: _formatBase,
+        onChanged: _changed,
+      ),
+    );
+  }
+
+  Widget _buildPartTime() {
+    final career = engine.state.lifeProgress.career;
+    final hasOne = career.hasPartTime;
+
+    if (!hasOne && engine.availablePartTimeJobs.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return ActionCard(
+      key: const Key('parttime-card'),
+      zoom: widget.zoom,
+      emoji: '🕒',
+      title: 'Part-time Job',
+      subtitle: partTimeSummary(engine, _formatBase),
+      onTap: () => showPartTimeDialog(
+        context,
+        engine: engine,
+        formatBase: _formatBase,
+        onChanged: _changed,
+      ),
+    );
   }
 
   Widget _buildWork() {
