@@ -125,11 +125,40 @@ void main() {
     expect(find.text('Unemployed'), findsOneWidget);
   });
 
-  testWidgets('a player with a degree has no university card', (tester) async {
+  testWidgets('a graduate keeps the university card for another major', (
+    tester,
+  ) async {
     await _pump(tester, _engineAt18(highest: EducationLevel.bachelor));
 
-    expect(find.byKey(const Key('university-card')), findsNothing);
+    expect(find.byKey(const Key('university-card')), findsOneWidget);
     expect(find.byKey(const Key('job-card')), findsOneWidget);
+  });
+
+  testWidgets('the resume card is the first card and opens the resume', (
+    tester,
+  ) async {
+    await _pump(tester, _engineAt18());
+
+    expect(find.byKey(const Key('resume-card')), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.byKey(const Key('resume-card'))).dy,
+      lessThan(tester.getTopLeft(find.byKey(const Key('job-card'))).dy),
+    );
+
+    await tester.tap(find.byKey(const Key('resume-card')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('resume-dialog')), findsOneWidget);
+    for (final heading in ['EDUCATION', 'DEGREES', 'WORK']) {
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('resume-dialog')),
+          matching: find.text(heading),
+        ),
+        findsOneWidget,
+        reason: heading,
+      );
+    }
   });
 
   testWidgets('the university card opens the university overlay', (
