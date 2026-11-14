@@ -158,6 +158,11 @@ class SimulationEngine {
         ),
       );
 
+  /// Writes the choice to take a break after school into the life log.
+  Result<String> takeBreak(String text) => _commitAction(
+        CareerActions.takeBreak(state: _state, text: text),
+      );
+
   Result<String> quitJob() => _commitAction(CareerActions.quitJob(_state));
 
   Result<String> askForRaise() => _commitAction(
