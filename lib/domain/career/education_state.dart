@@ -49,6 +49,7 @@ class EducationState {
     this.clubRank = 0,
     this.lastTrainYear,
     this.clubPromotion,
+    this.sportsOffer,
   });
 
   /// False for lives that have not been processed yet. The first yearly
@@ -99,6 +100,10 @@ class EducationState {
   /// A rank (1 or 2) the player just earned and has not been told about yet.
   final int? clubPromotion;
 
+  /// The sport club a university wants to recruit the player for, after
+  /// high school. Gone once the player enrolls or the year passes.
+  final String? sportsOffer;
+
   Iterable<SchoolNpc> get classmates =>
       npcs.where((npc) => npc.role == SchoolRole.classmate);
 
@@ -137,6 +142,8 @@ class EducationState {
     int? clubPromotion,
     bool clearClubPromotion = false,
     bool clearClub = false,
+    String? sportsOffer,
+    bool clearSportsOffer = false,
   }) {
     return EducationState(
       initialized: initialized ?? this.initialized,
@@ -160,6 +167,7 @@ class EducationState {
       clubPromotion: clearClub || clearClubPromotion
           ? null
           : (clubPromotion ?? this.clubPromotion),
+      sportsOffer: clearSportsOffer ? null : (sportsOffer ?? this.sportsOffer),
     );
   }
 
@@ -181,6 +189,7 @@ class EducationState {
         if (club != null && clubRank != 0) 'clubRank': clubRank,
         if (lastTrainYear != null) 'lastTrainYear': lastTrainYear,
         if (clubPromotion != null) 'clubPromotion': clubPromotion,
+        if (sportsOffer != null) 'sportsOffer': sportsOffer,
       };
 
   factory EducationState.fromJson(Object? json) {
@@ -233,6 +242,8 @@ class EducationState {
           json['lastTrainYear'] is int ? json['lastTrainYear'] as int : null,
       clubPromotion:
           json['clubPromotion'] is int ? json['clubPromotion'] as int : null,
+      sportsOffer:
+          json['sportsOffer'] is String ? json['sportsOffer'] as String : null,
     );
   }
 }

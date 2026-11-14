@@ -1,24 +1,34 @@
 /// Who pays the tuition of a university program.
 enum TuitionFunding {
+  sports(
+    label: 'Sports scholarship',
+    emoji: '🏆',
+    hint: 'The coaches watched me play and want me on their team. '
+        'A full ride, as long as I keep playing.',
+  ),
   scholarship(
     label: 'Scholarship',
     emoji: '🏅',
-    hint: 'Depends on my grades and my mind.',
+    hint: 'Let my report card and my sharp mind do the talking. If the '
+        'committee is impressed, the bill is gone.',
   ),
   parents(
     label: 'My parents pay',
     emoji: '👪',
-    hint: 'Depends on whether they can and want to help.',
+    hint: 'Swallow my pride and ask the family. It depends on what they '
+        'have saved, and on how well we get along.',
   ),
   self(
     label: 'Pay it myself',
     emoji: '💵',
-    hint: 'Everything at once, from my own cash.',
+    hint: 'Walk in with the full amount in my own pocket. Clean, proud, '
+        'no strings attached.',
   ),
   loan(
     label: 'Tuition loan',
     emoji: '🏦',
-    hint: 'Borrow it and pay it back later.',
+    hint: 'Sign the papers and worry later. Nobody turns me away, but the '
+        'debt will follow me for years.',
   );
 
   const TuitionFunding({
