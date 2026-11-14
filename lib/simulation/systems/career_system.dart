@@ -1,12 +1,14 @@
 import 'package:everylife/core/money/money.dart';
 import '../../core/random/seeded_random.dart';
 import '../../domain/career/job_catalog.dart';
+import '../../domain/career/part_time_catalog.dart';
 import '../../domain/event/life_progress.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/world/world_state.dart';
 import '../commands/age_up_command.dart';
 import '../commands/simulation_command.dart';
 import '../events/life_effect_applier.dart';
+import '../economy/expense_breakdown.dart';
 import '../events/money_text.dart';
 import 'simulation_system.dart';
 import 'system_priority.dart';
@@ -23,7 +25,7 @@ class CareerSystem implements SimulationSystem {
   final SeededRandom _random;
 
   /// Baseline yearly living cost of an independent adult.
-  static const int livingCostBase = 1000000;
+  static const int livingCostBase = ExpenseBreakdown.livingCostBase;
 
   /// Baseline yearly benefit for an adult without work.
   static const int unemploymentBenefitBase = 400000;
@@ -165,21 +167,30 @@ class CareerSystem implements SimulationSystem {
       income += scale(unemploymentBenefitBase);
     }
 
+    // --- Part-time job -------------------------------------------------------
+    final partTime = PartTimeCatalog.byId(career.partTimeId);
+
+    if (partTime != null && !career.retired) {
+      final pay = scale(partTime.pay);
+
+      income += pay;
+      log(
+        'part-time',
+        'Part-time pay',
+        'My part-time job as ${partTime.title.toLowerCase()} paid me '
+            '${MoneyText.of(state, pay)} this year.',
+      );
+    }
+
     // --- Costs -------------------------------------------------------------
     final education = progress.education;
-    var living = 0;
-
-    if (age >= 18) {
-      var base = livingCostBase;
-
-      if (education.isStudent) {
-        base = base * 50 ~/ 100;
-      } else if (age < 22 && _hasLivingParent(state)) {
-        base = base * 40 ~/ 100;
-      }
-
-      living = scale(base);
-    }
+    final living = scale(
+      ExpenseBreakdown.livingBase(
+        age: age,
+        student: education.isStudent,
+        livingParent: _hasLivingParent(state),
+      ),
+    );
 
     // --- Settle the year ---------------------------------------------------
     money += income;
