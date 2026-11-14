@@ -36,6 +36,8 @@ import '../../domain/love/love_state.dart';
 import '../widgets/animated_dialog.dart';
 import '../widgets/club_widgets.dart';
 import '../widgets/crossroads_dialog.dart';
+import '../widgets/sports_scholarship_dialog.dart';
+import '../../simulation/narrative/sports_scholarship_narratives.dart';
 import '../../domain/career/education_state.dart';
 import '../../simulation/narrative/crossroads_narratives.dart';
 import 'life_screen.dart';
@@ -621,12 +623,70 @@ class _GameScreenState extends State<GameScreen> {
       await showClubPromotionIfAny(context, engine);
     }
 
-    if (mounted) await _offerCrossroads();
+    // The scholarship is an event of its own; when it was shown, the choice
+    // between study, work and a break is not.
+    final scholarshipShown = mounted && await _offerSportsScholarship();
+
+    if (mounted && !scholarshipShown) await _offerCrossroads();
+  }
+
+  /// A university wants the graduating athlete. This is an event of its own:
+  /// while it is there, the choice between study, work and a break waits.
+  Future<bool> _offerSportsScholarship() async {
+    final club = engine.state.lifeProgress.education.sportsOffer;
+
+    if (club == null || engine.state.lifeProgress.ending != null) return false;
+
+    final seed = engine.state.clock.currentYear + club.length;
+
+    while (mounted) {
+      final accepted = await showSportsScholarshipDialog(
+        context,
+        seed: seed,
+        club: club,
+      );
+
+      if (!mounted) return true;
+
+      if (!accepted) {
+        final result = engine.declineSportsOffer(
+          SportsScholarshipNarratives.declined(seed, club),
+        );
+
+        if (result case Success<String>(:final value)) {
+          setState(() {});
+          _scrollLifeEventsToBottom();
+          _showTurnMessage(value);
+          await engine.save();
+        }
+
+        return true;
+      }
+
+      await _openCareerPage(start: CareerStart.sportsOffer);
+
+      if (!mounted) return true;
+
+      final education = engine.state.lifeProgress.education;
+
+      // Enrolled, or the offer is gone: done. Otherwise the overlay was
+      // closed without a major, so the offer is put on the table again.
+      if (education.isStudent || education.sportsOffer == null) return true;
+    }
+
+    return true;
   }
 
   /// At 18, after school: study, work, or take a break.
   Future<void> _offerCrossroads() async {
     final state = engine.state;
+
+    // A scholarship event was shown instead of this choice.
+    if (state.lifeProgress.education.sportsOffer != null ||
+        state.lifeProgress.education.isStudent) {
+      return;
+    }
+
     final age = state.player.ageAt(state.clock.currentYear);
     final education = state.lifeProgress.education;
 
@@ -643,7 +703,6 @@ class _GameScreenState extends State<GameScreen> {
       context,
       seed: seed,
       canStudy: education.highest.index >= EducationLevel.highSchool.index,
-      sportsClub: education.sportsOffer,
     );
 
     if (!mounted) return;
@@ -1004,12 +1063,12 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  void _openCareerPage({CareerStart? start}) {
+  Future<void> _openCareerPage({CareerStart? start}) async {
     if (_isProcessingTurn) {
       return;
     }
 
-    Navigator.of(context).push(
+    await Navigator.of(context).push(
       slideUpRoute<void>(
         (_) => CareerScreen(
           engine: engine,

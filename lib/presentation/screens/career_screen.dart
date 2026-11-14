@@ -8,6 +8,7 @@ import '../../core/result/result.dart';
 import '../../domain/career/education_state.dart';
 import '../../domain/career/job_catalog.dart';
 import '../../domain/career/major_catalog.dart';
+import '../../domain/career/resume.dart';
 import '../../domain/world/country_catalog.dart';
 import 'jobs_screen.dart';
 import 'school_screen.dart';
@@ -16,10 +17,11 @@ import '../../simulation/engine/simulation_engine.dart';
 import '../../simulation/events/life_effect_applier.dart';
 import '../../simulation/narrative/tuition_narratives.dart';
 import '../widgets/themed_cards.dart';
+import '../widgets/resume_dialog.dart';
 import '../widgets/university_picker.dart';
 
 /// What the Occupation page opens on its own.
-enum CareerStart { university, jobs }
+enum CareerStart { university, jobs, sportsOffer }
 
 /// School (ages 6-17) or occupation (18+): status, actions, and history.
 ///
@@ -75,6 +77,8 @@ class _CareerScreenState extends State<CareerScreen> {
           _openUniversityPicker();
         case CareerStart.jobs:
           _openJobs();
+        case CareerStart.sportsOffer:
+          _openUniversityPicker(sports: true);
       }
     });
   }
@@ -118,7 +122,7 @@ class _CareerScreenState extends State<CareerScreen> {
   }
 
   /// The university overlay: one list of majors, then how to pay.
-  Future<void> _openUniversityPicker() async {
+  Future<void> _openUniversityPicker({bool sports = false}) async {
     final state = engine.state;
     final year = state.clock.currentYear;
     final options = [
@@ -144,7 +148,7 @@ class _CareerScreenState extends State<CareerScreen> {
       context,
       options: options,
       ask: engine.askTuitionFunding,
-      sportsClub: engine.state.lifeProgress.education.sportsOffer,
+      sportsClub: sports ? engine.state.lifeProgress.education.sportsOffer : null,
     );
 
     if (!mounted || choice == null) return;
@@ -177,6 +181,7 @@ class _CareerScreenState extends State<CareerScreen> {
                 child: ListView(
                   padding: EdgeInsets.zero,
                   children: [
+                    if (!isSchoolAge) _buildResume(progress.resume),
                     _buildEducation(
                       progress.education,
                       state.clock.currentYear,
@@ -188,6 +193,21 @@ class _CareerScreenState extends State<CareerScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildResume(List<ResumeEntry> resume) {
+    return ActionCard(
+      key: const Key('resume-card'),
+      zoom: widget.zoom,
+      emoji: '📄',
+      title: 'Resume',
+      subtitle: resumeSummary(resume),
+      onTap: () => showResumeDialog(
+        context,
+        resume: resume,
+        currentSchool: engine.state.lifeProgress.education.schoolName,
       ),
     );
   }
@@ -225,8 +245,10 @@ class _CareerScreenState extends State<CareerScreen> {
 
     final age = engine.state.player.ageAt(year);
     final hasJob = engine.state.lifeProgress.career.hasJob;
+    // Graduates keep the card: they may study another major.
     final canApply =
-        education.highest == EducationLevel.highSchool && age >= 18;
+        education.highest.index >= EducationLevel.highSchool.index &&
+            age >= 18;
 
     if (!canApply) return const SizedBox.shrink();
 
