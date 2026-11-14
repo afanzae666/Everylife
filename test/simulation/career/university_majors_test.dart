@@ -859,6 +859,71 @@ void main() {
       }
     });
 
+    test('the sports scholarship is for the general university only', () {
+      final engine = _engineAt(
+        age: 18,
+        progress: const LifeProgress(education: offered),
+      );
+
+      for (final major in MajorCatalog.all) {
+        expect(
+          engine.askTuitionFunding(major.id, TuitionFunding.sports).approved,
+          major.institution == InstitutionType.general,
+          reason: major.id,
+        );
+      }
+
+      expect(
+        engine.applyForUniversity('medicine', TuitionFunding.sports).isFailure,
+        isTrue,
+      );
+      expect(engine.state.lifeProgress.education.isStudent, isFalse);
+    });
+
+    test('turning the offer down is written in the life log', () {
+      final engine = _engineAt(
+        age: 18,
+        progress: const LifeProgress(education: offered),
+      );
+
+      expect(engine.declineSportsOffer('I said no.').isSuccess, isTrue);
+      expect(engine.state.lifeProgress.education.sportsOffer, isNull);
+      expect(
+        engine.state.events.any(
+          (event) => event.title == 'Turned down a scholarship',
+        ),
+        isTrue,
+      );
+      expect(engine.declineSportsOffer('Again.').isFailure, isTrue);
+    });
+
+    test('a graduate can study another major', () {
+      for (var seed = 0; seed < 100; seed++) {
+        final engine = _engineAt(
+          age: 25,
+          seed: seed,
+          progress: const LifeProgress(
+            education: EducationState(
+              initialized: true,
+              highest: EducationLevel.bachelor,
+              majorId: 'business',
+              grades: 100,
+            ),
+          ),
+        );
+
+        engine.applyForUniversity('law', TuitionFunding.loan);
+
+        if (!engine.state.lifeProgress.education.isStudent) continue;
+
+        expect(engine.state.lifeProgress.education.majorId, 'law');
+        expect(engine.state.lifeProgress.resume.last.detail, 'Law');
+        return;
+      }
+
+      fail('Nobody was accepted.');
+    });
+
     test('taking a break is written in the life log', () {
       final engine = _engineAt(
         age: 18,
