@@ -134,7 +134,7 @@ void main() {
 
     final education = engine.state.lifeProgress.education;
 
-    expect(education.schoolName, contains('Elementary School'));
+    expect(education.schoolName, contains('Elementary'));
     expect(education.classmates, isNotEmpty);
     expect(education.faculty.any((n) => n.role == SchoolRole.teacher), isTrue);
     expect(education.faculty.any((n) => n.role == SchoolRole.principal), isTrue);
@@ -177,12 +177,35 @@ void main() {
           random: Random(1),
         );
 
-    expect(name('ID', SchoolStage.elementary), startsWith('SD Negeri'));
-    expect(name('ID', SchoolStage.high), startsWith('SMA Negeri'));
-    expect(name('DE', SchoolStage.elementary), startsWith('Grundschule'));
+    expect(name('ID', SchoolStage.elementary), startsWith('SD '));
+    expect(name('ID', SchoolStage.high), matches(RegExp(r'^SM[AK] ')));
+    expect(name('DE', SchoolStage.elementary), contains('Grundschule'));
     expect(name('JP', SchoolStage.middle), contains('Junior High School'));
-    expect(name('GB', SchoolStage.university), 'University of Testville');
+    expect(name('GB', SchoolStage.university), contains('Testville'));
     expect(name('US', SchoolStage.high), endsWith('High School'));
+  });
+
+  test('school names vary between schools and between stages', () {
+    for (final code in ['US', 'ID', 'JP', 'DE', 'GB', 'BR']) {
+      for (final stage in [
+        SchoolStage.elementary,
+        SchoolStage.middle,
+        SchoolStage.high,
+        SchoolStage.university,
+      ]) {
+        final names = {
+          for (var seed = 0; seed < 40; seed++)
+            SchoolNames.generate(
+              countryCode: code,
+              stage: stage,
+              cityName: 'Testville',
+              random: Random(seed),
+            ),
+        };
+
+        expect(names.length, greaterThan(2), reason: '$code ${stage.name}');
+      }
+    }
   });
 
   test('school NPCs get a stable avatar look from the game assets', () {
