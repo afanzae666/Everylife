@@ -7,6 +7,7 @@ import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/character/player_asset.dart';
 import 'package:everylife/presentation/screens/assets_screen.dart';
 import 'package:everylife/presentation/widgets/themed_cards.dart';
+import 'package:everylife/simulation/economy/expense_breakdown.dart';
 
 void main() {
   testWidgets('Finance card opens the financial information overlay', (
@@ -39,6 +40,12 @@ void main() {
             salaryBase: 1000000,
           ),
           annualIncome: const Money.fromMinorUnits(1000000),
+          partTimeIncome: const Money.fromMinorUnits(200000),
+          expenses: ExpenseBreakdown(
+            lines: ExpenseBreakdown.split(1000000),
+            interest: 4500,
+            coveredByFamily: false,
+          ),
           zoom: 1,
         ),
       ),
@@ -61,7 +68,19 @@ void main() {
     expect(financeOverlay, findsOneWidget);
     expect(find.text('FINANCIAL INFORMATION'), findsOneWidget);
     expect(find.text('Personal Finance'), findsOneWidget);
-    expect(find.byType(Divider, skipOffstage: false), findsNWidgets(7));
+    expect(find.text('INCOME'), findsOneWidget);
+    expect(find.text('EXPENSES PER YEAR'), findsOneWidget);
+    expect(find.text('WEALTH'), findsOneWidget);
+    expect(find.textContaining('Part-time pay:'), findsOneWidget);
+    expect(find.textContaining('Housing:'), findsOneWidget);
+    expect(find.textContaining('Food:'), findsOneWidget);
+    expect(find.textContaining('Transport:'), findsOneWidget);
+    expect(find.textContaining('Utilities:'), findsOneWidget);
+    expect(find.textContaining('Healthcare:'), findsOneWidget);
+    expect(find.textContaining('Leisure & other:'), findsOneWidget);
+    expect(find.textContaining('Debt interest:'), findsOneWidget);
+    expect(find.textContaining('Total expenses:'), findsOneWidget);
+    expect(find.textContaining('Left over per year:'), findsOneWidget);
     expect(find.textContaining('Employment: Employed'), findsOneWidget);
     expect(find.textContaining('Annual salary:'), findsOneWidget);
     expect(find.textContaining('Cash:'), findsOneWidget);
