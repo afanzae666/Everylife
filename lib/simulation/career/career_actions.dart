@@ -175,7 +175,9 @@ abstract final class CareerActions {
 
     switch (how) {
       case TuitionFunding.sports:
-        return state.lifeProgress.education.sportsOffer != null
+        // The university teams only take students of the general university.
+        return state.lifeProgress.education.sportsOffer != null &&
+                major.institution == InstitutionType.general
             ? const TuitionAnswer.approved()
             : refuse(TuitionRefusal.noOffer);
       case TuitionFunding.loan:
@@ -247,6 +249,37 @@ abstract final class CareerActions {
         description: text,
       ),
     );
+  }
+
+  /// Turning down a university's sports scholarship.
+  static Result<CareerActionResult> declineSportsOffer({
+    required WorldState state,
+    required String text,
+  }) {
+    final guard = _ensureActive(state);
+
+    if (guard case Failure<void>(:final message)) {
+      return Failure(message);
+    }
+
+    final education = state.lifeProgress.education;
+
+    if (education.sportsOffer == null) {
+      return const Failure('There is no scholarship offer to turn down.');
+    }
+
+    final next = _log(
+      state.copyWith(
+        lifeProgress: state.lifeProgress.copyWith(
+          education: education.copyWith(clearSportsOffer: true),
+        ),
+      ),
+      type: SimulationEventType.education,
+      title: 'Turned down a scholarship',
+      text: text,
+    );
+
+    return Success(CareerActionResult(state: next, message: text));
   }
 
   /// Taking a break after school: nothing changes except the life log.
@@ -453,11 +486,8 @@ abstract final class CareerActions {
       return const Failure('I am already studying.');
     }
 
-    if (education.highest == EducationLevel.bachelor) {
-      return const Failure('I already have a university degree.');
-    }
-
-    if (education.highest != EducationLevel.highSchool) {
+    // A graduate may study again, for example for a second major.
+    if (education.highest.index < EducationLevel.highSchool.index) {
       return const Failure('I need a high school diploma first.');
     }
 
