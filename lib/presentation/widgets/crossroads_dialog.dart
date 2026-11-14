@@ -12,7 +12,6 @@ Future<CrossroadsChoice> showCrossroadsDialog(
   BuildContext context, {
   required int seed,
   required bool canStudy,
-  String? sportsClub,
 }) async {
   final choice = await showAnimatedDialog<CrossroadsChoice>(
     context: context,
@@ -36,10 +35,7 @@ Future<CrossroadsChoice> showCrossroadsDialog(
                 key: const Key('crossroads-university'),
                 emoji: '🎓',
                 title: 'University',
-                subtitle: sportsClub == null
-                    ? CrossroadsNarratives.study(seed)
-                    : 'A university coach noticed me in the $sportsClub. '
-                        'There is a full scholarship on the table.',
+                subtitle: CrossroadsNarratives.study(seed),
                 selected: false,
                 onTap: () =>
                     Navigator.of(dialogContext).pop(CrossroadsChoice.university),

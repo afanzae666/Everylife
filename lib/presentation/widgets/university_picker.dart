@@ -84,8 +84,8 @@ class UniversityPickerBody extends StatefulWidget {
   final TuitionAsker ask;
   final ValueChanged<UniversityChoice> onChoose;
 
-  /// The sport club that recruited the player, if one did. Only then is the
-  /// sports scholarship offered.
+  /// Set when a sport club recruited the player. The overlay then lists only
+  /// the general university and the one way to pay is the scholarship.
   final String? sportsClub;
 
   @override
@@ -142,7 +142,9 @@ class _UniversityPickerBodyState extends State<UniversityPickerBody> {
     Iterable<Widget> section(String title, InstitutionType type) sync* {
       final shown = [
         for (final option in widget.options)
-          if (option.major.institution == type) option,
+          if (option.major.institution == type &&
+              (widget.sportsClub == null || type == InstitutionType.general))
+            option,
       ];
 
       if (shown.isEmpty) return;
@@ -166,7 +168,10 @@ class _UniversityPickerBodyState extends State<UniversityPickerBody> {
       padding: const EdgeInsets.all(12),
       children: [
         Text(
-          'Pick what you want to study.',
+          widget.sportsClub == null
+              ? 'Pick what you want to study.'
+              : 'The scholarship covers the general university. Pick what '
+                  'to study.',
           key: const Key('university-intro'),
           style: theme.textTheme.bodyLarge,
         ),
@@ -241,8 +246,8 @@ class _UniversityPickerBodyState extends State<UniversityPickerBody> {
               ),
               const SectionDivider(title: 'HOW TO PAY'),
               for (final funding in TuitionFunding.values)
-                if (funding != TuitionFunding.sports ||
-                    widget.sportsClub != null)
+                if ((funding == TuitionFunding.sports) ==
+                    (widget.sportsClub != null))
                   if (!_refused.contains(_key(option, funding)))
                   OptionTile(
                     key: Key('funding-${funding.name}'),
