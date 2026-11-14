@@ -22,14 +22,19 @@ Future<List<UniversityChoice>> _pump(
 }) async {
   final chosen = <UniversityChoice>[];
 
+  // A tall screen, so nothing sits below the edge where taps cannot land.
+  tester.view.physicalSize = const Size(900, 2000);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
         body: SizedBox(
           width: 420,
-          height: 800,
+          height: 1800,
           child: UniversityPickerBody(
-            height: 700,
+            height: 1600,
             options: _options(),
             ask: (majorId, funding) => refuse.contains(funding)
                 ? const TuitionAnswer.refused(
