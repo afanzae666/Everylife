@@ -7,7 +7,6 @@ Future<CrossroadsChoice?> _open(
   WidgetTester tester, {
   required Finder tap,
   bool canStudy = true,
-  String? sportsClub,
 }) async {
   CrossroadsChoice? result;
 
@@ -22,7 +21,6 @@ Future<CrossroadsChoice?> _open(
                 context,
                 seed: 3,
                 canStudy: canStudy,
-                sportsClub: sportsClub,
               );
             },
             child: const Text('open'),
@@ -85,18 +83,5 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('crossroads-university')), findsNothing);
-  });
-
-  testWidgets('an offer shows in the university option', (tester) async {
-    await _open(
-      tester,
-      sportsClub: 'Basketball Team',
-      tap: find.byKey(const Key('crossroads-work')),
-    );
-
-    await tester.tap(find.byKey(const Key('open')));
-    await tester.pumpAndSettle();
-
-    expect(find.textContaining('Basketball Team'), findsOneWidget);
   });
 }

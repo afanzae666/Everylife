@@ -178,4 +178,37 @@ void main() {
 
     expect(chosen.single.funding, TuitionFunding.sports);
   });
+
+  testWidgets('with an offer only the general university is listed', (
+    tester,
+  ) async {
+    await _pump(tester, sportsClub: 'Basketball Team');
+
+    expect(find.byKey(const Key('major-business')), findsOneWidget);
+    expect(find.text('PROFESSIONAL SCHOOLS'), findsNothing);
+
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('major-education')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+
+    expect(find.byKey(const Key('major-medicine')), findsNothing);
+    expect(find.byKey(const Key('major-nursing')), findsNothing);
+  });
+
+  testWidgets('with an offer the scholarship is the only way to pay', (
+    tester,
+  ) async {
+    await _pump(tester, sportsClub: 'Basketball Team');
+
+    await tester.tap(find.byKey(const Key('major-business')));
+    await tester.pump();
+
+    expect(find.byKey(const Key('funding-sports')), findsOneWidget);
+    expect(find.byKey(const Key('funding-loan')), findsNothing);
+    expect(find.byKey(const Key('funding-parents')), findsNothing);
+    expect(find.byKey(const Key('funding-self')), findsNothing);
+    expect(find.byKey(const Key('funding-scholarship')), findsNothing);
+  });
 }
