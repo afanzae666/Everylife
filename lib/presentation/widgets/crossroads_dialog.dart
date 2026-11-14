@@ -7,7 +7,7 @@ import 'themed_cards.dart';
 /// What the player does after high school.
 enum CrossroadsChoice { university, work, rest }
 
-/// The overlay shown at 18. Closing it counts as taking a break.
+/// The overlay shown at 18. It stays until one of the three is chosen.
 Future<CrossroadsChoice> showCrossroadsDialog(
   BuildContext context, {
   required int seed,
@@ -18,7 +18,7 @@ Future<CrossroadsChoice> showCrossroadsDialog(
     barrierDismissible: false,
     builder: (dialogContext) => ThemedDialog(
       title: 'What Now?',
-      onClose: () => Navigator.of(dialogContext).pop(CrossroadsChoice.rest),
+      closable: false,
       child: SingleChildScrollView(
         key: const Key('crossroads-dialog'),
         padding: const EdgeInsets.all(12),

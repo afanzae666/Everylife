@@ -32,10 +32,14 @@ Widget animatedDialogTransition(
 }
 
 /// Like [showDialog], but with the game's overlay animation.
+///
+/// A tap outside does not close it unless [barrierDismissible] is set, so a
+/// choice is never lost by a stray tap. Only plain information may be
+/// dismissed that way.
 Future<T?> showAnimatedDialog<T>({
   required BuildContext context,
   required WidgetBuilder builder,
-  bool barrierDismissible = true,
+  bool barrierDismissible = false,
   String barrierLabel = 'Close',
 }) {
   return showGeneralDialog<T>(

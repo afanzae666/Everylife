@@ -16,7 +16,7 @@ Future<bool> showSportsScholarshipDialog(
     barrierDismissible: false,
     builder: (dialogContext) => ThemedDialog(
       title: SportsScholarshipNarratives.title(seed),
-      onClose: () => Navigator.of(dialogContext).pop(false),
+      closable: false,
       child: SingleChildScrollView(
         key: const Key('sports-scholarship-dialog'),
         padding: const EdgeInsets.all(12),

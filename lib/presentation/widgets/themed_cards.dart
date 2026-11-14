@@ -445,6 +445,7 @@ class ThemedDialog extends StatelessWidget {
     required this.title,
     required this.child,
     this.onClose,
+    this.closable = true,
     super.key,
   });
 
@@ -454,12 +455,16 @@ class ThemedDialog extends StatelessWidget {
   /// Called by the X. Defaults to closing the dialog.
   final VoidCallback? onClose;
 
+  /// False for a choice that has to be made: no X, and the back button does
+  /// nothing either.
+  final bool closable;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primary = theme.colorScheme.primary;
 
-    return Dialog(
+    final dialog = Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -483,6 +488,7 @@ class ThemedDialog extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (closable)
                 Tooltip(
                   message: 'Close',
                   child: InkResponse(
@@ -505,6 +511,8 @@ class ThemedDialog extends StatelessWidget {
         ],
       ),
     );
+
+    return closable ? dialog : PopScope(canPop: false, child: dialog);
   }
 }
 

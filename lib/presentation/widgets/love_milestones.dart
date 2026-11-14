@@ -74,6 +74,7 @@ Future<String?> showMilestoneChoice(
       final theme = Theme.of(dialogContext);
 
       return ThemedDialog(
+        closable: false,
         title: title,
         child: SingleChildScrollView(
           child: Padding(
@@ -163,6 +164,7 @@ Future<bool> showMilestoneConfirm(
       final theme = Theme.of(dialogContext);
 
       return ThemedDialog(
+        closable: false,
         title: title,
         child: SingleChildScrollView(
           child: Padding(

@@ -21,18 +21,41 @@ String resumeSummary(List<ResumeEntry> resume) {
   ].join(' · ');
 }
 
-String _years(ResumeEntry entry) {
+/// When it happened, in the player's ages. The game has no calendar years.
+String resumeSpan(ResumeEntry entry, int birthYear) {
+  final start = entry.startYear - birthYear;
   final end = entry.endYear;
 
-  if (end == null) return '${entry.startYear} - now';
+  if (end == null) return 'Since age $start';
 
-  return end == entry.startYear ? '$end' : '${entry.startYear} - $end';
+  final stop = end - birthYear;
+
+  return stop == start ? 'At age $start' : 'From age $start to $stop';
 }
 
-/// The resume: schools, degrees and jobs of the player's life.
+String _outcome(ResumeEntry entry) {
+  final outcome = entry.outcome;
+
+  if (outcome == null) {
+    return entry.kind == ResumeKind.school
+        ? 'Still studying'
+        : 'Still working here';
+  }
+
+  return switch (outcome) {
+    'Graduated' => 'Finished with a diploma',
+    'Retired' => 'Retired',
+    _ when entry.kind == ResumeKind.school => 'Left before finishing',
+    _ => 'Moved on',
+  };
+}
+
+/// The resume. It opens on the three categories; each category is an overlay
+/// of its own, and opens even when there is nothing in it yet.
 Future<void> showResumeDialog(
   BuildContext context, {
   required List<ResumeEntry> resume,
+  required int birthYear,
   String? currentSchool,
 }) {
   final schools = [
@@ -50,96 +73,167 @@ Future<void> showResumeDialog(
 
   return showAnimatedDialog<void>(
     context: context,
-    builder: (dialogContext) {
-      final theme = Theme.of(dialogContext);
+    builder: (hubContext) {
+      final theme = Theme.of(hubContext);
 
-      Widget line(
+      Widget tile(
+        String keyName,
+        String emoji,
         String title,
-        String? detail,
-        String when, {
-        Key? key,
-      }) =>
-          Padding(
-            key: key,
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleSmall,
-                ),
-                if (detail != null && detail.isNotEmpty) Text(detail),
-                Text(when, style: theme.textTheme.bodySmall),
-              ],
-            ),
+        String story,
+        int count,
+        VoidCallback onTap,
+      ) =>
+          OptionTile(
+            key: Key('resume-tab-$keyName'),
+            emoji: emoji,
+            title: title,
+            subtitle: count == 0 ? story : '$story · $count',
+            selected: false,
+            onTap: onTap,
           );
-
-      List<Widget> section(String heading, List<Widget> children, String empty) =>
-          [
-            SectionDivider(title: heading),
-            if (children.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Text(empty, style: theme.textTheme.bodySmall),
-              )
-            else
-              ...children,
-          ];
 
       return ThemedDialog(
         title: 'Resume',
-        child: SizedBox(
-          key: const Key('resume-dialog'),
-          width: 560,
-          child: ListView(
-            shrinkWrap: true,
-            padding: const EdgeInsets.all(12),
+        child: SingleChildScrollView(
+          key: const Key('resume-hub'),
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ...section(
-                'EDUCATION',
-                [
-                  for (final entry in schools)
-                    line(
-                      entry.detail == null
-                          ? entry.title
-                          : '${entry.title}: ${entry.detail}',
-                      entry.place ?? (entry.isOngoing ? currentSchool : null),
-                      entry.outcome == null
-                          ? _years(entry)
-                          : '${_years(entry)} · ${entry.outcome}',
-                    ),
-                ],
-                'No school yet.',
+              Text(
+                'Every classroom, diploma and paycheck of my life so far, '
+                'written down in one place. Which page of my story do I '
+                'want to read?',
+                style: theme.textTheme.bodyLarge,
               ),
-              ...section(
-                'DEGREES',
-                [
-                  for (final entry in degrees)
-                    line(
-                      'Bachelor: ${entry.detail ?? 'General studies'}',
-                      entry.place,
-                      'Graduated ${entry.endYear}',
-                    ),
-                ],
-                'No degree yet.',
+              const SizedBox(height: 12),
+              tile(
+                'education',
+                '🏫',
+                'Education',
+                'Every classroom I ever sat in.',
+                schools.length,
+                () => _showCategory(
+                  hubContext,
+                  dialogKey: const Key('resume-education'),
+                  title: 'Education',
+                  emoji: '🏫',
+                  empty: 'No classroom has seen me yet. My school days are '
+                      'still waiting to begin.',
+                  lines: [
+                    for (final entry in schools)
+                      _Line(
+                        entry.detail == null
+                            ? entry.title
+                            : '${entry.title}: ${entry.detail}',
+                        entry.place ??
+                            (entry.isOngoing ? currentSchool : null),
+                        '${resumeSpan(entry, birthYear)} · ${_outcome(entry)}',
+                      ),
+                  ],
+                ),
               ),
-              ...section(
-                'WORK',
-                [
-                  for (final entry in jobs)
-                    line(
-                      entry.title,
-                      entry.detail,
-                      entry.outcome == null
-                          ? _years(entry)
-                          : '${_years(entry)} · ${entry.outcome}',
-                    ),
-                ],
-                'No job yet.',
+              tile(
+                'degrees',
+                '🎓',
+                'Degrees',
+                'The diplomas on my wall.',
+                degrees.length,
+                () => _showCategory(
+                  hubContext,
+                  dialogKey: const Key('resume-degrees'),
+                  title: 'Degrees',
+                  emoji: '🎓',
+                  empty: 'No diploma hangs on my wall yet. Maybe one day, '
+                      'with my name printed on it.',
+                  lines: [
+                    for (final entry in degrees)
+                      _Line(
+                        'Bachelor: ${entry.detail ?? 'General studies'}',
+                        entry.place,
+                        'Earned at age ${(entry.endYear ?? entry.startYear) - birthYear}',
+                      ),
+                  ],
+                ),
+              ),
+              tile(
+                'work',
+                '💼',
+                'Work',
+                'Every place that ever paid me.',
+                jobs.length,
+                () => _showCategory(
+                  hubContext,
+                  dialogKey: const Key('resume-work'),
+                  title: 'Work',
+                  emoji: '💼',
+                  empty: 'My first paycheck is still ahead of me. The job '
+                      'list is waiting.',
+                  lines: [
+                    for (final entry in jobs)
+                      _Line(
+                        entry.title,
+                        entry.detail,
+                        '${resumeSpan(entry, birthYear)} · ${_outcome(entry)}',
+                      ),
+                  ],
+                ),
               ),
             ],
           ),
+        ),
+      );
+    },
+  );
+}
+
+class _Line {
+  const _Line(this.title, this.detail, this.when);
+
+  final String title;
+  final String? detail;
+  final String when;
+}
+
+Future<void> _showCategory(
+  BuildContext context, {
+  required Key dialogKey,
+  required String title,
+  required String emoji,
+  required String empty,
+  required List<_Line> lines,
+}) {
+  return showAnimatedDialog<void>(
+    context: context,
+    builder: (dialogContext) {
+      final theme = Theme.of(dialogContext);
+
+      return ThemedDialog(
+        title: '$emoji  ${title.toUpperCase()}',
+        child: SingleChildScrollView(
+          key: dialogKey,
+          padding: const EdgeInsets.all(14),
+          child: lines.isEmpty
+              ? Text(empty, style: theme.textTheme.bodyLarge)
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final line in lines)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(line.title, style: theme.textTheme.titleSmall),
+                            if (line.detail != null && line.detail!.isNotEmpty)
+                              Text(line.detail!),
+                            Text(line.when, style: theme.textTheme.bodySmall),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
         ),
       );
     },
