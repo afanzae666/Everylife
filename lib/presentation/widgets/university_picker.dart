@@ -44,6 +44,7 @@ Future<UniversityChoice?> showUniversityPicker(
   BuildContext context, {
   required List<UniversityMajorOption> options,
   required TuitionAsker ask,
+  String? sportsClub,
 }) {
   final size = MediaQuery.of(context).size;
   final width = (size.width - 44).clamp(280.0, 600.0).toDouble();
@@ -59,6 +60,7 @@ Future<UniversityChoice?> showUniversityPicker(
           height: size.height * 0.72,
           options: options,
           ask: ask,
+          sportsClub: sportsClub,
           onChoose: (choice) => Navigator.of(dialogContext).pop(choice),
         ),
       ),
@@ -74,12 +76,17 @@ class UniversityPickerBody extends StatefulWidget {
     required this.options,
     required this.ask,
     required this.onChoose,
+    this.sportsClub,
   });
 
   final double height;
   final List<UniversityMajorOption> options;
   final TuitionAsker ask;
   final ValueChanged<UniversityChoice> onChoose;
+
+  /// The sport club that recruited the player, if one did. Only then is the
+  /// sports scholarship offered.
+  final String? sportsClub;
 
   @override
   State<UniversityPickerBody> createState() => _UniversityPickerBodyState();
@@ -234,12 +241,17 @@ class _UniversityPickerBodyState extends State<UniversityPickerBody> {
               ),
               const SectionDivider(title: 'HOW TO PAY'),
               for (final funding in TuitionFunding.values)
-                if (!_refused.contains(_key(option, funding)))
+                if (funding != TuitionFunding.sports ||
+                    widget.sportsClub != null)
+                  if (!_refused.contains(_key(option, funding)))
                   OptionTile(
                     key: Key('funding-${funding.name}'),
                     emoji: funding.emoji,
                     title: funding.label,
-                    subtitle: subtitles[funding],
+                    subtitle: funding == TuitionFunding.sports
+                        ? 'The ${widget.sportsClub} coaches want me on their '
+                            'team. A full ride, as long as I keep playing.'
+                        : subtitles[funding],
                     selected: false,
                     onTap: () => _tryFunding(option, funding),
                   ),
