@@ -249,6 +249,27 @@ abstract final class CareerActions {
     );
   }
 
+  /// Taking a break after school: nothing changes except the life log.
+  static Result<CareerActionResult> takeBreak({
+    required WorldState state,
+    required String text,
+  }) {
+    final guard = _ensureActive(state);
+
+    if (guard case Failure<void>(:final message)) {
+      return Failure(message);
+    }
+
+    final next = _log(
+      state,
+      type: SimulationEventType.career,
+      title: 'Taking a break',
+      text: text,
+    );
+
+    return Success(CareerActionResult(state: next, message: text));
+  }
+
   static Result<CareerActionResult> applyForJob({
     required WorldState state,
     required SeededRandom random,
