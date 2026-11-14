@@ -148,16 +148,20 @@ void main() {
     await tester.tap(find.byKey(const Key('resume-card')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('resume-dialog')), findsOneWidget);
-    for (final heading in ['EDUCATION', 'DEGREES', 'WORK']) {
-      expect(
-        find.descendant(
-          of: find.byKey(const Key('resume-dialog')),
-          matching: find.text(heading),
-        ),
-        findsOneWidget,
-        reason: heading,
-      );
+    expect(find.byKey(const Key('resume-hub')), findsOneWidget);
+
+    // Every category opens, even with nothing in it.
+    for (final name in ['education', 'degrees', 'work']) {
+      await tester.tap(find.byKey(Key('resume-tab-$name')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(Key('resume-$name')), findsOneWidget, reason: name);
+
+      await tester.tap(find.byTooltip('Close').last);
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(Key('resume-$name')), findsNothing, reason: name);
+      expect(find.byKey(const Key('resume-hub')), findsOneWidget);
     }
   });
 
