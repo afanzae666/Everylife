@@ -17,6 +17,9 @@ enum TuitionRefusal {
 
   /// The player does not have the cash.
   noMoney,
+
+  /// No university has made a sports offer.
+  noOffer,
 }
 
 /// Scenes for choosing how to pay for university. Every pool has several
@@ -84,6 +87,14 @@ abstract final class TuitionNarratives {
         'There is nobody who could pay for this. I have to think of another '
             'way.',
         'I have no parent who could cover it. That door is simply closed.',
+      ],
+    ),
+    TuitionRefusal.noOffer: (
+      'No Offer',
+      [
+        'No coach has called. The sports scholarship is not for me this '
+            'year.',
+        'Nobody from the university teams has noticed me yet.',
       ],
     ),
     TuitionRefusal.noMoney: (
