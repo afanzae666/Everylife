@@ -120,15 +120,24 @@ void main() {
       );
     });
 
-    test('medicine and nursing are the specialized programs', () {
+    test('the professions are the specialized programs', () {
       final specialized = MajorCatalog.at(InstitutionType.specialized);
 
-      expect(specialized.map((major) => major.id), ['medicine', 'nursing']);
+      expect(
+        specialized.map((major) => major.id),
+        ['medicine', 'nursing', 'pharmacy', 'dentistry', 'aviation'],
+      );
       expect(
         specialized.map((major) => major.campusName),
-        ['Medical School', 'Nursing College'],
+        [
+          'Medical School',
+          'Nursing College',
+          'Pharmacy College',
+          'Dental School',
+          'Aviation Academy',
+        ],
       );
-      expect(MajorCatalog.at(InstitutionType.general), hasLength(6));
+      expect(MajorCatalog.at(InstitutionType.general), hasLength(10));
     });
 
     test('medicine is the longest and hardest program', () {
