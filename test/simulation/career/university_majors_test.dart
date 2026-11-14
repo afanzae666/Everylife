@@ -759,4 +759,184 @@ void main() {
       }
     });
   });
+
+  group('sports scholarship and clubs', () {
+    const offered = EducationState(
+      initialized: true,
+      highest: EducationLevel.highSchool,
+      grades: 40,
+      sportsOffer: 'Basketball Team',
+    );
+
+    test('a recruited athlete is accepted and pays nothing', () {
+      for (var seed = 0; seed < 30; seed++) {
+        final engine = _engineAt(
+          age: 18,
+          seed: seed,
+          money: 700,
+          progress: const LifeProgress(education: offered),
+        );
+
+        expect(
+          engine.askTuitionFunding('law', TuitionFunding.sports).approved,
+          isTrue,
+        );
+        expect(
+          engine.applyForUniversity('law', TuitionFunding.sports).isSuccess,
+          isTrue,
+        );
+
+        final education = engine.state.lifeProgress.education;
+
+        expect(education.isStudent, isTrue, reason: 'seed $seed');
+        expect(education.club, 'Basketball Team');
+        expect(education.sportsOffer, isNull);
+        expect(engine.state.player.money.minorUnits, 700);
+        expect(engine.state.player.debt.minorUnits, 0);
+      }
+    });
+
+    test('without an offer the sports scholarship is refused', () {
+      final engine = _engineAt(
+        age: 18,
+        progress: const LifeProgress(education: _graduate),
+      );
+
+      expect(
+        engine.askTuitionFunding('law', TuitionFunding.sports).approved,
+        isFalse,
+      );
+      expect(
+        engine.applyForUniversity('law', TuitionFunding.sports).isFailure,
+        isTrue,
+      );
+    });
+
+    test('a strong sport club player gets an offer at graduation', () {
+      var offers = 0;
+
+      for (var seed = 0; seed < 40; seed++) {
+        final engine = _engineAt(
+          age: 17,
+          seed: seed,
+          progress: const LifeProgress(
+            education: EducationState(
+              initialized: true,
+              stage: SchoolStage.high,
+              schoolStage: SchoolStage.high,
+              highest: EducationLevel.middle,
+              grades: 70,
+              club: 'Basketball Team',
+              clubPerformance: 90,
+            ),
+          ),
+        );
+
+        engine.ageUp();
+
+        if (engine.state.lifeProgress.education.sportsOffer ==
+            'Basketball Team') {
+          offers++;
+        }
+      }
+
+      expect(offers, greaterThan(20));
+    });
+
+    test('a club that is not a sport never leads to an offer', () {
+      for (var seed = 0; seed < 20; seed++) {
+        final engine = _engineAt(
+          age: 17,
+          seed: seed,
+          progress: const LifeProgress(
+            education: EducationState(
+              initialized: true,
+              stage: SchoolStage.high,
+              schoolStage: SchoolStage.high,
+              highest: EducationLevel.middle,
+              grades: 70,
+              club: 'Chess Club',
+              clubPerformance: 90,
+            ),
+          ),
+        );
+
+        engine.ageUp();
+
+        expect(engine.state.lifeProgress.education.sportsOffer, isNull);
+      }
+    });
+
+    test('leaving university also leaves the club', () {
+      final engine = _engineAt(
+        age: 19,
+        progress: const LifeProgress(
+          education: EducationState(
+            initialized: true,
+            stage: SchoolStage.university,
+            schoolStage: SchoolStage.university,
+            highest: EducationLevel.highSchool,
+            majorId: 'business',
+            club: 'Chess Club',
+            clubPerformance: 50,
+          ),
+        ),
+      );
+
+      expect(engine.dropOutOfSchool().isSuccess, isTrue);
+      expect(engine.state.lifeProgress.education.club, isNull);
+    });
+
+    test('enrolling again starts without an old club', () {
+      for (var seed = 0; seed < 100; seed++) {
+        final engine = _engineAt(
+          age: 20,
+          seed: seed,
+          progress: const LifeProgress(
+            education: EducationState(
+              initialized: true,
+              highest: EducationLevel.highSchool,
+              grades: 100,
+              club: 'Chess Club',
+              clubPerformance: 50,
+            ),
+          ),
+        );
+
+        engine.applyForUniversity('business', TuitionFunding.loan);
+
+        if (!engine.state.lifeProgress.education.isStudent) continue;
+
+        expect(engine.state.lifeProgress.education.club, isNull);
+        return;
+      }
+
+      fail('Nobody was accepted.');
+    });
+  });
+
+  group('debt', () {
+    test('huge debt is never wiped away', () {
+      final base = _engineAt(
+        age: 30,
+        progress: const LifeProgress(),
+      );
+      final engine = SimulationEngine(
+        initialState: base.state.copyWith(
+          player: base.state.player.copyWith(
+            debt: const Money.fromMinorUnits(900000000),
+          ),
+        ),
+        random: SeededRandom(1),
+        saveRepository: InMemorySaveRepository(),
+      );
+
+      engine.ageUp();
+
+      expect(
+        engine.state.player.debt.minorUnits,
+        greaterThanOrEqualTo(900000000),
+      );
+    });
+  });
 }
