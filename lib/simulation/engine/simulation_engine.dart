@@ -164,15 +164,42 @@ class SimulationEngine {
         CareerActions.askForRaise(state: _state, random: _random),
       );
 
-  Result<String> applyForUniversity(String majorId, TuitionFunding funding) =>
-      _commitAction(
-        CareerActions.applyForUniversity(
-          state: _state,
-          random: _random,
-          majorId: majorId,
-          funding: funding,
+  Result<String> applyForUniversity(String majorId, TuitionFunding funding) {
+    final offer = _state.lifeProgress.education.sportsOffer;
+    final result = _commitAction(
+      CareerActions.applyForUniversity(
+        state: _state,
+        random: _random,
+        majorId: majorId,
+        funding: funding,
+      ),
+    );
+
+    if (result.isFailure) return result;
+
+    // The new school is set up now, which also leaves old clubs behind.
+    ensureSchool();
+
+    // A recruited athlete starts in the team that recruited them.
+    final education = _state.lifeProgress.education;
+
+    if (funding == TuitionFunding.sports &&
+        offer != null &&
+        education.isStudent) {
+      _state = _state.copyWith(
+        lifeProgress: _state.lifeProgress.copyWith(
+          education: education.copyWith(
+            club: offer,
+            lastClubYear: _state.clock.currentYear,
+            clubPerformance: 55,
+            clubRank: 0,
+          ),
         ),
       );
+    }
+
+    return result;
+  }
 
   /// Makes sure the school for the current stage exists (name, classmates,
   /// faculty). Safe to call at any time.
