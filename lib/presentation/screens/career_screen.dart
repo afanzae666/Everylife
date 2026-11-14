@@ -18,6 +18,9 @@ import '../../simulation/narrative/tuition_narratives.dart';
 import '../widgets/themed_cards.dart';
 import '../widgets/university_picker.dart';
 
+/// What the Occupation page opens on its own.
+enum CareerStart { university, jobs }
+
 /// School (ages 6-17) or occupation (18+): status, actions, and history.
 ///
 /// Under 18 the page is "School": elementary, middle and high school.
@@ -29,6 +32,7 @@ class CareerScreen extends StatefulWidget {
     this.onChanged,
     this.onSceneEnd,
     this.headerBuilder,
+    this.start,
     super.key,
   });
 
@@ -45,12 +49,35 @@ class CareerScreen extends StatefulWidget {
   /// Builds the character profile card shown at the top of the page.
   final WidgetBuilder? headerBuilder;
 
+  /// What to open as soon as the page shows (the choice made at 18).
+  final CareerStart? start;
+
   @override
   State<CareerScreen> createState() => _CareerScreenState();
 }
 
 class _CareerScreenState extends State<CareerScreen> {
   SimulationEngine get engine => widget.engine;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final start = widget.start;
+
+    if (start == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      switch (start) {
+        case CareerStart.university:
+          _openUniversityPicker();
+        case CareerStart.jobs:
+          _openJobs();
+      }
+    });
+  }
 
   double s(double value) => value * widget.zoom;
 
@@ -117,6 +144,7 @@ class _CareerScreenState extends State<CareerScreen> {
       context,
       options: options,
       ask: engine.askTuitionFunding,
+      sportsClub: engine.state.lifeProgress.education.sportsOffer,
     );
 
     if (!mounted || choice == null) return;

@@ -35,6 +35,9 @@ import '../../domain/character/gender.dart';
 import '../../domain/love/love_state.dart';
 import '../widgets/animated_dialog.dart';
 import '../widgets/club_widgets.dart';
+import '../widgets/crossroads_dialog.dart';
+import '../../domain/career/education_state.dart';
+import '../../simulation/narrative/crossroads_narratives.dart';
 import 'life_screen.dart';
 import 'more_screen.dart';
 import 'menu_screen.dart';
@@ -617,6 +620,42 @@ class _GameScreenState extends State<GameScreen> {
     if (mounted && engine.state.lifeProgress.ending == null) {
       await showClubPromotionIfAny(context, engine);
     }
+
+    if (mounted) await _offerCrossroads();
+  }
+
+  /// At 18, after school: study, work, or take a break.
+  Future<void> _offerCrossroads() async {
+    final state = engine.state;
+    final age = state.player.ageAt(state.clock.currentYear);
+    final education = state.lifeProgress.education;
+
+    if (age != 18 ||
+        state.lifeProgress.ending != null ||
+        state.lifeProgress.pending != null ||
+        education.isStudent ||
+        state.lifeProgress.career.hasJob) {
+      return;
+    }
+
+    final seed = state.clock.currentYear + state.player.id.length;
+    final choice = await showCrossroadsDialog(
+      context,
+      seed: seed,
+      canStudy: education.highest.index >= EducationLevel.highSchool.index,
+      sportsClub: education.sportsOffer,
+    );
+
+    if (!mounted) return;
+
+    switch (choice) {
+      case CrossroadsChoice.university:
+        _openCareerPage(start: CareerStart.university);
+      case CrossroadsChoice.work:
+        _openCareerPage(start: CareerStart.jobs);
+      case CrossroadsChoice.rest:
+        _showTurnMessage(CrossroadsNarratives.restDone(seed));
+    }
   }
 
   /// Opens Life Storage. Returns true when a different life was loaded.
@@ -958,7 +997,7 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  void _openCareerPage() {
+  void _openCareerPage({CareerStart? start}) {
     if (_isProcessingTurn) {
       return;
     }
@@ -969,6 +1008,7 @@ class _GameScreenState extends State<GameScreen> {
           engine: engine,
           zoom: _uiScaleController.value,
           headerBuilder: _pageHeader,
+          start: start,
           onChanged: () async {
             if (mounted) {
               setState(() {});
