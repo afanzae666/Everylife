@@ -10,6 +10,7 @@ import '../../domain/character/character.dart';
 import '../../domain/career/job_catalog.dart';
 import '../../domain/career/major_catalog.dart';
 import '../../domain/career/tuition_funding.dart';
+import '../career/resume_tracker.dart';
 import '../../domain/character/life_stage.dart';
 import '../../domain/event/life_event.dart';
 import '../../domain/family/parent_npc.dart';
@@ -156,6 +157,11 @@ class SimulationEngine {
           random: _random,
           jobId: jobId,
         ),
+      );
+
+  /// Turns down the sports scholarship a university offered.
+  Result<String> declineSportsOffer(String text) => _commitAction(
+        CareerActions.declineSportsOffer(state: _state, text: text),
       );
 
   /// Writes the choice to take a break after school into the life log.
@@ -445,8 +451,10 @@ class SimulationEngine {
   }
 
   Result<void> _commit(
-    WorldState nextState,
+    WorldState committed,
   ) {
+    // Every school or job that starts or ends goes on the resume.
+    final nextState = ResumeTracker.record(before: _state, after: committed);
     final validation = _validator.validate(nextState);
 
     if (validation
