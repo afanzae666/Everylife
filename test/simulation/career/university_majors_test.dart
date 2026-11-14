@@ -812,32 +812,39 @@ void main() {
       );
     });
 
+    EducationState seniorIn(String club) => EducationState(
+          initialized: true,
+          stage: SchoolStage.high,
+          schoolStage: SchoolStage.high,
+          highest: EducationLevel.middle,
+          grades: 70,
+          club: club,
+          clubPerformance: 90,
+        );
+
+    WorldState graduate(String club, int seed) {
+      final engine = _engineAt(
+        age: 18,
+        seed: seed,
+        progress: LifeProgress(education: seniorIn(club)),
+      );
+
+      return EducationSystem(random: SeededRandom(seed)).process(
+        state: engine.state,
+        command: const AgeUpCommand(),
+      );
+    }
+
     test('a strong sport club player gets an offer at graduation', () {
       var offers = 0;
 
       for (var seed = 0; seed < 40; seed++) {
-        final engine = _engineAt(
-          age: 17,
-          seed: seed,
-          progress: const LifeProgress(
-            education: EducationState(
-              initialized: true,
-              stage: SchoolStage.high,
-              schoolStage: SchoolStage.high,
-              highest: EducationLevel.middle,
-              grades: 70,
-              club: 'Basketball Team',
-              clubPerformance: 90,
-            ),
-          ),
-        );
+        final education =
+            graduate('Basketball Team', seed).lifeProgress.education;
 
-        engine.ageUp();
+        expect(education.highest, EducationLevel.highSchool);
 
-        if (engine.state.lifeProgress.education.sportsOffer ==
-            'Basketball Team') {
-          offers++;
-        }
+        if (education.sportsOffer == 'Basketball Team') offers++;
       }
 
       expect(offers, greaterThan(20));
@@ -845,26 +852,25 @@ void main() {
 
     test('a club that is not a sport never leads to an offer', () {
       for (var seed = 0; seed < 20; seed++) {
-        final engine = _engineAt(
-          age: 17,
-          seed: seed,
-          progress: const LifeProgress(
-            education: EducationState(
-              initialized: true,
-              stage: SchoolStage.high,
-              schoolStage: SchoolStage.high,
-              highest: EducationLevel.middle,
-              grades: 70,
-              club: 'Chess Club',
-              clubPerformance: 90,
-            ),
-          ),
+        expect(
+          graduate('Chess Club', seed).lifeProgress.education.sportsOffer,
+          isNull,
         );
-
-        engine.ageUp();
-
-        expect(engine.state.lifeProgress.education.sportsOffer, isNull);
       }
+    });
+
+    test('taking a break is written in the life log', () {
+      final engine = _engineAt(
+        age: 18,
+        progress: const LifeProgress(education: _graduate),
+      );
+
+      expect(engine.takeBreak('I need some air.').isSuccess, isTrue);
+      expect(
+        engine.state.events.any((event) => event.title == 'Taking a break'),
+        isTrue,
+      );
+      expect(engine.state.lifeProgress.career.hasJob, isFalse);
     });
 
     test('leaving university also leaves the club', () {
