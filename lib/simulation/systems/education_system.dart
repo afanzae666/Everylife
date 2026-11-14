@@ -100,6 +100,11 @@ class EducationSystem implements SimulationSystem {
       log('dropout', 'I left school', 'I walked away from my studies for now.');
     }
 
+    // A sports offer only lasts through the year of graduation.
+    if (education.sportsOffer != null && age > graduationAge) {
+      education = education.copyWith(clearSportsOffer: true);
+    }
+
     // Clubs belong to one school. When the school changes (or ends), the
     // club is left behind, so nobody is promoted in a club they cannot be in.
     if (education.club != null &&
@@ -219,6 +224,25 @@ class EducationSystem implements SimulationSystem {
     return education.copyWith(initialized: true);
   }
 
+  /// The sport club a university recruits the player from, if any. The better
+  /// the player did in a sport club, the likelier the offer.
+  String? _sportsOffer(EducationState education) {
+    final club = SchoolActions.clubByName(education.club);
+
+    if (club == null || club.category != 'sport') return null;
+
+    final performance = education.clubPerformance;
+    final chance = performance >= 80
+        ? 85
+        : performance >= 60
+            ? 65
+            : performance >= 45
+                ? 30
+                : 0;
+
+    return _random.nextInt(100) < chance ? club.name : null;
+  }
+
   EducationState _advance({
     required EducationState education,
     required int age,
@@ -279,10 +303,13 @@ class EducationSystem implements SimulationSystem {
         }
       case SchoolStage.high:
         if (age >= graduationAge) {
+          final offer = _sportsOffer(current);
+
           current = current.copyWith(
             highest: EducationLevel.highSchool,
             stage: SchoolStage.none,
             yearsInStage: 0,
+            sportsOffer: offer,
           );
           flags.add(SystemFlags.graduatedHighSchool);
           log(
@@ -290,6 +317,15 @@ class EducationSystem implements SimulationSystem {
             'High school graduation',
             'I graduated from high school.',
           );
+
+          if (offer != null) {
+            log(
+              'sports-offer',
+              'A university wants me',
+              'A university coach watched me play for the $offer and offered '
+                  'me a full sports scholarship.',
+            );
+          }
         }
       case SchoolStage.university:
         if (current.yearsInStage >= current.programYears) {

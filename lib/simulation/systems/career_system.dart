@@ -12,7 +12,7 @@ import 'simulation_system.dart';
 import 'system_priority.dart';
 
 /// Pays salary and pension, charges living costs, and handles
-/// promotions, layoffs, retirement, debt interest, and bankruptcy.
+/// promotions, layoffs, retirement, and debt interest.
 ///
 /// All money amounts are baseline values scaled by country cost of living.
 class CareerSystem implements SimulationSystem {
@@ -222,15 +222,7 @@ class CareerSystem implements SimulationSystem {
     final livingYear = scale(livingCostBase);
 
     if (debt > livingYear * 5) {
-      debt = 0;
-      money = 0;
-      stats = stats.copyWith(happiness: stats.happiness - 10);
-      flags.add(SystemFlags.bankrupt);
-      log(
-        'bankrupt',
-        'Bankruptcy',
-        'My debts became unmanageable and I had to declare bankruptcy.',
-      );
+      stats = stats.copyWith(happiness: stats.happiness - 6);
     } else if (debt > livingYear * 2) {
       stats = stats.copyWith(happiness: stats.happiness - 2);
     }
