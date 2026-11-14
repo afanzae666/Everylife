@@ -26,6 +26,7 @@ import '../widgets/slide_up_route.dart';
 import '../widgets/character_avatar.dart';
 import '../widgets/core_stat_bars.dart';
 import '../widgets/life_event_dialogs.dart';
+import '../widgets/notice_overlay.dart';
 import '../widgets/life_labels.dart';
 import 'assets_screen.dart';
 import 'career_screen.dart';
@@ -159,14 +160,17 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  void _showTurnMessage(String message) {
+  void _showTurnMessage(
+    String message, {
+    String? title,
+    String? emoji,
+    bool problem = false,
+  }) {
     if (!mounted) {
       return;
     }
 
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    showNotice(context, message, title: title, emoji: emoji, problem: problem);
   }
 
   /// Shows the overlay of every divorce, breakup or called-off engagement
@@ -277,7 +281,7 @@ class _GameScreenState extends State<GameScreen> {
         final result = engine.resolveLifeChoice(choiceId);
 
         if (result case Failure<LifeChoiceResult>(:final message)) {
-          _showTurnMessage(message);
+          _showTurnMessage(message, problem: true);
           continue;
         }
 
@@ -301,7 +305,7 @@ class _GameScreenState extends State<GameScreen> {
         final saveResult = await engine.save();
 
         if (saveResult case Failure<void>(:final message)) {
-          _showTurnMessage('Auto-save failed: $message');
+          _showTurnMessage('Auto-save failed: $message', problem: true);
         }
       }
     } finally {
@@ -479,6 +483,7 @@ class _GameScreenState extends State<GameScreen> {
     final yes = await showAnimatedDialog<bool>(
       context: context,
       builder: (dialogContext) => ThemedDialog(
+        closable: false,
         title: 'NEW FRIEND?',
         child: Padding(
           padding: const EdgeInsets.all(14),
@@ -584,7 +589,7 @@ class _GameScreenState extends State<GameScreen> {
       setState(() {
         _isProcessingTurn = false;
       });
-      _showTurnMessage('Unable to age up: $message');
+      _showTurnMessage('Unable to age up: $message', problem: true);
       return;
     }
 
@@ -656,7 +661,7 @@ class _GameScreenState extends State<GameScreen> {
         if (result case Success<String>(:final value)) {
           setState(() {});
           _scrollLifeEventsToBottom();
-          _showTurnMessage(value);
+          _showTurnMessage(value, title: 'Turned Down', emoji: '🙅');
           await engine.save();
         }
 
@@ -718,7 +723,7 @@ class _GameScreenState extends State<GameScreen> {
         if (result case Success<String>(:final value)) {
           setState(() {});
           _scrollLifeEventsToBottom();
-          _showTurnMessage(value);
+          _showTurnMessage(value, title: 'Taking a Break', emoji: '🛋️');
           await engine.save();
         }
     }
@@ -1306,13 +1311,12 @@ class _GameScreenState extends State<GameScreen> {
           icon: Icons.emoji_events_rounded,
           tooltip: 'Achievements',
           onPressed: () {
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                const SnackBar(
-                  content: Text('Achievements are coming soon.'),
-                ),
-              );
+            showNotice(
+              context,
+              'Achievements are coming soon.',
+              title: 'Achievements',
+              emoji: '🏆',
+            );
           },
         ),
         titleWidget: Image.asset(

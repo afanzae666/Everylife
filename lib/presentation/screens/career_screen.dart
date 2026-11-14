@@ -18,6 +18,7 @@ import '../../simulation/events/life_effect_applier.dart';
 import '../../simulation/narrative/tuition_narratives.dart';
 import '../widgets/themed_cards.dart';
 import '../widgets/resume_dialog.dart';
+import '../widgets/notice_overlay.dart';
 import '../widgets/university_picker.dart';
 
 /// What the Occupation page opens on its own.
@@ -104,21 +105,18 @@ class _CareerScreenState extends State<CareerScreen> {
   }
 
   void _run(Result<String> result) {
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-
     final text = switch (result) {
       Success<String>(:final value) => value,
       Failure<String>(:final message) => message,
     };
-
-    messenger.showSnackBar(SnackBar(content: Text(text)));
 
     setState(() {});
 
     if (result.isSuccess) {
       widget.onChanged?.call();
     }
+
+    showNotice(context, text, problem: result.isFailure);
   }
 
   /// The university overlay: one list of majors, then how to pay.
@@ -207,6 +205,7 @@ class _CareerScreenState extends State<CareerScreen> {
       onTap: () => showResumeDialog(
         context,
         resume: resume,
+        birthYear: engine.state.player.birthYear,
         currentSchool: engine.state.lifeProgress.education.schoolName,
       ),
     );

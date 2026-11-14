@@ -14,6 +14,7 @@ import '../widgets/id_card_frame.dart';
 import '../widgets/life_labels.dart' show countryFlag;
 import '../widgets/love_milestones.dart';
 import '../widgets/modal_cards.dart';
+import '../widgets/notice_overlay.dart';
 import '../widgets/page_top_bar.dart';
 
 class NpcInteractionScreen extends StatefulWidget {
@@ -253,7 +254,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
           if (mounted) setState(() => _showingNarrative = false);
         });
       case Failure<NpcInteractionOutcome>(:final message):
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+        showNotice(context, message, problem: true);
     }
   }
 
@@ -377,6 +378,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
     final yes = await showAnimatedDialog<bool>(
       context: context,
       builder: (dialogContext) => ThemedDialog(
+        closable: false,
         title: 'BEST FRIEND?',
         child: Padding(
           padding: const EdgeInsets.all(14),
@@ -441,6 +443,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
     final keep = await showAnimatedDialog<bool>(
       context: context,
       builder: (dialogContext) => ThemedDialog(
+        closable: false,
         title: 'PREGNANCY',
         child: Padding(
           padding: const EdgeInsets.all(14),
@@ -579,6 +582,7 @@ class _NpcInteractionScreenState extends State<NpcInteractionScreen> {
 
     showAnimatedDialog<void>(
       context: context,
+      barrierDismissible: true,
       builder: (dialogContext) => IdCardFrame(
         key: const Key('npc-details-dialog'),
         title: _relationshipLabel.toUpperCase(),

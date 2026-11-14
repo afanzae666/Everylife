@@ -115,6 +115,7 @@ void _showFinance(BuildContext context) {
 
   showAnimatedDialog<void>(
     context: context,
+      barrierDismissible: true,
     builder: (dialogContext) => IdCardFrame(
       key: const Key('finance-overlay'),
       title: 'FINANCIAL INFORMATION',

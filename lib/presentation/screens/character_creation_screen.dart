@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../widgets/themed_app_bar.dart';
 import '../widgets/themed_cards.dart';
+import '../widgets/notice_overlay.dart';
 import 'package:flutter/services.dart';
 
 import '../../data/services/character_palette_service.dart';
@@ -225,23 +226,21 @@ void initState() {
         _lastNameController.text.trim();
 
     if (firstName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please enter your first name.',
-          ),
-        ),
+      showNotice(
+        context,
+        'Please enter your first name.',
+        title: 'Almost There',
+        emoji: '✍️',
       );
       return;
     }
 
     if (lastName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please enter your last name.',
-          ),
-        ),
+      showNotice(
+        context,
+        'Please enter your last name.',
+        title: 'Almost There',
+        emoji: '✍️',
       );
       return;
     }

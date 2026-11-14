@@ -11,6 +11,7 @@ import '../../data/services/character_palette_service.dart';
 import '../../domain/world/country_catalog.dart';
 import '../widgets/character_avatar.dart';
 import '../widgets/animated_dialog.dart';
+import '../widgets/notice_overlay.dart';
 
 /// Life Storage: every life autosaves into its own slot, and this page lists
 /// them. Tapping a life asks whether to continue it.
@@ -208,9 +209,7 @@ class _LifeStorageScreenState extends State<LifeStorageScreen> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    showNotice(context, message);
   }
 
   @override

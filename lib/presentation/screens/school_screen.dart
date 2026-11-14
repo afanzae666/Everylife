@@ -280,6 +280,7 @@ class _SchoolScreenState extends State<SchoolScreen> {
 
     showAnimatedDialog<void>(
       context: context,
+      barrierDismissible: true,
       builder: (dialogContext) => IdCardFrame(
         key: const Key('school-info'),
         title: 'SCHOOL INFORMATION',
@@ -422,6 +423,7 @@ class _SchoolScreenState extends State<SchoolScreen> {
 
     showAnimatedDialog<void>(
       context: context,
+      barrierDismissible: true,
       builder: (dialogContext) => ThemedDialog(
         title: '${club.emoji}  ${club.name.toUpperCase()}',
         child: Padding(

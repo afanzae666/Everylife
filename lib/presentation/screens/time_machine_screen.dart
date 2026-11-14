@@ -4,6 +4,7 @@ import 'package:everylife/presentation/widgets/page_top_bar.dart';
 
 import '../../core/result/result.dart';
 import '../widgets/animated_dialog.dart';
+import '../widgets/notice_overlay.dart';
 
 /// Go back to an earlier age of the current life. Only the past can be
 /// visited, and everything after the chosen age is undone.
@@ -66,10 +67,8 @@ class _TimeMachineScreenState extends State<TimeMachineScreen> {
     }
 
     if (result case Failure<void>(:final message)) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text(message)));
       setState(() {});
+      showNotice(context, message, problem: true);
       return;
     }
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:everylife/core/money/game_currency.dart';
 import 'package:everylife/core/money/money.dart';
 import 'package:everylife/presentation/widgets/page_top_bar.dart';
+import '../widgets/notice_overlay.dart';
 
 import '../../core/money/currency_formatter.dart';
 import '../../core/result/result.dart';
@@ -51,20 +52,18 @@ class _JobsScreenState extends State<JobsScreen> {
 
   void _apply(JobDefinition job) {
     final result = engine.applyForJob(job.id);
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-
     final text = switch (result) {
       Success<String>(:final value) => value,
       Failure<String>(:final message) => message,
     };
 
-    messenger.showSnackBar(SnackBar(content: Text(text)));
     setState(() {});
 
     if (result.isSuccess) {
       widget.onChanged?.call();
     }
+
+    showNotice(context, text, problem: result.isFailure);
   }
 
   @override
