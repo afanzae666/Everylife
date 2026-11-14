@@ -19,7 +19,6 @@ abstract final class SystemFlags {
   static const String schoolDropout = 'school_dropout';
   static const String lostParent = 'lost_parent';
   static const String lostSibling = 'lost_sibling';
-  static const String bankrupt = 'bankrupt';
 
   /// Love life. 'married' and 'engaged' follow the current partner.
   static const String engaged = 'engaged';
@@ -45,7 +44,6 @@ abstract final class SystemFlags {
     schoolDropout,
     lostParent,
     lostSibling,
-    bankrupt,
     engaged,
     married,
     divorced,
