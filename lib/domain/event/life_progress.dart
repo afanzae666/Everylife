@@ -1,6 +1,7 @@
 import '../career/career_state.dart';
 import '../career/education_state.dart';
 import '../career/major_catalog.dart';
+import '../career/resume.dart';
 import '../career/school_npc.dart';
 import '../love/love_state.dart';
 
@@ -188,6 +189,7 @@ class LifeProgress {
     this.interactionCounts = const <String, int>{},
     this.friends = const <SchoolNpc>[],
     this.love = const LoveState(),
+    this.resume = const <ResumeEntry>[],
   });
 
   /// Story flags set by earlier outcomes (for example "bullied").
@@ -218,6 +220,9 @@ class LifeProgress {
   /// Partner, pregnancy and children.
   final LoveState love;
 
+  /// Schools attended and jobs held, in the order they started.
+  final List<ResumeEntry> resume;
+
   bool hasFlag(String flag) => flags.contains(flag);
 
   bool get isAlive => ending == null;
@@ -234,6 +239,7 @@ class LifeProgress {
     Map<String, int>? interactionCounts,
     List<SchoolNpc>? friends,
     LoveState? love,
+    List<ResumeEntry>? resume,
   }) {
     return LifeProgress(
       flags: flags ?? this.flags,
@@ -246,6 +252,7 @@ class LifeProgress {
       interactionCounts: interactionCounts ?? this.interactionCounts,
       friends: friends ?? this.friends,
       love: love ?? this.love,
+      resume: resume ?? this.resume,
     );
   }
 
@@ -261,6 +268,8 @@ class LifeProgress {
         if (friends.isNotEmpty)
           'friends': [for (final friend in friends) friend.toJson()],
         if (!love.isEmpty) 'love': love.toJson(),
+        if (resume.isNotEmpty)
+          'resume': [for (final entry in resume) entry.toJson()],
       };
 
   /// Reads saved progress. Missing or malformed data (for example from a
@@ -308,6 +317,12 @@ class LifeProgress {
             ]
           : const <SchoolNpc>[],
       love: LoveState.fromJson(json['love']),
+      resume: json['resume'] is List
+          ? [
+              for (final raw in json['resume'] as List)
+                if (ResumeEntry.fromJson(raw) case final entry?) entry,
+            ]
+          : const <ResumeEntry>[],
     );
   }
 }
