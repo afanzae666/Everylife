@@ -14,6 +14,9 @@ class CareerState {
     this.lastRaiseRequestYear,
     this.retired = false,
     this.pensionBase = 0,
+    this.partTimeId,
+    this.gigYear,
+    this.gigsDone = 0,
   });
 
   /// Id of the current job in the job catalog, or null when not employed.
@@ -35,7 +38,21 @@ class CareerState {
   final bool retired;
   final int pensionBase;
 
+  /// Id of the part-time job in the part-time catalog, or null.
+  final String? partTimeId;
+
+  /// The year [gigsDone] counts gigs for.
+  final int? gigYear;
+
+  /// Gigs done in [gigYear].
+  final int gigsDone;
+
   bool get hasJob => jobId != null;
+
+  bool get hasPartTime => partTimeId != null;
+
+  /// Gigs done in [year] (zero when the counter belongs to another year).
+  int gigsIn(int year) => gigYear == year ? gigsDone : 0;
 
   CareerState copyWith({
     String? jobId,
@@ -49,6 +66,10 @@ class CareerState {
     int? lastRaiseRequestYear,
     bool? retired,
     int? pensionBase,
+    String? partTimeId,
+    bool clearPartTime = false,
+    int? gigYear,
+    int? gigsDone,
   }) {
     return CareerState(
       jobId: clearJob ? null : (jobId ?? this.jobId),
@@ -61,6 +82,9 @@ class CareerState {
       lastRaiseRequestYear: lastRaiseRequestYear ?? this.lastRaiseRequestYear,
       retired: retired ?? this.retired,
       pensionBase: pensionBase ?? this.pensionBase,
+      partTimeId: clearPartTime ? null : (partTimeId ?? this.partTimeId),
+      gigYear: gigYear ?? this.gigYear,
+      gigsDone: gigsDone ?? this.gigsDone,
     );
   }
 
@@ -77,6 +101,9 @@ class CareerState {
           'lastRaiseRequestYear': lastRaiseRequestYear,
         'retired': retired,
         'pensionBase': pensionBase,
+        if (partTimeId != null) 'partTimeId': partTimeId,
+        if (gigYear != null) 'gigYear': gigYear,
+        if (gigsDone > 0) 'gigsDone': gigsDone,
       };
 
   factory CareerState.fromJson(Object? json) {
@@ -98,6 +125,10 @@ class CareerState {
           : null,
       retired: json['retired'] == true,
       pensionBase: intOr(json['pensionBase'], 0).clamp(0, 1 << 40).toInt(),
+      partTimeId:
+          json['partTimeId'] is String ? json['partTimeId'] as String : null,
+      gigYear: json['gigYear'] is int ? json['gigYear'] as int : null,
+      gigsDone: intOr(json['gigsDone'], 0).clamp(0, 1000).toInt(),
     );
   }
 }
