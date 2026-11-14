@@ -5,13 +5,17 @@ import 'package:everylife/core/money/money.dart';
 import '../../core/random/seeded_random.dart';
 import '../../core/result/result.dart';
 import '../../domain/career/education_state.dart';
+import '../../domain/career/gig_catalog.dart';
 import '../../domain/career/job_catalog.dart';
 import '../../domain/career/major_catalog.dart';
+import '../../domain/career/part_time_catalog.dart';
 import '../../domain/career/tuition_funding.dart';
 import '../../domain/family/parent_npc.dart';
+import '../../domain/event/life_event.dart';
 import '../../domain/event/life_progress.dart';
 import '../../domain/event/simulation_event.dart';
 import '../../domain/world/world_state.dart';
+import '../events/life_effect_applier.dart';
 import '../events/money_text.dart';
 import '../generation/country_economic_profile.dart';
 import '../narrative/tuition_narratives.dart';
@@ -354,6 +358,8 @@ abstract final class CareerActions {
         salaryBase: hired ? job.salaryAt(0) : null,
         performance: hired ? 60 : null,
         yearsInRole: hired ? 0 : null,
+        // A full-time job replaces the part-time one.
+        clearPartTime: hired,
       ),
       flags: hired
           ? {...state.lifeProgress.flags, SystemFlags.employed}
@@ -377,6 +383,199 @@ abstract final class CareerActions {
             : 'They chose someone else this time.',
       ),
     );
+  }
+
+  // --- Gigs ------------------------------------------------------------
+
+  /// Gigs the player is old enough for.
+  static List<GigDefinition> availableGigs(WorldState state) {
+    final age = state.player.ageAt(state.clock.currentYear);
+
+    return [
+      for (final gig in GigCatalog.all)
+        if (age >= gig.minAge) gig,
+    ];
+  }
+
+  /// How many more gigs the player can do this year.
+  static int gigsLeft(WorldState state) {
+    final done =
+        state.lifeProgress.career.gigsIn(state.clock.currentYear);
+
+    return (GigCatalog.perYear - done).clamp(0, GigCatalog.perYear).toInt();
+  }
+
+  /// Chance (percent) that a gig goes well.
+  static int gigChance(WorldState state, GigDefinition gig) {
+    final value = state.player.stats.valueOf(gig.stat);
+
+    return (55 + (value - 50) ~/ 2).clamp(30, 92).toInt();
+  }
+
+  static Result<CareerActionResult> doGig({
+    required WorldState state,
+    required SeededRandom random,
+    required String gigId,
+  }) {
+    final guard = _ensureActive(state);
+
+    if (guard case Failure<void>(:final message)) {
+      return Failure(message);
+    }
+
+    final gig = GigCatalog.byId(gigId);
+
+    if (gig == null) {
+      return const Failure('That gig does not exist.');
+    }
+
+    final year = state.clock.currentYear;
+    final age = state.player.ageAt(year);
+
+    if (age < gig.minAge) {
+      return const Failure('I am too young for that gig.');
+    }
+
+    if (gigsLeft(state) == 0) {
+      return const Failure(
+        'I have done enough gigs for one year. I can look for more after my '
+        'next birthday.',
+      );
+    }
+
+    final won = random.nextInt(100) < gigChance(state, gig);
+    final span = gig.maxPay - gig.minPay;
+    final base = won
+        ? gig.minPay + (span <= 0 ? 0 : random.nextInt(span + 1))
+        : gig.minPay ~/ 2;
+    final pay = LifeEffectApplier.scaleMoney(state, base);
+    final career = state.lifeProgress.career;
+    final stats = state.player.stats;
+    final text = won ? gig.win : gig.lose;
+    final message = '$text (${MoneyText.of(state, pay)})';
+
+    final next = _log(
+      state.copyWith(
+        player: state.player.copyWith(
+          money: state.player.money + Money.fromMinorUnits(pay),
+          stats: stats.copyWith(
+            happiness: stats.happiness + (won ? 1 : -1),
+          ),
+        ),
+        lifeProgress: state.lifeProgress.copyWith(
+          career: career.copyWith(
+            gigYear: year,
+            gigsDone: career.gigsIn(year) + 1,
+          ),
+        ),
+      ),
+      type: SimulationEventType.career,
+      title: gig.title,
+      text: message,
+    );
+
+    return Success(CareerActionResult(state: next, message: message));
+  }
+
+  // --- Part-time jobs ----------------------------------------------------
+
+  /// Part-time jobs the player is old enough for. They fit next to school,
+  /// but not next to a full-time job or retirement.
+  static List<PartTimeJob> availablePartTimeJobs(WorldState state) {
+    final career = state.lifeProgress.career;
+
+    if (career.hasJob || career.retired) return const <PartTimeJob>[];
+
+    final age = state.player.ageAt(state.clock.currentYear);
+
+    return [
+      for (final job in PartTimeCatalog.all)
+        if (age >= job.minAge) job,
+    ];
+  }
+
+  static Result<CareerActionResult> startPartTime({
+    required WorldState state,
+    required String jobId,
+  }) {
+    final guard = _ensureActive(state);
+
+    if (guard case Failure<void>(:final message)) {
+      return Failure(message);
+    }
+
+    final career = state.lifeProgress.career;
+    final job = PartTimeCatalog.byId(jobId);
+
+    if (job == null) {
+      return const Failure('That part-time job does not exist.');
+    }
+
+    if (career.hasJob) {
+      return const Failure(
+        'I already work full time, so there is no room for a part-time job.',
+      );
+    }
+
+    if (career.retired) {
+      return const Failure('I am retired and no longer looking for work.');
+    }
+
+    if (career.partTimeId == job.id) {
+      return const Failure('I already work there.');
+    }
+
+    if (!availablePartTimeJobs(state).any((item) => item.id == job.id)) {
+      return const Failure('I am too young for that job.');
+    }
+
+    final previous = PartTimeCatalog.byId(career.partTimeId);
+    final text = previous == null
+        ? 'I started a part-time job as ${job.title.toLowerCase()}.'
+        : 'I left my part-time job as ${previous.title.toLowerCase()} and '
+            'started as ${job.title.toLowerCase()}.';
+
+    final next = _log(
+      state.copyWith(
+        lifeProgress: state.lifeProgress.copyWith(
+          career: career.copyWith(partTimeId: job.id),
+        ),
+      ),
+      type: SimulationEventType.career,
+      title: 'Part-time job',
+      text: text,
+    );
+
+    return Success(CareerActionResult(state: next, message: text));
+  }
+
+  static Result<CareerActionResult> quitPartTime(WorldState state) {
+    final guard = _ensureActive(state);
+
+    if (guard case Failure<void>(:final message)) {
+      return Failure(message);
+    }
+
+    final career = state.lifeProgress.career;
+    final job = PartTimeCatalog.byId(career.partTimeId);
+
+    if (job == null) {
+      return const Failure('I do not have a part-time job to quit.');
+    }
+
+    final text = 'I quit my part-time job as ${job.title.toLowerCase()}.';
+    final next = _log(
+      state.copyWith(
+        lifeProgress: state.lifeProgress.copyWith(
+          career: career.copyWith(clearPartTime: true),
+        ),
+      ),
+      type: SimulationEventType.career,
+      title: 'Quit part-time job',
+      text: text,
+    );
+
+    return Success(CareerActionResult(state: next, message: text));
   }
 
   static Result<CareerActionResult> quitJob(WorldState state) {
