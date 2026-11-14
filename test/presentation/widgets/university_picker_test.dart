@@ -18,6 +18,7 @@ List<UniversityMajorOption> _options() => [
 Future<List<UniversityChoice>> _pump(
   WidgetTester tester, {
   Set<TuitionFunding> refuse = const {},
+  String? sportsClub,
 }) async {
   final chosen = <UniversityChoice>[];
 
@@ -36,6 +37,7 @@ Future<List<UniversityChoice>> _pump(
                     text: 'That did not work out.',
                   )
                 : const TuitionAnswer.approved(),
+            sportsClub: sportsClub,
             onChoose: chosen.add,
           ),
         ),
@@ -80,6 +82,8 @@ void main() {
     expect(find.text('Total tuition'), findsOneWidget);
 
     for (final funding in TuitionFunding.values) {
+      if (funding == TuitionFunding.sports) continue;
+
       await _scrollTo(tester, find.byKey(Key('funding-${funding.name}')));
       expect(find.byKey(Key('funding-${funding.name}')), findsOneWidget);
     }
@@ -146,5 +150,27 @@ void main() {
 
     expect(find.byKey(const Key('major-business')), findsOneWidget);
     expect(find.byKey(const Key('funding-prompt')), findsNothing);
+  });
+
+  testWidgets('the sports scholarship shows only with an offer', (tester) async {
+    await _pump(tester);
+    await tester.tap(find.byKey(const Key('major-business')));
+    await tester.pump();
+
+    expect(find.byKey(const Key('funding-sports')), findsNothing);
+  });
+
+  testWidgets('with an offer the sports scholarship is chosen right away', (
+    tester,
+  ) async {
+    final chosen = await _pump(tester, sportsClub: 'Basketball Team');
+
+    await tester.tap(find.byKey(const Key('major-business')));
+    await tester.pump();
+    await _scrollTo(tester, find.byKey(const Key('funding-sports')));
+    await tester.tap(find.byKey(const Key('funding-sports')));
+    await tester.pump();
+
+    expect(chosen.single.funding, TuitionFunding.sports);
   });
 }
