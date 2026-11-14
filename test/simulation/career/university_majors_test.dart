@@ -917,7 +917,10 @@ void main() {
         if (!engine.state.lifeProgress.education.isStudent) continue;
 
         expect(engine.state.lifeProgress.education.majorId, 'law');
-        expect(engine.state.lifeProgress.resume.last.detail, 'Law');
+        expect(
+          engine.state.lifeProgress.resume.last.detail,
+          MajorCatalog.byId('law')!.name,
+        );
         return;
       }
 

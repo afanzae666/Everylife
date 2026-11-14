@@ -5,6 +5,7 @@ import 'package:everylife/data/repositories/save_repository.dart';
 import 'package:everylife/domain/career/career_state.dart';
 import 'package:everylife/domain/career/education_state.dart';
 import 'package:everylife/domain/career/job_catalog.dart';
+import 'package:everylife/domain/career/major_catalog.dart';
 import 'package:everylife/domain/career/resume.dart';
 import 'package:everylife/domain/character/character.dart';
 import 'package:everylife/domain/event/life_progress.dart';
@@ -137,7 +138,7 @@ void main() {
       final line = started.lifeProgress.resume.single;
 
       expect(line.title, 'University');
-      expect(line.detail, 'Business');
+      expect(line.detail, MajorCatalog.byId('business')!.name);
 
       final graduated = ResumeTracker.record(
         before: started,
@@ -202,7 +203,7 @@ void main() {
 
       expect(resume, hasLength(2));
       expect(resume.first.isDegree, isTrue);
-      expect(resume.last.detail, 'Law');
+      expect(resume.last.detail, MajorCatalog.byId('law')!.name);
       expect(resume.last.isOngoing, isTrue);
     });
   });
