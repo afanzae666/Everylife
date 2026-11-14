@@ -7,8 +7,10 @@ import '../../data/repositories/save_repository.dart';
 import '../../data/services/save_manager.dart';
 import 'package:everylife/core/money/money.dart';
 import '../../domain/character/character.dart';
+import '../../domain/career/gig_catalog.dart';
 import '../../domain/career/job_catalog.dart';
 import '../../domain/career/major_catalog.dart';
+import '../../domain/career/part_time_catalog.dart';
 import '../../domain/career/tuition_funding.dart';
 import '../career/resume_tracker.dart';
 import '../../domain/character/life_stage.dart';
@@ -170,6 +172,30 @@ class SimulationEngine {
       );
 
   Result<String> quitJob() => _commitAction(CareerActions.quitJob(_state));
+
+  /// Gigs the player is old enough for.
+  List<GigDefinition> get availableGigs => CareerActions.availableGigs(_state);
+
+  /// Gigs the player can still do this year.
+  int get gigsLeft => CareerActions.gigsLeft(_state);
+
+  /// Chance (percent) that [gig] goes well.
+  int gigChance(GigDefinition gig) => CareerActions.gigChance(_state, gig);
+
+  Result<String> doGig(String gigId) => _commitAction(
+        CareerActions.doGig(state: _state, random: _random, gigId: gigId),
+      );
+
+  /// Part-time jobs the player is old enough for.
+  List<PartTimeJob> get availablePartTimeJobs =>
+      CareerActions.availablePartTimeJobs(_state);
+
+  Result<String> startPartTime(String jobId) => _commitAction(
+        CareerActions.startPartTime(state: _state, jobId: jobId),
+      );
+
+  Result<String> quitPartTime() =>
+      _commitAction(CareerActions.quitPartTime(_state));
 
   Result<String> askForRaise() => _commitAction(
         CareerActions.askForRaise(state: _state, random: _random),
