@@ -654,7 +654,14 @@ class _GameScreenState extends State<GameScreen> {
       case CrossroadsChoice.work:
         _openCareerPage(start: CareerStart.jobs);
       case CrossroadsChoice.rest:
-        _showTurnMessage(CrossroadsNarratives.restDone(seed));
+        final result = engine.takeBreak(CrossroadsNarratives.restDone(seed));
+
+        if (result case Success<String>(:final value)) {
+          setState(() {});
+          _scrollLifeEventsToBottom();
+          _showTurnMessage(value);
+          await engine.save();
+        }
     }
   }
 
