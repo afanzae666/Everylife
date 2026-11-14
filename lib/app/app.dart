@@ -16,6 +16,7 @@ import 'app_dependencies.dart';
 import 'theme/everylife_theme.dart';
 import 'theme/everylife_theme_mode_controller.dart';
 import '../presentation/widgets/animated_dialog.dart';
+import '../presentation/widgets/notice_overlay.dart';
 
 class LifeSimulationApp extends StatefulWidget {
   const LifeSimulationApp({
@@ -293,12 +294,10 @@ class _LifeSimulationAppState
       final navigatorContext = _navigatorKey.currentContext;
 
       if (navigatorContext != null) {
-        ScaffoldMessenger.of(navigatorContext).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Unable to save your new life. Please try again.',
-            ),
-          ),
+        showNotice(
+          navigatorContext,
+          'Unable to save your new life. Please try again.',
+          problem: true,
         );
       }
 
@@ -393,12 +392,10 @@ class _LifeSimulationAppState
       final navigatorContext = _navigatorKey.currentContext;
 
       if (navigatorContext != null) {
-        ScaffoldMessenger.of(navigatorContext).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Unable to save your new life. Please try again.',
-            ),
-          ),
+        showNotice(
+          navigatorContext,
+          'Unable to save your new life. Please try again.',
+          problem: true,
         );
       }
 
