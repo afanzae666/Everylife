@@ -174,6 +174,10 @@ abstract final class CareerActions {
     }
 
     switch (how) {
+      case TuitionFunding.sports:
+        return state.lifeProgress.education.sportsOffer != null
+            ? const TuitionAnswer.approved()
+            : refuse(TuitionRefusal.noOffer);
       case TuitionFunding.loan:
         return const TuitionAnswer.approved();
       case TuitionFunding.self:
@@ -454,7 +458,8 @@ abstract final class CareerActions {
       return Failure(answer.text ?? 'That way of paying is not possible.');
     }
 
-    final accepted = random.nextInt(100) < admissionChance(state, major);
+    final accepted = funding == TuitionFunding.sports ||
+        random.nextInt(100) < admissionChance(state, major);
 
     if (!accepted) {
       final next = _log(
@@ -478,6 +483,9 @@ abstract final class CareerActions {
     final String how;
 
     switch (funding) {
+      case TuitionFunding.sports:
+        how = 'The ${education.sportsOffer} team recruited me, and the '
+            'university paid all of it.';
       case TuitionFunding.scholarship:
         final covered = total * scholarshipShare(state, majorId) ~/ 100;
         final rest = total - covered;
@@ -545,6 +553,8 @@ abstract final class CareerActions {
             stage: SchoolStage.university,
             yearsInStage: 0,
             majorId: major.id,
+            clearClub: true,
+            clearSportsOffer: true,
           ),
           flags: flags,
         ),
@@ -590,6 +600,7 @@ abstract final class CareerActions {
             stage: SchoolStage.none,
             yearsInStage: 0,
             clearMajor: education.stage == SchoolStage.university,
+            clearClub: true,
           ),
           flags: flags,
         ),
